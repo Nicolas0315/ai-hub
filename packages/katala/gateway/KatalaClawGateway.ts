@@ -23,13 +23,19 @@ export class KatalaClawGateway {
         this.server = http.createServer(async (req, res) => {
             const clientIp = req.socket.remoteAddress || 'unknown';
             
+            // Log incoming connection following Apple HIG (clear and professional)
+            console.log(`[Gateway] ⚯ Incoming connection from ${clientIp}`);
+
             // 1. Secure Handshake using Tailscale Identity
             const isAuthorized = await this.manager.verifyIdentity(clientIp);
             
             if (!isAuthorized) {
                 console.warn(`[Gateway] ⚠ Unauthorized connection attempt from ${clientIp}`);
                 res.writeHead(403, { 'Content-Type': 'application/json' });
-                res.end(JSON.stringify({ error: 'Forbidden: Untrusted Tailscale identity' }));
+                res.end(JSON.stringify({ 
+                    error: 'Forbidden: Untrusted Tailscale identity',
+                    detail: 'Access is limited to verified Tailscale nodes within the private network.'
+                }));
                 return;
             }
 
@@ -38,7 +44,11 @@ export class KatalaClawGateway {
                 this.handleMediation(req, res);
             } else if (req.method === 'GET' && req.url === '/health') {
                 res.writeHead(200, { 'Content-Type': 'application/json' });
-                res.end(JSON.stringify({ status: 'active', bridge: 'Katala-Claw' }));
+                res.end(JSON.stringify({ 
+                    status: 'active', 
+                    bridge: 'Katala-Claw',
+                    identity: 'verified' 
+                }));
             } else {
                 res.writeHead(404);
                 res.end();
@@ -60,13 +70,19 @@ export class KatalaClawGateway {
         req.on('end', async () => {
             try {
                 const synergyReq = JSON.parse(body);
+                
+                // Process through LocalMediationManager
                 const result = await this.manager.mediate(synergyReq);
                 
                 res.writeHead(200, { 'Content-Type': 'application/json' });
                 res.end(JSON.stringify(result));
             } catch (error) {
+                console.error(`[Gateway] ✕ Mediation Error:`, error);
                 res.writeHead(500, { 'Content-Type': 'application/json' });
-                res.end(JSON.stringify({ error: 'Internal Mediation Error' }));
+                res.end(JSON.stringify({ 
+                    error: 'Internal Mediation Error',
+                    message: error instanceof Error ? error.message : 'Unknown error'
+                }));
             }
         });
     }
