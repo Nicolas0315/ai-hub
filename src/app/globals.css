@@ -1,34 +1,30 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #1d1d1f;
-  --accent: #0071e3;
-  --secondary: #86868b;
-  --glass-bg: rgba(255, 255, 255, 0.7);
+@theme {
+  --color-background: #ffffff;
+  --color-foreground: #1d1d1f;
+  --color-accent: #0071e3;
+  --color-secondary: #86868b;
+  --color-glass-bg: rgba(255, 255, 255, 0.7);
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
-    --background: #000000;
-    --foreground: #f5f5f7;
-    --accent: #0071e3;
-    --secondary: #86868b;
-    --glass-bg: rgba(29, 29, 31, 0.7);
+  @theme {
+    --color-background: #000000;
+    --color-foreground: #f5f5f7;
+    --color-glass-bg: rgba(29, 29, 31, 0.7);
   }
 }
 
 body {
-  color: var(--foreground);
-  background: var(--background);
+  color: var(--color-foreground);
+  background: var(--color-background);
   font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
 }
 
 .apple-glass {
-  background: var(--glass-bg);
+  background: var(--color-glass-bg);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border: 1px solid rgba(255, 255, 255, 0.1);
@@ -36,7 +32,7 @@ body {
 
 .apple-button {
   @apply px-4 py-2 rounded-full font-medium transition-all duration-200;
-  background-color: var(--accent);
+  background-color: var(--color-accent);
   color: white;
 }
 
