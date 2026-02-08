@@ -1,0 +1,10 @@
+
+# Katala specific
+node_modules/
+.next/
+out/
+build/
+dist/
+.DS_Store
+*.env
+*.env.local
