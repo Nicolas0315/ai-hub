@@ -1,33 +1,47 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "IdentityVector",
-  "description": "A dynamic multi-dimensional profile of a user's personality, values, and preferences.",
+  "description": "A dynamic multi-dimensional profile of a user's personality (MBTI++), values, and preferences.",
   "type": "object",
   "properties": {
     "personality": {
       "type": "object",
-      "description": "MBTI-inspired traits with continuous scales (0.0 to 1.0).",
+      "description": "MBTI++ 16 Identity Dimensions (0.0 to 1.0).",
       "properties": {
-        "extraversion": { "type": "number", "minimum": 0, "maximum": 1 },
-        "intuition": { "type": "number", "minimum": 0, "maximum": 1 },
-        "thinking": { "type": "number", "minimum": 0, "maximum": 1 },
-        "judging": { "type": "number", "minimum": 0, "maximum": 1 }
+        "extraversion_introversion": { "type": "number", "minimum": 0, "maximum": 1 },
+        "sensing_intuition": { "type": "number", "minimum": 0, "maximum": 1 },
+        "thinking_feeling": { "type": "number", "minimum": 0, "maximum": 1 },
+        "judging_perceiving": { "type": "number", "minimum": 0, "maximum": 1 },
+        "assertive_turbulent": { "type": "number", "minimum": 0, "maximum": 1 },
+        "systematic_adaptive": { "type": "number", "minimum": 0, "maximum": 1 },
+        "direct_diplomatic": { "type": "number", "minimum": 0, "maximum": 1 },
+        "individualism_collectivism": { "type": "number", "minimum": 0, "maximum": 1 },
+        "practical_theoretical": { "type": "number", "minimum": 0, "maximum": 1 },
+        "fast_deliberate": { "type": "number", "minimum": 0, "maximum": 1 },
+        "cautious_bold": { "type": "number", "minimum": 0, "maximum": 1 },
+        "micro_macro": { "type": "number", "minimum": 0, "maximum": 1 },
+        "internal_external": { "type": "number", "minimum": 0, "maximum": 1 },
+        "task_people": { "type": "number", "minimum": 0, "maximum": 1 },
+        "proactive_reactive": { "type": "number", "minimum": 0, "maximum": 1 },
+        "mode_specialist_generalist": { "type": "number", "minimum": 0, "maximum": 1 }
       },
-      "required": ["extraversion", "intuition", "thinking", "judging"]
+      "required": [
+        "extraversion_introversion", "sensing_intuition", "thinking_feeling", "judging_perceiving",
+        "assertive_turbulent", "systematic_adaptive", "direct_diplomatic", "individualism_collectivism",
+        "practical_theoretical", "fast_deliberate", "cautious_bold", "micro_macro", "internal_external",
+        "task_people", "proactive_reactive", "mode_specialist_generalist"
+      ]
     },
     "values": {
       "type": "array",
-      "description": "Core principles or motivators (e.g., 'autonomy', 'community', 'growth').",
       "items": { "type": "string" }
     },
     "professionalFocus": {
       "type": "array",
-      "description": "Areas of expertise or current career interests.",
       "items": { "type": "string" }
     },
     "socialEnergy": {
       "type": "object",
-      "description": "Current social battery and interaction preferences.",
       "properties": {
         "battery": { "type": "number", "minimum": 0, "maximum": 1 },
         "preferredTone": { "type": "string", "enum": ["concise", "enthusiastic", "professional", "casual"] }
