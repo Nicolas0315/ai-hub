@@ -210,3 +210,9 @@ The goal: Be helpful without being annoying. Check in a few times a day, do usef
 ## Make It Yours
 
 This is a starting point. Add your own conventions, style, and rules as you figure out what works.
+
+## Katala Project Rules (Update 2026-02-08)
+- **Hierarchy**: Sirokuma (Main / Orchestrator / COO) manages Katala development. Kani is an auxiliary asset.
+- **Communication**: English for technical backchannel, Japanese for human reports.
+- **Privacy**: Implement ZK Identity Vectors for all profiling data.
+- **Delivery**: Progress is paramount. Minimize friction, maximize implementation speed.
