@@ -3,7 +3,7 @@
 ## Development Guidelines
 - **Framework**: Next.js (App Router), Tailwind CSS.
 - **Style**: Follow Apple Human Interface Guidelines (HIG).
-- **Security**: No .env files. Use 1Password CLI (op) for all secrets.
+- **Security**: NO .env files or personal config files should EVER be committed. Use 1Password CLI (op) for all secrets. Ensure `.env*` and sensitive files are always in `.gitignore`.
 - **Architecture**: Zero-Knowledge (ZK) patterns for privacy-sensitive identity vectors.
 
 ## Language
