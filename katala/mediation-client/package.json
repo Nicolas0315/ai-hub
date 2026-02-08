@@ -1,0 +1,16 @@
+{
+  "name": "katala-mediation-client",
+  "version": "1.0.0",
+  "description": "Katala Mediation Client for gRPC and HTTP",
+  "main": "index.js",
+  "dependencies": {
+    "@grpc/grpc-js": "^1.9.0",
+    "@grpc/proto-loader": "^0.7.8",
+    "axios": "^1.5.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0",
+    "ts-node": "^10.9.1",
+    "@types/node": "^20.0.0"
+  }
+}
