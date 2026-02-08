@@ -1,9 +1,9 @@
 {
-  "last_check": "2026-02-08T08:05:00Z",
+  "last_check": "2026-02-08T09:00:00Z",
   "openclaw/openclaw": {
-    "issue": 11751,
-    "pr": 11750,
-    "run": 21794782691
+    "issue": 11777,
+    "pr": 11779,
+    "run": 21795503300
   },
   "ei-ai/eiai": {
     "issue": 0,

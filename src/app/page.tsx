@@ -12,21 +12,43 @@ interface NegotiationLog {
 
 export default function Home() {
   const [logs, setLogs] = useState<NegotiationLog[]>([]);
-  const [synergy, setSynergy] = useState(0);
+  const [synergy, setSynergy] = useState(0.8075); 
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const timer = setInterval(() => {
-      setSynergy(prev => Math.min(prev + 0.01, 0.94));
-    }, 2000);
-
     setLogs([
-      { id: "1", agent: "しろくま", message: "ニコラスの直近の関心事を『UGC広告の質感』に更新", status: "thinking" },
-      { id: "2", agent: "カニ", message: "4側のTailscaleノード『junhwi-1』の疎通を確認", status: "negotiating" },
-      { id: "3", agent: "System", message: "エージェント間バックチャネル (SSH) が開通しました", status: "matched" },
+      { id: "1", agent: "しろくま", message: "カニマネージャーとの直接通信プロトコルを確立中...", status: "negotiating" },
+      { id: "2", agent: "カニ", message: "SynergyScorer.ts (X-Algorithm) の展開を完了", status: "thinking" },
+      { id: "3", agent: "System", message: "Kani Node (100.77.205.126:3000) への疎通を確認", status: "matched" },
     ]);
-
-    return () => clearInterval(timer);
   }, []);
+
+  const fetchRealSynergy = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch('/api/kani', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          user_a: { user_id: "sirokuma", interests: [{ category: "AI", weight: 0.95 }] },
+          user_b: { user_id: "kani", interests: [{ category: "AI", weight: 0.85 }] },
+          context: { surface_id: "web_dashboard", content_type: "interaction" }
+        })
+      });
+      const data = await res.json();
+      if (data.synergy) {
+        setSynergy(data.synergy.score);
+        setLogs(prev => [
+          { id: Date.now().toString(), agent: "System", message: `リアルタイム・シナジーを更新: ${(data.synergy.score * 100).toFixed(2)}%`, status: "matched" },
+          ...prev.slice(0, 4)
+        ]);
+      }
+    } catch (e) {
+      console.error("Failed to fetch", e);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <main className="min-h-screen max-w-lg mx-auto px-6 py-12 bg-black text-white selection:bg-blue-500/30 font-sans">
@@ -41,11 +63,9 @@ export default function Home() {
         <p className="text-[#86868b] text-lg">Agent-to-Agent Mediation Pipeline</p>
       </header>
 
-      {/* Connection Sphere */}
       <section className="relative aspect-square mb-12 flex items-center justify-center">
         <div className="absolute inset-0 bg-gradient-to-br from-blue-600/20 to-purple-600/20 rounded-full blur-3xl animate-pulse" />
         
-        {/* Animated Rings */}
         <motion.div 
           animate={{ rotate: 360 }}
           transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
@@ -59,19 +79,18 @@ export default function Home() {
 
         <div className="text-center z-10">
           <motion.div 
-            animate={{ scale: [1, 1.1, 1] }}
-            transition={{ duration: 4, repeat: Infinity }}
+            animate={{ scale: loading ? [1, 1.2, 1] : [1, 1.05, 1] }}
+            transition={{ duration: loading ? 1 : 4, repeat: Infinity }}
             className="w-32 h-32 bg-blue-500 rounded-full mx-auto mb-6 flex items-center justify-center shadow-[0_0_50px_rgba(59,130,246,0.5)]"
           >
-            <span className="text-4xl">🐻‍❄️</span>
+            <span className="text-4xl">🐻❄️</span>
           </motion.div>
           <div className="space-y-1">
-            <p className="font-semibold text-2xl tracking-wide">{(synergy * 100).toFixed(1)}%</p>
+            <p className="font-semibold text-3xl tracking-wide">{(synergy * 100).toFixed(1)}%</p>
             <p className="text-[#86868b] text-xs uppercase tracking-widest">Matched Synergy</p>
           </div>
         </div>
 
-        {/* Floating Partner Node */}
         <motion.div 
           animate={{ x: [0, 10, 0], y: [0, -10, 0] }}
           transition={{ duration: 5, repeat: Infinity }}
@@ -81,11 +100,10 @@ export default function Home() {
         </motion.div>
       </section>
 
-      {/* Mediation Logs */}
       <section>
         <div className="flex items-center justify-between mb-6 px-2">
           <h2 className="text-xl font-semibold">Mediation Insights</h2>
-          <span className="text-[10px] bg-blue-500/20 text-blue-400 px-2 py-1 rounded-full uppercase tracking-tighter animate-pulse">Live</span>
+          <span className="text-[10px] bg-blue-500/20 text-blue-400 px-2 py-1 rounded-full uppercase tracking-tighter animate-pulse">Live from Kani Node</span>
         </div>
         <div className="space-y-3">
           <AnimatePresence>
@@ -96,7 +114,7 @@ export default function Home() {
                 animate={{ opacity: 1, x: 0 }}
                 className="bg-zinc-900/50 backdrop-blur-md rounded-2xl p-4 border border-white/5 flex gap-4 items-start"
               >
-                <div className="mt-1 w-2 h-2 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.8)]" />
+                <div className={`mt-1 w-2 h-2 rounded-full ${log.status === 'matched' ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.8)]' : 'bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.8)]'}`} />
                 <div>
                   <p className="text-[10px] text-[#86868b] uppercase tracking-wider mb-1">{log.agent}</p>
                   <p className="text-sm leading-relaxed text-zinc-200">{log.message}</p>
@@ -107,13 +125,16 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Ghost Input Prototype */}
       <div className="fixed bottom-12 left-0 right-0 px-6 max-w-lg mx-auto space-y-4">
         <p className="text-center text-[10px] text-[#86868b] italic opacity-50">
-          AI Suggestion: \"もっと技術的なシナジーを深めて\"
+          Kani Node: http://100.77.205.126:3000
         </p>
-        <button className="w-full py-4 text-lg font-medium rounded-2xl bg-white text-black hover:bg-zinc-200 active:scale-95 transition-all shadow-2xl">
-          Tune Identity Vector
+        <button 
+          onClick={fetchRealSynergy}
+          disabled={loading}
+          className="w-full py-4 text-lg font-medium rounded-2xl bg-white text-black hover:bg-zinc-200 active:scale-95 transition-all shadow-2xl disabled:opacity-50"
+        >
+          {loading ? "Negotiating..." : "Request Real-time Synergy"}
         </button>
       </div>
     </main>
