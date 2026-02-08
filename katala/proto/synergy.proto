@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package synergy;
+
+service Mediation {
+  rpc Handshake (HandshakeRequest) returns (HandshakeResponse);
+}
+
+message HandshakeRequest {
+  string client_id = 1;
+  string version = 2;
+}
+
+message HandshakeResponse {
+  bool success = 1;
+  string message = 2;
+}
