@@ -21,9 +21,12 @@ Things like:
 - living-room → Main area, 180° wide angle
 - front-door → Entrance, motion-triggered
 
-### SSH
+### Remote Hosts
 
-- home-server → 192.168.1.100, user: admin
+- **Kani (4's WSL)**: 100.77.205.126, User: Shirokuma, Port: 2222
+  - SSH Info stored in 1Password `Katala` vault.
+  - Claude: Pro plan ($20/mo) - use for quick/complex reasoning.
+  - Codex: High limits - use for long background tasks and massive refactoring.
 
 ### TTS
 
