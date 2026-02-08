@@ -1,0 +1,47 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "IdentityVector",
+  "description": "A dynamic multi-dimensional profile of a user's personality, values, and preferences.",
+  "type": "object",
+  "properties": {
+    "personality": {
+      "type": "object",
+      "description": "MBTI-inspired traits with continuous scales (0.0 to 1.0).",
+      "properties": {
+        "extraversion": { "type": "number", "minimum": 0, "maximum": 1 },
+        "intuition": { "type": "number", "minimum": 0, "maximum": 1 },
+        "thinking": { "type": "number", "minimum": 0, "maximum": 1 },
+        "judging": { "type": "number", "minimum": 0, "maximum": 1 }
+      },
+      "required": ["extraversion", "intuition", "thinking", "judging"]
+    },
+    "values": {
+      "type": "array",
+      "description": "Core principles or motivators (e.g., 'autonomy', 'community', 'growth').",
+      "items": { "type": "string" }
+    },
+    "professionalFocus": {
+      "type": "array",
+      "description": "Areas of expertise or current career interests.",
+      "items": { "type": "string" }
+    },
+    "socialEnergy": {
+      "type": "object",
+      "description": "Current social battery and interaction preferences.",
+      "properties": {
+        "battery": { "type": "number", "minimum": 0, "maximum": 1 },
+        "preferredTone": { "type": "string", "enum": ["concise", "enthusiastic", "professional", "casual"] }
+      },
+      "required": ["battery", "preferredTone"]
+    },
+    "meta": {
+      "type": "object",
+      "properties": {
+        "confidenceScore": { "type": "number", "minimum": 0, "maximum": 1 },
+        "lastUpdated": { "type": "string", "format": "date-time" }
+      },
+      "required": ["confidenceScore", "lastUpdated"]
+    }
+  },
+  "required": ["personality", "values", "professionalFocus", "socialEnergy", "meta"]
+}
