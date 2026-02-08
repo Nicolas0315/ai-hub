@@ -1,0 +1,36 @@
+syntax = "proto3";
+
+package katala.v1;
+
+message UserInterest {
+  string category = 1;
+  float weight = 2;
+}
+
+message UserInterests {
+  string user_id = 1;
+  repeated UserInterest interests = 2;
+}
+
+message SurfaceMetadata {
+  string surface_id = 1;
+  string content_type = 2;
+  map<string, string> properties = 3;
+}
+
+message SynergyScore {
+  string agent_id_a = 1;
+  string agent_id_b = 2;
+  float score = 3;
+  map<string, float> breakdown = 4;
+}
+
+message SynergyRequest {
+  UserInterests user_a = 1;
+  UserInterests user_b = 2;
+  SurfaceMetadata context = 3;
+}
+
+message SynergyResponse {
+  SynergyScore synergy = 1;
+}
