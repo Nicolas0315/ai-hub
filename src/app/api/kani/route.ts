@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { kaniClient } from '@/lib/kani';
 import type { KaniMediationRequest } from '@/lib/kani';
+import { SynergyEngine } from '@/lib/synergy/engine';
 
 export async function POST(request: NextRequest) {
   try {
@@ -15,10 +16,23 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Phase 2: Integrated Logic - Use SynergyEngine to calculate synergyScore locally
+    const engine = new SynergyEngine();
+    const synergyScore = engine.getCombinedSynergy(
+      mediationRequest.identityA,
+      mediationRequest.identityB,
+      mediationRequest.xParams
+    );
+
     // Use Kani client with retry logic and fallback
     const response = await kaniClient.mediate(mediationRequest);
 
-    return NextResponse.json(response);
+    // Merge locally calculated synergyScore into response
+    return NextResponse.json({
+      ...response,
+      synergyScore,
+      localCalculation: true,
+    });
   } catch (error) {
     console.error('[Kani API Route Error]', error);
     return NextResponse.json(
