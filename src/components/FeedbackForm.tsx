@@ -71,16 +71,35 @@ export default function FeedbackForm({ mediationScore, onClose }: FeedbackFormPr
 
       {submitStatus === 'success' ? (
         <div className="text-center py-8">
-          <div className="text-5xl mb-4">✓</div>
-          <p className="text-lg font-medium text-green-600 dark:text-green-400">
-            フィードバックを送信しました
+          <div className="text-5xl mb-4">✨</div>
+          <p className="text-lg font-medium text-blue-600 dark:text-blue-400">
+            フィードバックを受領しました
           </p>
           <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
-            ご協力ありがとうございます
+            Katalaの精度向上に活用させていただきます
           </p>
         </div>
       ) : (
         <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Quick Tags */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              当てはまるものを選んでください
+            </label>
+            <div className="flex flex-wrap gap-2">
+              {['スコアが納得感ある', 'アドバイスが実用的', '意外な発見があった', '少しズレている'].map((tag) => (
+                <button
+                  key={tag}
+                  type="button"
+                  onClick={() => setComment(prev => prev ? `${prev}, ${tag}` : tag)}
+                  className="px-3 py-1 text-xs rounded-full border border-gray-200 dark:border-neutral-700 hover:border-blue-300 dark:hover:border-blue-700 transition-colors"
+                >
+                  {tag}
+                </button>
+              ))}
+            </div>
+          </div>
+
           {/* Rating */}
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
