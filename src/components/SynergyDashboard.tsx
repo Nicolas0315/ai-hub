@@ -100,38 +100,47 @@ export default function SynergyDashboard({
       {result && (
         <>
           <div className="rounded-3xl border border-gray-200 dark:border-neutral-800 bg-gradient-to-br from-blue-50 to-purple-50 dark:from-zinc-900/80 dark:to-zinc-900/80 backdrop-blur-sm shadow-lg p-8">
-            <div className="text-center space-y-4">
-              <h3 className="text-xl font-semibold text-gray-700 dark:text-gray-300">
-                仲介スコア
-              </h3>
-              <div className={`text-6xl font-bold ${getScoreColor(result.mediationScore)}`}>
-                {result.mediationScore.toFixed(1)}
-              </div>
-              <div className={`text-lg font-medium ${getScoreColor(result.mediationScore)}`}>
-                {getScoreLabel(result.mediationScore)}
-              </div>
-
-              {result.synergyScore !== undefined && (
-                <div className="mt-6 pt-6 border-t border-gray-200 dark:border-neutral-700">
-                  <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">
-                    シナジースコア
+            <div className="text-center space-y-6">
+              <div className="flex flex-col md:flex-row justify-around items-center gap-8">
+                {/* Mediation Score - Core Ranker Result */}
+                <div className="space-y-2">
+                  <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    仲介スコア (X-Ranker)
+                  </h3>
+                  <div className={`text-6xl font-bold ${getScoreColor(result.mediationScore)}`}>
+                    {result.mediationScore.toFixed(1)}
                   </div>
-                  <div className="text-3xl font-semibold text-purple-600 dark:text-purple-400">
-                    {result.synergyScore.toFixed(1)}
+                  <div className={`text-lg font-medium ${getScoreColor(result.mediationScore)}`}>
+                    {getScoreLabel(result.mediationScore)}
                   </div>
                 </div>
-              )}
+
+                {/* Synergy Score - Identity Compatibility */}
+                {result.synergyScore !== undefined && (
+                  <div className="space-y-2">
+                    <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                      シナジースコア (Identity)
+                    </h3>
+                    <div className="text-6xl font-bold text-purple-600 dark:text-purple-400">
+                      {result.synergyScore.toFixed(1)}
+                    </div>
+                    <div className="text-lg font-medium text-purple-500">
+                      適合性評価
+                    </div>
+                  </div>
+                )}
+              </div>
 
               {result.recommendations && result.recommendations.length > 0 && (
-                <div className="mt-6 pt-6 border-t border-gray-200 dark:border-neutral-700 text-left">
-                  <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
-                    推奨事項
+                <div className="mt-8 pt-6 border-t border-gray-200 dark:border-neutral-700 text-left">
+                  <h4 className="text-sm font-bold text-gray-700 dark:text-gray-300 mb-4 flex items-center">
+                    <span className="bg-blue-500 w-1.5 h-4 rounded-full mr-2"></span>
+                    AI仲介アドバイス
                   </h4>
-                  <ul className="space-y-2">
+                  <ul className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {result.recommendations.map((rec, idx) => (
-                      <li key={idx} className="text-sm text-gray-600 dark:text-gray-400 flex items-start">
-                        <span className="mr-2">•</span>
-                        <span>{rec}</span>
+                      <li key={idx} className="text-sm bg-white/50 dark:bg-black/20 p-4 rounded-2xl border border-blue-100 dark:border-blue-900/30 text-gray-600 dark:text-gray-300">
+                        {rec}
                       </li>
                     ))}
                   </ul>
