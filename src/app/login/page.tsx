@@ -3,7 +3,7 @@ import { headers } from "next/headers"
 import { redirect } from "next/navigation"
 
 export default async function LoginPage(props: {
-  searchParams: Promise<{ callbackUrl: string | undefined }>
+  searchParams: Promise<{ callbackUrl?: string; error?: string }>
 }) {
   const searchParams = await props.searchParams
   const error = searchParams?.error
