@@ -1,0 +1,18 @@
+{
+  "name": "@katala/gateway",
+  "version": "1.0.0",
+  "description": "Katala-Claw Bridge Gateway",
+  "main": "dist/gateway/index.js",
+  "scripts": {
+    "start": "ts-node index.ts",
+    "build": "tsc"
+  },
+  "dependencies": {
+    "@grpc/grpc-js": "^1.9.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0",
+    "ts-node": "^10.9.1",
+    "@types/node": "^20.0.0"
+  }
+}

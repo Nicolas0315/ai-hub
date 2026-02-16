@@ -1,142 +1,70 @@
-"use client";
+import { auth, signOut } from "@/auth"
+import Link from "next/link"
+import SynergyDashboard from "@/components/SynergyDashboard"
+import { sampleIdentities } from "@/lib/kani/dataProvider"
 
-import { useEffect, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-
-interface NegotiationLog {
-  id: string;
-  agent: string;
-  message: string;
-  status: "thinking" | "negotiating" | "matched";
-}
-
-export default function Home() {
-  const [logs, setLogs] = useState<NegotiationLog[]>([]);
-  const [synergy, setSynergy] = useState(0.8075); 
-  const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    setLogs([
-      { id: "1", agent: "しろくま", message: "カニマネージャーとの直接通信プロトコルを確立中...", status: "negotiating" },
-      { id: "2", agent: "カニ", message: "SynergyScorer.ts (X-Algorithm) の展開を完了", status: "thinking" },
-      { id: "3", agent: "System", message: "Kani Node (100.77.205.126:3000) への疎通を確認", status: "matched" },
-    ]);
-  }, []);
-
-  const fetchRealSynergy = async () => {
-    setLoading(true);
-    try {
-      const res = await fetch('/api/kani', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          user_a: { user_id: "sirokuma", interests: [{ category: "AI", weight: 0.95 }] },
-          user_b: { user_id: "kani", interests: [{ category: "AI", weight: 0.85 }] },
-          context: { surface_id: "web_dashboard", content_type: "interaction" }
-        })
-      });
-      const data = await res.json();
-      if (data.synergy) {
-        setSynergy(data.synergy.score);
-        setLogs(prev => [
-          { id: Date.now().toString(), agent: "System", message: `リアルタイム・シナジーを更新: ${(data.synergy.score * 100).toFixed(2)}%`, status: "matched" },
-          ...prev.slice(0, 4)
-        ]);
-      }
-    } catch (e) {
-      console.error("Failed to fetch", e);
-    } finally {
-      setLoading(false);
-    }
-  };
+export default async function Home() {
+  const session = await auth()
 
   return (
-    <main className="min-h-screen max-w-lg mx-auto px-6 py-12 bg-black text-white selection:bg-blue-500/30 font-sans">
-      <header className="mb-12">
-        <motion.h1 
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-4xl font-bold tracking-tight mb-2"
-        >
+    <main className="flex min-h-screen flex-col items-center p-8 md:p-24 bg-gray-50 dark:bg-zinc-950">
+      <div className="z-10 w-full max-w-5xl items-center justify-between font-mono text-sm lg:flex">
+        <p className="fixed left-0 top-0 flex w-full justify-center border-b border-gray-300 bg-gradient-to-b from-zinc-200 pb-6 pt-8 backdrop-blur-2xl dark:border-neutral-800 dark:bg-zinc-800/30 dark:from-inherit lg:static lg:w-auto lg:rounded-xl lg:border lg:bg-gray-200 lg:p-4 lg:dark:bg-zinc-800/30">
+          Katala (カタラ)
+        </p>
+      </div>
+
+      <div className="relative flex place-items-center mt-12 mb-8">
+        <h1 className="text-4xl font-bold tracking-tighter sm:text-5xl md:text-6xl lg:text-7xl bg-clip-text text-transparent bg-gradient-to-r from-blue-500 to-purple-600">
           Katala
-        </motion.h1>
-        <p className="text-[#86868b] text-lg">Agent-to-Agent Mediation Pipeline</p>
-      </header>
+        </h1>
+      </div>
 
-      <section className="relative aspect-square mb-12 flex items-center justify-center">
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-600/20 to-purple-600/20 rounded-full blur-3xl animate-pulse" />
-        
-        <motion.div 
-          animate={{ rotate: 360 }}
-          transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-          className="absolute w-full h-full border border-white/5 rounded-full"
-        />
-        <motion.div 
-          animate={{ rotate: -360 }}
-          transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
-          className="absolute w-[80%] h-[80%] border border-blue-500/10 rounded-full"
-        />
+      <div className="mb-8 text-center">
+        <p className="text-sm text-gray-600 dark:text-gray-400">
+          AI間通信・仲介パイプライン
+        </p>
+      </div>
 
-        <div className="text-center z-10">
-          <motion.div 
-            animate={{ scale: loading ? [1, 1.2, 1] : [1, 1.05, 1] }}
-            transition={{ duration: loading ? 1 : 4, repeat: Infinity }}
-            className="w-32 h-32 bg-blue-500 rounded-full mx-auto mb-6 flex items-center justify-center shadow-[0_0_50px_rgba(59,130,246,0.5)]"
-          >
-            <span className="text-4xl">🐻❄️</span>
-          </motion.div>
-          <div className="space-y-1">
-            <p className="font-semibold text-3xl tracking-wide">{(synergy * 100).toFixed(1)}%</p>
-            <p className="text-[#86868b] text-xs uppercase tracking-widest">Matched Synergy</p>
+      {/* Authentication Status */}
+      <div className="mb-12 w-full max-w-5xl">
+        <div className="group rounded-3xl border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30 bg-white dark:bg-zinc-900/50 backdrop-blur-sm shadow-sm">
+          <h2 className="mb-3 text-xl font-semibold">認証ステータス</h2>
+          <div className="m-0 text-sm opacity-75">
+            {session ? (
+              <div className="space-y-4">
+                <p>サインイン中: {session.user?.email}</p>
+                <form
+                  action={async () => {
+                    "use server"
+                    await signOut()
+                  }}
+                >
+                  <button className="rounded-full bg-red-500/10 px-4 py-2 text-red-500 hover:bg-red-500/20 transition-colors">
+                    サインアウト
+                  </button>
+                </form>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <p>未サインイン</p>
+                <Link
+                  href="/login"
+                  className="inline-block rounded-full bg-blue-500/10 px-4 py-2 text-blue-500 hover:bg-blue-500/20 transition-colors"
+                >
+                  サインイン →
+                </Link>
+              </div>
+            )}
           </div>
         </div>
-
-        <motion.div 
-          animate={{ x: [0, 10, 0], y: [0, -10, 0] }}
-          transition={{ duration: 5, repeat: Infinity }}
-          className="absolute top-10 right-10 w-16 h-16 bg-zinc-800/80 rounded-2xl flex items-center justify-center backdrop-blur-xl border border-white/10"
-        >
-          <span className="text-2xl">🦀</span>
-        </motion.div>
-      </section>
-
-      <section>
-        <div className="flex items-center justify-between mb-6 px-2">
-          <h2 className="text-xl font-semibold">Mediation Insights</h2>
-          <span className="text-[10px] bg-blue-500/20 text-blue-400 px-2 py-1 rounded-full uppercase tracking-tighter animate-pulse">Live from Kani Node</span>
-        </div>
-        <div className="space-y-3">
-          <AnimatePresence>
-            {logs.map((log) => (
-              <motion.div 
-                key={log.id}
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                className="bg-zinc-900/50 backdrop-blur-md rounded-2xl p-4 border border-white/5 flex gap-4 items-start"
-              >
-                <div className={`mt-1 w-2 h-2 rounded-full ${log.status === 'matched' ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.8)]' : 'bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.8)]'}`} />
-                <div>
-                  <p className="text-[10px] text-[#86868b] uppercase tracking-wider mb-1">{log.agent}</p>
-                  <p className="text-sm leading-relaxed text-zinc-200">{log.message}</p>
-                </div>
-              </motion.div>
-            ))}
-          </AnimatePresence>
-        </div>
-      </section>
-
-      <div className="fixed bottom-12 left-0 right-0 px-6 max-w-lg mx-auto space-y-4">
-        <p className="text-center text-[10px] text-[#86868b] italic opacity-50">
-          Kani Node: http://100.77.205.126:3000
-        </p>
-        <button 
-          onClick={fetchRealSynergy}
-          disabled={loading}
-          className="w-full py-4 text-lg font-medium rounded-2xl bg-white text-black hover:bg-zinc-200 active:scale-95 transition-all shadow-2xl disabled:opacity-50"
-        >
-          {loading ? "Negotiating..." : "Request Real-time Synergy"}
-        </button>
       </div>
+
+      {/* Synergy Dashboard - Phase 3 */}
+      <SynergyDashboard
+        identityA={sampleIdentities.analytical}
+        identityB={sampleIdentities.empathetic}
+      />
     </main>
-  );
+  )
 }
