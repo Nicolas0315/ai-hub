@@ -1,0 +1,20 @@
+# TASK SCOPE & PROTOCOL: katalalog_yugi
+
+## 1. Task Definition
+- **Identifier**: `katalalog_yugi`
+- **Owner**: ユギ🐋イサナ (@tfs137)
+- **Primary Goal**: Discord `#dev-katala` の履歴抽出・整理・構造化。
+- **Working Directory**: `/Users/nicolas/.openclaw/workspace/katalalog_yugi/`
+
+## 2. Lock & Access Control (Limited Test)
+- **Controlled Files**:
+    - `katala_matsuri_log.md` (EXCLUSIVE WRITE)
+    - `AGENTS.override.md` (EXCLUSIVE WRITE)
+- **External Ref**:
+    - `MASTER_INDEX.md` (READ ONLY / METADATA UPDATE ONLY)
+
+## 3. Conflict Avoidance Protocol
+1. **Append-Only Prioritization**: ログは原文の重みを残すため、常に末尾追記とする。
+2. **Atomic Edit**: `MASTER_INDEX.md` を更新する際は、該当セクションのみを `edit` ツールで操作する。
+3. **Pre-check**: 書き込み前に必ず最新状態を `read` し、他タスク（メイン開発等）との衝突を検知する。
+4. **Semantic De-dupe**: 同一内容の連続投稿・書き込みが発生しそうな場合、意味解析により処理をスキップする。
