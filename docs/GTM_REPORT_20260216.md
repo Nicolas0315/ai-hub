@@ -4,7 +4,7 @@
 「UIレスの配管」と「自律型経済圏」を構築するための、コアメンバー構成案です。
 
 *   **Architect/Leader**: ニコラス氏 (Vision / GTM)
-*   **The Guard (Causality/Legal)**: 4氏 (Truth Debugging / 技術選定)、ユギ氏 (Legal Engineering / Tokenomics)
+*   **The Guard**: 4氏 (Truth Debugging / 技術選定)、ユギ氏 (Special Advisor / Chaos Debugging)
 *   **Core Engineering (AI Agents)**: しろくま、Codex、Claude Code (自律実装・最適化)
 *   **追加で必要な役割**:
     *   **Rust Engineer**: `synergy_scorer` の高速化と分散レジャーの実装。
