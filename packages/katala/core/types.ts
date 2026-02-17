@@ -1,49 +1,52 @@
-export interface MBTIPlusPlus {
-  // 16 Identity Dimensions
-  // Energy (Extraversion - Introversion)
-  extraversion_introversion: number;
-  // Information (Sensing - Intuition)
-  sensing_intuition: number;
-  // Decision (Thinking - Feeling)
-  thinking_feeling: number;
-  // Execution (Judging - Perceiving)
-  judging_perceiving: number;
-  // Orientation (Assertive - Turbulent)
-  assertive_turbulent: number;
-  // Cognition (Systematic - Adaptive)
-  systematic_adaptive: number;
-  // Communication (Direct - Diplomatic)
-  direct_diplomatic: number;
-  // Value (Individualism - Collectivism)
-  individualism_collectivism: number;
-  // Learning (Practical - Theoretical)
-  practical_theoretical: number;
-  // Tempo (Fast - Deliberate)
-  fast_deliberate: number;
-  // Risk (Cautious - Bold)
-  cautious_bold: number;
-  // Scope (Micro - Macro)
-  micro_macro: number;
-  // Source (Internal - External)
-  internal_external: number;
-  // Focus (Task - People)
-  task_people: number;
-  // Response (Proactive - Reactive)
-  proactive_reactive: number;
-  // Mode (Specialist - Generalist)
-  mode_specialist_generalist: number;
+import { z } from "zod";
+import { IdentityVectorSchema } from "./IdentityVector";
+
+export type { IdentityVector } from "./IdentityVector";
+export { IdentityVectorSchema, createDefaultVector, validateVector } from "./IdentityVector";
+
+// --- Synergy Request / Response Types ---
+
+export const InterestSchema = z.object({
+  category: z.string().min(1),
+  weight: z.number(),
+});
+
+export type Interest = z.infer<typeof InterestSchema>;
+
+export const UserProfileSchema = z.object({
+  user_id: z.string().min(1),
+  interests: z.array(InterestSchema).optional(),
+  identity_vector: IdentityVectorSchema.optional(),
+});
+
+export type UserProfile = z.infer<typeof UserProfileSchema>;
+
+export const SynergyRequestSchema = z.object({
+  user_a: UserProfileSchema,
+  user_b: UserProfileSchema,
+});
+
+export type SynergyRequest = z.infer<typeof SynergyRequestSchema>;
+
+export interface SynergyBreakdown {
+  privacy_level?: string;
+  synergy_score?: number;
+  interest_match?: number;
 }
 
-export interface IdentityVector {
-  personality: MBTIPlusPlus;
-  values: string[];
-  professionalFocus: string[];
-  socialEnergy: {
-    battery: number;
-    preferredTone: "concise" | "enthusiastic" | "professional" | "casual";
-  };
-  meta: {
-    confidenceScore: number;
-    lastUpdated: string;
-  };
+export interface SynergyScore {
+  agent_id_a: string;
+  agent_id_b: string;
+  score: number;
+  method: string;
+  breakdown: SynergyBreakdown;
+}
+
+export interface SynergyResponse {
+  synergy: SynergyScore;
+}
+
+export interface ErrorResponse {
+  error: string;
+  code: number;
 }

@@ -1,4 +1,4 @@
-import { SynergyRequest, SynergyResponse } from '../proto/synergy'; // Mock or generated types
+import { SynergyRequest, SynergyResponse, Interest } from './types';
 import { SynergyScorer } from './SynergyScorer';
 import { MatchmakingEngine } from './MatchmakingEngine';
 import { IdentityVector } from './types';
@@ -20,7 +20,7 @@ export class MediationService {
    * Calculate synergy between two agent profiles based on X-algorithm logic.
    * Supports both legacy interest-based and modern Identity Vector-based scoring.
    */
-  public async calculateSynergy(req: any): Promise<any> {
+  public async calculateSynergy(req: SynergyRequest): Promise<SynergyResponse> {
     // Check if request is Identity Vector based (Privacy-first)
     if (req.user_a.identity_vector && req.user_b.identity_vector) {
       const score = this.matchmaking.calculateSynergy(
@@ -43,11 +43,14 @@ export class MediationService {
     }
 
     // Fallback to legacy interest-based scoring
-    const mapA = new Map(req.user_a.interests.map((i: any) => [i.category, i.weight]));
-    const mapB = new Map(req.user_b.interests.map((i: any) => [i.category, i.weight]));
+    const interests_a: Interest[] = req.user_a.interests ?? [];
+    const interests_b: Interest[] = req.user_b.interests ?? [];
+
+    const mapA = new Map(interests_a.map((i) => [i.category, i.weight]));
+    const mapB = new Map(interests_b.map((i) => [i.category, i.weight]));
 
     const score = this.scorer.computeSynergy(mapA, mapB);
-    
+
     return {
       synergy: {
         agent_id_a: req.user_a.user_id,

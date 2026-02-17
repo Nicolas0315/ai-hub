@@ -1,59 +1,31 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { kaniClient } from '@/lib/kani';
-import type { KaniMediationRequest } from '@/lib/kani';
-import { SynergyEngine } from '@/lib/synergy/engine';
+import { NextResponse } from 'next/server';
+import { SynergyRequestSchema, ErrorResponse } from '../../../../packages/katala/core/types';
+import { MediationService } from '../../../../packages/katala/core/MediationService';
 
-export async function POST(request: NextRequest) {
-  try {
-    const body = await request.json();
-    const mediationRequest = body as KaniMediationRequest;
+const mediationService = new MediationService();
 
-    // Validate request structure
-    if (!mediationRequest.identityA || !mediationRequest.identityB || !mediationRequest.xParams) {
-      return NextResponse.json(
-        { error: 'Missing required parameters: identityA, identityB, or xParams' },
-        { status: 400 }
-      );
-    }
-
-    // Phase 2: Integrated Logic - Use SynergyEngine to calculate synergyScore locally
-    const engine = new SynergyEngine();
-    const synergyScore = engine.getCombinedSynergy(
-      mediationRequest.identityA,
-      mediationRequest.identityB,
-      mediationRequest.xParams
-    );
-
-    // Use Kani client with retry logic and fallback
-    const response = await kaniClient.mediate(mediationRequest);
-
-    // Merge locally calculated synergyScore into response
-    return NextResponse.json({
-      ...response,
-      synergyScore,
-      localCalculation: true,
-    });
-  } catch (error) {
-    console.error('[Kani API Route Error]', error);
-    return NextResponse.json(
-      { error: 'Failed to process mediation request' },
-      { status: 500 }
-    );
-  }
+function errorResponse(error: string, code: number): NextResponse<ErrorResponse> {
+  return NextResponse.json({ error, code }, { status: code });
 }
 
-export async function GET() {
+export async function POST(request: Request) {
   try {
-    const isHealthy = await kaniClient.healthCheck();
-    return NextResponse.json({
-      status: isHealthy ? 'healthy' : 'degraded',
-      timestamp: new Date().toISOString(),
-    });
-  } catch (error) {
-    console.error('[Kani Health Check Error]', error);
-    return NextResponse.json(
-      { status: 'unhealthy', timestamp: new Date().toISOString() },
-      { status: 503 }
-    );
+    let body: unknown;
+    try {
+      body = await request.json();
+    } catch {
+      return errorResponse('Invalid JSON body', 400);
+    }
+
+    const parsed = SynergyRequestSchema.safeParse(body);
+    if (!parsed.success) {
+      const message = parsed.error.issues.map(i => `${i.path.join('.')}: ${i.message}`).join('; ');
+      return errorResponse(message, 400);
+    }
+
+    const result = await mediationService.calculateSynergy(parsed.data);
+    return NextResponse.json(result);
+  } catch {
+    return errorResponse('Internal server error', 500);
   }
 }
