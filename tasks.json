@@ -1,0 +1,42 @@
+[
+  {
+    "id": 1,
+    "status": "未完了",
+    "title": "feature branchesをmainにマージ",
+    "description": "feature/csv-import, feature/batch-profiling, feature/api-routes, feature/e2e-tests の4ブランチをmainにマージする。コンフリクトがあれば解決。各ブランチのテストが通ることを確認してからマージ。",
+    "complete_condition": "mainブランチに全featureが統合され、npm testで全テストがパスする",
+    "depends_on": []
+  },
+  {
+    "id": 2,
+    "status": "未完了",
+    "title": "synergy engine.test.ts修正",
+    "description": "src/lib/synergy/engine.test.ts の既存テスト失敗を修正する。describe未importなどの問題を解決。",
+    "complete_condition": "npm test で全テスト（synergy含む）がパスする",
+    "depends_on": [1]
+  },
+  {
+    "id": 3,
+    "status": "未完了",
+    "title": "データモデル統合",
+    "description": "packages/katala/core/ のIdentityVector型とsrc/lib/synergy/の型を統合。重複する型定義を解消し、単一の型ソースにする。",
+    "complete_condition": "型の重複がなくなり、全テストがパスする",
+    "depends_on": [2]
+  },
+  {
+    "id": 4,
+    "status": "未完了",
+    "title": "OpenAPI仕様書生成",
+    "description": "全APIルートからOpenAPI（Swagger）仕様書を自動生成する仕組みを作る。next-swagger-doc または手動でopenapi.jsonを作成。",
+    "complete_condition": "openapi.json が生成され、全エンドポイントが記載されている",
+    "depends_on": [1]
+  },
+  {
+    "id": 5,
+    "status": "未完了",
+    "title": "CI/CD GitHub Actions",
+    "description": ".github/workflows/ci.yml を作成。push/PR時にnpm test、npm run build、型チェック(tsc --noEmit)を実行するCI。",
+    "complete_condition": ".github/workflows/ci.yml が存在し、ローカルでact等で検証可能",
+    "depends_on": [2]
+  }
+]
