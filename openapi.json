@@ -1,0 +1,637 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Katala API",
+    "version": "0.1.0",
+    "description": "Katala - Influencer Identity Profiling & Matchmaking API"
+  },
+  "servers": [
+    { "url": "http://localhost:3000", "description": "Development" }
+  ],
+  "paths": {
+    "/api/profiling": {
+      "post": {
+        "operationId": "updateProfile",
+        "summary": "Update or tune an identity profile",
+        "parameters": [
+          {
+            "name": "mode",
+            "in": "query",
+            "schema": { "type": "string", "enum": ["tune"] },
+            "description": "Set to 'tune' for instruction-based tuning"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "oneOf": [
+                  { "$ref": "#/components/schemas/ProfileRequest" },
+                  { "$ref": "#/components/schemas/TuneRequest" }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated identity vector",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "vector": { "$ref": "#/components/schemas/IdentityVector" },
+                    "status": { "type": "string", "enum": ["success"] }
+                  },
+                  "required": ["vector", "status"]
+                }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/ValidationError" },
+          "500": { "$ref": "#/components/responses/InternalError" }
+        }
+      }
+    },
+    "/api/matchmaking": {
+      "post": {
+        "operationId": "findMatches",
+        "summary": "Find matching identity vectors from candidates",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/MatchRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Ranked match results",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "matches": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "vector": { "$ref": "#/components/schemas/IdentityVector" },
+                          "score": { "type": "number" }
+                        },
+                        "required": ["vector", "score"]
+                      }
+                    },
+                    "total": { "type": "integer" },
+                    "status": { "type": "string", "enum": ["success"] }
+                  },
+                  "required": ["matches", "total", "status"]
+                }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/ValidationError" },
+          "500": { "$ref": "#/components/responses/InternalError" }
+        }
+      }
+    },
+    "/api/import": {
+      "post": {
+        "operationId": "importCsv",
+        "summary": "Import identity vectors from CSV data",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/ImportRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Import results",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "imported": { "type": "integer" },
+                    "errors": { "type": "array", "items": { "type": "object" } },
+                    "totalRows": { "type": "integer" },
+                    "vectors": { "type": "array", "items": { "$ref": "#/components/schemas/IdentityVector" } },
+                    "status": { "type": "string", "enum": ["success"] }
+                  },
+                  "required": ["imported", "errors", "totalRows", "vectors", "status"]
+                }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/ValidationError" },
+          "500": { "$ref": "#/components/responses/InternalError" }
+        }
+      }
+    },
+    "/api/batch": {
+      "post": {
+        "operationId": "submitBatch",
+        "summary": "Submit a batch profiling job",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/BatchRequest" }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Job accepted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "jobId": { "type": "string", "format": "uuid" },
+                    "status": { "type": "string", "enum": ["accepted"] }
+                  },
+                  "required": ["jobId", "status"]
+                }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/ValidationError" },
+          "500": { "$ref": "#/components/responses/InternalError" }
+        }
+      },
+      "get": {
+        "operationId": "getBatchStatus",
+        "summary": "Get batch job status",
+        "parameters": [
+          {
+            "name": "jobId",
+            "in": "query",
+            "required": true,
+            "schema": { "type": "string", "format": "uuid" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Job status",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "jobId": { "type": "string", "format": "uuid" },
+                    "status": { "type": "string", "enum": ["running", "completed", "failed"] },
+                    "progress": {
+                      "type": "object",
+                      "properties": {
+                        "processed": { "type": "integer" },
+                        "total": { "type": "integer" },
+                        "errors": { "type": "integer" }
+                      },
+                      "required": ["processed", "total", "errors"]
+                    },
+                    "results": {}
+                  },
+                  "required": ["jobId", "status", "progress"]
+                }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/ValidationError" },
+          "404": { "description": "Job not found" },
+          "500": { "$ref": "#/components/responses/InternalError" }
+        }
+      }
+    },
+    "/api/ledger": {
+      "get": {
+        "operationId": "getLedgerHistory",
+        "summary": "Get ledger entries with chain validation",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": { "type": "integer", "minimum": 1 }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Ledger entries",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "entries": { "type": "array", "items": { "$ref": "#/components/schemas/LedgerEntry" } },
+                    "count": { "type": "integer" },
+                    "chainValid": { "type": "boolean" }
+                  },
+                  "required": ["entries", "count", "chainValid"]
+                }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/ValidationError" },
+          "500": { "$ref": "#/components/responses/InternalError" }
+        }
+      },
+      "post": {
+        "operationId": "appendLedgerEntry",
+        "summary": "Append an event to the immutable ledger",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/LedgerAppendRequest" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Entry created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "entry": { "$ref": "#/components/schemas/LedgerEntry" },
+                    "status": { "type": "string", "enum": ["success"] }
+                  },
+                  "required": ["entry", "status"]
+                }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/ValidationError" },
+          "500": { "$ref": "#/components/responses/InternalError" }
+        }
+      }
+    },
+    "/api/kani": {
+      "post": {
+        "operationId": "calculateSynergyKani",
+        "summary": "Calculate synergy score between two user profiles (mediation)",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/SynergyRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Synergy result",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/SynergyResponse" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/ValidationError" },
+          "500": { "$ref": "#/components/responses/InternalError" }
+        }
+      }
+    },
+    "/api/synergy": {
+      "post": {
+        "operationId": "calculateSynergy",
+        "summary": "Calculate synergy using X-Algorithm heavy ranker logic",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/XSynergyRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Synergy score",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "synergyScore": { "type": "number" },
+                    "status": { "type": "string", "enum": ["success"] },
+                    "timestamp": { "type": "string", "format": "date-time" }
+                  },
+                  "required": ["synergyScore", "status", "timestamp"]
+                }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/ValidationError" },
+          "500": { "$ref": "#/components/responses/InternalError" }
+        }
+      }
+    },
+    "/api/feedback": {
+      "post": {
+        "operationId": "submitFeedback",
+        "summary": "Submit mediation feedback",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/FeedbackRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Feedback accepted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean" },
+                    "message": { "type": "string" }
+                  },
+                  "required": ["success", "message"]
+                }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/ValidationError" },
+          "500": { "$ref": "#/components/responses/InternalError" }
+        }
+      },
+      "get": {
+        "operationId": "getFeedbackStatus",
+        "summary": "Get feedback endpoint status",
+        "responses": {
+          "200": {
+            "description": "Endpoint info",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string" },
+                    "endpoint": { "type": "string" },
+                    "methods": { "type": "array", "items": { "type": "string" } }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "IdentityVector": {
+        "type": "object",
+        "properties": {
+          "personality": {
+            "type": "object",
+            "properties": {
+              "extraversion": { "type": "number", "minimum": 0, "maximum": 1 },
+              "intuition": { "type": "number", "minimum": 0, "maximum": 1 },
+              "thinking": { "type": "number", "minimum": 0, "maximum": 1 },
+              "judging": { "type": "number", "minimum": 0, "maximum": 1 }
+            },
+            "required": ["extraversion", "intuition", "thinking", "judging"]
+          },
+          "values": { "type": "array", "items": { "type": "string" } },
+          "professionalFocus": { "type": "array", "items": { "type": "string" } },
+          "socialEnergy": {
+            "type": "object",
+            "properties": {
+              "battery": { "type": "number", "minimum": 0, "maximum": 100 },
+              "preferredTone": { "type": "string", "enum": ["concise", "enthusiastic", "professional", "casual"] }
+            },
+            "required": ["battery", "preferredTone"]
+          },
+          "meta": {
+            "type": "object",
+            "properties": {
+              "confidenceScore": { "type": "number", "minimum": 0, "maximum": 1 },
+              "lastUpdated": { "type": "string", "format": "date-time" }
+            },
+            "required": ["confidenceScore", "lastUpdated"]
+          }
+        },
+        "required": ["personality", "values", "professionalFocus", "socialEnergy", "meta"]
+      },
+      "ChatMessage": {
+        "type": "object",
+        "properties": {
+          "role": { "type": "string", "enum": ["user", "assistant"] },
+          "content": { "type": "string" },
+          "timestamp": { "type": "string" }
+        },
+        "required": ["role", "content", "timestamp"]
+      },
+      "ProfileRequest": {
+        "type": "object",
+        "properties": {
+          "currentVector": { "$ref": "#/components/schemas/IdentityVector" },
+          "history": { "type": "array", "items": { "$ref": "#/components/schemas/ChatMessage" }, "minItems": 1 }
+        },
+        "required": ["currentVector", "history"]
+      },
+      "TuneRequest": {
+        "type": "object",
+        "properties": {
+          "currentVector": { "$ref": "#/components/schemas/IdentityVector" },
+          "instruction": { "type": "string", "minLength": 1 }
+        },
+        "required": ["currentVector", "instruction"]
+      },
+      "MatchRequest": {
+        "type": "object",
+        "properties": {
+          "source": { "$ref": "#/components/schemas/IdentityVector" },
+          "candidates": { "type": "array", "items": { "$ref": "#/components/schemas/IdentityVector" }, "minItems": 1 },
+          "threshold": { "type": "number", "minimum": 0, "maximum": 1 }
+        },
+        "required": ["source", "candidates"]
+      },
+      "ImportRequest": {
+        "type": "object",
+        "properties": {
+          "csv": { "type": "string", "minLength": 1 },
+          "batchSize": { "type": "integer", "minimum": 1 }
+        },
+        "required": ["csv"]
+      },
+      "BatchItem": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "minLength": 1 },
+          "currentVector": { "$ref": "#/components/schemas/IdentityVector" },
+          "history": { "type": "array", "items": { "$ref": "#/components/schemas/ChatMessage" }, "minItems": 1 }
+        },
+        "required": ["id", "currentVector", "history"]
+      },
+      "BatchRequest": {
+        "type": "object",
+        "properties": {
+          "items": { "type": "array", "items": { "$ref": "#/components/schemas/BatchItem" }, "minItems": 1 },
+          "concurrency": { "type": "integer", "minimum": 1 },
+          "maxRetries": { "type": "integer", "minimum": 0 }
+        },
+        "required": ["items"]
+      },
+      "LedgerEntry": {
+        "type": "object",
+        "properties": {
+          "eventType": { "type": "string" },
+          "payload": { "type": "object", "additionalProperties": true },
+          "timestamp": { "type": "string", "format": "date-time" },
+          "hash": { "type": "string" }
+        }
+      },
+      "LedgerAppendRequest": {
+        "type": "object",
+        "properties": {
+          "eventType": { "type": "string", "minLength": 1 },
+          "payload": { "type": "object", "additionalProperties": true }
+        },
+        "required": ["eventType", "payload"]
+      },
+      "Interest": {
+        "type": "object",
+        "properties": {
+          "category": { "type": "string", "minLength": 1 },
+          "weight": { "type": "number" }
+        },
+        "required": ["category", "weight"]
+      },
+      "UserProfile": {
+        "type": "object",
+        "properties": {
+          "user_id": { "type": "string", "minLength": 1 },
+          "interests": { "type": "array", "items": { "$ref": "#/components/schemas/Interest" } },
+          "identity_vector": { "$ref": "#/components/schemas/IdentityVector" }
+        },
+        "required": ["user_id"]
+      },
+      "SynergyRequest": {
+        "type": "object",
+        "properties": {
+          "user_a": { "$ref": "#/components/schemas/UserProfile" },
+          "user_b": { "$ref": "#/components/schemas/UserProfile" }
+        },
+        "required": ["user_a", "user_b"]
+      },
+      "SynergyResponse": {
+        "type": "object",
+        "properties": {
+          "synergy": {
+            "type": "object",
+            "properties": {
+              "agent_id_a": { "type": "string" },
+              "agent_id_b": { "type": "string" },
+              "score": { "type": "number" },
+              "method": { "type": "string" },
+              "breakdown": {
+                "type": "object",
+                "properties": {
+                  "privacy_level": { "type": "string" },
+                  "synergy_score": { "type": "number" },
+                  "interest_match": { "type": "number" }
+                }
+              }
+            },
+            "required": ["agent_id_a", "agent_id_b", "score", "method", "breakdown"]
+          }
+        },
+        "required": ["synergy"]
+      },
+      "IdentityDimensions": {
+        "type": "object",
+        "properties": {
+          "IE": { "type": "number" },
+          "SN": { "type": "number" },
+          "TF": { "type": "number" },
+          "JP": { "type": "number" },
+          "EmotionalStability": { "type": "number" },
+          "Openness": { "type": "number" },
+          "Conscientiousness": { "type": "number" },
+          "Agreeableness": { "type": "number" },
+          "RiskTolerance": { "type": "number" },
+          "Empathy": { "type": "number" },
+          "SocialIntelligence": { "type": "number" },
+          "Creativity": { "type": "number" },
+          "Logic": { "type": "number" },
+          "Ambition": { "type": "number" },
+          "Adaptability": { "type": "number" },
+          "Altruism": { "type": "number" }
+        },
+        "required": ["IE", "SN", "TF", "JP", "EmotionalStability", "Openness", "Conscientiousness", "Agreeableness", "RiskTolerance", "Empathy", "SocialIntelligence", "Creativity", "Logic", "Ambition", "Adaptability", "Altruism"]
+      },
+      "XAlgorithmParams": {
+        "type": "object",
+        "properties": {
+          "dwellTimeSeconds": { "type": "number" },
+          "shareVelocity": { "type": "number" },
+          "reciprocalInteraction": { "type": "boolean" }
+        },
+        "required": ["dwellTimeSeconds", "shareVelocity", "reciprocalInteraction"]
+      },
+      "XSynergyRequest": {
+        "type": "object",
+        "properties": {
+          "identityA": { "$ref": "#/components/schemas/IdentityDimensions" },
+          "identityB": { "$ref": "#/components/schemas/IdentityDimensions" },
+          "xParams": { "$ref": "#/components/schemas/XAlgorithmParams" }
+        },
+        "required": ["identityA", "identityB", "xParams"]
+      },
+      "FeedbackRequest": {
+        "type": "object",
+        "properties": {
+          "mediationScore": { "type": "number" },
+          "userRating": { "type": "number", "minimum": 1, "maximum": 5 },
+          "comment": { "type": "string" },
+          "timestamp": { "type": "string" }
+        },
+        "required": ["mediationScore", "userRating"]
+      }
+    },
+    "responses": {
+      "ValidationError": {
+        "description": "Validation error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": { "type": "string" },
+                "details": { "type": "array", "items": { "type": "object" } }
+              },
+              "required": ["error"]
+            }
+          }
+        }
+      },
+      "InternalError": {
+        "description": "Internal server error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": { "type": "string" }
+              },
+              "required": ["error"]
+            }
+          }
+        }
+      }
+    }
+  }
+}
