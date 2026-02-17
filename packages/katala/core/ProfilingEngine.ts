@@ -1,45 +1,85 @@
-import { Fact, IdentityVector, OpenVisibilityRule } from './types';
+import { IdentityVector } from "./types";
+import { LLMAdapter, MockLLMAdapter } from "./llm-adapter";
+
+export interface ChatMessage {
+  role: "user" | "assistant";
+  content: string;
+  timestamp: string;
+}
 
 export class ProfilingEngine {
-  /**
-   * ログから事実(Fact)を抽出するコアロジック
-   * ZeroClawのHygiene思想に基づき、ノイズ除去と正規化を行う
-   */
-  async extractFactsFromLog(log: string): Promise<Fact[]> {
-    // TODO: LLM (Gemini 3 Flash) を用いた抽出プロンプトの実行
-    // 現状はモックとして、特定のキーワードを検知するロジックをシミュレート
-    const facts: Fact[] = [];
-    if (log.includes('Rust')) facts.push({ category: 'skill', value: 'Rust', confidence: 0.8, evidence: log });
-    if (log.includes('ビットコイン')) facts.push({ category: 'interest', value: 'Bitcoin', confidence: 0.9, evidence: log });
-    return facts;
+  private adapter: LLMAdapter;
+
+  constructor(adapter?: LLMAdapter) {
+    this.adapter = adapter ?? new MockLLMAdapter();
   }
 
   /**
-   * 抽出された事実を公開ルール(.openvisibility)に照らしてフィルタリングし、
-   * STAGINGエリア（承認待ち）へ送る
+   * Analyzes chat history to update the user's Identity Vector.
    */
-  async processToStaging(facts: Fact[], rules: OpenVisibilityRule[]): Promise<Fact[]> {
-    return facts.filter(fact => {
-      const rule = rules.find(r => r.category === fact.category && r.value === fact.value);
-      return rule ? rule.level !== 'IGNORE' : true; // デフォルトは通す
-    });
+  async updateProfile(
+    currentVector: IdentityVector,
+    history: ChatMessage[]
+  ): Promise<IdentityVector> {
+    const analysis = await this.adapter.analyze(history);
+
+    const updatedVector: IdentityVector = {
+      ...currentVector,
+      personality: {
+        ...currentVector.personality,
+        ...analysis.personality,
+      },
+      values: Array.from(
+        new Set([...currentVector.values, ...(analysis.values ?? [])])
+      ),
+      professionalFocus: Array.from(
+        new Set([
+          ...currentVector.professionalFocus,
+          ...(analysis.professionalFocus ?? []),
+        ])
+      ),
+      socialEnergy: {
+        ...currentVector.socialEnergy,
+        ...analysis.socialEnergy,
+      },
+      meta: {
+        confidenceScore: this.calculateConfidence(history),
+        lastUpdated: new Date().toISOString(),
+      },
+    };
+
+    return updatedVector;
   }
 
   /**
-   * 承認された事実を本番のIdentityVectorに統合(Commit)する
-   * 重複がある場合はConfidenceをマージする（Hygieneロジック）
+   * Process explicit user requests for profile adjustment ("Dialogue Tuning").
    */
-  commitToVector(currentVector: IdentityVector, approvedFacts: Fact[]): IdentityVector {
-    const newVector = { ...currentVector };
-    approvedFacts.forEach(fact => {
-      const existing = newVector.facts.find(f => f.category === fact.category && f.value === fact.value);
-      if (existing) {
-        // 重複排除ロジック: 確信度を漸進的に向上させる
-        existing.confidence = Math.min(1.0, existing.confidence + (1 - existing.confidence) * 0.2);
-      } else {
-        newVector.facts.push(fact);
-      }
-    });
-    return newVector;
+  async tuneProfile(
+    currentVector: IdentityVector,
+    tuningInstruction: string
+  ): Promise<IdentityVector> {
+    console.log(`Tuning profile with instruction: ${tuningInstruction}`);
+
+    const updated = { ...currentVector };
+    if (tuningInstruction.includes("outgoing")) {
+      updated.personality = {
+        ...updated.personality,
+        extraversion: Math.min(1, updated.personality.extraversion + 0.2),
+      };
+    }
+
+    updated.meta = {
+      ...updated.meta,
+      lastUpdated: new Date().toISOString(),
+      confidenceScore: Math.min(1, updated.meta.confidenceScore + 0.1),
+    };
+
+    return updated;
+  }
+
+  private calculateConfidence(history: ChatMessage[]): number {
+    const messageCount = history.length;
+    const baseConfidence = Math.min(messageCount / 50, 0.9);
+    return baseConfidence;
   }
 }

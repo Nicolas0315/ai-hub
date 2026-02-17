@@ -70,7 +70,7 @@ export class MatchmakingEngine {
 
   private calculateSocialSynergy(s1: IdentityVector['socialEnergy'], s2: IdentityVector['socialEnergy']): number {
     // Battery sync: match users with similar energy levels
-    const batteryMatch = 1 - Math.abs(s1.battery - s2.battery);
+    const batteryMatch = 1 - Math.abs(s1.battery - s2.battery) / 100;
     
     // Tone match: certain tones work better together
     const toneMatch = s1.preferredTone === s2.preferredTone ? 1 : 0.5;

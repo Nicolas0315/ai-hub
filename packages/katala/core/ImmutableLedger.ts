@@ -1,86 +1,99 @@
-import * as crypto from 'crypto';
-import { Fact } from './types';
+/**
+ * ImmutableLedger — Hash-chain based immutable event ledger.
+ * In-memory implementation; persistence is a future task.
+ */
 
 export interface LedgerEntry {
-  index: number;
+  id: string;
   timestamp: string;
-  fact: Fact;
+  eventType: string;
+  payload: Record<string, unknown>;
   previousHash: string;
   hash: string;
-  signature?: string;
 }
 
 export class ImmutableLedger {
   private chain: LedgerEntry[] = [];
 
-  constructor() {
-    // Genesis Block (最初のブロック)
-    this.createGenesisBlock();
+  /**
+   * Compute SHA-256 hash of the given data string.
+   */
+  private async computeHash(data: string): Promise<string> {
+    const encoded = new TextEncoder().encode(data);
+    const buffer = await crypto.subtle.digest("SHA-256", encoded);
+    return Array.from(new Uint8Array(buffer))
+      .map((b) => b.toString(16).padStart(2, "0"))
+      .join("");
   }
 
-  private createGenesisBlock() {
-    const genesisFact: Fact = { category: 'system', value: 'Katala Genesis', confidence: 1.0, evidence: 'system launch' };
-    const entry: LedgerEntry = {
-      index: 0,
+  /**
+   * Build the hash input for a ledger entry (excluding the hash field itself).
+   */
+  private hashInput(entry: Omit<LedgerEntry, "hash">): string {
+    return JSON.stringify({
+      id: entry.id,
+      timestamp: entry.timestamp,
+      eventType: entry.eventType,
+      payload: entry.payload,
+      previousHash: entry.previousHash,
+    });
+  }
+
+  /**
+   * Append a new entry to the ledger.
+   */
+  async append(
+    eventType: string,
+    payload: Record<string, unknown>
+  ): Promise<LedgerEntry> {
+    const previousHash =
+      this.chain.length > 0
+        ? this.chain[this.chain.length - 1].hash
+        : "0";
+
+    const partial: Omit<LedgerEntry, "hash"> = {
+      id: crypto.randomUUID(),
       timestamp: new Date().toISOString(),
-      fact: genesisFact,
-      previousHash: '0',
-      hash: this.calculateHash(0, '0', JSON.stringify(genesisFact)),
+      eventType,
+      payload,
+      previousHash,
     };
+
+    const hash = await this.computeHash(this.hashInput(partial));
+    const entry: LedgerEntry = { ...partial, hash };
     this.chain.push(entry);
-  }
-
-  private calculateHash(index: number, previousHash: string, data: string): string {
-    return crypto
-      .createHash('sha256')
-      .update(index + previousHash + data)
-      .digest('hex');
+    return entry;
   }
 
   /**
-   * 事実を台帳に追記(Append)する。
-   * 前のハッシュと連結することで鎖(Chain)を作る。
+   * Verify the integrity of the entire chain.
+   * Returns true if all hashes are valid and linked correctly.
    */
-  async addEntry(fact: Fact): Promise<LedgerEntry> {
-    const previousBlock = this.chain[this.chain.length - 1];
-    const newIndex = previousBlock.index + 1;
-    const timestamp = new Date().toISOString();
-    const data = JSON.stringify(fact);
-    const hash = this.calculateHash(newIndex, previousBlock.hash, data);
+  async verify(): Promise<boolean> {
+    for (let i = 0; i < this.chain.length; i++) {
+      const entry = this.chain[i];
 
-    const newEntry: LedgerEntry = {
-      index: newIndex,
-      timestamp,
-      fact,
-      previousHash: previousBlock.hash,
-      hash,
-    };
-
-    this.chain.push(newEntry);
-    return newEntry;
-  }
-
-  /**
-   * 台帳が改ざんされていないか検証する
-   */
-  verifyChain(): boolean {
-    for (let i = 1; i < this.chain.length; i++) {
-      const current = this.chain[i];
-      const previous = this.chain[i - 1];
-
-      // ハッシュが現在のデータと一致するか
-      if (current.hash !== this.calculateHash(current.index, current.previousHash, JSON.stringify(current.fact))) {
+      // Check previousHash linkage
+      const expectedPrevious = i === 0 ? "0" : this.chain[i - 1].hash;
+      if (entry.previousHash !== expectedPrevious) {
         return false;
       }
-      // 前のハッシュと繋がっているか
-      if (current.previousHash !== previous.hash) {
+
+      // Check hash integrity
+      const { hash, ...rest } = entry;
+      const computed = await this.computeHash(this.hashInput(rest));
+      if (computed !== hash) {
         return false;
       }
     }
     return true;
   }
 
-  getChain(): LedgerEntry[] {
-    return this.chain;
+  /**
+   * Get ledger history, most recent first.
+   */
+  getHistory(limit?: number): LedgerEntry[] {
+    const entries = [...this.chain].reverse();
+    return limit !== undefined ? entries.slice(0, limit) : entries;
   }
 }
