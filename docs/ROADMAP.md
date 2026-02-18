@@ -39,12 +39,33 @@
 - [ ] シミュレーションによる動作確認
 - [ ] CLIデモ
 
+## Phase 1.5: Auth — 認証基盤（NEW）
+
+> 詳細設計: [AUTH_INTEGRATION.md](./AUTH_INTEGRATION.md)
+
+### Auth0 + OIDC基盤
+- [ ] Auth0テナント構築・Social Connection設定（Google/Apple/GitHub）
+- [ ] World ID接続（Auth0 Social Connection、オプション）
+- [ ] WebAuthn/Passkey実装（`@simplewebauthn`）— LV1認証コア
+
+### Identity Vector連携
+- [ ] 認証完了 → Identity Vector初期生成
+- [ ] Staging Area APIとの統合
+
+### SBT + ZK
+- [ ] SBT（Soulbound Token）発行フロー（テストネット）
+- [ ] ZK-SNARKs PoC（circom/noir）— LV2認証プロトタイプ
+
+### DID + VC
+- [ ] DID Resolution実装（`did:web` or `did:key`）
+- [ ] Verifiable Credentials発行（エージェント委任状）
+
 ## Phase 2: Economy — 知能の経済圏
 
-### 認証基盤
-- [ ] WebAuthn（パスキー）ログイン実装
-- [ ] SBT (Soulbound Token) 発行ロジック
-- [ ] 生体認証 ↔ ウォレット紐付け
+### 認証統合（Phase 1.5からの接続）
+- [ ] SCS × 認証レベル連動（高LV認証 → SCS加算率ボーナス）
+- [ ] Progressive Disclosure × Auth Level連動
+- [ ] KBBアクセス制御（認証レベル別権限）
 
 ### Synergy Rewards
 - [ ] Synergy Contribution Score (SCS) 算出ロジック
