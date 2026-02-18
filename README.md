@@ -95,6 +95,22 @@ cp .env.example .env.local
 npm run dev
 ```
 
+## Philosophy
+
+**Why does Katala exist?**
+
+Traced from the origin of life: 3.8 billion years of evolution follow one pattern — **Individual → Cooperation → Information → Connection → Abstraction**. The vagus nerve evolved "neuroception" — unconscious safety detection. The digital world has none.
+
+Katala is **digital neuroception** — an independent trust verification layer.
+
+- **Elon Musk** builds the pipes (Starlink → X → xAI → Neuralink)
+- **Peter Thiel / Palantir** sees inside the pipes (data dominance)
+- **Katala** verifies both are working correctly (independent audit)
+
+The bigger their ecosystems grow, the more the world needs independent trust verification.
+
+📖 Full thesis: [docs/EVOLUTION_AND_TRUST.md](./docs/EVOLUTION_AND_TRUST.md)
+
 ## Contributing
 
 [CONTRIBUTING.md](./CONTRIBUTING.md) を参照。
