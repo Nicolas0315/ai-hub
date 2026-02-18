@@ -12,6 +12,8 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.74.0",
+    "@grpc/grpc-js": "^1.14.3",
+    "@grpc/proto-loader": "^0.8.0",
     "@types/papaparse": "^5.5.2",
     "dotenv": "^17.3.1",
     "framer-motion": "^12.34.0",

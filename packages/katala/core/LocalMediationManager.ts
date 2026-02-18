@@ -28,7 +28,7 @@ export class LocalMediationManager {
         console.log(`[Mediation] ⚖️  Calculating synergy for ${userA} ↔ ${userB}`);
         
         try {
-            const result = await this.service.calculateSynergy(request);
+            const result = await this.service.calculateSynergy(request as any);
             console.log(`[Mediation] ✓ Result computed: ${(result.synergy?.score || 0).toFixed(2)} synergy`);
             return result as SynergyResponse;
         } catch (error) {

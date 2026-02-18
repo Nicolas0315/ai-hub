@@ -4,6 +4,11 @@ import { IdentityVectorSchema } from "./IdentityVector";
 export type { IdentityVector } from "./IdentityVector";
 export { IdentityVectorSchema, createDefaultVector, validateVector } from "./IdentityVector";
 
+/** MBTI++ personality dimensions used by SynergyEngine */
+export interface MBTIPlusPlus {
+  [dimension: string]: number;
+}
+
 // --- Synergy Request / Response Types ---
 
 export const InterestSchema = z.object({
