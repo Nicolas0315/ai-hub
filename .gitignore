@@ -32,3 +32,8 @@ tasks.json
 memory/
 workspace/
 katalalog_yugi/
+
+# Stale submodules
+claude-code-best-practice-temp/
+dexter/
+projects/
