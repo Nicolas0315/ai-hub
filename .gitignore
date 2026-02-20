@@ -14,3 +14,21 @@ dist/
 /playwright-report/
 /blob-report/
 /playwright/.cache/
+
+# Agent workspace artifacts (not part of Katala source)
+AGENTS.md
+BOOTSTRAP.md
+CLAUDE.md
+HEARTBEAT.md
+IDENTITY.md
+SOUL.md
+TODO_CODEX.md
+TOOLS.md
+USER.md
+MASTER_INDEX.md
+loop.sh
+api_check.py
+tasks.json
+memory/
+workspace/
+katalalog_yugi/
