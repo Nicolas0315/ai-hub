@@ -30,6 +30,14 @@ export const AgentVerdictSchema = z.object({
 
 export type AgentVerdict = z.infer<typeof AgentVerdictSchema>;
 
+export const DissentSchema = z.object({
+  agentId: z.string(),
+  score: z.number(),
+  reasoning: z.string(),
+});
+
+export type Dissent = z.infer<typeof DissentSchema>;
+
 export const ConsensusResultSchema = z.object({
   claimId: z.string(),
   finalScore: z.number().min(0).max(1),
@@ -38,6 +46,17 @@ export const ConsensusResultSchema = z.object({
   consensus: z.enum(["unanimous", "majority", "tiebreaker", "deadlock"]),
   divergence: z.number().min(0).max(1),  // 最大乖離幅
   verdicts: z.array(AgentVerdictSchema),
+  /**
+   * マイノリティ意見: 多数派と大きく異なる見解を持つエージェントの記録
+   * 「数字があるから正解ではない。マイノリティが間違っているというルールは合理的ではない」
+   * — 少数意見を消さない。判断材料として常に保持する
+   */
+  dissent: z.array(DissentSchema).default([]),
+  /**
+   * スコアの限界を明示: このスコアが捉えられていない外的要因
+   * 数字は道具であって真実ではない
+   */
+  caveats: z.array(z.string()).default([]),
   reasoning: z.string(),
   completedAt: z.string().datetime(),
 });
@@ -130,6 +149,12 @@ export class ConsensusEngine {
     const { finalScore, finalAxes } = this.aggregateVerdicts(allVerdicts);
     const finalGrade = this.toGrade(finalScore);
 
+    // Phase 5: マイノリティ意見の抽出（少数意見を消さない）
+    const dissent = this.extractDissent(allVerdicts, finalScore);
+
+    // Phase 6: スコアの限界を明示（数字は道具であって真実ではない）
+    const caveats = this.generateCaveats(claim, allVerdicts, consensusType);
+
     return {
       claimId: claim.id,
       finalScore,
@@ -138,6 +163,8 @@ export class ConsensusEngine {
       consensus: consensusType,
       divergence,
       verdicts: allVerdicts,
+      dissent,
+      caveats,
       reasoning: this.generateConsensusReasoning(allVerdicts, consensusType, divergence),
       completedAt: new Date().toISOString(),
     };
@@ -292,6 +319,77 @@ export class ConsensusEngine {
     }
 
     return parts.join("。") + "。";
+  }
+
+  /**
+   * マイノリティ意見を抽出
+   * 多数派と0.15以上乖離しているエージェントの見解を保存する
+   * マイノリティが間違っているというルールは合理的ではない
+   */
+  private extractDissent(verdicts: AgentVerdict[], finalScore: number): Dissent[] {
+    const dissents: Dissent[] = [];
+    for (const v of verdicts) {
+      const gap = Math.abs(v.result.compositeScore - finalScore);
+      if (gap > 0.15) {
+        dissents.push({
+          agentId: v.agentId,
+          score: v.result.compositeScore,
+          reasoning: v.reasoning,
+        });
+      }
+    }
+    return dissents;
+  }
+
+  /**
+   * スコアが捉えられていない外的要因を明示
+   * 数字は判断材料を整理するためのもの。最終判断は人間がする
+   */
+  private generateCaveats(
+    claim: Claim,
+    verdicts: AgentVerdict[],
+    consensusType: ConsensusResult["consensus"]
+  ): string[] {
+    const caveats: string[] = [];
+
+    // 常に付与: スコアの本質的な限界
+    caveats.push("スコアは判断材料の整理であり、真実の保証ではない");
+
+    // 発信者の利害関係が不明な場合
+    if (!claim.source.author) {
+      caveats.push("発信者不明 — 利害関係の評価不可");
+    }
+
+    // 単一ドメインの情報（政治的・経済的文脈が考慮されていない可能性）
+    if (claim.domain === "crypto" || claim.domain === "finance") {
+      caveats.push("金融情報 — 発信者の経済的インセンティブを個別に確認すべき");
+    }
+    if (claim.domain === "politics") {
+      caveats.push("政治情報 — 発信者の政治的立場・利害関係を個別に確認すべき");
+    }
+
+    // AI生成コンテンツ
+    if (claim.source.type === "generated") {
+      caveats.push("AI生成情報 — ハルシネーションの可能性を考慮すべき");
+    }
+
+    // デッドロック時
+    if (consensusType === "deadlock") {
+      caveats.push("エージェント間で見解が大きく分裂 — 人間による最終判断を強く推奨");
+    }
+
+    // マイノリティがいる場合
+    const hasMinority = verdicts.some(
+      (v) => {
+        const median = verdicts.map(x => x.result.compositeScore).sort()[Math.floor(verdicts.length / 2)];
+        return Math.abs(v.result.compositeScore - median) > 0.15;
+      }
+    );
+    if (hasMinority) {
+      caveats.push("少数意見あり — dissent欄を確認し、多数派が正しいと仮定しないこと");
+    }
+
+    return caveats;
   }
 
   private toGrade(score: number): ConsensusResult["finalGrade"] {

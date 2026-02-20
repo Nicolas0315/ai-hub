@@ -155,6 +155,85 @@ describe("ConsensusEngine", () => {
     });
   });
 
+  describe("dissent (minority opinion preservation)", () => {
+    it("captures minority opinion when agent diverges from consensus", async () => {
+      const agents = [
+        new MockTrustAgent("majority-1", 0.85, 0.9),
+        new MockTrustAgent("majority-2", 0.82, 0.85),
+        new MockTrustAgent("minority", 0.3, 0.8),
+      ];
+      const engine = new ConsensusEngine(agents, undefined, { minAgents: 3 });
+      const result = await engine.evaluate(makeClaim());
+
+      expect(result.dissent.length).toBeGreaterThanOrEqual(1);
+      const minorityDissent = result.dissent.find((d) => d.agentId === "minority");
+      expect(minorityDissent).toBeDefined();
+      expect(minorityDissent!.score).toBe(0.3);
+    });
+
+    it("has no dissent when all agents agree", async () => {
+      const agents = [
+        new MockTrustAgent("a", 0.8, 0.9),
+        new MockTrustAgent("b", 0.82, 0.85),
+      ];
+      const engine = new ConsensusEngine(agents);
+      const result = await engine.evaluate(makeClaim());
+
+      expect(result.dissent).toHaveLength(0);
+    });
+  });
+
+  describe("caveats (score limitations)", () => {
+    it("always includes base caveat about scores not being truth", async () => {
+      const agents = [
+        new MockTrustAgent("a", 0.8, 0.9),
+        new MockTrustAgent("b", 0.82, 0.85),
+      ];
+      const engine = new ConsensusEngine(agents);
+      const result = await engine.evaluate(makeClaim());
+
+      expect(result.caveats.some((c) => c.includes("真実の保証ではない"))).toBe(true);
+    });
+
+    it("flags financial domain incentive risk", async () => {
+      const agents = [
+        new MockTrustAgent("a", 0.8, 0.9),
+        new MockTrustAgent("b", 0.82, 0.85),
+      ];
+      const engine = new ConsensusEngine(agents);
+      const claim = makeClaim({ domain: "finance" });
+      const result = await engine.evaluate(claim);
+
+      expect(result.caveats.some((c) => c.includes("経済的インセンティブ"))).toBe(true);
+    });
+
+    it("flags political domain bias risk", async () => {
+      const agents = [
+        new MockTrustAgent("a", 0.8, 0.9),
+        new MockTrustAgent("b", 0.82, 0.85),
+      ];
+      const engine = new ConsensusEngine(agents);
+      const claim = makeClaim({ domain: "politics" });
+      const result = await engine.evaluate(claim);
+
+      expect(result.caveats.some((c) => c.includes("政治的立場"))).toBe(true);
+    });
+
+    it("warns about AI-generated content", async () => {
+      const agents = [
+        new MockTrustAgent("a", 0.8, 0.9),
+        new MockTrustAgent("b", 0.82, 0.85),
+      ];
+      const engine = new ConsensusEngine(agents);
+      const claim = makeClaim({
+        source: { type: "generated", author: "GPT-4", publishedAt: now },
+      });
+      const result = await engine.evaluate(claim);
+
+      expect(result.caveats.some((c) => c.includes("ハルシネーション"))).toBe(true);
+    });
+  });
+
   describe("error handling", () => {
     it("throws if fewer agents than minimum", () => {
       expect(
