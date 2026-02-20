@@ -1,0 +1,73 @@
+name: Leak Guard
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check for sensitive file paths
+        run: |
+          BLOCKED=0
+          PATTERNS=(
+            '^memory/'
+            '^MEMORY\.md$'
+            '^USER\.md$'
+            '^AGENTS\.md$'
+            '^knowledge/people/'
+            '^knowledge/business/competitive-intel'
+            '^knowledge/investment/'
+            '^knowledge/legal/'
+            '\.env\.local$'
+            '\.env\.1password$'
+            'machine\.json$'
+            'BitflyerBot/'
+            '\.serena/'
+            'katalalog_yugi/'
+          )
+          
+          for pattern in "${PATTERNS[@]}"; do
+            matches=$(git ls-files | grep -E "$pattern" || true)
+            if [ -n "$matches" ]; then
+              echo "❌ Sensitive path: $matches"
+              BLOCKED=1
+            fi
+          done
+          
+          if [ "$BLOCKED" -eq 1 ]; then
+            echo "::error::Sensitive files detected in repository"
+            exit 1
+          fi
+          echo "✅ No sensitive paths found"
+
+      - name: Scan for hardcoded secrets
+        run: |
+          BLOCKED=0
+          PATTERNS=(
+            'AUTH_SECRET=[^$]'
+            'sk-ant-[a-zA-Z0-9]'
+            'ghp_[a-zA-Z0-9]{36}'
+            'DISCORD_TOKEN=[^'\''"]'
+          )
+          
+          for pattern in "${PATTERNS[@]}"; do
+            matches=$(git grep -lE "$pattern" -- ':(exclude)*.yml' ':(exclude)*.yaml' ':(exclude)leak-guard*' || true)
+            if [ -n "$matches" ]; then
+              echo "❌ Potential secret ($pattern) in: $matches"
+              BLOCKED=1
+            fi
+          done
+          
+          if [ "$BLOCKED" -eq 1 ]; then
+            echo "::error::Potential secrets detected"
+            exit 1
+          fi
+          echo "✅ No secrets found"
