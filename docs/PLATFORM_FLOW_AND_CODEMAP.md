@@ -210,6 +210,7 @@ Katalaの本質は、**情報をそのまま増やすことではなく、意味
 - `MVP_COMM_PROTOCOL.md`（MVP通信仕様）
 - `AUTH_INTEGRATION.md`（認証方針）
 - `SECURITY.md`（攻撃シナリオと防御）
+- `SOCIAL_INFRA_POLICY.md`（誰も排除しない入口 / 悪用させない出口）
 - `ROADMAP.md`（時系列計画）
 
 ---
