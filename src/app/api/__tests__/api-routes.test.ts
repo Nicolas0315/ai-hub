@@ -23,9 +23,7 @@ describe("API: /api/profiling", () => {
     const vector = createDefaultVector();
     const req = makeRequest({
       currentVector: vector,
-      history: [
-        { role: "user", content: "Hello", timestamp: new Date().toISOString() },
-      ],
+      history: [{ role: "user", content: "Hello", timestamp: new Date().toISOString() }],
     });
     const res = await POST(req as any);
     expect(res.status).toBe(200);
@@ -46,7 +44,7 @@ describe("API: /api/profiling", () => {
     const vector = createDefaultVector();
     const req = makeRequest(
       { currentVector: vector, instruction: "more outgoing" },
-      "http://localhost:3000/api/profiling?mode=tune"
+      "http://localhost:3000/api/profiling?mode=tune",
     );
     const res = await POST(req as any);
     expect(res.status).toBe(200);
@@ -161,5 +159,45 @@ describe("API: /api/ledger", () => {
     const req = makeRequest({ eventType: "", payload: {} });
     const res = await POST(req as any);
     expect(res.status).toBe(400);
+  });
+});
+
+describe("API: /api/intent/normalize", () => {
+  it("POST normalizes intent and infers priority", async () => {
+    const { POST } = await import("../intent/normalize/route");
+    const req = makeRequest({ text: "至急でこのタスクを終わらせたい", counterparty: "agent-b" });
+    const res = await POST(req as any);
+    expect(res.status).toBe(200);
+    const data = await res.json();
+    expect(data.status).toBe("success");
+    expect(data.normalized.priority).toBe("high");
+  });
+
+  it("POST rejects invalid body", async () => {
+    const { POST } = await import("../intent/normalize/route");
+    const req = makeRequest({ text: "" });
+    const res = await POST(req as any);
+    expect(res.status).toBe(400);
+  });
+});
+
+describe("API: /api/mediation", () => {
+  it("POST /propose creates proposal", async () => {
+    const { POST } = await import("../mediation/propose/route");
+    const req = makeRequest({ fromAgentId: "a1", toAgentId: "a2", intent: "今すぐやれ" });
+    const res = await POST(req as any);
+    expect(res.status).toBe(201);
+    const data = await res.json();
+    expect(data.status).toBe("success");
+    expect(data.proposal.proposalId).toBeDefined();
+  });
+
+  it("POST /resolve resolves proposal", async () => {
+    const { POST } = await import("../mediation/resolve/route");
+    const req = makeRequest({ proposalId: "prop_123", accepted: true });
+    const res = await POST(req as any);
+    expect(res.status).toBe(200);
+    const data = await res.json();
+    expect(data.resolution.status).toBe("agreed");
   });
 });
