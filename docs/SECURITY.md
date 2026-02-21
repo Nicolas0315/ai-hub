@@ -83,6 +83,18 @@
   - 高リスク領域は収集しない
   - 保存は「蒸留後の最小構造」だけ
 
+### 蒸留監査ルール（Purpose/TTL/Override）
+
+- 実装: `src/lib/policy/distilledAuditPolicy.ts`
+- 目的別TTL（デフォルト）:
+  - safety: 30日
+  - reliability: 14日
+  - compliance: 90日
+- Human Override（オプトアウト）:
+  - `actorOverride=true` の場合、収集/保存を停止
+- raw content禁止:
+  - 原文保存は常に拒否。カテゴリ化後のみ記録
+
 > 目的: 人類の進化に必要な学習は継続しつつ、個人の復元可能性を切断する。
 
 ## 認証セキュリティ原則（No-Store Charter）

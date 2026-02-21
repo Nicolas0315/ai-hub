@@ -167,7 +167,12 @@ Katalaの本質は、**情報をそのまま増やすことではなく、意味
    - L0/L1/L2を機械判定
    - 高リスクは収集禁止、 中リスクは蒸留後のみ
 
-6. **Immutable Record**
+6. **Distilled Audit判定**
+   - Purpose（safety/reliability/compliance）
+   - TTL自動設定
+   - Human Override（オプトアウト）
+
+7. **Immutable Record**
    - 必要最小の事実だけをLedgerへ記録
    - 後から検証可能な形で保存
 

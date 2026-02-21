@@ -3,6 +3,7 @@ import { z } from "zod";
 import { sharedLedger } from "@/lib/ledger/store";
 import { verifyHumanIntentSignature } from "@/lib/auth/humanSignature";
 import { classifyOpenThreshold, classifyReason } from "@/lib/policy/openThreshold";
+import { evaluateDistilledAudit } from "@/lib/policy/distilledAuditPolicy";
 
 const ResolveSchema = z.object({
   proposalId: z.string().min(1),
@@ -11,6 +12,8 @@ const ResolveSchema = z.object({
   actorId: z.string().min(1),
   nonce: z.string().min(1),
   signature: z.string().min(1),
+  purpose: z.enum(["safety", "reliability", "compliance"]).default("reliability"),
+  actorOverride: z.boolean().optional(),
 });
 
 export async function POST(req: Request) {
@@ -40,6 +43,13 @@ export async function POST(req: Request) {
       dpEpsilon: 1,
     });
 
+    const audit = evaluateDistilledAudit({
+      purpose: parsed.data.purpose,
+      actorOverride: parsed.data.actorOverride,
+      eventType: "mediation.resolved",
+      containsRawContent: false,
+    });
+
     const reasonCategory = classifyReason(parsed.data.reason);
 
     const resolution = {
@@ -49,9 +59,10 @@ export async function POST(req: Request) {
       actorId: parsed.data.actorId,
       resolvedAt: new Date().toISOString(),
       policy,
+      audit,
     };
 
-    if (policy.collect) {
+    if (policy.collect && audit.allowCollect) {
       await sharedLedger.append("mediation.resolved", {
         proposalId: parsed.data.proposalId,
         actorId: parsed.data.actorId,
@@ -60,6 +71,8 @@ export async function POST(req: Request) {
         nonce: parsed.data.nonce,
         visibility: policy.level,
         openAllowed: policy.open,
+        purpose: parsed.data.purpose,
+        expiresAt: new Date(Date.now() + audit.ttlHours * 60 * 60 * 1000).toISOString(),
       });
     }
 
