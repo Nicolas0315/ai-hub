@@ -193,11 +193,37 @@ describe("API: /api/mediation", () => {
   });
 
   it("POST /resolve resolves proposal", async () => {
+    process.env.HUMAN_LAYER_SIGNING_KEY = "test-secret";
+    const { signHumanIntent } = await import("@/lib/auth/humanSignature");
     const { POST } = await import("../mediation/resolve/route");
-    const req = makeRequest({ proposalId: "prop_123", accepted: true });
+
+    const payload = {
+      proposalId: "prop_123",
+      accepted: true,
+      actorId: "human_1",
+      nonce: "n1",
+    };
+    const signingMessage = `${payload.actorId}:${payload.proposalId}:${payload.accepted}:${payload.nonce}`;
+    const signature = signHumanIntent(signingMessage, "test-secret");
+
+    const req = makeRequest({ ...payload, signature });
     const res = await POST(req as any);
     expect(res.status).toBe(200);
     const data = await res.json();
     expect(data.resolution.status).toBe("agreed");
+  });
+
+  it("POST /resolve rejects invalid signature", async () => {
+    process.env.HUMAN_LAYER_SIGNING_KEY = "test-secret";
+    const { POST } = await import("../mediation/resolve/route");
+    const req = makeRequest({
+      proposalId: "prop_123",
+      accepted: true,
+      actorId: "human_1",
+      nonce: "n1",
+      signature: "deadbeef",
+    });
+    const res = await POST(req as any);
+    expect(res.status).toBe(401);
   });
 });

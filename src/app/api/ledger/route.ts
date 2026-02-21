@@ -1,9 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { ImmutableLedger } from "../../../../packages/katala/core/ImmutableLedger";
-
-// Shared ledger instance (prototype; replace with persistent store in production)
-const ledger = new ImmutableLedger();
+import { sharedLedger as ledger } from "@/lib/ledger/store";
 
 const AppendSchema = z.object({
   eventType: z.string().min(1),
@@ -37,11 +34,14 @@ export async function POST(req: NextRequest) {
     if (!parsed.success) {
       return NextResponse.json(
         { error: "Validation failed", details: parsed.error.issues },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
-    const entry = await ledger.append(parsed.data.eventType, parsed.data.payload as Record<string, unknown>);
+    const entry = await ledger.append(
+      parsed.data.eventType,
+      parsed.data.payload as Record<string, unknown>,
+    );
     return NextResponse.json({ entry, status: "success" }, { status: 201 });
   } catch (error) {
     console.error("[Ledger API Error]", error);

@@ -1,10 +1,12 @@
-import { auth, signOut } from "@/auth"
-import Link from "next/link"
-import SynergyDashboard from "@/components/SynergyDashboard"
-import { sampleIdentities } from "@/lib/kani/dataProvider"
+import Link from "next/link";
+import { auth, signOut } from "@/auth";
+import SynergyDashboard from "@/components/SynergyDashboard";
+import { sampleIdentities } from "@/lib/kani/dataProvider";
+import { sharedLedger } from "@/lib/ledger/store";
 
 export default async function Home() {
-  const session = await auth()
+  const session = await auth();
+  const recentLedger = sharedLedger.getHistory(5);
 
   return (
     <main className="flex min-h-screen flex-col items-center p-8 md:p-24 bg-gray-50 dark:bg-zinc-950">
@@ -21,9 +23,7 @@ export default async function Home() {
       </div>
 
       <div className="mb-8 text-center">
-        <p className="text-sm text-gray-600 dark:text-gray-400">
-          AI間通信・仲介パイプライン
-        </p>
+        <p className="text-sm text-gray-600 dark:text-gray-400">AI間通信・仲介パイプライン</p>
       </div>
 
       {/* Authentication Status */}
@@ -36,8 +36,8 @@ export default async function Home() {
                 <p>サインイン中: {session.user?.email}</p>
                 <form
                   action={async () => {
-                    "use server"
-                    await signOut()
+                    "use server";
+                    await signOut();
                   }}
                 >
                   <button className="rounded-full bg-red-500/10 px-4 py-2 text-red-500 hover:bg-red-500/20 transition-colors">
@@ -60,11 +60,30 @@ export default async function Home() {
         </div>
       </div>
 
+      {/* Board: Recent Agreement Events */}
+      <div className="mb-12 w-full max-w-5xl">
+        <div className="group rounded-3xl border border-transparent px-5 py-4 bg-white dark:bg-zinc-900/50 backdrop-blur-sm shadow-sm">
+          <h2 className="mb-3 text-xl font-semibold">Board（直近の合意ログ）</h2>
+          {recentLedger.length === 0 ? (
+            <p className="text-sm opacity-70">まだ記録はありません</p>
+          ) : (
+            <ul className="space-y-2 text-sm">
+              {recentLedger.map((entry) => (
+                <li key={entry.id} className="rounded-lg border border-zinc-200/50 dark:border-zinc-800 px-3 py-2">
+                  <div className="font-mono text-xs opacity-70">{new Date(entry.timestamp).toLocaleString("ja-JP")}</div>
+                  <div>{entry.eventType}</div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </div>
+
       {/* Synergy Dashboard - Phase 3 */}
       <SynergyDashboard
         identityA={sampleIdentities.analytical}
         identityB={sampleIdentities.empathetic}
       />
     </main>
-  )
+  );
 }

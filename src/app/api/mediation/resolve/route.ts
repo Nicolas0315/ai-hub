@@ -1,10 +1,15 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import { sharedLedger } from "@/lib/ledger/store";
+import { verifyHumanIntentSignature } from "@/lib/auth/humanSignature";
 
 const ResolveSchema = z.object({
   proposalId: z.string().min(1),
   accepted: z.boolean(),
   reason: z.string().optional(),
+  actorId: z.string().min(1),
+  nonce: z.string().min(1),
+  signature: z.string().min(1),
 });
 
 export async function POST(req: Request) {
@@ -19,12 +24,28 @@ export async function POST(req: Request) {
       );
     }
 
+    const signingMessage = `${parsed.data.actorId}:${parsed.data.proposalId}:${parsed.data.accepted}:${parsed.data.nonce}`;
+    const signatureValid = verifyHumanIntentSignature(signingMessage, parsed.data.signature);
+
+    if (!signatureValid) {
+      return NextResponse.json({ error: "Invalid human-layer signature" }, { status: 401 });
+    }
+
     const resolution = {
       proposalId: parsed.data.proposalId,
       status: parsed.data.accepted ? "agreed" : "rejected",
       reason: parsed.data.reason ?? null,
+      actorId: parsed.data.actorId,
       resolvedAt: new Date().toISOString(),
     };
+
+    await sharedLedger.append("mediation.resolved", {
+      proposalId: parsed.data.proposalId,
+      actorId: parsed.data.actorId,
+      accepted: parsed.data.accepted,
+      reason: parsed.data.reason ?? null,
+      nonce: parsed.data.nonce,
+    });
 
     return NextResponse.json({ status: "success", resolution });
   } catch (error) {
