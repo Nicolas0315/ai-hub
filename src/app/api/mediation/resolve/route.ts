@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { sharedLedger } from "@/lib/ledger/store";
 import { verifyHumanIntentSignature } from "@/lib/auth/humanSignature";
-import { classifyOpenThreshold, classifyReason } from "@/lib/policy/openThreshold";
-import { evaluateDistilledAudit } from "@/lib/policy/distilledAuditPolicy";
 import { consumeNonce } from "@/lib/auth/nonceStore";
+import { sharedLedger } from "@/lib/ledger/store";
+import { evaluateDistilledAudit } from "@/lib/policy/distilledAuditPolicy";
+import { classifyOpenThreshold, classifyReason } from "@/lib/policy/openThreshold";
 
 const ResolveSchema = z.object({
   proposalId: z.string().min(1),

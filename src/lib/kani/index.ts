@@ -5,18 +5,14 @@
  * with retry logic, timeout handling, and mock data fallback.
  */
 
-export {
-  KaniClient,
-  kaniClient,
-  mediate,
-} from './client';
+export { KaniClient, kaniClient, mediate } from "./client";
 
 export type {
   KaniMediationRequest,
   KaniMediationResponse,
   KaniClientConfig,
   KaniAPIError,
-} from './types';
+} from "./types";
 
 export {
   sampleIdentities,
@@ -25,9 +21,6 @@ export {
   getCurrentUserIdentity,
   generateXParams,
   getMediationData,
-} from './dataProvider';
+} from "./dataProvider";
 
-export {
-  mockMediationResponse,
-  generateMockResponse,
-} from './mockData';
+export { mockMediationResponse, generateMockResponse } from "./mockData";

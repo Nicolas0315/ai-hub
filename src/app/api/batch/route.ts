@@ -1,8 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { BatchProcessor, BatchItem, BatchProgress } from "../../../../packages/katala/core/BatchProcessor";
-import { ProfilingEngine } from "../../../../packages/katala/core/ProfilingEngine";
+import {
+  BatchProcessor,
+  BatchItem,
+  BatchProgress,
+} from "../../../../packages/katala/core/BatchProcessor";
 import { IdentityVectorSchema } from "../../../../packages/katala/core/IdentityVector";
+import { ProfilingEngine } from "../../../../packages/katala/core/ProfilingEngine";
 
 const ChatMessageSchema = z.object({
   role: z.enum(["user", "assistant"]),
@@ -32,7 +36,7 @@ export async function POST(req: NextRequest) {
     if (!parsed.success) {
       return NextResponse.json(
         { error: "Validation failed", details: parsed.error.issues },
-        { status: 400 }
+        { status: 400 },
       );
     }
 

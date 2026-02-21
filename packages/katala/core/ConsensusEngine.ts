@@ -21,7 +21,7 @@ import { TrustScorer, Claim, TrustResult, TrustAxes } from "./TrustScorer";
 
 export const AgentVerdictSchema = z.object({
   agentId: z.string(),
-  model: z.string(),              // e.g. "claude-sonnet-4", "gemini-3-pro"
+  model: z.string(), // e.g. "claude-sonnet-4", "gemini-3-pro"
   result: z.custom<TrustResult>(),
   confidence: z.number().min(0).max(1),
   reasoning: z.string(),
@@ -44,7 +44,7 @@ export const ConsensusResultSchema = z.object({
   finalGrade: z.enum(["S", "A", "B", "C", "D", "F"]),
   finalAxes: z.custom<TrustAxes>(),
   consensus: z.enum(["unanimous", "majority", "tiebreaker", "deadlock"]),
-  divergence: z.number().min(0).max(1),  // 最大乖離幅
+  divergence: z.number().min(0).max(1), // 最大乖離幅
   verdicts: z.array(AgentVerdictSchema),
   /**
    * マイノリティ意見: 多数派と大きく異なる見解を持つエージェントの記録
@@ -102,18 +102,14 @@ export class ConsensusEngine {
   private tiebreaker: TrustAgent | null;
   private config: ConsensusConfig;
 
-  constructor(
-    agents: TrustAgent[],
-    tiebreaker?: TrustAgent,
-    config?: Partial<ConsensusConfig>
-  ) {
+  constructor(agents: TrustAgent[], tiebreaker?: TrustAgent, config?: Partial<ConsensusConfig>) {
     this.agents = agents;
     this.tiebreaker = tiebreaker ?? null;
     this.config = { ...DEFAULT_CONFIG, ...config };
 
     if (agents.length < this.config.minAgents) {
       throw new Error(
-        `ConsensusEngine requires at least ${this.config.minAgents} agents, got ${agents.length}`
+        `ConsensusEngine requires at least ${this.config.minAgents} agents, got ${agents.length}`,
       );
     }
   }
@@ -186,15 +182,9 @@ export class ConsensusEngine {
 
   // --- Internal ---
 
-  private async collectVerdicts(
-    claim: Claim,
-    context?: Claim[]
-  ): Promise<AgentVerdict[]> {
+  private async collectVerdicts(claim: Claim, context?: Claim[]): Promise<AgentVerdict[]> {
     const promises = this.agents.map((agent) =>
-      Promise.race([
-        agent.evaluate(claim, context),
-        this.timeout(agent.id),
-      ])
+      Promise.race([agent.evaluate(claim, context), this.timeout(agent.id)]),
     );
 
     const results = await Promise.allSettled(promises);
@@ -209,7 +199,7 @@ export class ConsensusEngine {
 
     if (verdicts.length < this.config.minAgents) {
       throw new Error(
-        `Only ${verdicts.length}/${this.agents.length} agents responded. Minimum: ${this.config.minAgents}`
+        `Only ${verdicts.length}/${this.agents.length} agents responded. Minimum: ${this.config.minAgents}`,
       );
     }
 
@@ -225,18 +215,20 @@ export class ConsensusEngine {
     return max - min;
   }
 
-  private aggregateVerdicts(
-    verdicts: AgentVerdict[]
-  ): { finalScore: number; finalAxes: TrustAxes } {
+  private aggregateVerdicts(verdicts: AgentVerdict[]): {
+    finalScore: number;
+    finalAxes: TrustAxes;
+  } {
     if (this.config.useConfidenceWeighting) {
       return this.confidenceWeightedAverage(verdicts);
     }
     return this.simpleAverage(verdicts);
   }
 
-  private confidenceWeightedAverage(
-    verdicts: AgentVerdict[]
-  ): { finalScore: number; finalAxes: TrustAxes } {
+  private confidenceWeightedAverage(verdicts: AgentVerdict[]): {
+    finalScore: number;
+    finalAxes: TrustAxes;
+  } {
     let totalWeight = 0;
     let weightedScore = 0;
     const weightedAxes = { freshness: 0, provenance: 0, verification: 0, accessibility: 0 };
@@ -264,9 +256,7 @@ export class ConsensusEngine {
     };
   }
 
-  private simpleAverage(
-    verdicts: AgentVerdict[]
-  ): { finalScore: number; finalAxes: TrustAxes } {
+  private simpleAverage(verdicts: AgentVerdict[]): { finalScore: number; finalAxes: TrustAxes } {
     const n = verdicts.length;
     const axes = { freshness: 0, provenance: 0, verification: 0, accessibility: 0 };
     let totalScore = 0;
@@ -293,29 +283,37 @@ export class ConsensusEngine {
   private generateConsensusReasoning(
     verdicts: AgentVerdict[],
     consensusType: ConsensusResult["consensus"],
-    divergence: number
+    divergence: number,
   ): string {
     const parts: string[] = [];
 
     // Consensus type
     switch (consensusType) {
       case "unanimous":
-        parts.push(`${verdicts.length}エージェント全員が一致（乖離${(divergence * 100).toFixed(1)}%）`);
+        parts.push(
+          `${verdicts.length}エージェント全員が一致（乖離${(divergence * 100).toFixed(1)}%）`,
+        );
         break;
       case "majority":
-        parts.push(`${verdicts.length}エージェントの多数決（乖離${(divergence * 100).toFixed(1)}%）`);
+        parts.push(
+          `${verdicts.length}エージェントの多数決（乖離${(divergence * 100).toFixed(1)}%）`,
+        );
         break;
       case "tiebreaker":
         parts.push(`タイブレーカー介入（初期乖離${(divergence * 100).toFixed(1)}%）`);
         break;
       case "deadlock":
-        parts.push(`⚠️ デッドロック — エージェント間の見解が大きく分かれた（乖離${(divergence * 100).toFixed(1)}%）`);
+        parts.push(
+          `⚠️ デッドロック — エージェント間の見解が大きく分かれた（乖離${(divergence * 100).toFixed(1)}%）`,
+        );
         break;
     }
 
     // Per-agent summary
     for (const v of verdicts) {
-      parts.push(`[${v.agentId}/${v.model}] スコア${(v.result.compositeScore * 100).toFixed(0)} (信頼度${(v.confidence * 100).toFixed(0)}%)`);
+      parts.push(
+        `[${v.agentId}/${v.model}] スコア${(v.result.compositeScore * 100).toFixed(0)} (信頼度${(v.confidence * 100).toFixed(0)}%)`,
+      );
     }
 
     return parts.join("。") + "。";
@@ -348,7 +346,7 @@ export class ConsensusEngine {
   private generateCaveats(
     claim: Claim,
     verdicts: AgentVerdict[],
-    consensusType: ConsensusResult["consensus"]
+    consensusType: ConsensusResult["consensus"],
   ): string[] {
     const caveats: string[] = [];
 
@@ -379,12 +377,12 @@ export class ConsensusEngine {
     }
 
     // マイノリティがいる場合
-    const hasMinority = verdicts.some(
-      (v) => {
-        const median = verdicts.map(x => x.result.compositeScore).sort()[Math.floor(verdicts.length / 2)];
-        return Math.abs(v.result.compositeScore - median) > 0.15;
-      }
-    );
+    const hasMinority = verdicts.some((v) => {
+      const median = verdicts.map((x) => x.result.compositeScore).sort()[
+        Math.floor(verdicts.length / 2)
+      ];
+      return Math.abs(v.result.compositeScore - median) > 0.15;
+    });
     if (hasMinority) {
       caveats.push("少数意見あり — dissent欄を確認し、多数派が正しいと仮定しないこと");
     }
@@ -405,8 +403,8 @@ export class ConsensusEngine {
     return new Promise((_, reject) =>
       setTimeout(
         () => reject(new Error(`Agent ${agentId} timed out after ${this.config.timeoutMs}ms`)),
-        this.config.timeoutMs
-      )
+        this.config.timeoutMs,
+      ),
     );
   }
 }
@@ -430,9 +428,7 @@ export class RuleBasedTrustAgent implements TrustAgent {
 
   async evaluate(claim: Claim, context?: Claim[]): Promise<AgentVerdict> {
     const corroborating = (context ?? []).filter(
-      (c) =>
-        c.domain === claim.domain &&
-        c.source.author !== claim.source.author
+      (c) => c.domain === claim.domain && c.source.author !== claim.source.author,
     );
 
     const result = this.scorer.score(claim, corroborating, []);
@@ -454,7 +450,10 @@ export class RuleBasedTrustAgent implements TrustAgent {
  * LLMエージェント: ClaudeやGeminiで信頼性を評価
  */
 export interface LLMTrustAdapter {
-  assessTrust(claim: Claim, context?: Claim[]): Promise<{
+  assessTrust(
+    claim: Claim,
+    context?: Claim[],
+  ): Promise<{
     axes: TrustAxes;
     confidence: number;
     reasoning: string;
@@ -485,11 +484,17 @@ export class LLMTrustAgent implements TrustAgent {
       assessment.axes.accessibility * 0.1;
 
     const grade =
-      compositeScore >= 0.9 ? "S" :
-      compositeScore >= 0.8 ? "A" :
-      compositeScore >= 0.65 ? "B" :
-      compositeScore >= 0.5 ? "C" :
-      compositeScore >= 0.35 ? "D" : "F";
+      compositeScore >= 0.9
+        ? "S"
+        : compositeScore >= 0.8
+          ? "A"
+          : compositeScore >= 0.65
+            ? "B"
+            : compositeScore >= 0.5
+              ? "C"
+              : compositeScore >= 0.35
+                ? "D"
+                : "F";
 
     const result: import("./TrustScorer").TrustResult = {
       claimId: claim.id,

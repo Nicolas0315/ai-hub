@@ -1,4 +1,4 @@
-import { IdentityDimensions, XAlgorithmParams } from '../synergy/engine';
+import { IdentityDimensions, XAlgorithmParams } from "../synergy/engine";
 
 /**
  * Sample identity profiles for testing
@@ -94,12 +94,10 @@ export function getDefaultIdentity(): IdentityDimensions {
  * @param userId - User identifier
  * @returns Identity dimensions for the user
  */
-export async function getIdentityByUserId(
-  userId: string
-): Promise<IdentityDimensions> {
+export async function getIdentityByUserId(userId: string): Promise<IdentityDimensions> {
   // TODO: Implement actual database/API lookup
   // For now, return a sample identity based on userId hash
-  const hash = userId.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+  const hash = userId.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0);
   const profiles = Object.values(sampleIdentities);
   return profiles[hash % profiles.length];
 }
@@ -149,15 +147,11 @@ export async function getMediationData(
     dwellTime?: number;
     interactions?: number;
     hasInteracted?: boolean;
-  }
+  },
 ) {
-  const identityA = userIdA
-    ? await getIdentityByUserId(userIdA)
-    : await getCurrentUserIdentity();
+  const identityA = userIdA ? await getIdentityByUserId(userIdA) : await getCurrentUserIdentity();
 
-  const identityB = userIdB
-    ? await getIdentityByUserId(userIdB)
-    : sampleIdentities.empathetic; // Default to empathetic profile for B
+  const identityB = userIdB ? await getIdentityByUserId(userIdB) : sampleIdentities.empathetic; // Default to empathetic profile for B
 
   const xParams = generateXParams(context);
 

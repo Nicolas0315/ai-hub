@@ -1,5 +1,5 @@
-import { IdentityVector } from "./types";
 import { LLMAdapter, MockLLMAdapter } from "./llm-adapter";
+import { IdentityVector } from "./types";
 
 export interface ChatMessage {
   role: "user" | "assistant";
@@ -19,7 +19,7 @@ export class ProfilingEngine {
    */
   async updateProfile(
     currentVector: IdentityVector,
-    history: ChatMessage[]
+    history: ChatMessage[],
   ): Promise<IdentityVector> {
     const analysis = await this.adapter.analyze(history);
 
@@ -29,14 +29,9 @@ export class ProfilingEngine {
         ...currentVector.personality,
         ...analysis.personality,
       },
-      values: Array.from(
-        new Set([...currentVector.values, ...(analysis.values ?? [])])
-      ),
+      values: Array.from(new Set([...currentVector.values, ...(analysis.values ?? [])])),
       professionalFocus: Array.from(
-        new Set([
-          ...currentVector.professionalFocus,
-          ...(analysis.professionalFocus ?? []),
-        ])
+        new Set([...currentVector.professionalFocus, ...(analysis.professionalFocus ?? [])]),
       ),
       socialEnergy: {
         ...currentVector.socialEnergy,
@@ -56,7 +51,7 @@ export class ProfilingEngine {
    */
   async tuneProfile(
     currentVector: IdentityVector,
-    tuningInstruction: string
+    tuningInstruction: string,
   ): Promise<IdentityVector> {
     console.log(`Tuning profile with instruction: ${tuningInstruction}`);
 

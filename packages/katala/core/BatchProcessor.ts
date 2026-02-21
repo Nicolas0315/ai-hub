@@ -34,10 +34,7 @@ export class BatchProcessor {
     this.engine = engine;
   }
 
-  async process(
-    items: BatchItem[],
-    options: BatchOptions = {}
-  ): Promise<BatchResult[]> {
+  async process(items: BatchItem[], options: BatchOptions = {}): Promise<BatchResult[]> {
     const { concurrency = 5, maxRetries = 3, onProgress } = options;
     const results: BatchResult[] = [];
     let processed = 0;
@@ -50,10 +47,7 @@ export class BatchProcessor {
       let lastError: string | undefined;
       for (let attempt = 0; attempt <= maxRetries; attempt++) {
         try {
-          const vector = await this.engine.updateProfile(
-            item.currentVector,
-            item.history
-          );
+          const vector = await this.engine.updateProfile(item.currentVector, item.history);
           results.push({ id: item.id, status: "success", vector, retries: attempt });
           processed++;
           onProgress?.({ processed, total: items.length, errors });
@@ -76,10 +70,7 @@ export class BatchProcessor {
       }
     };
 
-    const workers = Array.from(
-      { length: Math.min(concurrency, queue.length) },
-      () => worker()
-    );
+    const workers = Array.from({ length: Math.min(concurrency, queue.length) }, () => worker());
     await Promise.allSettled(workers);
 
     return results;

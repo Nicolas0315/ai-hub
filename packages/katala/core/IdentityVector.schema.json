@@ -26,10 +26,22 @@
         "mode_specialist_generalist": { "type": "number", "minimum": 0, "maximum": 1 }
       },
       "required": [
-        "extraversion_introversion", "sensing_intuition", "thinking_feeling", "judging_perceiving",
-        "assertive_turbulent", "systematic_adaptive", "direct_diplomatic", "individualism_collectivism",
-        "practical_theoretical", "fast_deliberate", "cautious_bold", "micro_macro", "internal_external",
-        "task_people", "proactive_reactive", "mode_specialist_generalist"
+        "extraversion_introversion",
+        "sensing_intuition",
+        "thinking_feeling",
+        "judging_perceiving",
+        "assertive_turbulent",
+        "systematic_adaptive",
+        "direct_diplomatic",
+        "individualism_collectivism",
+        "practical_theoretical",
+        "fast_deliberate",
+        "cautious_bold",
+        "micro_macro",
+        "internal_external",
+        "task_people",
+        "proactive_reactive",
+        "mode_specialist_generalist"
       ]
     },
     "values": {
@@ -44,7 +56,10 @@
       "type": "object",
       "properties": {
         "battery": { "type": "number", "minimum": 0, "maximum": 1 },
-        "preferredTone": { "type": "string", "enum": ["concise", "enthusiastic", "professional", "casual"] }
+        "preferredTone": {
+          "type": "string",
+          "enum": ["concise", "enthusiastic", "professional", "casual"]
+        }
       },
       "required": ["battery", "preferredTone"]
     },

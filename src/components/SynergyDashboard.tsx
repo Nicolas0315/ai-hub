@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { KaniMediationResponse } from '@/lib/kani/types';
-import { IdentityDimensions } from '@/lib/synergy/engine';
-import FeedbackForm from './FeedbackForm';
+import { useState, useEffect } from "react";
+import { KaniMediationResponse } from "@/lib/kani/types";
+import { IdentityDimensions } from "@/lib/synergy/engine";
+import FeedbackForm from "./FeedbackForm";
 
 interface SynergyDashboardProps {
   identityA: IdentityDimensions;
@@ -23,10 +23,10 @@ export default function SynergyDashboard({
   const calculateMediation = async () => {
     setIsLoading(true);
     try {
-      const response = await fetch('/api/kani', {
-        method: 'POST',
+      const response = await fetch("/api/kani", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           identityA,
@@ -40,31 +40,31 @@ export default function SynergyDashboard({
       });
 
       if (!response.ok) {
-        throw new Error('Failed to calculate mediation');
+        throw new Error("Failed to calculate mediation");
       }
 
       const data = await response.json();
       setResult(data);
       setShowFeedback(true);
     } catch (error) {
-      console.error('Error calculating mediation:', error);
+      console.error("Error calculating mediation:", error);
     } finally {
       setIsLoading(false);
     }
   };
 
   const getScoreColor = (score: number) => {
-    if (score >= 80) return 'text-green-600 dark:text-green-400';
-    if (score >= 60) return 'text-blue-600 dark:text-blue-400';
-    if (score >= 40) return 'text-yellow-600 dark:text-yellow-400';
-    return 'text-red-600 dark:text-red-400';
+    if (score >= 80) return "text-green-600 dark:text-green-400";
+    if (score >= 60) return "text-blue-600 dark:text-blue-400";
+    if (score >= 40) return "text-yellow-600 dark:text-yellow-400";
+    return "text-red-600 dark:text-red-400";
   };
 
   const getScoreLabel = (score: number) => {
-    if (score >= 80) return '優秀';
-    if (score >= 60) return '良好';
-    if (score >= 40) return '普通';
-    return '要改善';
+    if (score >= 80) return "優秀";
+    if (score >= 60) return "良好";
+    if (score >= 40) return "普通";
+    return "要改善";
   };
 
   return (
@@ -91,7 +91,7 @@ export default function SynergyDashboard({
             disabled={isLoading}
             className="px-8 py-3 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold hover:from-blue-600 hover:to-purple-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
           >
-            {isLoading ? 'シナジー計算中...' : 'シナジースコアを計算'}
+            {isLoading ? "シナジー計算中..." : "シナジースコアを計算"}
           </button>
         </div>
       )}
@@ -124,9 +124,7 @@ export default function SynergyDashboard({
                     <div className="text-6xl font-bold text-purple-600 dark:text-purple-400">
                       {result.synergyScore.toFixed(1)}
                     </div>
-                    <div className="text-lg font-medium text-purple-500">
-                      適合性評価
-                    </div>
+                    <div className="text-lg font-medium text-purple-500">適合性評価</div>
                   </div>
                 )}
               </div>
@@ -139,7 +137,10 @@ export default function SynergyDashboard({
                   </h4>
                   <ul className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {result.recommendations.map((rec, idx) => (
-                      <li key={idx} className="text-sm bg-white/50 dark:bg-black/20 p-4 rounded-2xl border border-blue-100 dark:border-blue-900/30 text-gray-600 dark:text-gray-300">
+                      <li
+                        key={idx}
+                        className="text-sm bg-white/50 dark:bg-black/20 p-4 rounded-2xl border border-blue-100 dark:border-blue-900/30 text-gray-600 dark:text-gray-300"
+                      >
                         {rec}
                       </li>
                     ))}
@@ -175,14 +176,14 @@ export default function SynergyDashboard({
 
 function IdentityCard({ title, identity }: { title: string; identity: IdentityDimensions }) {
   const dimensions = [
-    { key: 'IE', label: '内向 ↔ 外向', value: identity.IE },
-    { key: 'SN', label: '感覚 ↔ 直感', value: identity.SN },
-    { key: 'TF', label: '思考 ↔ 感情', value: identity.TF },
-    { key: 'JP', label: '判断 ↔ 知覚', value: identity.JP },
-    { key: 'Openness', label: '開放性', value: identity.Openness },
-    { key: 'Conscientiousness', label: '誠実性', value: identity.Conscientiousness },
-    { key: 'Agreeableness', label: '協調性', value: identity.Agreeableness },
-    { key: 'Empathy', label: '共感力', value: identity.Empathy },
+    { key: "IE", label: "内向 ↔ 外向", value: identity.IE },
+    { key: "SN", label: "感覚 ↔ 直感", value: identity.SN },
+    { key: "TF", label: "思考 ↔ 感情", value: identity.TF },
+    { key: "JP", label: "判断 ↔ 知覚", value: identity.JP },
+    { key: "Openness", label: "開放性", value: identity.Openness },
+    { key: "Conscientiousness", label: "誠実性", value: identity.Conscientiousness },
+    { key: "Agreeableness", label: "協調性", value: identity.Agreeableness },
+    { key: "Empathy", label: "共感力", value: identity.Empathy },
   ];
 
   return (

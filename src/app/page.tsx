@@ -69,8 +69,13 @@ export default async function Home() {
           ) : (
             <ul className="space-y-2 text-sm">
               {recentLedger.map((entry) => (
-                <li key={entry.id} className="rounded-lg border border-zinc-200/50 dark:border-zinc-800 px-3 py-2">
-                  <div className="font-mono text-xs opacity-70">{new Date(entry.timestamp).toLocaleString("ja-JP")}</div>
+                <li
+                  key={entry.id}
+                  className="rounded-lg border border-zinc-200/50 dark:border-zinc-800 px-3 py-2"
+                >
+                  <div className="font-mono text-xs opacity-70">
+                    {new Date(entry.timestamp).toLocaleString("ja-JP")}
+                  </div>
                   <div>{entry.eventType}</div>
                 </li>
               ))}

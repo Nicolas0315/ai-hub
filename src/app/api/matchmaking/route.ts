@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { MatchmakingEngine } from "../../../../packages/katala/core/MatchmakingEngine";
 import { IdentityVectorSchema } from "../../../../packages/katala/core/IdentityVector";
+import { MatchmakingEngine } from "../../../../packages/katala/core/MatchmakingEngine";
 
 const MatchRequestSchema = z.object({
   source: IdentityVectorSchema,
@@ -18,7 +18,7 @@ export async function POST(req: NextRequest) {
     if (!parsed.success) {
       return NextResponse.json(
         { error: "Validation failed", details: parsed.error.issues },
-        { status: 400 }
+        { status: 400 },
       );
     }
 

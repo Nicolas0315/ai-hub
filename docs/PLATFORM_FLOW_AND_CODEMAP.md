@@ -51,12 +51,14 @@ Board UI (直近合意イベント表示)
 ## A. Human Layer（本人性・責任帰属）
 
 ### `src/lib/auth/humanSignature.ts`
+
 - 役割: Human Layer署名の生成・検証
 - 現在の方式: HMAC-SHA256（MVP暫定）
 - 目的: 「誰が承認したか」を機械的に検証する
 - 次段階: WebAuthn assertion検証へ置換
 
 ### `src/auth.ts`
+
 - 役割: Auth.js（NextAuth）設定
 - 役割範囲: セッション管理、ログイン状態
 - 注意: 本人性の最終保証は `humanSignature` 側で実施（MVP）
@@ -66,26 +68,30 @@ Board UI (直近合意イベント表示)
 ## B. Mediation Layer（意志変換・交渉）
 
 ### `src/lib/mediation/detox.ts`
+
 - 役割: 攻撃的/過剰表現の中立化（Detox）
 - 実装: ルールベース変換 + priority推定
 - 目的: 誤解コストと対立コストを下げる
 
 ### `src/app/api/intent/normalize/route.ts`
+
 - 役割: 生テキストをIntent Schemaに変換
 - 出力: intent, goal, constraints, deadline, priority, counterparty
 - 目的: 会話を機械可読な交渉データに変える
 
 ### `src/app/api/mediation/propose/route.ts`
+
 - 役割: 交渉提案の生成
 - 出力: proposalId付き提案オブジェクト
 - 目的: A→Bの提案を標準形式で流通させる
 
 ### `src/app/api/mediation/resolve/route.ts`
+
 - 役割: 合意/否決の確定
 - 重要処理:
-  1) Human署名検証
-  2) resolution生成
-  3) ledger.append("mediation.resolved", ...)
+  1. Human署名検証
+  2. resolution生成
+  3. ledger.append("mediation.resolved", ...)
 - 目的: 「署名された合意」だけを事実として残す
 
 ---
@@ -93,6 +99,7 @@ Board UI (直近合意イベント表示)
 ## C. Trust Layer（不変ログ・監査）
 
 ### `packages/katala/core/ImmutableLedger.ts`
+
 - 役割: ハッシュチェーン型の不変ログ
 - 機能:
   - append(eventType, payload)
@@ -101,10 +108,12 @@ Board UI (直近合意イベント表示)
 - 目的: 後から改ざん不能に近い監査証跡を提供
 
 ### `src/lib/ledger/store.ts`
+
 - 役割: shared singleton ledger
 - 目的: API間で同一Ledgerインスタンスを共有（MVP）
 
 ### `src/app/api/ledger/route.ts`
+
 - GET: 履歴取得 + チェーン検証結果
 - POST: 任意イベント追加
 - 目的: 監査/可視化の基盤API
@@ -114,6 +123,7 @@ Board UI (直近合意イベント表示)
 ## D. UI Layer（可視化）
 
 ### `src/app/page.tsx`
+
 - 役割: トップ画面
 - 現在表示:
   - 認証状態
@@ -126,18 +136,22 @@ Board UI (直近合意イベント表示)
 ## E. Profiling / Matchmaking / Import（既存機能）
 
 ### `src/app/api/profiling/route.ts`
+
 - プロファイル更新（会話履歴から）
 - tune mode（指示でベクトル調整）
 
 ### `src/app/api/matchmaking/route.ts`
+
 - source/candidatesのシナジー計算
 - マッチ候補返却
 
 ### `src/app/api/import/route.ts`
+
 - CSVインポート
 - 構造化データへの変換
 
 ### `src/app/api/batch/route.ts`
+
 - バッチ処理の受付・状態取得
 
 ---
@@ -215,4 +229,4 @@ Katalaの本質は、**情報をそのまま増やすことではなく、意味
 
 ---
 
-*この文書は「必要性を説明するための技術根拠」として維持する。*
+_この文書は「必要性を説明するための技術根拠」として維持する。_

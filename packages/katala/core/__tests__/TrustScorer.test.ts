@@ -62,8 +62,14 @@ describe("TrustScorer", () => {
     it("boosts score with corroborating claims", () => {
       const claim = makeClaim({ id: "main" });
       const corroborating = [
-        makeClaim({ id: "support-1", source: { type: "primary", author: "Source B", publishedAt: now } }),
-        makeClaim({ id: "support-2", source: { type: "secondary", author: "Source C", publishedAt: now } }),
+        makeClaim({
+          id: "support-1",
+          source: { type: "primary", author: "Source B", publishedAt: now },
+        }),
+        makeClaim({
+          id: "support-2",
+          source: { type: "secondary", author: "Source C", publishedAt: now },
+        }),
       ];
 
       const withCorr = scorer.score(claim, corroborating);
@@ -75,9 +81,7 @@ describe("TrustScorer", () => {
 
     it("reduces score with contradicting claims", () => {
       const claim = makeClaim({ id: "main" });
-      const contradicting = [
-        makeClaim({ id: "contra-1" }),
-      ];
+      const contradicting = [makeClaim({ id: "contra-1" })];
 
       const withContra = scorer.score(claim, [], contradicting);
       const without = scorer.score(claim);
@@ -122,9 +126,24 @@ describe("TrustScorer", () => {
   describe("scoreBatch()", () => {
     it("cross-validates claims in the same domain", () => {
       const claims = [
-        makeClaim({ id: "a", content: "BTC上昇", domain: "crypto", source: { type: "primary", author: "Alice", publishedAt: now } }),
-        makeClaim({ id: "b", content: "BTC上昇傾向", domain: "crypto", source: { type: "secondary", author: "Bob", publishedAt: now } }),
-        makeClaim({ id: "c", content: "天気は晴れ", domain: "general", source: { type: "primary", author: "Carol", publishedAt: now } }),
+        makeClaim({
+          id: "a",
+          content: "BTC上昇",
+          domain: "crypto",
+          source: { type: "primary", author: "Alice", publishedAt: now },
+        }),
+        makeClaim({
+          id: "b",
+          content: "BTC上昇傾向",
+          domain: "crypto",
+          source: { type: "secondary", author: "Bob", publishedAt: now },
+        }),
+        makeClaim({
+          id: "c",
+          content: "天気は晴れ",
+          domain: "general",
+          source: { type: "primary", author: "Carol", publishedAt: now },
+        }),
       ];
 
       const results = scorer.scoreBatch(claims);

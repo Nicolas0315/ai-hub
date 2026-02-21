@@ -1,6 +1,6 @@
-import { NextResponse } from 'next/server';
-import { SynergyRequestSchema, ErrorResponse } from '../../../../packages/katala/core/types';
-import { MediationService } from '../../../../packages/katala/core/MediationService';
+import { NextResponse } from "next/server";
+import { MediationService } from "../../../../packages/katala/core/MediationService";
+import { SynergyRequestSchema, ErrorResponse } from "../../../../packages/katala/core/types";
 
 const mediationService = new MediationService();
 
@@ -14,18 +14,20 @@ export async function POST(request: Request) {
     try {
       body = await request.json();
     } catch {
-      return errorResponse('Invalid JSON body', 400);
+      return errorResponse("Invalid JSON body", 400);
     }
 
     const parsed = SynergyRequestSchema.safeParse(body);
     if (!parsed.success) {
-      const message = parsed.error.issues.map(i => `${i.path.join('.')}: ${i.message}`).join('; ');
+      const message = parsed.error.issues
+        .map((i) => `${i.path.join(".")}: ${i.message}`)
+        .join("; ");
       return errorResponse(message, 400);
     }
 
     const result = await mediationService.calculateSynergy(parsed.data);
     return NextResponse.json(result);
   } catch {
-    return errorResponse('Internal server error', 500);
+    return errorResponse("Internal server error", 500);
   }
 }

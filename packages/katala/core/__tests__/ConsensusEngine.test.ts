@@ -1,8 +1,4 @@
-import {
-  ConsensusEngine,
-  MockTrustAgent,
-  RuleBasedTrustAgent,
-} from "../ConsensusEngine";
+import { ConsensusEngine, MockTrustAgent, RuleBasedTrustAgent } from "../ConsensusEngine";
 import { Claim } from "../TrustScorer";
 
 describe("ConsensusEngine", () => {
@@ -122,10 +118,7 @@ describe("ConsensusEngine", () => {
     });
 
     it("works as part of consensus", async () => {
-      const agents = [
-        new RuleBasedTrustAgent("rule-1"),
-        new RuleBasedTrustAgent("rule-2"),
-      ];
+      const agents = [new RuleBasedTrustAgent("rule-1"), new RuleBasedTrustAgent("rule-2")];
       const engine = new ConsensusEngine(agents);
       const result = await engine.evaluate(makeClaim());
 
@@ -172,10 +165,7 @@ describe("ConsensusEngine", () => {
     });
 
     it("has no dissent when all agents agree", async () => {
-      const agents = [
-        new MockTrustAgent("a", 0.8, 0.9),
-        new MockTrustAgent("b", 0.82, 0.85),
-      ];
+      const agents = [new MockTrustAgent("a", 0.8, 0.9), new MockTrustAgent("b", 0.82, 0.85)];
       const engine = new ConsensusEngine(agents);
       const result = await engine.evaluate(makeClaim());
 
@@ -185,10 +175,7 @@ describe("ConsensusEngine", () => {
 
   describe("caveats (score limitations)", () => {
     it("always includes base caveat about scores not being truth", async () => {
-      const agents = [
-        new MockTrustAgent("a", 0.8, 0.9),
-        new MockTrustAgent("b", 0.82, 0.85),
-      ];
+      const agents = [new MockTrustAgent("a", 0.8, 0.9), new MockTrustAgent("b", 0.82, 0.85)];
       const engine = new ConsensusEngine(agents);
       const result = await engine.evaluate(makeClaim());
 
@@ -196,10 +183,7 @@ describe("ConsensusEngine", () => {
     });
 
     it("flags financial domain incentive risk", async () => {
-      const agents = [
-        new MockTrustAgent("a", 0.8, 0.9),
-        new MockTrustAgent("b", 0.82, 0.85),
-      ];
+      const agents = [new MockTrustAgent("a", 0.8, 0.9), new MockTrustAgent("b", 0.82, 0.85)];
       const engine = new ConsensusEngine(agents);
       const claim = makeClaim({ domain: "finance" });
       const result = await engine.evaluate(claim);
@@ -208,10 +192,7 @@ describe("ConsensusEngine", () => {
     });
 
     it("flags political domain bias risk", async () => {
-      const agents = [
-        new MockTrustAgent("a", 0.8, 0.9),
-        new MockTrustAgent("b", 0.82, 0.85),
-      ];
+      const agents = [new MockTrustAgent("a", 0.8, 0.9), new MockTrustAgent("b", 0.82, 0.85)];
       const engine = new ConsensusEngine(agents);
       const claim = makeClaim({ domain: "politics" });
       const result = await engine.evaluate(claim);
@@ -220,10 +201,7 @@ describe("ConsensusEngine", () => {
     });
 
     it("warns about AI-generated content", async () => {
-      const agents = [
-        new MockTrustAgent("a", 0.8, 0.9),
-        new MockTrustAgent("b", 0.82, 0.85),
-      ];
+      const agents = [new MockTrustAgent("a", 0.8, 0.9), new MockTrustAgent("b", 0.82, 0.85)];
       const engine = new ConsensusEngine(agents);
       const claim = makeClaim({
         source: { type: "generated", author: "GPT-4", publishedAt: now },
@@ -236,9 +214,9 @@ describe("ConsensusEngine", () => {
 
   describe("error handling", () => {
     it("throws if fewer agents than minimum", () => {
-      expect(
-        () => new ConsensusEngine([new MockTrustAgent("solo", 0.8)])
-      ).toThrow("at least 2 agents");
+      expect(() => new ConsensusEngine([new MockTrustAgent("solo", 0.8)])).toThrow(
+        "at least 2 agents",
+      );
     });
   });
 

@@ -33,7 +33,7 @@ jobs:
             '\.serena/'
             'katalalog_yugi/'
           )
-          
+
           for pattern in "${PATTERNS[@]}"; do
             matches=$(git ls-files | grep -E "$pattern" || true)
             if [ -n "$matches" ]; then
@@ -41,7 +41,7 @@ jobs:
               BLOCKED=1
             fi
           done
-          
+
           if [ "$BLOCKED" -eq 1 ]; then
             echo "::error::Sensitive files detected in repository"
             exit 1
@@ -57,7 +57,7 @@ jobs:
             'ghp_[a-zA-Z0-9]{36}'
             'DISCORD_TOKEN=[^'\''"]'
           )
-          
+
           for pattern in "${PATTERNS[@]}"; do
             matches=$(git grep -lE "$pattern" -- ':(exclude)*.yml' ':(exclude)*.yaml' ':(exclude)leak-guard*' || true)
             if [ -n "$matches" ]; then
@@ -65,7 +65,7 @@ jobs:
               BLOCKED=1
             fi
           done
-          
+
           if [ "$BLOCKED" -eq 1 ]; then
             echo "::error::Potential secrets detected"
             exit 1

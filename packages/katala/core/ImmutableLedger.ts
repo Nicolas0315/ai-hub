@@ -42,14 +42,8 @@ export class ImmutableLedger {
   /**
    * Append a new entry to the ledger.
    */
-  async append(
-    eventType: string,
-    payload: Record<string, unknown>
-  ): Promise<LedgerEntry> {
-    const previousHash =
-      this.chain.length > 0
-        ? this.chain[this.chain.length - 1].hash
-        : "0";
+  async append(eventType: string, payload: Record<string, unknown>): Promise<LedgerEntry> {
+    const previousHash = this.chain.length > 0 ? this.chain[this.chain.length - 1].hash : "0";
 
     const partial: Omit<LedgerEntry, "hash"> = {
       id: crypto.randomUUID(),

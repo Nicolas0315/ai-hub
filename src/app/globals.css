@@ -19,7 +19,9 @@
 body {
   color: var(--color-foreground);
   background: var(--color-background);
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", Arial, sans-serif;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", Arial,
+    sans-serif;
   -webkit-font-smoothing: antialiased;
 }
 

@@ -26,10 +26,10 @@ export const TrustAxesSchema = z.object({
 export type TrustAxes = z.infer<typeof TrustAxesSchema>;
 
 export const SourceTypeSchema = z.enum([
-  "primary",       // 一次情報（本人発言、公式発表、論文）
-  "secondary",     // 二次情報（報道、まとめ、引用）
-  "tertiary",      // 三次情報（伝聞、噂、未確認）
-  "generated",     // AI生成（LLM出力）
+  "primary", // 一次情報（本人発言、公式発表、論文）
+  "secondary", // 二次情報（報道、まとめ、引用）
+  "tertiary", // 三次情報（伝聞、噂、未確認）
+  "generated", // AI生成（LLM出力）
 ]);
 
 export type SourceType = z.infer<typeof SourceTypeSchema>;
@@ -44,8 +44,8 @@ export const ClaimSchema = z.object({
     publishedAt: z.string().datetime().optional(),
     platform: z.string().optional(),
   }),
-  domain: z.string().optional(),          // 分野（政治、技術、金融など）
-  retrievedAt: z.string().datetime(),     // 取得日時
+  domain: z.string().optional(), // 分野（政治、技術、金融など）
+  retrievedAt: z.string().datetime(), // 取得日時
   language: z.string().default("ja"),
 });
 
@@ -57,8 +57,8 @@ export const TrustResultSchema = z.object({
   compositeScore: z.number().min(0).max(1),
   grade: z.enum(["S", "A", "B", "C", "D", "F"]),
   reasoning: z.string(),
-  corroboratingClaims: z.array(z.string()).default([]),  // 裏付けるclaimのID
-  contradictingClaims: z.array(z.string()).default([]),   // 矛盾するclaimのID
+  corroboratingClaims: z.array(z.string()).default([]), // 裏付けるclaimのID
+  contradictingClaims: z.array(z.string()).default([]), // 矛盾するclaimのID
   scoredAt: z.string().datetime(),
 });
 
@@ -74,10 +74,10 @@ export interface TrustWeights {
 }
 
 export const DEFAULT_WEIGHTS: TrustWeights = {
-  freshness: 0.20,
+  freshness: 0.2,
   provenance: 0.35,
   verification: 0.35,
-  accessibility: 0.10,
+  accessibility: 0.1,
 };
 
 // --- Core Engine ---
@@ -143,9 +143,7 @@ export class TrustScorer {
       const siblings = (byDomain.get(domain) ?? []).filter((c) => c.id !== claim.id);
       // Simple heuristic: same-domain claims from different sources = corroborating
       // TODO: Replace with semantic similarity + contradiction detection
-      const corroborating = siblings.filter(
-        (s) => s.source.author !== claim.source.author
-      );
+      const corroborating = siblings.filter((s) => s.source.author !== claim.source.author);
       return this.score(claim, corroborating, []);
     });
   }
@@ -196,11 +194,7 @@ export class TrustScorer {
     return score;
   }
 
-  private scoreVerification(
-    claim: Claim,
-    corroborating: Claim[],
-    contradicting: Claim[]
-  ): number {
+  private scoreVerification(claim: Claim, corroborating: Claim[], contradicting: Claim[]): number {
     // Base: unverified = 0.3
     let score = 0.3;
 
@@ -249,7 +243,7 @@ export class TrustScorer {
     claim: Claim,
     axes: TrustAxes,
     corroborating: Claim[],
-    contradicting: Claim[]
+    contradicting: Claim[],
   ): string {
     const parts: string[] = [];
 
@@ -290,13 +284,13 @@ export class TrustScorer {
 // After one half-life, freshness score drops to ~37% (1/e)
 
 const DOMAIN_HALF_LIFE: Record<string, number> = {
-  crypto: 6,          // 暗号通貨: 6時間で急速に古くなる
-  politics: 24,       // 政治: 1日
-  tech: 72,           // テクノロジー: 3日
-  science: 720,       // 科学: 30日
-  finance: 12,        // 金融: 12時間
-  entertainment: 48,  // エンタメ: 2日
-  general: 168,       // 一般: 1週間
+  crypto: 6, // 暗号通貨: 6時間で急速に古くなる
+  politics: 24, // 政治: 1日
+  tech: 72, // テクノロジー: 3日
+  science: 720, // 科学: 30日
+  finance: 12, // 金融: 12時間
+  entertainment: 48, // エンタメ: 2日
+  general: 168, // 一般: 1週間
 };
 
 export { DOMAIN_HALF_LIFE };

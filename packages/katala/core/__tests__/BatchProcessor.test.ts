@@ -1,8 +1,8 @@
 import { describe, it, expect } from "vitest";
 import { BatchProcessor, BatchItem, BatchProgress } from "../BatchProcessor";
-import { ProfilingEngine, ChatMessage } from "../ProfilingEngine";
-import { MockLLMAdapter } from "../llm-adapter";
 import { createDefaultVector } from "../IdentityVector";
+import { MockLLMAdapter } from "../llm-adapter";
+import { ProfilingEngine, ChatMessage } from "../ProfilingEngine";
 
 function makeBatchItem(id: string): BatchItem {
   return {

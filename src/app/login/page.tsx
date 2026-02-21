@@ -1,13 +1,13 @@
-import { signIn } from "@/auth"
-import { headers } from "next/headers"
-import { redirect } from "next/navigation"
+import { headers } from "next/headers";
+import { redirect } from "next/navigation";
+import { signIn } from "@/auth";
 
 export default async function LoginPage(props: {
-  searchParams: Promise<{ callbackUrl?: string; error?: string }>
+  searchParams: Promise<{ callbackUrl?: string; error?: string }>;
 }) {
-  const searchParams = await props.searchParams
-  const error = searchParams?.error
-  
+  const searchParams = await props.searchParams;
+  const error = searchParams?.error;
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-zinc-900">
       <div className="w-full max-w-sm space-y-8 p-8 bg-white dark:bg-black/40 backdrop-blur-xl rounded-3xl shadow-2xl border border-gray-200 dark:border-white/10">
@@ -15,9 +15,7 @@ export default async function LoginPage(props: {
           <h1 className="text-3xl font-semibold tracking-tight text-gray-900 dark:text-white">
             Welcome Back
           </h1>
-          <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
-            Sign in to your account
-          </p>
+          <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">Sign in to your account</p>
         </div>
 
         {error && (
@@ -28,15 +26,15 @@ export default async function LoginPage(props: {
 
         <form
           action={async (formData) => {
-            "use server"
-            await signIn("credentials", formData)
+            "use server";
+            await signIn("credentials", formData);
           }}
           className="mt-8 space-y-6"
         >
           <div className="space-y-4">
             <div>
-              <label 
-                htmlFor="username" 
+              <label
+                htmlFor="username"
                 className="block text-sm font-medium text-gray-700 dark:text-gray-300 ml-1 mb-1"
               >
                 Username
@@ -53,8 +51,8 @@ export default async function LoginPage(props: {
             </div>
 
             <div>
-              <label 
-                htmlFor="password" 
+              <label
+                htmlFor="password"
                 className="block text-sm font-medium text-gray-700 dark:text-gray-300 ml-1 mb-1"
               >
                 Password
@@ -80,11 +78,11 @@ export default async function LoginPage(props: {
             </button>
           </div>
         </form>
-        
+
         <div className="text-center text-xs text-gray-400 dark:text-gray-600 mt-4">
           Demo: admin / admin
         </div>
       </div>
     </div>
-  )
+  );
 }

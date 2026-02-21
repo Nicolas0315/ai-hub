@@ -1,7 +1,7 @@
-import { SynergyRequest, SynergyResponse, Interest } from './types';
-import { SynergyScorer } from './SynergyScorer';
-import { MatchmakingEngine } from './MatchmakingEngine';
-import { IdentityVector } from './types';
+import { MatchmakingEngine } from "./MatchmakingEngine";
+import { SynergyScorer } from "./SynergyScorer";
+import { SynergyRequest, SynergyResponse, Interest } from "./types";
+import { IdentityVector } from "./types";
 
 /**
  * MediationService
@@ -25,7 +25,7 @@ export class MediationService {
     if (req.user_a.identity_vector && req.user_b.identity_vector) {
       const score = this.matchmaking.calculateSynergy(
         req.user_a.identity_vector as IdentityVector,
-        req.user_b.identity_vector as IdentityVector
+        req.user_b.identity_vector as IdentityVector,
       );
 
       return {
@@ -33,12 +33,12 @@ export class MediationService {
           agent_id_a: req.user_a.user_id,
           agent_id_b: req.user_b.user_id,
           score: score,
-          method: 'identity-vector-zk',
+          method: "identity-vector-zk",
           breakdown: {
-            privacy_level: 'high',
-            synergy_score: score
-          }
-        }
+            privacy_level: "high",
+            synergy_score: score,
+          },
+        },
       };
     }
 
@@ -56,11 +56,11 @@ export class MediationService {
         agent_id_a: req.user_a.user_id,
         agent_id_b: req.user_b.user_id,
         score: score,
-        method: 'legacy-interest-dot-product',
+        method: "legacy-interest-dot-product",
         breakdown: {
-          interest_match: score
-        }
-      }
+          interest_match: score,
+        },
+      },
     };
   }
 }

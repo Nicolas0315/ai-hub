@@ -10,7 +10,9 @@ test.describe("Navigation", () => {
   test("should navigate from home to login", async ({ page }) => {
     await page.goto("/");
     // Look for any login-related link
-    const loginLink = page.locator('a[href*="login"], a:has-text("login"), a:has-text("Login"), a:has-text("ログイン")').first();
+    const loginLink = page
+      .locator('a[href*="login"], a:has-text("login"), a:has-text("Login"), a:has-text("ログイン")')
+      .first();
     if (await loginLink.isVisible({ timeout: 3000 }).catch(() => false)) {
       await loginLink.click();
       await expect(page).toHaveURL(/login/);

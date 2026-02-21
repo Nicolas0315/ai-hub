@@ -4,15 +4,15 @@
   "description": "Katala-Claw Bridge Gateway",
   "main": "dist/gateway/index.js",
   "scripts": {
-    "start": "ts-node index.ts",
-    "build": "tsc"
+    "build": "tsc",
+    "start": "ts-node index.ts"
   },
   "dependencies": {
     "@grpc/grpc-js": "^1.9.0"
   },
   "devDependencies": {
-    "typescript": "^5.0.0",
+    "@types/node": "^20.0.0",
     "ts-node": "^10.9.1",
-    "@types/node": "^20.0.0"
+    "typescript": "^5.0.0"
   }
 }

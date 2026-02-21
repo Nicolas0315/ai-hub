@@ -1,15 +1,17 @@
 import { describe, it, expect } from "vitest";
-import { MatchmakingEngine } from "../MatchmakingEngine";
 import { IdentityVector } from "../IdentityVector";
+import { MatchmakingEngine } from "../MatchmakingEngine";
 
-function makeVector(overrides: Partial<{
-  personality: Partial<IdentityVector["personality"]>;
-  values: string[];
-  professionalFocus: string[];
-  battery: number;
-  preferredTone: IdentityVector["socialEnergy"]["preferredTone"];
-  confidenceScore: number;
-}>): IdentityVector {
+function makeVector(
+  overrides: Partial<{
+    personality: Partial<IdentityVector["personality"]>;
+    values: string[];
+    professionalFocus: string[];
+    battery: number;
+    preferredTone: IdentityVector["socialEnergy"]["preferredTone"];
+    confidenceScore: number;
+  }>,
+): IdentityVector {
   return {
     personality: {
       extraversion: 0.5,
@@ -51,8 +53,12 @@ describe("MatchmakingEngine", () => {
   });
 
   it("returns lower score for dissimilar personalities", () => {
-    const a = makeVector({ personality: { extraversion: 0.0, intuition: 0.0, thinking: 0.0, judging: 0.0 } });
-    const b = makeVector({ personality: { extraversion: 1.0, intuition: 1.0, thinking: 1.0, judging: 1.0 } });
+    const a = makeVector({
+      personality: { extraversion: 0.0, intuition: 0.0, thinking: 0.0, judging: 0.0 },
+    });
+    const b = makeVector({
+      personality: { extraversion: 1.0, intuition: 1.0, thinking: 1.0, judging: 1.0 },
+    });
     const score = engine.calculateSynergy(a, b);
     // personality=0, values=1, prof=1, social=1 → 0*0.3 + 1*0.3 + 1*0.25 + 1*0.15 = 0.7
     expect(score).toBeCloseTo(0.7);
@@ -122,7 +128,7 @@ describe("MatchmakingEngine", () => {
     const same = makeVector({ battery: 50 });
     const scoreExtreme = engine.calculateSynergy(a, b);
     const scoreClose = engine.calculateSynergy(a, same);
-    // battery 0 vs 100 → batteryMatch = 1 - |0-100|/??? 
+    // battery 0 vs 100 → batteryMatch = 1 - |0-100|/???
     // Wait, battery is 0-100 not 0-1. Let me check...
     // battery is 0-100, so Math.abs(0-100) = 100, batteryMatch = 1 - 100 = -99
     // That's a bug!
@@ -140,7 +146,8 @@ describe("MatchmakingEngine", () => {
     const source = makeVector({});
     const good = makeVector({}); // identical = score 1.0
     const bad = makeVector({
-      values: ["z"], professionalFocus: ["z"],
+      values: ["z"],
+      professionalFocus: ["z"],
       personality: { extraversion: 0, intuition: 0, thinking: 0, judging: 0 },
       confidenceScore: 0.3,
     });

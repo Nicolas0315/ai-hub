@@ -84,7 +84,9 @@ export async function importCsv(
 
     const validation = CsvRowSchema.safeParse(raw);
     if (!validation.success) {
-      const msg = validation.error.issues.map((e) => `${e.path.join(".")}: ${e.message}`).join("; ");
+      const msg = validation.error.issues
+        .map((e) => `${e.path.join(".")}: ${e.message}`)
+        .join("; ");
       result.errors.push({ row: rowNum, message: `バリデーションエラー: ${msg}` });
       continue;
     }

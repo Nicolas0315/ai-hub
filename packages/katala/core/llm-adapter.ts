@@ -66,15 +66,15 @@ export class ClaudeLLMAdapter implements LLMAdapter {
     config(); // Load .env
     const key = apiKey ?? process.env.ANTHROPIC_API_KEY;
     if (!key) {
-      throw new Error("ANTHROPIC_API_KEY is required. Set it in .env or pass it to the constructor.");
+      throw new Error(
+        "ANTHROPIC_API_KEY is required. Set it in .env or pass it to the constructor.",
+      );
     }
     this.client = new Anthropic({ apiKey: key });
   }
 
   async analyze(messages: ChatMessage[]): Promise<PartialIdentityVector> {
-    const chatContent = messages
-      .map((m) => `[${m.role}] ${m.content}`)
-      .join("\n");
+    const chatContent = messages.map((m) => `[${m.role}] ${m.content}`).join("\n");
 
     const response = await this.client.messages.create({
       model: "claude-sonnet-4-20250514",
@@ -88,8 +88,7 @@ export class ClaudeLLMAdapter implements LLMAdapter {
       ],
     });
 
-    const text =
-      response.content[0].type === "text" ? response.content[0].text : "";
+    const text = response.content[0].type === "text" ? response.content[0].text : "";
 
     try {
       return JSON.parse(text) as PartialIdentityVector;

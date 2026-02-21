@@ -1,4 +1,8 @@
-import { SynergyScorer, PhoenixScores, SCORING_WEIGHTS } from '../../../packages/katala/core/SynergyScorer';
+import {
+  SynergyScorer,
+  PhoenixScores,
+  SCORING_WEIGHTS,
+} from "../../../packages/katala/core/SynergyScorer";
 
 /**
  * 16 Identity Dimensions (MBTI++ Profiling)
@@ -38,7 +42,7 @@ export class SynergyEngine {
       // Enhanced weighting for X-Algorithm heavy ranker logic
       DWELL_WEIGHT: 0.15, // Increased importance of dwell time
       SHARE_WEIGHT: 0.85, // Increased weight for share velocity proxy
-      REPLY_WEIGHT: 1.5,  // Heavy weight for interaction
+      REPLY_WEIGHT: 1.5, // Heavy weight for interaction
     });
   }
 
@@ -71,7 +75,7 @@ export class SynergyEngine {
   public calculateIdentityMatch(dimA: IdentityDimensions, dimB: IdentityDimensions): number {
     const keys = Object.keys(dimA) as (keyof IdentityDimensions)[];
     let dotProduct = 0;
-    
+
     for (const key of keys) {
       // Identity dimensions are assumed to be normalized between -1 and 1
       dotProduct += dimA[key] * dimB[key];
@@ -87,10 +91,10 @@ export class SynergyEngine {
   public getCombinedSynergy(
     identityA: IdentityDimensions,
     identityB: IdentityDimensions,
-    xParams: XAlgorithmParams
+    xParams: XAlgorithmParams,
   ): number {
     const identityMatch = this.calculateIdentityMatch(identityA, identityB);
-    
+
     // Convert identity match to a "base score" for the X-Ranker
     // Mapping [-1, 1] to [0, 100]
     const baseScore = (identityMatch + 1) * 50;
@@ -98,11 +102,11 @@ export class SynergyEngine {
     const finalScore = this.calculateXRankerScore(baseScore, xParams);
 
     // Log metric in Apple HIG style (Clean, Semantic, Structured)
-    this.logMetric('SynergyCalculation', {
+    this.logMetric("SynergyCalculation", {
       finalScore,
       identityMatch,
       dwellTime: xParams.dwellTimeSeconds,
-      isReciprocal: xParams.reciprocalInteraction
+      isReciprocal: xParams.reciprocalInteraction,
     });
 
     return finalScore;

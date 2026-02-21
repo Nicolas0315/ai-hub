@@ -1,7 +1,8 @@
 import { describe, it, expect, vi } from "vitest";
 import { importCsv, type ImportResult } from "../CsvImporter";
 
-const HEADER = "extraversion,intuition,thinking,judging,values,professionalFocus,battery,preferredTone,confidenceScore,lastUpdated";
+const HEADER =
+  "extraversion,intuition,thinking,judging,values,professionalFocus,battery,preferredTone,confidenceScore,lastUpdated";
 
 function makeRow(overrides: Record<string, string> = {}): string {
   const defaults: Record<string, string> = {
@@ -18,9 +19,16 @@ function makeRow(overrides: Record<string, string> = {}): string {
   };
   const merged = { ...defaults, ...overrides };
   return [
-    merged.extraversion, merged.intuition, merged.thinking, merged.judging,
-    merged.values, merged.professionalFocus, merged.battery,
-    merged.preferredTone, merged.confidenceScore, merged.lastUpdated,
+    merged.extraversion,
+    merged.intuition,
+    merged.thinking,
+    merged.judging,
+    merged.values,
+    merged.professionalFocus,
+    merged.battery,
+    merged.preferredTone,
+    merged.confidenceScore,
+    merged.lastUpdated,
   ].join(",");
 }
 
@@ -68,7 +76,9 @@ describe("CsvImporter", () => {
     const rows = Array.from({ length: 250 }, () => makeRow());
     const csv = `${HEADER}\n${rows.join("\n")}`;
     const batches: number[] = [];
-    const onBatch = vi.fn((_batch, idx) => { batches.push(idx); });
+    const onBatch = vi.fn((_batch, idx) => {
+      batches.push(idx);
+    });
 
     const result = await importCsv(csv, { batchSize: 100, onBatch });
 

@@ -1,7 +1,7 @@
 import type { NextAuthConfig } from "next-auth";
+import type { Provider } from "next-auth/providers";
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
-import type { Provider } from "next-auth/providers";
 
 function buildProviders(): Provider[] {
   const providers: Provider[] = [];

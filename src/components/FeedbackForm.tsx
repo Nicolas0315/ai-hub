@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
+import { useState } from "react";
 
 interface FeedbackFormProps {
   mediationScore: number;
@@ -9,26 +9,26 @@ interface FeedbackFormProps {
 
 export default function FeedbackForm({ mediationScore, onClose }: FeedbackFormProps) {
   const [rating, setRating] = useState<number>(0);
-  const [comment, setComment] = useState('');
+  const [comment, setComment] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [submitStatus, setSubmitStatus] = useState<"idle" | "success" | "error">("idle");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (rating === 0) {
-      alert('評価を選択してください');
+      alert("評価を選択してください");
       return;
     }
 
     setIsSubmitting(true);
-    setSubmitStatus('idle');
+    setSubmitStatus("idle");
 
     try {
-      const response = await fetch('/api/feedback', {
-        method: 'POST',
+      const response = await fetch("/api/feedback", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           mediationScore,
@@ -39,18 +39,18 @@ export default function FeedbackForm({ mediationScore, onClose }: FeedbackFormPr
       });
 
       if (!response.ok) {
-        throw new Error('Failed to submit feedback');
+        throw new Error("Failed to submit feedback");
       }
 
-      setSubmitStatus('success');
+      setSubmitStatus("success");
 
       // Close form after 2 seconds
       setTimeout(() => {
         onClose();
       }, 2000);
     } catch (error) {
-      console.error('Error submitting feedback:', error);
-      setSubmitStatus('error');
+      console.error("Error submitting feedback:", error);
+      setSubmitStatus("error");
     } finally {
       setIsSubmitting(false);
     }
@@ -69,7 +69,7 @@ export default function FeedbackForm({ mediationScore, onClose }: FeedbackFormPr
         </button>
       </div>
 
-      {submitStatus === 'success' ? (
+      {submitStatus === "success" ? (
         <div className="text-center py-8">
           <div className="text-5xl mb-4">✨</div>
           <p className="text-lg font-medium text-blue-600 dark:text-blue-400">
@@ -87,11 +87,16 @@ export default function FeedbackForm({ mediationScore, onClose }: FeedbackFormPr
               当てはまるものを選んでください
             </label>
             <div className="flex flex-wrap gap-2">
-              {['スコアが納得感ある', 'アドバイスが実用的', '意外な発見があった', '少しズレている'].map((tag) => (
+              {[
+                "スコアが納得感ある",
+                "アドバイスが実用的",
+                "意外な発見があった",
+                "少しズレている",
+              ].map((tag) => (
                 <button
                   key={tag}
                   type="button"
-                  onClick={() => setComment(prev => prev ? `${prev}, ${tag}` : tag)}
+                  onClick={() => setComment((prev) => (prev ? `${prev}, ${tag}` : tag))}
                   className="px-3 py-1 text-xs rounded-full border border-gray-200 dark:border-neutral-700 hover:border-blue-300 dark:hover:border-blue-700 transition-colors"
                 >
                   {tag}
@@ -113,8 +118,8 @@ export default function FeedbackForm({ mediationScore, onClose }: FeedbackFormPr
                   onClick={() => setRating(value)}
                   className={`w-12 h-12 rounded-full transition-all ${
                     rating >= value
-                      ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white scale-110'
-                      : 'bg-gray-200 dark:bg-zinc-800 text-gray-400 dark:text-gray-600 hover:bg-gray-300 dark:hover:bg-zinc-700'
+                      ? "bg-gradient-to-r from-blue-500 to-purple-600 text-white scale-110"
+                      : "bg-gray-200 dark:bg-zinc-800 text-gray-400 dark:text-gray-600 hover:bg-gray-300 dark:hover:bg-zinc-700"
                   }`}
                 >
                   ★
@@ -146,7 +151,7 @@ export default function FeedbackForm({ mediationScore, onClose }: FeedbackFormPr
           </div>
 
           {/* Error Message */}
-          {submitStatus === 'error' && (
+          {submitStatus === "error" && (
             <div className="text-sm text-red-600 dark:text-red-400 text-center">
               送信に失敗しました。もう一度お試しください。
             </div>
@@ -166,7 +171,7 @@ export default function FeedbackForm({ mediationScore, onClose }: FeedbackFormPr
               disabled={isSubmitting || rating === 0}
               className="px-6 py-2 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 text-white font-medium hover:from-blue-600 hover:to-purple-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isSubmitting ? '送信中...' : '送信'}
+              {isSubmitting ? "送信中..." : "送信"}
             </button>
           </div>
         </form>

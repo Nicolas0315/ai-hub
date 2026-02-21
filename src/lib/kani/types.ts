@@ -1,4 +1,4 @@
-import { IdentityDimensions, XAlgorithmParams } from '../synergy/engine';
+import { IdentityDimensions, XAlgorithmParams } from "../synergy/engine";
 
 /**
  * Kani API Request Types
@@ -17,7 +17,7 @@ export interface KaniMediationResponse {
   synergyScore?: number;
   recommendations?: string[];
   timestamp: string;
-  status: 'success' | 'error';
+  status: "success" | "error";
 }
 
 /**
@@ -38,9 +38,9 @@ export class KaniAPIError extends Error {
   constructor(
     message: string,
     public statusCode?: number,
-    public originalError?: Error
+    public originalError?: Error,
   ) {
     super(message);
-    this.name = 'KaniAPIError';
+    this.name = "KaniAPIError";
   }
 }

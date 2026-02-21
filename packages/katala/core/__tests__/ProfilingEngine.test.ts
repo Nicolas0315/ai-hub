@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
-import { ProfilingEngine, ChatMessage } from "../ProfilingEngine";
-import { MockLLMAdapter, PartialIdentityVector } from "../llm-adapter";
 import { createDefaultVector } from "../IdentityVector";
+import { MockLLMAdapter, PartialIdentityVector } from "../llm-adapter";
+import { ProfilingEngine, ChatMessage } from "../ProfilingEngine";
 
 function makeHistory(count: number): ChatMessage[] {
   return Array.from({ length: count }, (_, i) => ({

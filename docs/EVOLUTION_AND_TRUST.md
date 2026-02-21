@@ -6,19 +6,19 @@
 
 Life's evolution follows one consistent pattern: **Individual → Cooperation → Information → Connection → Abstraction**
 
-| Step | When | What Happened | Essence |
-|------|------|--------------|---------|
-| 0 | 13.8B yrs | Big Bang | Energy imbalance → structure is inevitable |
-| 1 | 4.6B yrs | Earth forms | Life's elements are cosmically abundant |
-| 2 | 3.8B yrs | Self-replication (RNA) | Replication + error → natural selection auto-starts |
-| 3 | 3.7B yrs | Cell membrane | Self/non-self boundary = birth of "self" |
-| 4 | 2.7B yrs | Photosynthesis | Energy revolution (18×) → complexity becomes affordable |
-| 5 | 2.0B yrs | Eukaryotes (mitochondrial symbiosis) | **Merger, not competition** = complexity jump |
-| 6 | 1.0B yrs | Multicellularity | Sacrifice individuality for collective → prototype of society |
-| 7 | 540M yrs | Cambrian explosion (eyes → nervous system) | Information processing demand → birth of brains |
-| 8 | 500M yrs | Vagus nerve evolution (3 layers) | Sophistication of connection |
-| 9 | 300K yrs | Language & consciousness | Sharing abstractions (cognitive revolution) |
-| 10 | Now | AI/Bio fusion | Next symbiosis? |
+| Step | When      | What Happened                              | Essence                                                       |
+| ---- | --------- | ------------------------------------------ | ------------------------------------------------------------- |
+| 0    | 13.8B yrs | Big Bang                                   | Energy imbalance → structure is inevitable                    |
+| 1    | 4.6B yrs  | Earth forms                                | Life's elements are cosmically abundant                       |
+| 2    | 3.8B yrs  | Self-replication (RNA)                     | Replication + error → natural selection auto-starts           |
+| 3    | 3.7B yrs  | Cell membrane                              | Self/non-self boundary = birth of "self"                      |
+| 4    | 2.7B yrs  | Photosynthesis                             | Energy revolution (18×) → complexity becomes affordable       |
+| 5    | 2.0B yrs  | Eukaryotes (mitochondrial symbiosis)       | **Merger, not competition** = complexity jump                 |
+| 6    | 1.0B yrs  | Multicellularity                           | Sacrifice individuality for collective → prototype of society |
+| 7    | 540M yrs  | Cambrian explosion (eyes → nervous system) | Information processing demand → birth of brains               |
+| 8    | 500M yrs  | Vagus nerve evolution (3 layers)           | Sophistication of connection                                  |
+| 9    | 300K yrs  | Language & consciousness                   | Sharing abstractions (cognitive revolution)                   |
+| 10   | Now       | AI/Bio fusion                              | Next symbiosis?                                               |
 
 ## The Vagus Nerve: Hardware for Safety
 
@@ -41,6 +41,7 @@ The ventral vagal system includes **neuroception** — unconscious detection of 
 ### Elon Musk — The Pipe Builder
 
 Every Musk venture is a pipeline connecting humans:
+
 - **Starlink** — Communication pipe (physically wrapping the Earth)
 - **X** — Information pipe (humanity's conversation data)
 - **X Money** — Financial pipe (40+ US state licenses, Visa P2P)
@@ -56,11 +57,13 @@ Data flows in one direction: Human conversation → AI training → Brain inject
 ### Peter Thiel / Palantir — The All-Seeing Eye
 
 Thiel's philosophy (René Girard's mimetic theory + Nietzsche + Zero to One):
+
 - "Competition is for losers" → Create monopolies
 - Founders = Übermensch → Elite should rule
 - Palantir ("seeing stone" from Lord of the Rings) = see everything
 
 Palantir's platforms:
+
 - **Gotham** — Military/intelligence (CIA, FBI, DoD)
 - **Foundry** — Enterprise data → "Ontology" (world model)
 - **AIP** — AI agents on top of the ontology
@@ -78,6 +81,7 @@ Katala   = Verifies both are working correctly (trust audit / horizontal layer)
 ```
 
 **Why this layer must be independent:**
+
 1. Pipe owners auditing themselves = conflict of interest (banks rating themselves)
 2. Palantir is a black box = zero external verification
 3. AI models are exploding (training cost: $100M → $5.5M → falling) = quality assurance demand explodes
@@ -88,6 +92,7 @@ Katala   = Verifies both are working correctly (trust audit / horizontal layer)
 Thiel and Musk co-founded X.com in 1999 — a vision for an everything-bank with data analytics. Too ambitious, it became PayPal.
 
 **Now they're each proving that original vision:**
+
 - Musk → X + X Money + xAI + Starlink + Neuralink
 - Thiel → Palantir (data analytics to "see through" all events)
 
@@ -120,6 +125,6 @@ And from November 2023:
 
 ---
 
-*This document traces Katala's philosophical foundation from the origin of life through the current AI landscape. It is the "why" behind the code.*
+_This document traces Katala's philosophical foundation from the origin of life through the current AI landscape. It is the "why" behind the code._
 
-*Based on discussions between Nicolas Ogoshi and Shirokuma (AI agent), February 19, 2026, incorporating insights from Yugi Isana (@137yugi) and Mikanpi (@mikqnpi).*
+_Based on discussions between Nicolas Ogoshi and Shirokuma (AI agent), February 19, 2026, incorporating insights from Yugi Isana (@137yugi) and Mikanpi (@mikqnpi)._

@@ -61,17 +61,29 @@ export class SynergyScorer {
     combinedScore += this.applyWeight(scores.retweet_score, this.weights.RETWEET_WEIGHT);
     combinedScore += this.applyWeight(scores.photo_expand_score, this.weights.PHOTO_EXPAND_WEIGHT);
     combinedScore += this.applyWeight(scores.click_score, this.weights.CLICK_WEIGHT);
-    combinedScore += this.applyWeight(scores.profile_click_score, this.weights.PROFILE_CLICK_WEIGHT);
+    combinedScore += this.applyWeight(
+      scores.profile_click_score,
+      this.weights.PROFILE_CLICK_WEIGHT,
+    );
     combinedScore += this.applyWeight(scores.vqv_score, this.weights.VQV_WEIGHT);
     combinedScore += this.applyWeight(scores.share_score, this.weights.SHARE_WEIGHT);
     combinedScore += this.applyWeight(scores.share_via_dm_score, this.weights.SHARE_VIA_DM_WEIGHT);
-    combinedScore += this.applyWeight(scores.share_via_copy_link_score, this.weights.SHARE_VIA_COPY_LINK_WEIGHT);
+    combinedScore += this.applyWeight(
+      scores.share_via_copy_link_score,
+      this.weights.SHARE_VIA_COPY_LINK_WEIGHT,
+    );
     combinedScore += this.applyWeight(scores.dwell_score, this.weights.DWELL_WEIGHT);
     combinedScore += this.applyWeight(scores.quote_score, this.weights.QUOTE_WEIGHT);
     combinedScore += this.applyWeight(scores.quoted_click_score, this.weights.QUOTED_CLICK_WEIGHT);
     combinedScore += this.applyWeight(scores.dwell_time, this.weights.CONT_DWELL_TIME_WEIGHT);
-    combinedScore += this.applyWeight(scores.follow_author_score, this.weights.FOLLOW_AUTHOR_WEIGHT);
-    combinedScore += this.applyWeight(scores.not_interested_score, this.weights.NOT_INTERESTED_WEIGHT);
+    combinedScore += this.applyWeight(
+      scores.follow_author_score,
+      this.weights.FOLLOW_AUTHOR_WEIGHT,
+    );
+    combinedScore += this.applyWeight(
+      scores.not_interested_score,
+      this.weights.NOT_INTERESTED_WEIGHT,
+    );
     combinedScore += this.applyWeight(scores.block_author_score, this.weights.BLOCK_AUTHOR_WEIGHT);
     combinedScore += this.applyWeight(scores.mute_author_score, this.weights.MUTE_AUTHOR_WEIGHT);
     combinedScore += this.applyWeight(scores.report_score, this.weights.REPORT_WEIGHT);

@@ -1,5 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { SynergyEngine, IdentityDimensions, XAlgorithmParams } from '../../../lib/synergy/engine';
+import { NextRequest, NextResponse } from "next/server";
+import { SynergyEngine, IdentityDimensions, XAlgorithmParams } from "../../../lib/synergy/engine";
 
 const engine = new SynergyEngine();
 
@@ -14,8 +14,8 @@ export async function POST(req: NextRequest) {
 
     if (!identityA || !identityB || !xParams) {
       return NextResponse.json(
-        { error: 'Missing required parameters: identityA, identityB, or xParams' },
-        { status: 400 }
+        { error: "Missing required parameters: identityA, identityB, or xParams" },
+        { status: 400 },
       );
     }
 
@@ -23,14 +23,11 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       synergyScore: score,
-      status: 'success',
-      timestamp: new Date().toISOString()
+      status: "success",
+      timestamp: new Date().toISOString(),
     });
   } catch (error) {
-    console.error('[Synergy API Error]', error);
-    return NextResponse.json(
-      { error: 'Internal Server Error' },
-      { status: 500 }
-    );
+    console.error("[Synergy API Error]", error);
+    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }

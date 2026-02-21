@@ -1,16 +1,16 @@
+import { generateMockResponse } from "./mockData";
 import {
   KaniMediationRequest,
   KaniMediationResponse,
   KaniClientConfig,
   KaniAPIError,
-} from './types';
-import { generateMockResponse } from './mockData';
+} from "./types";
 
 /**
  * Default client configuration
  */
 const DEFAULT_CONFIG: KaniClientConfig = {
-  baseUrl: 'http://100.77.205.126:3000',
+  baseUrl: "http://100.77.205.126:3000",
   timeout: 5000, // 5 seconds
   maxRetries: 3,
   retryDelay: 1000, // 1 second
@@ -40,7 +40,7 @@ export class KaniClient {
   private async fetchWithTimeout(
     url: string,
     options: RequestInit,
-    timeout: number
+    timeout: number,
   ): Promise<Response> {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), timeout);
@@ -54,8 +54,8 @@ export class KaniClient {
       return response;
     } catch (error) {
       clearTimeout(timeoutId);
-      if (error instanceof Error && error.name === 'AbortError') {
-        throw new KaniAPIError('Request timeout', 408, error);
+      if (error instanceof Error && error.name === "AbortError") {
+        throw new KaniAPIError("Request timeout", 408, error);
       }
       throw error;
     }
@@ -64,12 +64,10 @@ export class KaniClient {
   /**
    * Make a mediation request with retry logic
    */
-  async mediate(
-    request: KaniMediationRequest
-  ): Promise<KaniMediationResponse> {
+  async mediate(request: KaniMediationRequest): Promise<KaniMediationResponse> {
     // Use mock data if configured
     if (this.config.useMockData) {
-      console.log('[Kani Client] Using mock data');
+      console.log("[Kani Client] Using mock data");
       await this.sleep(100); // Simulate network delay
       return generateMockResponse();
     }
@@ -78,38 +76,36 @@ export class KaniClient {
 
     for (let attempt = 1; attempt <= this.config.maxRetries; attempt++) {
       try {
-        console.log(
-          `[Kani Client] Attempt ${attempt}/${this.config.maxRetries}`
-        );
+        console.log(`[Kani Client] Attempt ${attempt}/${this.config.maxRetries}`);
 
         const response = await this.fetchWithTimeout(
           `${this.config.baseUrl}/api/v1/mediate`,
           {
-            method: 'POST',
+            method: "POST",
             headers: {
-              'Content-Type': 'application/json',
+              "Content-Type": "application/json",
             },
             body: JSON.stringify(request),
           },
-          this.config.timeout
+          this.config.timeout,
         );
 
         if (!response.ok) {
           throw new KaniAPIError(
             `API returned ${response.status}: ${response.statusText}`,
-            response.status
+            response.status,
           );
         }
 
         const data: KaniMediationResponse = await response.json();
 
-        console.log('[Kani Client] ✓ Request successful');
+        console.log("[Kani Client] ✓ Request successful");
         return data;
       } catch (error) {
         lastError = error as Error;
         console.error(
           `[Kani Client] ✗ Attempt ${attempt} failed:`,
-          error instanceof Error ? error.message : error
+          error instanceof Error ? error.message : error,
         );
 
         // If this is not the last attempt, wait before retrying
@@ -122,10 +118,8 @@ export class KaniClient {
     }
 
     // All retries exhausted - fall back to mock data
-    console.warn(
-      '[Kani Client] All retries exhausted, falling back to mock data'
-    );
-    console.warn('[Kani Client] Last error:', lastError?.message);
+    console.warn("[Kani Client] All retries exhausted, falling back to mock data");
+    console.warn("[Kani Client] Last error:", lastError?.message);
     return generateMockResponse();
   }
 
@@ -136,8 +130,8 @@ export class KaniClient {
     try {
       const response = await this.fetchWithTimeout(
         `${this.config.baseUrl}/health`,
-        { method: 'GET' },
-        2000
+        { method: "GET" },
+        2000,
       );
       return response.ok;
     } catch {
@@ -168,8 +162,6 @@ export const kaniClient = new KaniClient();
 /**
  * Convenience function for quick mediation requests
  */
-export async function mediate(
-  request: KaniMediationRequest
-): Promise<KaniMediationResponse> {
+export async function mediate(request: KaniMediationRequest): Promise<KaniMediationResponse> {
   return kaniClient.mediate(request);
 }
