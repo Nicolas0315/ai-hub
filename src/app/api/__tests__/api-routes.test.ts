@@ -220,10 +220,33 @@ describe("API: /api/mediation", () => {
       proposalId: "prop_123",
       accepted: true,
       actorId: "human_1",
-      nonce: "n1",
+      nonce: "n_invalid",
       signature: "deadbeef",
     });
     const res = await POST(req as any);
     expect(res.status).toBe(401);
+  });
+
+  it("POST /resolve rejects nonce replay", async () => {
+    process.env.HUMAN_LAYER_SIGNING_KEY = "test-secret";
+    const { signHumanIntent } = await import("@/lib/auth/humanSignature");
+    const { POST } = await import("../mediation/resolve/route");
+
+    const payload = {
+      proposalId: "prop_replay",
+      accepted: true,
+      actorId: "human_replay",
+      nonce: "nonce_replay_1",
+      purpose: "reliability",
+    };
+
+    const msg = `${payload.actorId}:${payload.proposalId}:${payload.accepted}:${payload.nonce}`;
+    const sig = signHumanIntent(msg, "test-secret");
+
+    const first = await POST(makeRequest({ ...payload, signature: sig }) as any);
+    expect(first.status).toBe(200);
+
+    const second = await POST(makeRequest({ ...payload, signature: sig }) as any);
+    expect(second.status).toBe(409);
   });
 });

@@ -4,20 +4,30 @@ import Credentials from "next-auth/providers/credentials";
 import type { Provider } from "next-auth/providers";
 
 function buildProviders(): Provider[] {
-  const providers: Provider[] = [
-    Credentials({
-      credentials: {
-        username: { label: "Username" },
-        password: { label: "Password", type: "password" },
-      },
-      async authorize(credentials) {
-        if (credentials?.username === "admin" && credentials?.password === "admin") {
-          return { id: "1", name: "Admin User", email: "admin@example.com" };
-        }
-        return null;
-      },
-    }),
-  ];
+  const providers: Provider[] = [];
+
+  // Dev-only credentials provider (explicit opt-in)
+  if (process.env.KATALA_DEV_CREDENTIALS === "true") {
+    const devUser = process.env.KATALA_DEV_USERNAME;
+    const devPass = process.env.KATALA_DEV_PASSWORD;
+
+    if (devUser && devPass) {
+      providers.push(
+        Credentials({
+          credentials: {
+            username: { label: "Username" },
+            password: { label: "Password", type: "password" },
+          },
+          async authorize(credentials) {
+            if (credentials?.username === devUser && credentials?.password === devPass) {
+              return { id: "dev-1", name: "Dev User", email: "dev@example.com" };
+            }
+            return null;
+          },
+        }),
+      );
+    }
+  }
 
   // Low-risk integration pattern for World ID/OIDC (disabled by default)
   if (
@@ -41,6 +51,21 @@ function buildProviders(): Provider[] {
         };
       },
     } as Provider);
+  }
+
+  // Safety fallback: keep auth subsystem bootable but reject all logins
+  if (providers.length === 0) {
+    providers.push(
+      Credentials({
+        credentials: {
+          username: { label: "Username" },
+          password: { label: "Password", type: "password" },
+        },
+        async authorize() {
+          return null;
+        },
+      }),
+    );
   }
 
   return providers;

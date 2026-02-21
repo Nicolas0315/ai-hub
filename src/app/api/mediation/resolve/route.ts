@@ -4,6 +4,7 @@ import { sharedLedger } from "@/lib/ledger/store";
 import { verifyHumanIntentSignature } from "@/lib/auth/humanSignature";
 import { classifyOpenThreshold, classifyReason } from "@/lib/policy/openThreshold";
 import { evaluateDistilledAudit } from "@/lib/policy/distilledAuditPolicy";
+import { consumeNonce } from "@/lib/auth/nonceStore";
 
 const ResolveSchema = z.object({
   proposalId: z.string().min(1),
@@ -26,6 +27,11 @@ export async function POST(req: Request) {
         { error: "Validation failed", details: parsed.error.issues },
         { status: 400 },
       );
+    }
+
+    const nonceOk = consumeNonce(parsed.data.nonce);
+    if (!nonceOk) {
+      return NextResponse.json({ error: "Nonce already used" }, { status: 409 });
     }
 
     const signingMessage = `${parsed.data.actorId}:${parsed.data.proposalId}:${parsed.data.accepted}:${parsed.data.nonce}`;
