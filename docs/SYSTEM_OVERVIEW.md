@@ -105,11 +105,12 @@ Board (recent agreement events)
 ### 現在の基準ドキュメント（優先参照）
 
 1. `SYSTEM_OVERVIEW.md`（このファイル）
-2. `MVP_COMM_PROTOCOL.md`
-3. `AUTH_INTEGRATION.md`
-4. `SECURITY.md`
-5. `ROADMAP.md`
-6. `PREDICTIONS.md`
+2. `PLATFORM_FLOW_AND_CODEMAP.md`（コード単位の機能説明 + 蒸留パイプライン）
+3. `MVP_COMM_PROTOCOL.md`
+4. `AUTH_INTEGRATION.md`
+5. `SECURITY.md`
+6. `ROADMAP.md`
+7. `PREDICTIONS.md`
 
 ---
 

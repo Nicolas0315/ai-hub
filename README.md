@@ -90,6 +90,7 @@ Katalaはその欠落を埋める。
 対抗ではなく補完。エコシステムが大きくなるほど、独立した第三者検証の需要は爆発する。
 
 📖 [System Overview（現行実装サマリー）](./docs/SYSTEM_OVERVIEW.md)
+📖 [Platform Flow & Code Map（コード単位機能 + 蒸留仕組み）](./docs/PLATFORM_FLOW_AND_CODEMAP.md)
 📖 [Evolution, AI, and the Trust Layer](./docs/EVOLUTION_AND_TRUST.md)
 📖 [Philosophy — 貢献権パラダイム・透明なインフラ](./docs/PHILOSOPHY.md)
 📖 [Vision](./docs/VISION.md)
