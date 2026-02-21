@@ -32,6 +32,16 @@ Ensure your 1Password vault contains the necessary secrets referenced in `.env.t
 - **API Route**: `src/app/api/auth/[...nextauth]/route.ts`
 - **Login Page**: `src/app/login/page.tsx` (Server Action based)
 
+## World ID / OIDC (optional)
+
+`src/auth.ts` は以下の環境変数が揃った場合のみ `worldid` OIDC Provider を自動で有効化します（デフォルト無効）。
+
+- `WORLD_ID_CLIENT_ID`
+- `WORLD_ID_CLIENT_SECRET`
+- `WORLD_ID_ISSUER`
+
+No-Store方針により、Katala側で生体原本を保持しない前提です。
+
 ## Adding Providers
 
 To add OAuth providers (e.g., GitHub, Google), update `src/auth.ts`:

@@ -14,6 +14,7 @@
 - 認証（暫定）
   - Auth.js/NextAuthベースのログインフロー
   - Human Layer署名検証（HMACベースのMVP実装）
+  - World ID/OIDC統合の低リスク導入パターン（環境変数指定時のみ有効）
 - Intent/Mediation API
   - `POST /api/intent/normalize`
   - `POST /api/mediation/propose`
