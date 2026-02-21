@@ -60,7 +60,8 @@ export class EconomicTrustScorer {
     const costToValue = valueUsd / (m.tokenCostUsd + eps);
 
     // 生存性: 残高維持率（0〜1）
-    const survivalRate = m.balanceBeforeUsd === 0 ? 0 : Math.min(1, m.balanceAfterUsd / m.balanceBeforeUsd);
+    const survivalRate =
+      m.balanceBeforeUsd === 0 ? 0 : Math.min(1, m.balanceAfterUsd / m.balanceBeforeUsd);
 
     // 効率スコア（対数圧縮）
     const efficiencyScore = this.logNormalize(costToValue);
