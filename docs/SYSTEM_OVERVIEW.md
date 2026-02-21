@@ -115,6 +115,33 @@ Board (recent agreement events)
 
 ---
 
+## OSS活用スタック（現時点）
+
+Katalaは「低リスク導入」方針でOSSを取り込む。現時点での採用/検証対象は以下。
+
+### Core Runtime
+- Next.js 16 / React 19 / Tailwind
+- Auth.js (NextAuth v5)
+- Zod
+- Vitest / Playwright
+
+### Trust & Identity（導入済み/導入中）
+- `world-id-nextauth-template`（導入中: 統合パターン）
+- `idkit-js`（限定導入予定）
+- `semaphore-rs`（匿名一意性PoC予定）
+
+### Biometrics（研究限定）
+- `open-iris`（本番導入しない、R&Dのみ）
+
+### Policy Engine（Katala独自実装）
+- Open Threshold Policy (`src/lib/policy/openThreshold.ts`)
+- Distilled Audit Policy (`src/lib/policy/distilledAuditPolicy.ts`)
+- Inclusion Guard (`src/lib/policy/inclusionGuard.ts`)
+
+### 原則
+- OSSは採用前に「No-Store適合 / 実装難易度 / 法務リスク / Katala親和性」で評価
+- 生データ保持を前提とする実装は、本番採用しない
+
 ## 6. 古い内容を含む可能性があるドキュメント
 
 以下は歴史的価値はあるが、**現行仕様の単一ソースとしては使わない**。
