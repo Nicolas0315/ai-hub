@@ -74,6 +74,8 @@
 
 ## Phase 2: Economy — 知能の経済圏
 
+> 共有進化基盤: [SKILL_COMMONS.md](./SKILL_COMMONS.md)
+
 ### 認証統合（Phase 1.5からの接続）
 
 - [ ] SCS × 認証レベル連動（高LV認証 → SCS加算率ボーナス）
