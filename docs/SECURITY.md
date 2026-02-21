@@ -64,6 +64,27 @@
 - Resource-Only Protocol: ビジネス詳細を隠し、スキル要件のみ共有
 - De-anonymization Tester: AIが自社の匿名化投稿を攻撃して検証
 
+## Open Threshold Policy（公開しきい値ポリシー）
+
+「集めない」と「進化のために学習する」を両立するため、Katalaは**生データではなく蒸留信号を収集**する。
+
+### 3レベル分類
+
+- **L0（Open by default）**: 匿名統計・蒸留済みシグナル（公開可）
+- **L1（Conditional Open）**: raw text/連絡先を含む中リスク（蒸留して収集、公開はk匿名+DP閾値を満たした場合のみ）
+- **L2（No Collect / No Open）**: 生体・身分証・未成年・医療/金融/ID系（収集しない、公開しない）
+
+### 判定ルール（コード実装）
+
+- 実装: `src/lib/policy/openThreshold.ts`
+- API適用: `src/app/api/mediation/resolve/route.ts`
+- ルール:
+  - 再同定可能なら公開しない
+  - 高リスク領域は収集しない
+  - 保存は「蒸留後の最小構造」だけ
+
+> 目的: 人類の進化に必要な学習は継続しつつ、個人の復元可能性を切断する。
+
 ## 認証セキュリティ原則（No-Store Charter）
 
 Persona/Discord型の中央集権ID収集リスクを回避するため、Katalaは以下を必須要件とする。

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { sharedLedger } from "@/lib/ledger/store";
 import { verifyHumanIntentSignature } from "@/lib/auth/humanSignature";
+import { classifyOpenThreshold, classifyReason } from "@/lib/policy/openThreshold";
 
 const ResolveSchema = z.object({
   proposalId: z.string().min(1),
@@ -31,21 +32,36 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Invalid human-layer signature" }, { status: 401 });
     }
 
+    const policy = classifyOpenThreshold({
+      domain: "general",
+      containsRawText: Boolean(parsed.data.reason),
+      containsContact: /(@|\d{2,4}-\d{2,4}-\d{3,4}|https?:\/\/)/.test(parsed.data.reason ?? ""),
+      kAnonymity: 20,
+      dpEpsilon: 1,
+    });
+
+    const reasonCategory = classifyReason(parsed.data.reason);
+
     const resolution = {
       proposalId: parsed.data.proposalId,
       status: parsed.data.accepted ? "agreed" : "rejected",
-      reason: parsed.data.reason ?? null,
+      reasonCategory,
       actorId: parsed.data.actorId,
       resolvedAt: new Date().toISOString(),
+      policy,
     };
 
-    await sharedLedger.append("mediation.resolved", {
-      proposalId: parsed.data.proposalId,
-      actorId: parsed.data.actorId,
-      accepted: parsed.data.accepted,
-      reason: parsed.data.reason ?? null,
-      nonce: parsed.data.nonce,
-    });
+    if (policy.collect) {
+      await sharedLedger.append("mediation.resolved", {
+        proposalId: parsed.data.proposalId,
+        actorId: parsed.data.actorId,
+        accepted: parsed.data.accepted,
+        reasonCategory,
+        nonce: parsed.data.nonce,
+        visibility: policy.level,
+        openAllowed: policy.open,
+      });
+    }
 
     return NextResponse.json({ status: "success", resolution });
   } catch (error) {
