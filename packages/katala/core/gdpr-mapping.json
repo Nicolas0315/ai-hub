@@ -1,0 +1,124 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "GDPR Identity Dimension Risk Mapping",
+  "description": "Maps each MBTI++ Identity Dimension (and related profile fields) to a GDPR sensitivity risk level. Risk levels determine whether a dimension is redacted before cross-node mediation when user consent is insufficient.",
+  "version": "1.0.0",
+  "gdprBasis": "GDPR Article 9 — Special Category Data (psychological/behavioural profiling)",
+  "riskLevels": {
+    "high": "Special category data or strong psychological proxy. Redacted unless explicit consent is given.",
+    "medium": "Behavioural pattern data that can indirectly profile an individual. Redacted at low consent.",
+    "low": "General style/preference data with minimal individual privacy impact. Shared unless consent is explicitly withheld."
+  },
+  "personalityDimensions": {
+    "extraversion_introversion": {
+      "gdpr_risk_level": "medium",
+      "rationale": "Reveals social behaviour patterns; indirect psychological profiling."
+    },
+    "sensing_intuition": {
+      "gdpr_risk_level": "medium",
+      "rationale": "Cognitive processing style; contributes to psychological profile."
+    },
+    "thinking_feeling": {
+      "gdpr_risk_level": "high",
+      "rationale": "Emotional orientation is a psychological characteristic potentially qualifying as special-category data under GDPR Art. 9."
+    },
+    "judging_perceiving": {
+      "gdpr_risk_level": "low",
+      "rationale": "Organisational preference with limited sensitivity."
+    },
+    "assertive_turbulent": {
+      "gdpr_risk_level": "high",
+      "rationale": "Emotional stability proxy; closely correlated with mental-health indicators (GDPR Art. 9 special category)."
+    },
+    "systematic_adaptive": {
+      "gdpr_risk_level": "low",
+      "rationale": "Work-style preference; minimal privacy impact."
+    },
+    "direct_diplomatic": {
+      "gdpr_risk_level": "low",
+      "rationale": "Communication style; minimal privacy impact."
+    },
+    "individualism_collectivism": {
+      "gdpr_risk_level": "high",
+      "rationale": "May reveal political or ideological views, which are special-category data under GDPR Art. 9."
+    },
+    "practical_theoretical": {
+      "gdpr_risk_level": "low",
+      "rationale": "Cognitive preference; minimal privacy impact."
+    },
+    "fast_deliberate": {
+      "gdpr_risk_level": "low",
+      "rationale": "Decision-making tempo; minimal privacy impact."
+    },
+    "cautious_bold": {
+      "gdpr_risk_level": "medium",
+      "rationale": "Risk-tolerance indicator; may be used in financial profiling contexts."
+    },
+    "micro_macro": {
+      "gdpr_risk_level": "low",
+      "rationale": "Focus preference; minimal privacy impact."
+    },
+    "internal_external": {
+      "gdpr_risk_level": "medium",
+      "rationale": "Motivation orientation; contributes to psychological profile."
+    },
+    "task_people": {
+      "gdpr_risk_level": "medium",
+      "rationale": "Social/emotional orientation in work contexts; contributes to psychological profile."
+    },
+    "proactive_reactive": {
+      "gdpr_risk_level": "low",
+      "rationale": "Behavioural tempo; minimal privacy impact."
+    },
+    "mode_specialist_generalist": {
+      "gdpr_risk_level": "low",
+      "rationale": "Work-mode preference; minimal privacy impact."
+    },
+    "extraversion": {
+      "gdpr_risk_level": "medium",
+      "rationale": "Current 4-dimension model alias for extraversion_introversion.",
+      "alias_for": "extraversion_introversion"
+    },
+    "intuition": {
+      "gdpr_risk_level": "medium",
+      "rationale": "Current 4-dimension model alias for sensing_intuition.",
+      "alias_for": "sensing_intuition"
+    },
+    "thinking": {
+      "gdpr_risk_level": "high",
+      "rationale": "Current 4-dimension model alias for thinking_feeling.",
+      "alias_for": "thinking_feeling"
+    },
+    "judging": {
+      "gdpr_risk_level": "low",
+      "rationale": "Current 4-dimension model alias for judging_perceiving.",
+      "alias_for": "judging_perceiving"
+    }
+  },
+  "profileFields": {
+    "values": {
+      "gdpr_risk_level": "high",
+      "rationale": "Personal values may reveal religious beliefs, political opinions, or other special-category data."
+    },
+    "professionalFocus": {
+      "gdpr_risk_level": "medium",
+      "rationale": "Occupational interests can be used to infer socioeconomic status."
+    },
+    "socialEnergy.battery": {
+      "gdpr_risk_level": "medium",
+      "rationale": "Energy level may serve as a proxy for mental/physical health state."
+    },
+    "socialEnergy.preferredTone": {
+      "gdpr_risk_level": "low",
+      "rationale": "Communication style preference; minimal privacy impact."
+    },
+    "meta.confidenceScore": {
+      "gdpr_risk_level": "low",
+      "rationale": "Internal model metric; minimal privacy impact."
+    },
+    "meta.lastUpdated": {
+      "gdpr_risk_level": "low",
+      "rationale": "Timestamp; minimal privacy impact."
+    }
+  }
+}
