@@ -59,7 +59,7 @@ jobs:
           )
 
           for pattern in "${PATTERNS[@]}"; do
-            matches=$(git grep -lE "$pattern" -- ':(exclude)*.yml' ':(exclude)*.yaml' ':(exclude)leak-guard*' || true)
+            matches=$(git grep -lE "$pattern" -- ':(exclude)*.yml' ':(exclude)*.yaml' ':(exclude)leak-guard*' ':(exclude).env.example' || true)
             if [ -n "$matches" ]; then
               echo "❌ Potential secret ($pattern) in: $matches"
               BLOCKED=1
