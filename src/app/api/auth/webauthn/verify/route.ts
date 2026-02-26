@@ -1,25 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
-import { verifyAssertion, type StoredCredential } from "@/lib/auth/webauthn";
+import { verifyServerSideAuthentication } from "@/lib/auth/webauthn";
 import type { AuthenticationResponseJSON } from "@simplewebauthn/server";
 
 /**
  * POST /api/auth/webauthn/verify
- * Verify a WebAuthn authentication response
+ * Verify assertion using server-side challenge + server-side stored public key
  */
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { 
-      response, 
-      expectedChallenge, 
-      credential 
-    }: {
-      response: AuthenticationResponseJSON;
-      expectedChallenge: string;
-      credential: StoredCredential;
-    } = body;
+    const { response, userID }: { response?: AuthenticationResponseJSON; userID?: string } = body;
 
-    if (!response || !expectedChallenge || !credential) {
+    if (!response || !userID) {
       return NextResponse.json(
         {
           success: false,
@@ -29,20 +21,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const result = await verifyAssertion(response, expectedChallenge, credential);
+    const result = await verifyServerSideAuthentication(userID, response);
 
-    if (result.verified) {
-      // Update credential counter in database
-      // TODO: Implement credential counter update
-      
-      return NextResponse.json({
-        success: true,
-        data: {
-          verified: true,
-          newCounter: result.newCounter,
-        },
-      });
-    } else {
+    if (!result.verified) {
       return NextResponse.json(
         {
           success: false,
@@ -51,6 +32,14 @@ export async function POST(request: NextRequest) {
         { status: 401 }
       );
     }
+
+    return NextResponse.json({
+      success: true,
+      data: {
+        verified: true,
+        newCounter: result.newCounter,
+      },
+    });
   } catch (error) {
     console.error("WebAuthn verification failed:", error);
     return NextResponse.json(

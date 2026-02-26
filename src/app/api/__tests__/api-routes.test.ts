@@ -181,6 +181,62 @@ describe("API: /api/intent/normalize", () => {
   });
 });
 
+describe("API: /api/auth/webauthn", () => {
+  it("POST /challenge rejects missing userID", async () => {
+    const { POST } = await import("../auth/webauthn/challenge/route");
+    const res = await POST(makeRequest({}) as any);
+    expect(res.status).toBe(400);
+  });
+
+  it("POST /register stores credential and /verify rejects replay", async () => {
+    const registerRoute = await import("../auth/webauthn/register/route");
+    const challengeRoute = await import("../auth/webauthn/challenge/route");
+    const verifyRoute = await import("../auth/webauthn/verify/route");
+    const webauthn = await import("@/lib/auth/webauthn");
+
+    webauthn.resetWebAuthnStores();
+
+    const userID = "api-user-1";
+    const credential = {
+      id: "api-cred-1",
+      publicKey: Buffer.from("api-public-key").toString("base64url"),
+      counter: 1,
+    };
+
+    const regRes = await registerRoute.POST(makeRequest({ userID, credential }) as any);
+    expect(regRes.status).toBe(200);
+
+    const chRes = await challengeRoute.POST(makeRequest({ userID }) as any);
+    expect(chRes.status).toBe(200);
+
+    const response = {
+      id: "api-cred-1",
+      rawId: "api-cred-1",
+      response: {
+        authenticatorData: "auth-data",
+        clientDataJSON: "client-data",
+        signature: "sig",
+        userHandle: null,
+      },
+      clientExtensionResults: {},
+      type: "public-key",
+    };
+
+    webauthn.setAuthenticationVerifierForTest(async () => ({
+      verified: true,
+      authenticationInfo: {
+        newCounter: 2,
+      },
+    } as any));
+
+    const first = await verifyRoute.POST(makeRequest({ userID, response }) as any);
+    expect(first.status).toBe(200);
+
+    const second = await verifyRoute.POST(makeRequest({ userID, response }) as any);
+    expect(second.status).toBe(401);
+  });
+});
+
 describe("API: /api/mediation", () => {
   it("POST /propose creates proposal", async () => {
     const { POST } = await import("../mediation/propose/route");
