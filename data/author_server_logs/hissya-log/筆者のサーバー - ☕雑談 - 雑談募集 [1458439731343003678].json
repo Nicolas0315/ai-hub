@@ -1,0 +1,1472 @@
+{
+  "guild": {
+    "id": "1455557593844944898",
+    "name": "筆者のサーバー",
+    "iconUrl": "https://cdn.discordapp.com/icons/1455557593844944898/9dd13605201889b12ca4dc1c62d0dd1e.png?size=512"
+  },
+  "channel": {
+    "id": "1458439731343003678",
+    "type": "GuildTextChat",
+    "categoryId": "1456251145256435826",
+    "category": "☕雑談",
+    "name": "雑談募集",
+    "topic": null
+  },
+  "dateRange": {
+    "after": null,
+    "before": null
+  },
+  "exportedAt": "2026-02-15T21:42:27.8005706+09:00",
+  "messages": [
+    {
+      "id": "1458440490646114469",
+      "type": "Default",
+      "timestamp": "2026-01-07T21:41:49.484+09:00",
+      "timestampEdited": null,
+      "callEndedTimestamp": null,
+      "isPinned": false,
+      "content": "「今日はもう働かないぜ」「レンダリング中ひま」「飲みながら仕事や仕事以外の会話をしたい」という人たちの為の、作業通話よりさらにただ喋ることに特化した場所です。\n交流目的の方、作業はしていないけれど同じクリエイターとして活動している方々と仲良くなりたいという人はご活用ください！\nチャットは原則ボイスチャンネル内のチャットを活用してください\uD83D\uDE47",
+      "author": {
+        "id": "707955764899217449",
+        "name": "h155y4",
+        "discriminator": "0000",
+        "nickname": "筆者",
+        "color": "#1ABC9C",
+        "isBot": false,
+        "roles": [
+          {
+            "id": "1455561282483785932",
+            "name": "管理",
+            "color": "#1ABC9C",
+            "position": 59
+          },
+          {
+            "id": "1462741627549257791",
+            "name": "映像クリエイター",
+            "color": "#967BE9",
+            "position": 53
+          },
+          {
+            "id": "1462768239292579840",
+            "name": "After Effects",
+            "color": null,
+            "position": 27
+          },
+          {
+            "id": "1462768323497431167",
+            "name": "Blender",
+            "color": null,
+            "position": 26
+          },
+          {
+            "id": "1462771638419587216",
+            "name": "フリーランス",
+            "color": null,
+            "position": 19
+          },
+          {
+            "id": "1459883323634745587",
+            "name": "Server Booster",
+            "color": "#F47FFF",
+            "position": 1
+          }
+        ],
+        "avatarUrl": "https://cdn.discordapp.com/avatars/707955764899217449/5cb678eb744d04a66c97bec058bf49de.png?size=512"
+      },
+      "attachments": [],
+      "embeds": [],
+      "stickers": [],
+      "reactions": [
+        {
+          "emoji": {
+            "id": "",
+            "name": "✨",
+            "code": "sparkles",
+            "isAnimated": false,
+            "imageUrl": "https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/2728.svg"
+          },
+          "count": 42,
+          "users": [
+            {
+              "id": "220677680708845570",
+              "name": "p_n_y",
+              "discriminator": "0000",
+              "nickname": "ぱんや",
+              "color": null,
+              "isBot": false,
+              "avatarUrl": "https://cdn.discordapp.com/avatars/220677680708845570/9602447cc92cf7112bcbaa3cae7f829c.png?size=512"
+            },
+            {
+              "id": "262275286467346434",
+              "name": "kur1pon",
+              "discriminator": "0000",
+              "nickname": "くろぽん/Kuroto",
+              "color": null,
+              "isBot": false,
+              "avatarUrl": "https://cdn.discordapp.com/avatars/262275286467346434/3f323bc40be552ad20083bf5fee7672a.png?size=512"
+            },
+            {
+              "id": "282661734517571584",
+              "name": "chocobanana3",
+              "discriminator": "0000",
+              "nickname": "ちょこばなな３",
+              "color": null,
+              "isBot": false,
+              "avatarUrl": "https://cdn.discordapp.com/avatars/282661734517571584/311656d84713b39f47b038d4508cb683.png?size=512"
+            },
+            {
+              "id": "318661256062042115",
+              "name": "palf_",
+              "discriminator": "0000",
+              "nickname": "ぱるふ(Palf)",
+              "color": null,
+              "isBot": false,
+              "avatarUrl": "https://cdn.discordapp.com/avatars/318661256062042115/856ebf2d5c7f0e2dd5e27c4591665bbe.png?size=512"
+            },
+            {
+              "id": "320468878251524097",
+              "name": "yurie.hamon",
+              "discriminator": "0000",
+              "nickname": "尾池ユリ絵/はもん",
+              "color": null,
+              "isBot": false,
+              "avatarUrl": "https://cdn.discordapp.com/avatars/320468878251524097/0e8c8797967c636350aa8eacca82f252.png?size=512"
+            },
+            {
+              "id": "346548780813910016",
+              "name": "cell_0755",
+              "discriminator": "0000",
+              "nickname": "cell",
+              "color": null,
+              "isBot": false,
+              "avatarUrl": "https://cdn.discordapp.com/avatars/346548780813910016/41954ebe09dff92fed8783b09f0f5643.png?size=512"
+            },
+            {
+              "id": "432894842910277643",
+              "name": "jygariko",
+              "discriminator": "0000",
+              "nickname": "じゃがりこ",
+              "color": null,
+              "isBot": false,
+              "avatarUrl": "https://cdn.discordapp.com/avatars/432894842910277643/9bb2fde26a38d3997f76284e5ba63dec.png?size=512"
+            },
+            {
+              "id": "449814286353825792",
+              "name": "thuxya",
+              "discriminator": "0000",
+              "nickname": "sakuyathx",
+              "color": null,
+              "isBot": false,
+              "avatarUrl": "https://cdn.discordapp.com/avatars/449814286353825792/3efd19700e2f4be495f3dce9642d09c0.png?size=512"
+            },
+            {
+              "id": "466575819590991873",
+              "name": "iffy_dayo",
+              "discriminator": "0000",
+              "nickname": "いふぃ",
+              "color": null,
+              "isBot": false,
+              "avatarUrl": "https://cdn.discordapp.com/avatars/466575819590991873/f37b6e2419a2a6e9bc1326cc0efd9b61.png?size=512"
+            },
+            {
+              "id": "544472714585440266",
+              "name": "shuno_era",
+              "discriminator": "0000",
+              "nickname": "しゅうの",
+              "color": null,
+              "isBot": false,
+              "avatarUrl": "https://cdn.discordapp.com/avatars/544472714585440266/30c578c28893293fc37b93b3b2fccd36.png?size=512"
+            },
+            {
+              "id": "559039503424290849",
+              "name": "lynm8481",
+              "discriminator": "0000",
+              "nickname": "Lynm",
+              "color": null,
+              "isBot": false,
+              "avatarUrl": "https://cdn.discordapp.com/avatars/559039503424290849/93f50c66dc421b59e9f3692fabb30f5c.png?size=512"
+            },
+            {
+              "id": "579960189336420352",
+              "name": "hi_g2",
+              "discriminator": "0000",
+              "nickname": "G2 - Yuya Tsuji - / eureka inc.",
+              "color": null,
+              "isBot": false,
+              "avatarUrl": "https://cdn.discordapp.com/avatars/579960189336420352/3ec2433f9b2445adb89a51cff86d23a2.png?size=512"
+            },
+            {
+              "id": "585553087700402206",
+              "name": ".poina",
+              "discriminator": "0000",
+              "nickname": "Poina",
+              "color": null,
+              "isBot": false,
+              "avatarUrl": "https://cdn.discordapp.com/avatars/585553087700402206/9e06144bff116fe4b6ebb847e23d007e.png?size=512"
+            },
+            {
+              "id": "686513329404903435",
+              "name": "m_i4_",
+              "discriminator": "0000",
+              "nickname": "みあくん",
+              "color": null,
+              "isBot": false,
+              "avatarUrl": "https://cdn.discordapp.com/avatars/686513329404903435/9a4367e7253e42da8b723ab5e94b6906.png?size=512"
+            },
+            {
+              "id": "686570521944784910",
+              "name": "suku2987",
+              "discriminator": "0000",
+              "nickname": "すく",
+              "color": null,
+              "isBot": false,
+              "avatarUrl": "https://cdn.discordapp.com/avatars/686570521944784910/d6818c1fae779fd675e5076ce462ca23.png?size=512"
+            },
+            {
+              "id": "696669778634342501",
+              "name": "tsubasa_create",
+              "discriminator": "0000",
+              "nickname": "ツバサ",
+              "color": null,
+              "isBot": false,
+              "avatarUrl": "https://cdn.discordapp.com/avatars/696669778634342501/a6eac368a6f4a355c4c511bb4a54a268.png?size=512"
+            },
+            {
+              "id": "698124580543529000",
+              "name": "tamiya_mv",
+              "discriminator": "0000",
+              "nickname": "Tamiya",
+              "color": null,
+              "isBot": false,
+              "avatarUrl": "https://cdn.discordapp.com/avatars/698124580543529000/c656f5788e6b17d0a9919e7f2a5cb37d.png?size=512"
+            },
+            {
+              "id": "740598315241963542",
+              "name": "shijoritsu",
+              "discriminator": "0000",
+              "nickname": "四条りつ",
+              "color": null,
+              "isBot": false,
+              "avatarUrl": "https://cdn.discordapp.com/avatars/740598315241963542/c39cc6b3629fa42297f39cf9c175ef47.png?size=512"
+            },
+            {
+              "id": "771973974078259211",
+              "name": "karuta_ruta",
+              "discriminator": "0000",
+              "nickname": "カルタ",
+              "color": null,
+              "isBot": false,
+              "avatarUrl": "https://cdn.discordapp.com/avatars/771973974078259211/e62213db76dbc8769a8f4d7bd12532d1.png?size=512"
+            },
+            {
+              "id": "807417469467230208",
+              "name": "kooooooh",
+              "discriminator": "0000",
+              "nickname": "コゥ*",
+              "color": null,
+              "isBot": false,
+              "avatarUrl": "https://cdn.discordapp.com/avatars/807417469467230208/f26c2a524aba986ef5b686ee57fc9641.png?size=512"
+            },
+            {
+              "id": "812721280880345108",
+              "name": "r02xl",
+              "discriminator": "0000",
+              "nickname": "るあ",
+              "color": null,
+              "isBot": false,
+              "avatarUrl": "https://cdn.discordapp.com/avatars/812721280880345108/702ced6597d74f75721bedb9e0fd6781.png?size=512"
+            },
+            {
+              "id": "835491740521594941",
+              "name": "hoshigegg",
+              "discriminator": "0000",
+              "nickname": "あお",
+              "color": null,
+              "isBot": false,
+              "avatarUrl": "https://cdn.discordapp.com/avatars/835491740521594941/ab364c30e2d209f9c4350b6132379df1.png?size=512"
+            },
+            {
+              "id": "868545848999559308",
+              "name": ".yatsugare",
+              "discriminator": "0000",
+              "nickname": "やつがれ",
+              "color": null,
+              "isBot": false,
+              "avatarUrl": "https://cdn.discordapp.com/avatars/868545848999559308/e2caf4a91f89950cb7dc1a63e24b81b1.png?size=512"
+            },
+            {
+              "id": "868885097468805150",
+              "name": "chinanagosann",
+              "discriminator": "0000",
+              "nickname": "チンアナゴさん",
+              "color": null,
+              "isBot": false,
+              "avatarUrl": "https://cdn.discordapp.com/avatars/868885097468805150/d4dfc8301a244947571d9044ee09cd41.png?size=512"
+            },
+            {
+              "id": "882495305713606717",
+              "name": "reiwann",
+              "discriminator": "0000",
+              "nickname": "レイわん",
+              "color": null,
+              "isBot": false,
+              "avatarUrl": "https://cdn.discordapp.com/avatars/882495305713606717/fb7287c8f40cc254084514da1ab0ef9f.png?size=512"
+            },
+            {
+              "id": "1090679140212023326",
+              "name": "nozaqi",
+              "discriminator": "0000",
+              "nickname": "nozaqi（ノザキ）",
+              "color": null,
+              "isBot": false,
+              "avatarUrl": "https://cdn.discordapp.com/avatars/1090679140212023326/a9294118bd6232cc37152a86cdc42956.png?size=512"
+            },
+            {
+              "id": "1096440925003186258",
+              "name": "sqtoringo",
+              "discriminator": "0000",
+              "nickname": "さとり",
+              "color": null,
+              "isBot": false,
+              "avatarUrl": "https://cdn.discordapp.com/avatars/1096440925003186258/4ced7df416e3179daee4ae23cb8c7a8b.png?size=512"
+            },
+            {
+              "id": "1101828411204321434",
+              "name": "iyoriy",
+              "discriminator": "0000",
+              "nickname": "いより",
+              "color": null,
+              "isBot": false,
+              "avatarUrl": "https://cdn.discordapp.com/avatars/1101828411204321434/258cd56a4a994b36c903d56231028498.png?size=512"
+            },
+            {
+              "id": "1143411034955206676",
+              "name": "nanmi715",
+              "discriminator": "0000",
+              "nickname": "上条 シン",
+              "color": null,
+              "isBot": false,
+              "avatarUrl": "https://cdn.discordapp.com/avatars/1143411034955206676/048773686e1a07c073b9d04f3e56685d.png?size=512"
+            },
+            {
+              "id": "1201551360957612062",
+              "name": "mcrntan",
+              "discriminator": "0000",
+              "nickname": "まかろん（macaron ch）\uD83C\uDF70♡₊⁺ | 34284639",
+              "color": null,
+              "isBot": false,
+              "avatarUrl": "https://cdn.discordapp.com/avatars/1201551360957612062/08429f275d6f4bfc72b5b922d50db0a9.png?size=512"
+            },
+            {
+              "id": "1221664560621162627",
+              "name": "yotsuha_utamita",
+              "discriminator": "0000",
+              "nickname": "よつは",
+              "color": null,
+              "isBot": false,
+              "avatarUrl": "https://cdn.discordapp.com/avatars/1221664560621162627/5202dc780e166b5e0d72be9603d2edd2.png?size=512"
+            },
+            {
+              "id": "1241394111802507345",
+              "name": "shisuiseina_412",
+              "discriminator": "0000",
+              "nickname": "紫翠 星那",
+              "color": null,
+              "isBot": false,
+              "avatarUrl": "https://cdn.discordapp.com/avatars/1241394111802507345/b4219604ad2e6c8fbdba88968d43c0d9.png?size=512"
+            },
+            {
+              "id": "1261203611895988298",
+              "name": "miz_ame",
+              "discriminator": "0000",
+              "nickname": "miz",
+              "color": null,
+              "isBot": false,
+              "avatarUrl": "https://cdn.discordapp.com/avatars/1261203611895988298/e1a312848721e4a2ec180d30c11fb491.png?size=512"
+            },
+            {
+              "id": "1277150656435847195",
+              "name": "zis9xz0417",
+              "discriminator": "0000",
+              "nickname": "慈澄",
+              "color": null,
+              "isBot": false,
+              "avatarUrl": "https://cdn.discordapp.com/avatars/1277150656435847195/4b59d93809a8554da183337f59753814.png?size=512"
+            },
+            {
+              "id": "1301547287851569267",
+              "name": "nanatuji_creative",
+              "discriminator": "0000",
+              "nickname": "ナナツジ",
+              "color": null,
+              "isBot": false,
+              "avatarUrl": "https://cdn.discordapp.com/avatars/1301547287851569267/3b741ad2b700203a5596c588ddd124e5.png?size=512"
+            },
+            {
+              "id": "1317350811524665354",
+              "name": "kirinon474_69123",
+              "discriminator": "0000",
+              "nickname": "キリノ",
+              "color": null,
+              "isBot": false,
+              "avatarUrl": "https://cdn.discordapp.com/avatars/1317350811524665354/378d5113e6125daacdc441539ba32abf.png?size=512"
+            },
+            {
+              "id": "1318133636750639141",
+              "name": "rmchu",
+              "discriminator": "0000",
+              "nickname": "らむちゅ",
+              "color": null,
+              "isBot": false,
+              "avatarUrl": "https://cdn.discordapp.com/avatars/1318133636750639141/ef9fd843f5cf35a864177e8c6d4b1be5.png?size=512"
+            },
+            {
+              "id": "1332607499932532746",
+              "name": "yuzu0837_84095",
+              "discriminator": "0000",
+              "nickname": "ユズカワ",
+              "color": null,
+              "isBot": false,
+              "avatarUrl": "https://cdn.discordapp.com/avatars/1332607499932532746/2bfb8fc899b562d9d36dc2d6621107bf.png?size=512"
+            },
+            {
+              "id": "1348653248487358484",
+              "name": "ponpe_877_22026",
+              "discriminator": "0000",
+              "nickname": "ぽんぺ",
+              "color": null,
+              "isBot": false,
+              "avatarUrl": "https://cdn.discordapp.com/embed/avatars/5.png"
+            },
+            {
+              "id": "1426547023997571073",
+              "name": "null__0_0_42317",
+              "discriminator": "0000",
+              "nickname": "null (ぬる)",
+              "color": null,
+              "isBot": false,
+              "avatarUrl": "https://cdn.discordapp.com/avatars/1426547023997571073/c1f11cf2d3c479b10579c64b67c8cb62.png?size=512"
+            },
+            {
+              "id": "1457654329862389770",
+              "name": "rinneru_zig",
+              "discriminator": "0000",
+              "nickname": "燐音琉-rinneru-",
+              "color": null,
+              "isBot": false,
+              "avatarUrl": "https://cdn.discordapp.com/avatars/1457654329862389770/f4bbe66ac7ca2ba423221fe321df1acf.png?size=512"
+            },
+            {
+              "id": "1461246465270747350",
+              "name": "deleted_user_43af7356d803",
+              "discriminator": "0000",
+              "nickname": "deleted_user_43af7356d803",
+              "color": null,
+              "isBot": false,
+              "avatarUrl": "https://cdn.discordapp.com/embed/avatars/1.png"
+            }
+          ]
+        }
+      ],
+      "mentions": [],
+      "inlineEmojis": [
+        {
+          "id": "",
+          "name": "\uD83D\uDE47",
+          "code": "person_bowing",
+          "isAnimated": false,
+          "imageUrl": "https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f647.svg"
+        }
+      ]
+    },
+    {
+      "id": "1460902534234243112",
+      "type": "Default",
+      "timestamp": "2026-01-14T16:45:06.418+09:00",
+      "timestampEdited": "2026-01-14T16:45:12.094+09:00",
+      "callEndedTimestamp": null,
+      "isPinned": false,
+      "content": "room2お借りします:nemui:",
+      "author": {
+        "id": "203454268286566400",
+        "name": "m1zuk1ng",
+        "discriminator": "0000",
+        "nickname": "みずきんぐ",
+        "color": "#967BE9",
+        "isBot": false,
+        "roles": [
+          {
+            "id": "1462741627549257791",
+            "name": "映像クリエイター",
+            "color": "#967BE9",
+            "position": 53
+          },
+          {
+            "id": "1462768144840917208",
+            "name": "喫煙者",
+            "color": null,
+            "position": 28
+          },
+          {
+            "id": "1462768239292579840",
+            "name": "After Effects",
+            "color": null,
+            "position": 27
+          },
+          {
+            "id": "1462768323497431167",
+            "name": "Blender",
+            "color": null,
+            "position": 26
+          },
+          {
+            "id": "1462768392292536350",
+            "name": "Cinema 4D",
+            "color": null,
+            "position": 25
+          },
+          {
+            "id": "1462771638419587216",
+            "name": "フリーランス",
+            "color": null,
+            "position": 19
+          },
+          {
+            "id": "1462795798319337504",
+            "name": "Illustrator",
+            "color": null,
+            "position": 16
+          }
+        ],
+        "avatarUrl": "https://cdn.discordapp.com/avatars/203454268286566400/1b7882f1cd35d6b99bc1012dcf592bb8.png?size=512"
+      },
+      "attachments": [],
+      "embeds": [],
+      "stickers": [],
+      "reactions": [],
+      "mentions": [],
+      "inlineEmojis": [
+        {
+          "id": "1429850960108458230",
+          "name": "nemui",
+          "code": "nemui",
+          "isAnimated": false,
+          "imageUrl": "https://cdn.discordapp.com/emojis/1429850960108458230.png"
+        }
+      ]
+    },
+    {
+      "id": "1463553623819685953",
+      "type": "Default",
+      "timestamp": "2026-01-22T00:19:35.43+09:00",
+      "timestampEdited": null,
+      "callEndedTimestamp": null,
+      "isPinned": false,
+      "content": "room2お借りします\uD83D\uDE47 交流したいけど勇気でないのでｺｯｿﾘ",
+      "author": {
+        "id": "247744811568857088",
+        "name": "tgks_sbr",
+        "discriminator": "0000",
+        "nickname": "戸隠スバル",
+        "color": "#2EA6F6",
+        "isBot": false,
+        "roles": [
+          {
+            "id": "1462743680078319699",
+            "name": "イラストレーター",
+            "color": "#2EA6F6",
+            "position": 52
+          },
+          {
+            "id": "1462772993582174280",
+            "name": "アニメーター",
+            "color": "#4B6CF1",
+            "position": 40
+          },
+          {
+            "id": "1462768239292579840",
+            "name": "After Effects",
+            "color": null,
+            "position": 27
+          },
+          {
+            "id": "1462771638419587216",
+            "name": "フリーランス",
+            "color": null,
+            "position": 19
+          },
+          {
+            "id": "1462798451979976756",
+            "name": "CLIP STUDIO PAINT",
+            "color": null,
+            "position": 15
+          }
+        ],
+        "avatarUrl": "https://cdn.discordapp.com/avatars/247744811568857088/e7a55109df4ef1bab5371bb8e5d3296e.png?size=512"
+      },
+      "attachments": [],
+      "embeds": [],
+      "stickers": [],
+      "reactions": [
+        {
+          "emoji": {
+            "id": "",
+            "name": "\uD83D\uDC4D",
+            "code": "thumbsup",
+            "isAnimated": false,
+            "imageUrl": "https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f44d.svg"
+          },
+          "count": 1,
+          "users": [
+            {
+              "id": "707955764899217449",
+              "name": "h155y4",
+              "discriminator": "0000",
+              "nickname": "筆者",
+              "color": "#1ABC9C",
+              "isBot": false,
+              "avatarUrl": "https://cdn.discordapp.com/avatars/707955764899217449/5cb678eb744d04a66c97bec058bf49de.png?size=512"
+            }
+          ]
+        }
+      ],
+      "mentions": [],
+      "inlineEmojis": [
+        {
+          "id": "",
+          "name": "\uD83D\uDE47",
+          "code": "person_bowing",
+          "isAnimated": false,
+          "imageUrl": "https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f647.svg"
+        }
+      ]
+    },
+    {
+      "id": "1464622529741197353",
+      "type": "Default",
+      "timestamp": "2026-01-24T23:07:02.461+09:00",
+      "timestampEdited": null,
+      "callEndedTimestamp": null,
+      "isPinned": false,
+      "content": "誰かREPOやりません？",
+      "author": {
+        "id": "1197882129376362606",
+        "name": "tokume_eizo",
+        "discriminator": "0000",
+        "nickname": "とくめー",
+        "color": "#967BE9",
+        "isBot": false,
+        "roles": [
+          {
+            "id": "1462741627549257791",
+            "name": "映像クリエイター",
+            "color": "#967BE9",
+            "position": 53
+          },
+          {
+            "id": "1462767993468747826",
+            "name": "学生",
+            "color": null,
+            "position": 32
+          },
+          {
+            "id": "1462768066248179994",
+            "name": "未成年",
+            "color": null,
+            "position": 30
+          },
+          {
+            "id": "1462768769364529362",
+            "name": "Aviutl",
+            "color": null,
+            "position": 20
+          }
+        ],
+        "avatarUrl": "https://cdn.discordapp.com/avatars/1197882129376362606/88e78a6d5b1b16370f2f0d57582a6e1b.png?size=512"
+      },
+      "attachments": [],
+      "embeds": [],
+      "stickers": [],
+      "reactions": [],
+      "mentions": [],
+      "inlineEmojis": []
+    },
+    {
+      "id": "1464957781449769183",
+      "type": "Default",
+      "timestamp": "2026-01-25T21:19:12.697+09:00",
+      "timestampEdited": null,
+      "callEndedTimestamp": null,
+      "isPinned": false,
+      "content": "２２時までお借りします\uD83E\uDEE0 ﾏﾀｰﾘエンドフィールドをしています",
+      "author": {
+        "id": "1096494191674130442",
+        "name": "hozumi_0621",
+        "discriminator": "0000",
+        "nickname": "何卒まこと",
+        "color": "#967BE9",
+        "isBot": false,
+        "roles": [
+          {
+            "id": "1462741627549257791",
+            "name": "映像クリエイター",
+            "color": "#967BE9",
+            "position": 53
+          },
+          {
+            "id": "1462768106115174432",
+            "name": "成人",
+            "color": null,
+            "position": 29
+          },
+          {
+            "id": "1462768239292579840",
+            "name": "After Effects",
+            "color": null,
+            "position": 27
+          },
+          {
+            "id": "1462771638419587216",
+            "name": "フリーランス",
+            "color": null,
+            "position": 19
+          },
+          {
+            "id": "1464141678968574065",
+            "name": "静かにまったり",
+            "color": null,
+            "position": 12
+          }
+        ],
+        "avatarUrl": "https://cdn.discordapp.com/guilds/1455557593844944898/users/1096494191674130442/avatars/589dab9283ac10becbfa9f6b32d581fc.png?size=512"
+      },
+      "attachments": [],
+      "embeds": [],
+      "stickers": [],
+      "reactions": [],
+      "mentions": [],
+      "inlineEmojis": [
+        {
+          "id": "",
+          "name": "\uD83E\uDEE0",
+          "code": "\uD83E\uDEE0",
+          "isAnimated": false,
+          "imageUrl": "https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1fae0.svg"
+        }
+      ]
+    },
+    {
+      "id": "1465319718184554632",
+      "type": "Default",
+      "timestamp": "2026-01-26T21:17:25.139+09:00",
+      "timestampEdited": null,
+      "callEndedTimestamp": null,
+      "isPinned": false,
+      "content": "雑談酒場お借りします！",
+      "author": {
+        "id": "1055493991019319356",
+        "name": "eto23_555",
+        "discriminator": "0000",
+        "nickname": "えとぅー",
+        "color": "#DAA636",
+        "isBot": false,
+        "roles": [
+          {
+            "id": "1462767557604933762",
+            "name": "デザイナー",
+            "color": "#DAA636",
+            "position": 44
+          },
+          {
+            "id": "1462768029162012826",
+            "name": "会社員",
+            "color": null,
+            "position": 31
+          },
+          {
+            "id": "1462768106115174432",
+            "name": "成人",
+            "color": null,
+            "position": 29
+          },
+          {
+            "id": "1462768144840917208",
+            "name": "喫煙者",
+            "color": null,
+            "position": 28
+          },
+          {
+            "id": "1462795798319337504",
+            "name": "Illustrator",
+            "color": null,
+            "position": 16
+          },
+          {
+            "id": "1462798776552128686",
+            "name": "Photoshop",
+            "color": null,
+            "position": 14
+          },
+          {
+            "id": "1464539649828716566",
+            "name": "EB",
+            "color": null,
+            "position": 3
+          },
+          {
+            "id": "1459883323634745587",
+            "name": "Server Booster",
+            "color": "#F47FFF",
+            "position": 1
+          }
+        ],
+        "avatarUrl": "https://cdn.discordapp.com/guilds/1455557593844944898/users/1055493991019319356/avatars/82baef0c687807e43219af42db1e0061.png?size=512"
+      },
+      "attachments": [],
+      "embeds": [],
+      "stickers": [],
+      "reactions": [],
+      "mentions": [],
+      "inlineEmojis": []
+    },
+    {
+      "id": "1466837129979101404",
+      "type": "Default",
+      "timestamp": "2026-01-31T01:47:04.303+09:00",
+      "timestampEdited": null,
+      "callEndedTimestamp": null,
+      "isPinned": false,
+      "content": "今日はもう仕事しないので、よろしければどなたかお話ししたいです！",
+      "author": {
+        "id": "1037728288862392340",
+        "name": "aizawa_work",
+        "discriminator": "0000",
+        "nickname": "藍沢",
+        "color": "#967BE9",
+        "isBot": false,
+        "roles": [
+          {
+            "id": "1462741627549257791",
+            "name": "映像クリエイター",
+            "color": "#967BE9",
+            "position": 53
+          },
+          {
+            "id": "1462768106115174432",
+            "name": "成人",
+            "color": null,
+            "position": 29
+          },
+          {
+            "id": "1462768239292579840",
+            "name": "After Effects",
+            "color": null,
+            "position": 27
+          },
+          {
+            "id": "1462768323497431167",
+            "name": "Blender",
+            "color": null,
+            "position": 26
+          },
+          {
+            "id": "1462771638419587216",
+            "name": "フリーランス",
+            "color": null,
+            "position": 19
+          },
+          {
+            "id": "1464141678968574065",
+            "name": "静かにまったり",
+            "color": null,
+            "position": 12
+          },
+          {
+            "id": "1464141819561640070",
+            "name": "みんなでワイワイ",
+            "color": null,
+            "position": 10
+          }
+        ],
+        "avatarUrl": "https://cdn.discordapp.com/avatars/1037728288862392340/1005a914d8702b21aa6bb0c6b1531923.png?size=512"
+      },
+      "attachments": [],
+      "embeds": [],
+      "stickers": [],
+      "reactions": [],
+      "mentions": [],
+      "inlineEmojis": []
+    },
+    {
+      "id": "1467509287919161486",
+      "type": "Default",
+      "timestamp": "2026-02-01T22:17:59.244+09:00",
+      "timestampEdited": null,
+      "callEndedTimestamp": null,
+      "isPinned": false,
+      "content": "お仕事終わったので雑談部屋お借りします\uD83D\uDC40",
+      "author": {
+        "id": "390479494676348928",
+        "name": ".kentii",
+        "discriminator": "0000",
+        "nickname": "‧⁺ ⊹˚.けんてぃー‧⁺ ⊹˚.",
+        "color": "#E052C4",
+        "isBot": false,
+        "roles": [
+          {
+            "id": "1462798744624824508",
+            "name": "VFXアーティスト",
+            "color": "#E052C4",
+            "position": 36
+          },
+          {
+            "id": "1462768239292579840",
+            "name": "After Effects",
+            "color": null,
+            "position": 27
+          },
+          {
+            "id": "1462768459057201186",
+            "name": "Maya",
+            "color": null,
+            "position": 24
+          },
+          {
+            "id": "1462768702285021259",
+            "name": "Houdini",
+            "color": null,
+            "position": 22
+          }
+        ],
+        "avatarUrl": "https://cdn.discordapp.com/avatars/390479494676348928/252ef24a4d2cdaa613362335f2941c13.png?size=512"
+      },
+      "attachments": [],
+      "embeds": [],
+      "stickers": [],
+      "reactions": [
+        {
+          "emoji": {
+            "id": "",
+            "name": "\uD83E\uDEF6",
+            "code": "\uD83E\uDEF6",
+            "isAnimated": false,
+            "imageUrl": "https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1faf6.svg"
+          },
+          "count": 1,
+          "users": [
+            {
+              "id": "707955764899217449",
+              "name": "h155y4",
+              "discriminator": "0000",
+              "nickname": "筆者",
+              "color": "#1ABC9C",
+              "isBot": false,
+              "avatarUrl": "https://cdn.discordapp.com/avatars/707955764899217449/5cb678eb744d04a66c97bec058bf49de.png?size=512"
+            }
+          ]
+        }
+      ],
+      "mentions": [],
+      "inlineEmojis": [
+        {
+          "id": "",
+          "name": "\uD83D\uDC40",
+          "code": "eyes",
+          "isAnimated": false,
+          "imageUrl": "https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f440.svg"
+        }
+      ]
+    },
+    {
+      "id": "1468915071030657117",
+      "type": "Default",
+      "timestamp": "2026-02-05T19:24:04.056+09:00",
+      "timestampEdited": null,
+      "callEndedTimestamp": null,
+      "isPinned": false,
+      "content": "自作キーボードのパーツ換装やってます",
+      "author": {
+        "id": "323041740963446785",
+        "name": "waltz_529",
+        "discriminator": "0000",
+        "nickname": "+ﾟ⟡'.さりす.'⟡+ﾟ",
+        "color": "#967BE9",
+        "isBot": false,
+        "roles": [
+          {
+            "id": "1462741627549257791",
+            "name": "映像クリエイター",
+            "color": "#967BE9",
+            "position": 53
+          },
+          {
+            "id": "1462767663364177988",
+            "name": "プログラマー",
+            "color": "#636363",
+            "position": 41
+          },
+          {
+            "id": "1462794183097188496",
+            "name": "ディレクター",
+            "color": "#253DD6",
+            "position": 37
+          },
+          {
+            "id": "1462767993468747826",
+            "name": "学生",
+            "color": null,
+            "position": 32
+          },
+          {
+            "id": "1462768106115174432",
+            "name": "成人",
+            "color": null,
+            "position": 29
+          },
+          {
+            "id": "1462768239292579840",
+            "name": "After Effects",
+            "color": null,
+            "position": 27
+          },
+          {
+            "id": "1462768323497431167",
+            "name": "Blender",
+            "color": null,
+            "position": 26
+          },
+          {
+            "id": "1462768459057201186",
+            "name": "Maya",
+            "color": null,
+            "position": 24
+          },
+          {
+            "id": "1462793066820665610",
+            "name": "Unity",
+            "color": null,
+            "position": 18
+          },
+          {
+            "id": "1462795798319337504",
+            "name": "Illustrator",
+            "color": null,
+            "position": 16
+          },
+          {
+            "id": "1462798451979976756",
+            "name": "CLIP STUDIO PAINT",
+            "color": null,
+            "position": 15
+          },
+          {
+            "id": "1462798776552128686",
+            "name": "Photoshop",
+            "color": null,
+            "position": 14
+          },
+          {
+            "id": "1464141678968574065",
+            "name": "静かにまったり",
+            "color": null,
+            "position": 12
+          },
+          {
+            "id": "1464539649828716566",
+            "name": "EB",
+            "color": null,
+            "position": 3
+          }
+        ],
+        "avatarUrl": "https://cdn.discordapp.com/avatars/323041740963446785/0929b6abc40c210e71c9b54eed5d0db8.png?size=512"
+      },
+      "attachments": [],
+      "embeds": [],
+      "stickers": [],
+      "reactions": [
+        {
+          "emoji": {
+            "id": "",
+            "name": "\uD83D\uDC4D",
+            "code": "thumbsup",
+            "isAnimated": false,
+            "imageUrl": "https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f44d.svg"
+          },
+          "count": 2,
+          "users": [
+            {
+              "id": "444458584487755778",
+              "name": "mi_taira_usune",
+              "discriminator": "0000",
+              "nickname": "雨たたねさん☕@み@たいらんと❄",
+              "color": null,
+              "isBot": false,
+              "avatarUrl": "https://cdn.discordapp.com/avatars/444458584487755778/d6dcb606a4065388942a2c08a6d9c84f.png?size=512"
+            },
+            {
+              "id": "1055493991019319356",
+              "name": "eto23_555",
+              "discriminator": "0000",
+              "nickname": "えとぅー",
+              "color": "#DAA636",
+              "isBot": false,
+              "avatarUrl": "https://cdn.discordapp.com/guilds/1455557593844944898/users/1055493991019319356/avatars/82baef0c687807e43219af42db1e0061.png?size=512"
+            }
+          ]
+        }
+      ],
+      "mentions": [],
+      "inlineEmojis": []
+    },
+    {
+      "id": "1469262584682254549",
+      "type": "Default",
+      "timestamp": "2026-02-06T18:24:57.767+09:00",
+      "timestampEdited": null,
+      "callEndedTimestamp": null,
+      "isPinned": false,
+      "content": "休憩がてら明日用のプロフィール帳書いてます！",
+      "author": {
+        "id": "1125041855797665903",
+        "name": "kama1tachi",
+        "discriminator": "0000",
+        "nickname": "風舞たち",
+        "color": "#967BE9",
+        "isBot": false,
+        "roles": [
+          {
+            "id": "1462741627549257791",
+            "name": "映像クリエイター",
+            "color": "#967BE9",
+            "position": 53
+          },
+          {
+            "id": "1462767852321902798",
+            "name": "勉強中",
+            "color": null,
+            "position": 33
+          },
+          {
+            "id": "1462768106115174432",
+            "name": "成人",
+            "color": null,
+            "position": 29
+          },
+          {
+            "id": "1462768239292579840",
+            "name": "After Effects",
+            "color": null,
+            "position": 27
+          },
+          {
+            "id": "1462771638419587216",
+            "name": "フリーランス",
+            "color": null,
+            "position": 19
+          },
+          {
+            "id": "1464141678968574065",
+            "name": "静かにまったり",
+            "color": null,
+            "position": 12
+          },
+          {
+            "id": "1464141819561640070",
+            "name": "みんなでワイワイ",
+            "color": null,
+            "position": 10
+          }
+        ],
+        "avatarUrl": "https://cdn.discordapp.com/avatars/1125041855797665903/608c55703a34f7f4163ddc5364beedbd.png?size=512"
+      },
+      "attachments": [],
+      "embeds": [],
+      "stickers": [],
+      "reactions": [
+        {
+          "emoji": {
+            "id": "",
+            "name": "\uD83E\uDEF6",
+            "code": "\uD83E\uDEF6",
+            "isAnimated": false,
+            "imageUrl": "https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1faf6.svg"
+          },
+          "count": 1,
+          "users": [
+            {
+              "id": "707955764899217449",
+              "name": "h155y4",
+              "discriminator": "0000",
+              "nickname": "筆者",
+              "color": "#1ABC9C",
+              "isBot": false,
+              "avatarUrl": "https://cdn.discordapp.com/avatars/707955764899217449/5cb678eb744d04a66c97bec058bf49de.png?size=512"
+            }
+          ]
+        }
+      ],
+      "mentions": [],
+      "inlineEmojis": []
+    },
+    {
+      "id": "1470999932956704768",
+      "type": "Default",
+      "timestamp": "2026-02-11T13:28:33.874+09:00",
+      "timestampEdited": null,
+      "callEndedTimestamp": null,
+      "isPinned": false,
+      "content": "https://ldfsinc.com/",
+      "author": {
+        "id": "1055493991019319356",
+        "name": "eto23_555",
+        "discriminator": "0000",
+        "nickname": "えとぅー",
+        "color": "#DAA636",
+        "isBot": false,
+        "roles": [
+          {
+            "id": "1462767557604933762",
+            "name": "デザイナー",
+            "color": "#DAA636",
+            "position": 44
+          },
+          {
+            "id": "1462768029162012826",
+            "name": "会社員",
+            "color": null,
+            "position": 31
+          },
+          {
+            "id": "1462768106115174432",
+            "name": "成人",
+            "color": null,
+            "position": 29
+          },
+          {
+            "id": "1462768144840917208",
+            "name": "喫煙者",
+            "color": null,
+            "position": 28
+          },
+          {
+            "id": "1462795798319337504",
+            "name": "Illustrator",
+            "color": null,
+            "position": 16
+          },
+          {
+            "id": "1462798776552128686",
+            "name": "Photoshop",
+            "color": null,
+            "position": 14
+          },
+          {
+            "id": "1464539649828716566",
+            "name": "EB",
+            "color": null,
+            "position": 3
+          },
+          {
+            "id": "1459883323634745587",
+            "name": "Server Booster",
+            "color": "#F47FFF",
+            "position": 1
+          }
+        ],
+        "avatarUrl": "https://cdn.discordapp.com/guilds/1455557593844944898/users/1055493991019319356/avatars/82baef0c687807e43219af42db1e0061.png?size=512"
+      },
+      "attachments": [],
+      "embeds": [
+        {
+          "title": "株式会社LDFS",
+          "url": "https://ldfsinc.com/",
+          "timestamp": null,
+          "description": "",
+          "thumbnail": {
+            "url": "https://images-ext-1.discordapp.net/external/hwo-c7HgUeVzabxF77wcjnc83unETHsY9pRPRnr-IOQ/https/ldfsinc.com/wp-content/themes/ldfs/assets/img/common/ogp.jpg",
+            "width": 1200,
+            "height": 630
+          },
+          "images": [],
+          "fields": [],
+          "inlineEmojis": []
+        }
+      ],
+      "stickers": [],
+      "reactions": [],
+      "mentions": [],
+      "inlineEmojis": []
+    },
+    {
+      "id": "1471433182632087757",
+      "type": "Default",
+      "timestamp": "2026-02-12T18:10:08.646+09:00",
+      "timestampEdited": "2026-02-12T18:21:36.522+09:00",
+      "callEndedTimestamp": null,
+      "isPinned": false,
+      "content": "ご飯までお暇だから雑談のボイチャ上がろうかな。また戻ってくるかも",
+      "author": {
+        "id": "444458584487755778",
+        "name": "mi_taira_usune",
+        "discriminator": "0000",
+        "nickname": "雨たたねさん☕@み@たいらんと❄",
+        "color": null,
+        "isBot": false,
+        "roles": [
+          {
+            "id": "1462767725419040854",
+            "name": "その他のクリエイター",
+            "color": null,
+            "position": 34
+          }
+        ],
+        "avatarUrl": "https://cdn.discordapp.com/avatars/444458584487755778/d6dcb606a4065388942a2c08a6d9c84f.png?size=512"
+      },
+      "attachments": [],
+      "embeds": [],
+      "stickers": [],
+      "reactions": [],
+      "mentions": [],
+      "inlineEmojis": []
+    },
+    {
+      "id": "1471485697088295074",
+      "type": "Default",
+      "timestamp": "2026-02-12T21:38:49.068+09:00",
+      "timestampEdited": null,
+      "callEndedTimestamp": null,
+      "isPinned": false,
+      "content": "ご飯食べたけどもう一回浮上しようかしら",
+      "author": {
+        "id": "444458584487755778",
+        "name": "mi_taira_usune",
+        "discriminator": "0000",
+        "nickname": "雨たたねさん☕@み@たいらんと❄",
+        "color": null,
+        "isBot": false,
+        "roles": [
+          {
+            "id": "1462767725419040854",
+            "name": "その他のクリエイター",
+            "color": null,
+            "position": 34
+          }
+        ],
+        "avatarUrl": "https://cdn.discordapp.com/avatars/444458584487755778/d6dcb606a4065388942a2c08a6d9c84f.png?size=512"
+      },
+      "attachments": [],
+      "embeds": [],
+      "stickers": [],
+      "reactions": [],
+      "mentions": [],
+      "inlineEmojis": []
+    },
+    {
+      "id": "1471486489262293073",
+      "type": "Default",
+      "timestamp": "2026-02-12T21:41:57.937+09:00",
+      "timestampEdited": null,
+      "callEndedTimestamp": null,
+      "isPinned": false,
+      "content": "今日は体調があれなので勉強はお休みです\n明日から再開、頑張る！！",
+      "author": {
+        "id": "444458584487755778",
+        "name": "mi_taira_usune",
+        "discriminator": "0000",
+        "nickname": "雨たたねさん☕@み@たいらんと❄",
+        "color": null,
+        "isBot": false,
+        "roles": [
+          {
+            "id": "1462767725419040854",
+            "name": "その他のクリエイター",
+            "color": null,
+            "position": 34
+          }
+        ],
+        "avatarUrl": "https://cdn.discordapp.com/avatars/444458584487755778/d6dcb606a4065388942a2c08a6d9c84f.png?size=512"
+      },
+      "attachments": [],
+      "embeds": [],
+      "stickers": [],
+      "reactions": [],
+      "mentions": [],
+      "inlineEmojis": []
+    },
+    {
+      "id": "1471857669730992333",
+      "type": "Default",
+      "timestamp": "2026-02-13T22:16:54.257+09:00",
+      "timestampEdited": null,
+      "callEndedTimestamp": null,
+      "isPinned": false,
+      "content": "花金酒煙草",
+      "author": {
+        "id": "598803451509604363",
+        "name": "_shoukei_",
+        "discriminator": "0000",
+        "nickname": "shoukei",
+        "color": "#967BE9",
+        "isBot": false,
+        "roles": [
+          {
+            "id": "1462741627549257791",
+            "name": "映像クリエイター",
+            "color": "#967BE9",
+            "position": 53
+          },
+          {
+            "id": "1462794183097188496",
+            "name": "ディレクター",
+            "color": "#253DD6",
+            "position": 37
+          },
+          {
+            "id": "1462768029162012826",
+            "name": "会社員",
+            "color": null,
+            "position": 31
+          },
+          {
+            "id": "1462768106115174432",
+            "name": "成人",
+            "color": null,
+            "position": 29
+          },
+          {
+            "id": "1462768144840917208",
+            "name": "喫煙者",
+            "color": null,
+            "position": 28
+          },
+          {
+            "id": "1462768239292579840",
+            "name": "After Effects",
+            "color": null,
+            "position": 27
+          },
+          {
+            "id": "1462794250675683521",
+            "name": "Premiere Pro",
+            "color": null,
+            "position": 17
+          },
+          {
+            "id": "1464141819561640070",
+            "name": "みんなでワイワイ",
+            "color": null,
+            "position": 10
+          }
+        ],
+        "avatarUrl": "https://cdn.discordapp.com/avatars/598803451509604363/d15aceb148e8c9e4b16d277ad11b9ea1.png?size=512"
+      },
+      "attachments": [],
+      "embeds": [],
+      "stickers": [],
+      "reactions": [],
+      "mentions": [],
+      "inlineEmojis": []
+    }
+  ],
+  "messageCount": 15
+}

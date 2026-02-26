@@ -1,0 +1,74 @@
+{
+  "guild": {
+    "id": "1455557593844944898",
+    "name": "筆者のサーバー",
+    "iconUrl": "https://cdn.discordapp.com/icons/1455557593844944898/9dd13605201889b12ca4dc1c62d0dd1e.png?size=512"
+  },
+  "channel": {
+    "id": "1456976646035738732",
+    "type": "GuildTextChat",
+    "categoryId": "1455934194818486362",
+    "category": "\uD83C\uDF9F️サーバー情報",
+    "name": "ご要望",
+    "topic": "サーバーの運営に関するご要望（追加してほしいチャンネルやトラブル等）でサポートが必要な場合は上記の「ご要望窓口を作成する」ボタンを押していただければ個別に対応させていただきます\uD83C\uDF6D"
+  },
+  "dateRange": {
+    "after": null,
+    "before": null
+  },
+  "exportedAt": "2026-02-15T21:13:40.9793406+09:00",
+  "messages": [
+    {
+      "id": "1456977250527350968",
+      "type": "Default",
+      "timestamp": "2026-01-03T20:47:25.854+09:00",
+      "timestampEdited": null,
+      "callEndedTimestamp": null,
+      "isPinned": false,
+      "content": "",
+      "author": {
+        "id": "557628352828014614",
+        "name": "Ticket Tool",
+        "discriminator": "4843",
+        "nickname": "Ticket Tool",
+        "color": null,
+        "isBot": true,
+        "roles": [
+          {
+            "id": "1455940926525542401",
+            "name": "Ticket Tool",
+            "color": null,
+            "position": 57
+          }
+        ],
+        "avatarUrl": "https://cdn.discordapp.com/avatars/557628352828014614/dd89587457ef9f971d331426cad9e2be.png?size=512"
+      },
+      "attachments": [],
+      "embeds": [
+        {
+          "title": "",
+          "url": null,
+          "timestamp": null,
+          "description": "下のボタンから個別のご要望窓口が作成されます",
+          "color": "#388E3C",
+          "author": {
+            "name": "ご要望",
+            "url": null
+          },
+          "footer": {
+            "text": "TicketTool.xyz - Ticketing without clutter",
+            "iconUrl": "https://images-ext-1.discordapp.net/external/iRFWZax-j4sQGbZSg9tbK4bS7NNqRlPkR3Kv1YB55jc/https/tickettool.xyz/images/footer.png"
+          },
+          "images": [],
+          "fields": [],
+          "inlineEmojis": []
+        }
+      ],
+      "stickers": [],
+      "reactions": [],
+      "mentions": [],
+      "inlineEmojis": []
+    }
+  ],
+  "messageCount": 1
+}

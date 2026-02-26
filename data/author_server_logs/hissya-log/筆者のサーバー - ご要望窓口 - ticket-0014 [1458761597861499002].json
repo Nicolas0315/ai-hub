@@ -1,0 +1,22 @@
+{
+  "guild": {
+    "id": "1455557593844944898",
+    "name": "筆者のサーバー",
+    "iconUrl": "https://cdn.discordapp.com/icons/1455557593844944898/9dd13605201889b12ca4dc1c62d0dd1e.png?size=512"
+  },
+  "channel": {
+    "id": "1458761597861499002",
+    "type": "GuildTextChat",
+    "categoryId": "1456974979764715562",
+    "category": "ご要望窓口",
+    "name": "ticket-0014",
+    "topic": null
+  },
+  "dateRange": {
+    "after": null,
+    "before": null
+  },
+  "exportedAt": "2026-02-15T21:53:06.3605272+09:00",
+  "messages": [],
+  "messageCount": 0
+}

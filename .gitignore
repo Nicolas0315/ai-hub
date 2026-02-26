@@ -37,3 +37,6 @@ katalalog_yugi/
 claude-code-best-practice-temp/
 dexter/
 projects/
+
+# Discord chat logs (may contain tokens)
+data/matsuri_logs/

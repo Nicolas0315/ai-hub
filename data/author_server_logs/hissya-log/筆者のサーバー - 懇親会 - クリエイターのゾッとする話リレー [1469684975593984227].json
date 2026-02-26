@@ -1,0 +1,22 @@
+{
+  "guild": {
+    "id": "1455557593844944898",
+    "name": "筆者のサーバー",
+    "iconUrl": "https://cdn.discordapp.com/icons/1455557593844944898/9dd13605201889b12ca4dc1c62d0dd1e.png?size=512"
+  },
+  "channel": {
+    "id": "1469684975593984227",
+    "type": "GuildVoiceChat",
+    "categoryId": "1460236841025536073",
+    "category": "懇親会",
+    "name": "クリエイターのゾッとする話リレー",
+    "topic": null
+  },
+  "dateRange": {
+    "after": null,
+    "before": null
+  },
+  "exportedAt": "2026-02-15T21:51:06.0966795+09:00",
+  "messages": [],
+  "messageCount": 0
+}

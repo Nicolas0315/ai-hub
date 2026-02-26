@@ -1,0 +1,22 @@
+{
+  "guild": {
+    "id": "1455557593844944898",
+    "name": "筆者のサーバー",
+    "iconUrl": "https://cdn.discordapp.com/icons/1455557593844944898/9dd13605201889b12ca4dc1c62d0dd1e.png?size=512"
+  },
+  "channel": {
+    "id": "1464539605394260194",
+    "type": "GuildTextChat",
+    "categoryId": "1464549042385059920",
+    "category": "\uD83D\uDC5F健康",
+    "name": "エアロバイク報告",
+    "topic": null
+  },
+  "dateRange": {
+    "after": null,
+    "before": null
+  },
+  "exportedAt": "2026-02-15T21:46:58.7356521+09:00",
+  "messages": [],
+  "messageCount": 0
+}

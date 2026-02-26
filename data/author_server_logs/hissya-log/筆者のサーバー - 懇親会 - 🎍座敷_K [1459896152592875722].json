@@ -1,0 +1,22 @@
+{
+  "guild": {
+    "id": "1455557593844944898",
+    "name": "筆者のサーバー",
+    "iconUrl": "https://cdn.discordapp.com/icons/1455557593844944898/9dd13605201889b12ca4dc1c62d0dd1e.png?size=512"
+  },
+  "channel": {
+    "id": "1459896152592875722",
+    "type": "GuildVoiceChat",
+    "categoryId": "1460236841025536073",
+    "category": "懇親会",
+    "name": "\uD83C\uDF8D座敷_K",
+    "topic": null
+  },
+  "dateRange": {
+    "after": null,
+    "before": null
+  },
+  "exportedAt": "2026-02-15T21:50:58.3968694+09:00",
+  "messages": [],
+  "messageCount": 0
+}
