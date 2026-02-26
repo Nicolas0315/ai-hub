@@ -26,14 +26,26 @@ TODO_CODEX.md
 TOOLS.md
 USER.md
 MASTER_INDEX.md
+MEMORY.md
+PREDICTIONS.md
 loop.sh
 api_check.py
 tasks.json
 memory/
 workspace/
 katalalog_yugi/
+knowledge/
+
+# IDE / editor
+.claude/
+.cursor/
+.vscode/settings.json
+.idea/
 
 # Stale submodules
 claude-code-best-practice-temp/
 dexter/
 projects/
+
+# OS
+Thumbs.db
