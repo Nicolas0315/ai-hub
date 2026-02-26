@@ -301,6 +301,7 @@ export class SecureDisclosureManager {
       cve?: string;
       remediation?: string;
       discoveredAt: string;
+      disclosedBy?: string;
     }
   ): Promise<VulnFullReport> {
     const zkProof = this.proofs.get(proofId);
@@ -331,7 +332,7 @@ export class SecureDisclosureManager {
       affectedComponent: details.affectedComponent,
       cve: details.cve,
       remediation: details.remediation,
-      disclosedBy: "system", // caller identity
+      disclosedBy: details.disclosedBy ?? "system",
     };
 
     this.reports.set(proofId, report);
