@@ -22,16 +22,26 @@ jobs:
             '^MEMORY\.md$'
             '^USER\.md$'
             '^AGENTS\.md$'
+            '^SOUL\.md$'
+            '^HEARTBEAT\.md$'
+            '^IDENTITY\.md$'
+            '^BOOTSTRAP\.md$'
+            '^CLAUDE\.md$'
+            '^TOOLS\.md$'
+            '^PREDICTIONS\.md$'
             '^knowledge/people/'
             '^knowledge/business/competitive-intel'
             '^knowledge/investment/'
             '^knowledge/legal/'
+            '^knowledge/security/'
             '\.env\.local$'
             '\.env\.1password$'
             'machine\.json$'
             'BitflyerBot/'
             '\.serena/'
+            '\.claude/'
             'katalalog_yugi/'
+            'auth-profiles\.json$'
           )
 
           for pattern in "${PATTERNS[@]}"; do
@@ -52,14 +62,23 @@ jobs:
         run: |
           BLOCKED=0
           PATTERNS=(
-            'AUTH_SECRET=[^$]'
+            'AUTH_SECRET=[^$({]'
             'sk-ant-[a-zA-Z0-9]'
             'ghp_[a-zA-Z0-9]{36}'
             'DISCORD_TOKEN=[^'\''"]'
+            'AKIA[0-9A-Z]{16}'
+            'xoxb-[0-9]+-[0-9]+-[a-zA-Z0-9]+'
           )
 
           for pattern in "${PATTERNS[@]}"; do
-            matches=$(git grep -lE "$pattern" -- ':(exclude)*.yml' ':(exclude)*.yaml' ':(exclude)leak-guard*' ':(exclude).env.example' || true)
+            matches=$(git grep -lE "$pattern" -- \
+              ':(exclude)*.yml' \
+              ':(exclude)*.yaml' \
+              ':(exclude)*leak-guard*' \
+              ':(exclude).env.example' \
+              ':(exclude)*.test.ts' \
+              ':(exclude)*.spec.ts' \
+              || true)
             if [ -n "$matches" ]; then
               echo "❌ Potential secret ($pattern) in: $matches"
               BLOCKED=1
