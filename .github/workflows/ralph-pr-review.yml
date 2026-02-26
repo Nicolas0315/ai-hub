@@ -1,0 +1,154 @@
+name: RALPH PR Review
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches: [main]
+
+jobs:
+  ralph-review:
+    name: RALPH Auto-Review
+    runs-on: ubuntu-latest
+    # Skip PRs already marked as reviewed or from bots
+    if: |
+      !contains(github.event.pull_request.labels.*.name, 'ralph-reviewed') &&
+      github.actor != 'github-actions[bot]'
+    permissions:
+      pull-requests: write
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get PR diff
+        id: diff
+        run: |
+          git fetch origin ${{ github.base_ref }}
+          DIFF=$(git diff origin/${{ github.base_ref }}...HEAD --stat)
+          echo "stat<<EOF" >> $GITHUB_OUTPUT
+          echo "$DIFF" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+          # Full diff (truncated to 8000 chars for API)
+          FULLDIFF=$(git diff origin/${{ github.base_ref }}...HEAD | head -c 8000)
+          echo "full<<EOF" >> $GITHUB_OUTPUT
+          echo "$FULLDIFF" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: RALPH Review via Claude API
+        id: review
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_BODY: ${{ github.event.pull_request.body }}
+          PR_AUTHOR: ${{ github.actor }}
+        run: |
+          DIFF_STAT="${{ steps.diff.outputs.stat }}"
+          DIFF_FULL="${{ steps.diff.outputs.full }}"
+
+          PROMPT="You are RALPH, an AI code reviewer for the Katala project.
+
+          PR #${{ github.event.pull_request.number }}: \"${PR_TITLE}\"
+          Author: ${PR_AUTHOR}
+          Description: ${PR_BODY}
+
+          Diff stat:
+          ${DIFF_STAT}
+
+          Diff (first 8000 chars):
+          ${DIFF_FULL}
+
+          Review this PR and respond with a JSON object:
+          {
+            \"verdict\": \"APPROVE\" | \"REQUEST_CHANGES\" | \"COMMENT\",
+            \"summary\": \"One sentence summary\",
+            \"findings\": [\"finding 1\", \"finding 2\"],
+            \"comment\": \"Full markdown review comment in Japanese\"
+          }
+
+          Check: correctness, security, test coverage, Conventional Commits format, code style.
+          If tests are missing for new behavior, that is REQUEST_CHANGES.
+          Keep the comment concise (max 300 words)."
+
+          RESPONSE=$(curl -s https://api.anthropic.com/v1/messages \
+            -H "x-api-key: $ANTHROPIC_API_KEY" \
+            -H "anthropic-version: 2023-06-01" \
+            -H "content-type: application/json" \
+            -d "{
+              \"model\": \"claude-haiku-4-5\",
+              \"max_tokens\": 1024,
+              \"messages\": [{\"role\": \"user\", \"content\": $(echo "$PROMPT" | python3 -c 'import sys,json; print(json.dumps(sys.stdin.read()))')}]
+            }")
+
+          echo "response=$RESPONSE" >> $GITHUB_OUTPUT
+          COMMENT=$(echo "$RESPONSE" | python3 -c "
+          import sys, json
+          data = json.load(sys.stdin)
+          text = data['content'][0]['text']
+          # Extract JSON from response
+          import re
+          m = re.search(r'\{.*\}', text, re.DOTALL)
+          if m:
+              obj = json.loads(m.group())
+              print(obj.get('comment', text))
+          else:
+              print(text)
+          " 2>/dev/null || echo "RALPH review completed.")
+
+          VERDICT=$(echo "$RESPONSE" | python3 -c "
+          import sys, json, re
+          data = json.load(sys.stdin)
+          text = data['content'][0]['text']
+          m = re.search(r'\{.*\}', text, re.DOTALL)
+          if m:
+              obj = json.loads(m.group())
+              print(obj.get('verdict', 'COMMENT'))
+          else:
+              print('COMMENT')
+          " 2>/dev/null || echo "COMMENT")
+
+          echo "comment<<EOF" >> $GITHUB_OUTPUT
+          echo "🤖 **RALPH Auto-Review**" >> $GITHUB_OUTPUT
+          echo "" >> $GITHUB_OUTPUT
+          echo "$COMMENT" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+          echo "verdict=$VERDICT" >> $GITHUB_OUTPUT
+
+      - name: Post Review Comment
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const verdict = '${{ steps.review.outputs.verdict }}';
+            const comment = `${{ steps.review.outputs.comment }}`;
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: comment
+            });
+
+            // Add labels based on verdict
+            if (verdict === 'APPROVE') {
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                labels: ['ralph-reviewed', 'ready-to-merge']
+              });
+            } else if (verdict === 'REQUEST_CHANGES') {
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                labels: ['ralph-reviewed', 'needs-changes']
+              });
+            } else {
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                labels: ['ralph-reviewed']
+              });
+            }
