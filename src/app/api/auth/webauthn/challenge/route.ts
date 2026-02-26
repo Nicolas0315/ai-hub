@@ -3,18 +3,25 @@ import { generateAuthOptions } from "@/lib/auth/webauthn";
 
 /**
  * POST /api/auth/webauthn/challenge
- * Generate a WebAuthn authentication challenge
+ * Generate and store a server-side WebAuthn challenge (TTL: 5 minutes)
  */
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { userID, credentialIDs } = body;
+    const { userID } = body as { userID?: string };
 
-    const options = await generateAuthOptions(userID, credentialIDs);
+    if (!userID) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Missing required parameter: userID",
+        },
+        { status: 400 }
+      );
+    }
 
-    // Store challenge in session/cache for later verification
-    // TODO: Implement challenge storage (Redis/session)
-    
+    const options = await generateAuthOptions(userID);
+
     return NextResponse.json({
       success: true,
       data: options,
