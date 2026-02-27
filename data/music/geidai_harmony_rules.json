@@ -1,0 +1,804 @@
+{
+  "meta": {
+    "source": "和声 理論と実習 (島岡譲 et al., 音楽之友社) I/II/III巻",
+    "scope": "Bach chorale through Beethoven era voice leading",
+    "voices": 4,
+    "voice_ranges": {
+      "soprano": {
+        "min": 60,
+        "max": 84
+      },
+      "alto": {
+        "min": 55,
+        "max": 77
+      },
+      "tenor": {
+        "min": 48,
+        "max": 72
+      },
+      "bass": {
+        "min": 36,
+        "max": 62
+      }
+    },
+    "spacing_rules": {
+      "soprano_alto_max": 12,
+      "alto_tenor_max": 12,
+      "tenor_bass_max": 19
+    }
+  },
+  "vol1": {
+    "title": "基本位置三和音・転回・V7/V9",
+    "triads": {
+      "I": {
+        "function": "T",
+        "root": 0,
+        "quality": "major/minor (follows key)"
+      },
+      "II": {
+        "function": "S",
+        "root": 2,
+        "quality": "minor/dim"
+      },
+      "III": {
+        "function": "T(D)",
+        "root": 4,
+        "quality": "major/minor"
+      },
+      "IV": {
+        "function": "S",
+        "root": 5,
+        "quality": "major/minor"
+      },
+      "V": {
+        "function": "D",
+        "root": 7,
+        "quality": "major"
+      },
+      "VI": {
+        "function": "T(S)",
+        "root": 9,
+        "quality": "minor/major"
+      },
+      "VII": {
+        "function": "D",
+        "root": 11,
+        "quality": "dim"
+      }
+    },
+    "inversions": {
+      "root_position": {
+        "bass": "root",
+        "symbol": ""
+      },
+      "first_inversion": {
+        "bass": "3rd",
+        "symbol": "6"
+      },
+      "second_inversion": {
+        "bass": "5th",
+        "symbol": "6/4",
+        "restrictions": [
+          "passing (経過的)",
+          "cadential (K6/4)",
+          "pedal (保続)"
+        ]
+      }
+    },
+    "seventh_chords": {
+      "V7": {
+        "tones": [
+          7,
+          11,
+          2,
+          5
+        ],
+        "resolution": "7th resolves down by step to 3rd of I"
+      },
+      "V9": {
+        "tones": [
+          7,
+          11,
+          2,
+          5,
+          9
+        ],
+        "resolution": "9th resolves down, 7th resolves down"
+      }
+    },
+    "cadences": {
+      "perfect_authentic": {
+        "progression": "V→I",
+        "soprano": "scale_degree_1",
+        "bass": "root_position_both"
+      },
+      "imperfect_authentic": {
+        "progression": "V→I",
+        "soprano": "not_1 or inversion"
+      },
+      "half": {
+        "progression": "x→V"
+      },
+      "plagal": {
+        "progression": "IV→I"
+      },
+      "deceptive": {
+        "progression": "V→VI"
+      }
+    },
+    "progression_rules": {
+      "I": [
+        "any"
+      ],
+      "II": [
+        "V",
+        "V7",
+        "V9"
+      ],
+      "III": [
+        "IV",
+        "VI"
+      ],
+      "IV": [
+        "I",
+        "II",
+        "V",
+        "V7",
+        "V9"
+      ],
+      "V": [
+        "I",
+        "VI"
+      ],
+      "V7": [
+        "I",
+        "VI"
+      ],
+      "VI": [
+        "II",
+        "III",
+        "IV",
+        "V",
+        "V7"
+      ],
+      "VII": [
+        "III"
+      ]
+    }
+  },
+  "vol2": {
+    "title": "II7・準固有和音・ドッペルドミナント・近親転調",
+    "II7": {
+      "tones": "2-4-6-1",
+      "function": "S",
+      "resolution": "→ V or V7",
+      "seventh_resolves": "down by step"
+    },
+    "secondary_dominants": {
+      "V/V": {
+        "target": "V",
+        "common_name": "ドッペルドミナント",
+        "note": "raises 4th degree (e.g., F→F# in C major)"
+      },
+      "V7/V": {
+        "target": "V",
+        "resolution": "→V"
+      },
+      "V/II": {
+        "target": "II"
+      },
+      "V/III": {
+        "target": "III"
+      },
+      "V/IV": {
+        "target": "IV"
+      },
+      "V/VI": {
+        "target": "VI"
+      }
+    },
+    "borrowed_chords": {
+      "description": "準固有和音 — chords from parallel key",
+      "major_borrows_from_minor": [
+        "iv",
+        "bVI",
+        "bVII",
+        "ii°"
+      ],
+      "minor_borrows_from_major": [
+        "IV",
+        "I (Picardy)"
+      ]
+    },
+    "modulation_near": {
+      "from_major": [
+        "V (dominant)",
+        "vi (relative minor)",
+        "IV (subdominant)",
+        "ii",
+        "iii"
+      ],
+      "from_minor": [
+        "III (relative major)",
+        "v/V",
+        "iv/IV",
+        "VII"
+      ],
+      "pivot_chord": "shared function chord between old and new key"
+    },
+    "augmented_sixth": {
+      "italian": {
+        "intervals": [
+          0,
+          4,
+          10
+        ],
+        "symbol": "It+6",
+        "resolves_to": "V"
+      },
+      "french": {
+        "intervals": [
+          0,
+          4,
+          6,
+          10
+        ],
+        "symbol": "Fr+6",
+        "resolves_to": "V"
+      },
+      "german": {
+        "intervals": [
+          0,
+          4,
+          7,
+          10
+        ],
+        "symbol": "Ger+6",
+        "resolves_to": "K6/4→V"
+      }
+    },
+    "neapolitan": {
+      "chord": "bII",
+      "position": "usually first inversion (bII6)",
+      "function": "S (subdominant substitute)",
+      "resolution": "→ V or K6/4→V",
+      "note": "lowered 2nd degree root, major quality"
+    }
+  },
+  "vol3": {
+    "title": "非和声音・偶成和音・保続音・対位法的技法",
+    "non_chord_tones": {
+      "passing_tone": {
+        "motion": "stepwise between chord tones",
+        "accent": false
+      },
+      "neighbor_tone": {
+        "motion": "step away and return",
+        "accent": false
+      },
+      "appoggiatura": {
+        "motion": "leap to, step away (resolve down)",
+        "accent": true
+      },
+      "suspension": {
+        "phases": [
+          "preparation (consonant)",
+          "suspension (dissonant on beat)",
+          "resolution (step down)"
+        ],
+        "common": [
+          "4-3",
+          "7-6",
+          "9-8",
+          "2-3 (bass)"
+        ]
+      },
+      "anticipation": {
+        "motion": "arrives early before chord change"
+      },
+      "escape_tone": {
+        "motion": "step to, leap away"
+      },
+      "pedal_point": {
+        "motion": "sustained note (usually tonic or dominant in bass)"
+      },
+      "changing_tones": {
+        "motion": "double neighbor: step up, skip down, step up (or reverse)"
+      }
+    },
+    "chromatic_alteration": {
+      "raised_notes": "creates leading tone effect toward target",
+      "lowered_notes": "creates subdominant pull",
+      "cross_relation": {
+        "rule": "chromatic alteration must occur in SAME voice, not across voices",
+        "exception": "bass to inner voice, or dim7 resolution"
+      }
+    },
+    "pedal_and_ostinato": {
+      "tonic_pedal": "sustained tonic in bass, harmonies move above",
+      "dominant_pedal": "sustained dominant, builds tension",
+      "double_pedal": "tonic + dominant sustained",
+      "inverted_pedal": "sustained note in upper voice"
+    },
+    "contrapuntal_harmony": {
+      "voice_count_changes": "2-6 voices, texture varies within piece",
+      "imitation": "one voice echoes another at interval/time delay",
+      "canon": "strict imitation throughout",
+      "invertible_counterpoint": "double/triple counterpoint at 8ve/10th/12th"
+    }
+  },
+  "prohibitions": {
+    "parallel_unisons": {
+      "severity": "FATAL",
+      "description": "連続1度: 2声が同音で並行移動"
+    },
+    "parallel_fifths": {
+      "severity": "FATAL",
+      "description": "連続5度: P5→P5, aug5→P5, dim5→P5"
+    },
+    "parallel_octaves": {
+      "severity": "FATAL",
+      "description": "連続8度: P8→P8"
+    },
+    "hidden_fifths": {
+      "severity": "ERROR",
+      "description": "並達5度: 並行で後続P5。外声+S跳躍で厳禁",
+      "exception": "outer voices: S stepwise OK. V chord some positions OK"
+    },
+    "hidden_octaves": {
+      "severity": "ERROR",
+      "description": "並達8度: 並行で後続P8。外声+S跳躍で厳禁",
+      "exception": "S stepwise → OK"
+    },
+    "voice_crossing": {
+      "severity": "ERROR",
+      "description": "声部交叉: 上声が下声より低い"
+    },
+    "voice_overlap": {
+      "severity": "WARNING",
+      "description": "声部超越: 声部が前の拍の隣接声部を超える"
+    },
+    "augmented_intervals": {
+      "severity": "ERROR",
+      "description": "増音程の跳躍（増2度以外の増音程）",
+      "exception": "増2度は短調上行で許容"
+    },
+    "seventh_leap": {
+      "severity": "ERROR",
+      "description": "7度跳躍（長7度・短7度とも）"
+    },
+    "unresolved_leading": {
+      "severity": "ERROR",
+      "description": "導音が主音に解決しない（外声で厳格）",
+      "exception": "内声で下行する場合のみ許容"
+    },
+    "unresolved_seventh": {
+      "severity": "ERROR",
+      "description": "7度音が順次下行で解決しない"
+    },
+    "doubled_leading_tone": {
+      "severity": "ERROR",
+      "description": "導音の重複（V和音で2声が導音）"
+    },
+    "cross_relation": {
+      "severity": "WARNING",
+      "description": "対斜: 半音変化が別声部に出現",
+      "exception": "バス-内声間、dim7解決時"
+    },
+    "spacing_violation": {
+      "severity": "ERROR",
+      "description": "隣接上声間>8度, T-B間>8度+P5"
+    }
+  },
+  "gakuten": {
+    "scales": {
+      "major": [
+        0,
+        2,
+        4,
+        5,
+        7,
+        9,
+        11
+      ],
+      "natural_minor": [
+        0,
+        2,
+        3,
+        5,
+        7,
+        8,
+        10
+      ],
+      "harmonic_minor": [
+        0,
+        2,
+        3,
+        5,
+        7,
+        8,
+        11
+      ],
+      "melodic_minor_up": [
+        0,
+        2,
+        3,
+        5,
+        7,
+        9,
+        11
+      ],
+      "melodic_minor_down": [
+        0,
+        2,
+        3,
+        5,
+        7,
+        8,
+        10
+      ],
+      "church_modes": {
+        "ionian": [
+          0,
+          2,
+          4,
+          5,
+          7,
+          9,
+          11
+        ],
+        "dorian": [
+          0,
+          2,
+          3,
+          5,
+          7,
+          9,
+          10
+        ],
+        "phrygian": [
+          0,
+          1,
+          3,
+          5,
+          7,
+          8,
+          10
+        ],
+        "lydian": [
+          0,
+          2,
+          4,
+          6,
+          7,
+          9,
+          11
+        ],
+        "mixolydian": [
+          0,
+          2,
+          4,
+          5,
+          7,
+          9,
+          10
+        ],
+        "aeolian": [
+          0,
+          2,
+          3,
+          5,
+          7,
+          8,
+          10
+        ],
+        "locrian": [
+          0,
+          1,
+          3,
+          5,
+          6,
+          8,
+          10
+        ]
+      }
+    },
+    "intervals": {
+      "P1": 0,
+      "m2": 1,
+      "M2": 2,
+      "m3": 3,
+      "M3": 4,
+      "P4": 5,
+      "A4/d5": 6,
+      "P5": 7,
+      "m6": 8,
+      "M6": 9,
+      "m7": 10,
+      "M7": 11,
+      "P8": 12,
+      "consonant_perfect": [
+        0,
+        7,
+        12
+      ],
+      "consonant_imperfect": [
+        3,
+        4,
+        8,
+        9
+      ],
+      "dissonant": [
+        1,
+        2,
+        5,
+        6,
+        10,
+        11
+      ]
+    },
+    "key_signatures": {
+      "sharps_order": [
+        "F",
+        "C",
+        "G",
+        "D",
+        "A",
+        "E",
+        "B"
+      ],
+      "flats_order": [
+        "B",
+        "E",
+        "A",
+        "D",
+        "G",
+        "C",
+        "F"
+      ]
+    },
+    "rhythm": {
+      "note_values": {
+        "whole": 4,
+        "half": 2,
+        "quarter": 1,
+        "eighth": 0.5,
+        "sixteenth": 0.25,
+        "thirty_second": 0.125
+      },
+      "dot_multiplier": 1.5,
+      "double_dot_multiplier": 1.75,
+      "tuplet_3_in_2": 0.6666666666666666
+    },
+    "chord_types": {
+      "major": [
+        0,
+        4,
+        7
+      ],
+      "minor": [
+        0,
+        3,
+        7
+      ],
+      "diminished": [
+        0,
+        3,
+        6
+      ],
+      "augmented": [
+        0,
+        4,
+        8
+      ],
+      "dom7": [
+        0,
+        4,
+        7,
+        10
+      ],
+      "maj7": [
+        0,
+        4,
+        7,
+        11
+      ],
+      "min7": [
+        0,
+        3,
+        7,
+        10
+      ],
+      "half_dim7": [
+        0,
+        3,
+        6,
+        10
+      ],
+      "dim7": [
+        0,
+        3,
+        6,
+        9
+      ],
+      "aug6_it": [
+        0,
+        4,
+        10
+      ],
+      "aug6_fr": [
+        0,
+        4,
+        6,
+        10
+      ],
+      "aug6_ger": [
+        0,
+        4,
+        7,
+        10
+      ]
+    }
+  },
+  "form_theory": {
+    "units": {
+      "motif": {
+        "bars": 2,
+        "description": "最小独立単位"
+      },
+      "phrase": {
+        "bars": 4,
+        "description": "小楽節 = 動機×2"
+      },
+      "period": {
+        "bars": 8,
+        "description": "大楽節 = 前楽節+後楽節"
+      },
+      "double_period": {
+        "bars": 16,
+        "description": "複合楽節"
+      }
+    },
+    "small_forms": {
+      "one_part": {
+        "structure": "A (8 bars)",
+        "cadence": "PAC"
+      },
+      "binary": {
+        "structure": "A-B (16 bars)",
+        "key_plan": "I→V | V→I",
+        "types": [
+          "simple",
+          "rounded (A-B-A')"
+        ]
+      },
+      "ternary": {
+        "structure": "A-B-A' (24+ bars)",
+        "key_plan": "I | contrast | I",
+        "note": "B section contrasting key/theme, A' = modified return"
+      }
+    },
+    "large_forms": {
+      "sonata": {
+        "exposition": {
+          "theme1": {
+            "key": "tonic",
+            "character": "strong, rhythmic"
+          },
+          "bridge": {
+            "key": "modulating",
+            "function": "transition to new key"
+          },
+          "theme2": {
+            "key": "dominant (major) or relative_major (minor)",
+            "character": "lyrical, contrasting"
+          },
+          "closing": {
+            "key": "new key confirmed"
+          }
+        },
+        "development": {
+          "techniques": [
+            "fragmentation",
+            "sequence",
+            "modulation (remote keys)",
+            "contrapuntal treatment",
+            "new material (rare)"
+          ],
+          "key": "unstable, remote keys"
+        },
+        "recapitulation": {
+          "theme1": {
+            "key": "tonic"
+          },
+          "bridge": {
+            "key": "adjusted to stay in tonic"
+          },
+          "theme2": {
+            "key": "TONIC (resolved)"
+          },
+          "coda": {
+            "key": "tonic affirmed"
+          }
+        }
+      },
+      "sonatina": {
+        "note": "simplified sonata: shorter development or no development",
+        "proportions": {
+          "exposition": 0.4,
+          "development": 0.15,
+          "recapitulation": 0.4,
+          "coda": 0.05
+        }
+      },
+      "rondo": {
+        "structure": "A-B-A-C-A (or A-B-A-C-A-B-A)",
+        "A": "refrain in tonic",
+        "episodes": "contrasting keys and material"
+      },
+      "fugue": {
+        "exposition": {
+          "subject": "monophonic theme in tonic",
+          "answer": "subject at dominant (real or tonal)",
+          "countersubject": "accompanies answer, invertible counterpoint",
+          "order": "voices enter one by one (S→A→T→B or any)"
+        },
+        "middle_entries": {
+          "keys": "related keys (relative, subdominant)",
+          "episodes": "sequences using subject fragments"
+        },
+        "final_section": {
+          "stretto": "overlapping subject entries",
+          "pedal": "tonic or dominant pedal",
+          "cadence": "strong PAC, often Picardy in minor keys"
+        },
+        "devices": [
+          "inversion",
+          "augmentation",
+          "diminution",
+          "retrograde",
+          "stretto",
+          "double/triple fugue"
+        ],
+        "voice_leading": "strictly follows 芸大和声 prohibitions"
+      },
+      "theme_and_variations": {
+        "structure": "Theme → Var.1 → Var.2 → ... → Finale",
+        "variation_types": [
+          "melodic ornamentation",
+          "harmonic reharmonization",
+          "rhythmic transformation",
+          "mode change",
+          "tempo change",
+          "character transformation"
+        ]
+      }
+    }
+  },
+  "chord_theory": {
+    "note": "Supplement to functional harmony for analytical completeness",
+    "roman_numeral_analysis": {
+      "uppercase": "major quality",
+      "lowercase": "minor quality",
+      "degree_sign": "diminished",
+      "plus_sign": "augmented"
+    },
+    "voice_leading_principles": {
+      "common_tones": "keep common tones in same voice",
+      "contrary_motion": "move upper voices contrary to bass when possible",
+      "smallest_motion": "each voice moves by smallest interval",
+      "no_common_tone": "upper 3 voices move contrary to bass"
+    },
+    "doubling_rules": {
+      "root_position": "double root (preferred), 5th acceptable, 3rd rarely",
+      "first_inversion": "double soprano note (any chord member OK except leading tone)",
+      "second_inversion": "double 5th (bass note)",
+      "diminished": "double 3rd",
+      "never_double": [
+        "leading tone",
+        "7th of chord",
+        "altered notes"
+      ]
+    }
+  }
+}
