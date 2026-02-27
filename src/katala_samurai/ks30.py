@@ -11,7 +11,17 @@ Changes from KS29 (Gemini analysis, 2026-02-27):
 """
 
 import os
+import sys
 import time
+
+# Stage externalization for cross-stage reference integrity
+try:
+    from .stage_store import StageStore
+except ImportError:
+    _dir = os.path.dirname(os.path.abspath(__file__))
+    if _dir not in sys.path:
+        sys.path.insert(0, _dir)
+    from stage_store import StageStore
 import hashlib
 import math
 from z3 import *
@@ -438,7 +448,7 @@ class KS30:
             ("S27_KAM",           s27_kam),
         ]
 
-    def verify(self, claim):
+    def verify(self, claim, store=None):
         # [FIX-3] evidenceゲート: evidence=0なら即UNVERIFIED
         if not claim.evidence:
             return {
@@ -456,16 +466,22 @@ class KS30:
         t0 = time.time()
         results = {}
 
-        # Run S01–S27
+        # Run S01–S27 — externalize each output to store
         for name, fn in self.solvers:
             try:
                 results[name] = fn(claim)
             except Exception:
                 results[name] = False  # [FIX-5] fail-closed
+            if store is not None:
+                store.write(name, {"passed": bool(results[name]), "claim_hash": claim.text[:100]})
 
         # Run S28
         s28_passed, s28_score, s28_breakdown = self.s28.verify(claim)
         results["S28_Reproducibility"] = s28_passed
+        if store is not None:
+            store.write("S28_Reproducibility", {
+                "passed": s28_passed, "score": s28_score, "breakdown": s28_breakdown,
+            })
 
         elapsed = time.time() - t0
         passed_count = sum(results.values())
@@ -475,7 +491,7 @@ class KS30:
         final_score = ks27_pass_rate * 0.75 + s28_score * 0.25
         verdict = final_score > 0.80 and passed_count >= 25
 
-        return {
+        output = {
             "verdict": "VERIFIED" if verdict else "UNVERIFIED",
             "final_score": round(final_score, 4),
             "solvers_passed": f"{passed_count}/{total}",
@@ -485,6 +501,10 @@ class KS30:
             "elapsed_sec": round(elapsed, 3),
             "solver_results": results,
         }
+        if store is not None:
+            store.write("_verdict", output)
+            store.finalize()
+        return output
 
 
 # ─── Test suite ─────────────────────────────────────────────────────────────
