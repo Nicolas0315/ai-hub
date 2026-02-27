@@ -1,6 +1,6 @@
-# Katala Samurai 29B (KS29B) — Design Document
+# Katala Samurai 30 (KS30) — Design Document
 
-**Version**: 29B (Per-LLM Architecture)
+**Version**: 30 (Per-LLM Architecture)
 **Design**: Youta Hilono (@visz_cham)
 **Implementation**: Shirokuma (OpenClaw AI)
 **Product Owner**: Nicolas Ogoshi (@nicolas_ogoshi)
@@ -27,7 +27,7 @@ Scientific knowledge ⊂ stored_in(Peer-reviewed papers)
 
 ### 1.2 Embodied Experience via Text
 
-The conventional Embodied Cognition thesis (Varela, Thompson & Rosch, 1991) holds that cognition requires a body. KS29B operates on a contrarian but defensible premise:
+The conventional Embodied Cognition thesis (Varela, Thompson & Rosch, 1991) holds that cognition requires a body. KS30 operates on a contrarian but defensible premise:
 
 - Peer-reviewed literature contains phenomenological descriptions of pain, emotion, sensation, proprioception, and other bodily experiences (e.g., neuroscience, psychophysics, phenomenological psychology)
 - The **logical structure** of bodily experience is preserved in these textual descriptions
@@ -37,7 +37,7 @@ This connects to Russell's analysis in *The Analysis of Mind* (1921): sense-data
 
 ### 1.3 Design Consequence
 
-KS29B must:
+KS30 must:
 1. **Reference peer-reviewed papers** as its primary knowledge base (not web pages, not training data)
 2. **Resolve academic context** for every claim (which knowledge system applies?)
 3. **Detect logical contradictions** including paradoxes, self-reference, and axiom-dependent truths
@@ -234,6 +234,6 @@ Per-context counter-arguments from distinct intellectual traditions:
 
 ## 6. Credits
 
-- **Architecture Design**: Youta Hilono — KS29B per-LLM redesign, 21-solver genre distribution, philosophical foundation (embodied cognition via text hypothesis), Q* integration proposal
+- **Architecture Design**: Youta Hilono — KS30 per-LLM redesign, 21-solver genre distribution, philosophical foundation (embodied cognition via text hypothesis), Q* integration proposal
 - **Implementation**: Shirokuma (OpenClaw AI) — code, testing, documentation
 - **Product Direction**: Nicolas Ogoshi — project ownership, strategic decisions
