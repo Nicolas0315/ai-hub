@@ -280,3 +280,127 @@ def check_available_llms():
             "model": reg["model"],
         }
     return status
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# Ollama Backend (Local LLM via Tailscale)
+# ═══════════════════════════════════════════════════════════════════════════
+
+OLLAMA_HOSTS = {
+    # Tailscale IPs for GPU machines running Ollama
+    "ultra2025": "http://100.80.232.85:11434",    # RTX 5070 Ti 16GB
+    "nicolas2025": "http://100.109.55.96:11434",   # RTX 3070 8GB (backup)
+}
+
+# Map KS30 LLM roles to local Ollama models
+OLLAMA_MODEL_MAP = {
+    "qwen-3":         {"model": "qwen3:8b",        "host": "ultra2025"},   # Chinese bias detection
+    "mistral-large":  {"model": "gemma3:12b",       "host": "ultra2025"},   # EU proxy (multilingual)
+    "jais-2":         {"model": "aya-expanse:8b",   "host": "ultra2025"},   # Arabic/multilingual proxy
+    "sea-lion":       {"model": "gemma3:12b",       "host": "ultra2025"},   # SEA proxy
+    "inkuba-lm":      {"model": "aya-expanse:8b",   "host": "ultra2025"},   # Africa proxy
+    "latam-gpt":      {"model": "gemma3:12b",       "host": "ultra2025"},   # LatAm proxy
+}
+
+
+def _call_ollama(claim_text, evidence, model="gemma3:12b", host="ultra2025", timeout=60):
+    """Call Ollama API via Tailscale for local LLM inference."""
+    base_url = OLLAMA_HOSTS.get(host, f"http://{host}:11434")
+    url = f"{base_url}/api/chat"
+    
+    payload = {
+        "model": model,
+        "messages": [{"role": "user", "content": EVAL_PROMPT.format(
+            claim_text=claim_text, evidence=json.dumps(evidence, ensure_ascii=False)
+        )}],
+        "stream": False,
+        "options": {"temperature": 0.1, "num_predict": 500},
+    }
+    
+    try:
+        data = json.dumps(payload).encode()
+        req = urllib.request.Request(url, data=data,
+            headers={"Content-Type": "application/json"}, method="POST")
+        with urllib.request.urlopen(req, timeout=timeout) as resp:
+            result = json.loads(resp.read().decode())
+            return result["message"]["content"], None
+    except Exception as e:
+        return None, str(e)
+
+
+def evaluate_claim_local(llm_name, claim_text, evidence=None):
+    """Evaluate a claim using local Ollama models via Tailscale.
+    
+    Falls back to cloud API if no local model mapping exists.
+    """
+    evidence = evidence or []
+    mapping = OLLAMA_MODEL_MAP.get(llm_name)
+    
+    if not mapping:
+        # No local model → try cloud API
+        return evaluate_claim(llm_name, claim_text, evidence)
+    
+    t0 = time.time()
+    raw, err = _call_ollama(claim_text, evidence, 
+                            model=mapping["model"], host=mapping["host"])
+    latency = (time.time() - t0) * 1000
+    
+    if err or not raw:
+        # Fallback to cloud
+        result = evaluate_claim(llm_name, claim_text, evidence)
+        result.error = f"Ollama failed ({err}), fell back to cloud"
+        return result
+    
+    parsed = _parse_llm_json(raw)
+    if parsed:
+        return LLMVerdict(
+            llm_name=f"{llm_name}@ollama:{mapping['model']}",
+            confidence=float(parsed.get("confidence", 0.5)),
+            reasoning=parsed.get("reasoning", ""),
+            cultural_note=parsed.get("cultural_note", "none"),
+            raw_response=raw, latency_ms=latency
+        )
+    
+    return LLMVerdict(
+        llm_name=f"{llm_name}@ollama", confidence=0.5,
+        reasoning=f"Parse failed: {raw[:100]}",
+        cultural_note="none", raw_response=raw,
+        latency_ms=latency, error="JSON parse failed"
+    )
+
+
+def evaluate_claim_hybrid(claim_text, evidence=None, llm_names=None):
+    """Evaluate using best available: cloud API if key exists, else Ollama local.
+    
+    Priority: Cloud API > Ollama local > Stub
+    """
+    names = llm_names or list(LLM_REGISTRY.keys())
+    results = {}
+    for name in names:
+        # Try cloud first
+        reg = LLM_REGISTRY.get(name, {})
+        key = os.environ.get(reg.get("key_env", ""), "")
+        
+        if key:
+            results[name] = evaluate_claim(name, claim_text, evidence)
+        elif name in OLLAMA_MODEL_MAP:
+            results[name] = evaluate_claim_local(name, claim_text, evidence)
+        else:
+            results[name] = evaluate_claim(name, claim_text, evidence)  # stub
+    
+    return results
+
+
+def check_ollama_status():
+    """Check Ollama availability on all Tailscale hosts."""
+    status = {}
+    for host, url in OLLAMA_HOSTS.items():
+        try:
+            req = urllib.request.Request(f"{url}/api/tags", method="GET")
+            with urllib.request.urlopen(req, timeout=5) as resp:
+                data = json.loads(resp.read().decode())
+                models = [m["name"] for m in data.get("models", [])]
+                status[host] = {"online": True, "models": models, "url": url}
+        except Exception as e:
+            status[host] = {"online": False, "error": str(e), "url": url}
+    return status
