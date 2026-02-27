@@ -333,115 +333,42 @@ def papers_to_dict(papers):
 def _build_search_query_semantic(logical_structure, context):
     """KS30b: Build search query from S2 LogicalStructure output.
     
-    KS30:  search(keyword_string) → surface match
-    KS30b: search(S2.output) → semantic match
-    
-    Uses propositions (what is being claimed),
-    relations (how concepts connect),
-    and formal_expr (mathematical structure)
-    to construct a query that matches the MEANING of the claim,
-    not just its keywords.
+    Priority: key_concepts (direct academic terms) > propositions > formal structure.
+    key_concepts are already searchable terms extracted by LLM.
     """
+    # 1. Primary: use key_concepts directly (most effective for OpenAlex)
+    if hasattr(logical_structure, 'key_concepts') and logical_structure.key_concepts:
+        query = " ".join(logical_structure.key_concepts[:6])
+        # Add semantic domain if available
+        if hasattr(logical_structure, 'semantic_domain') and logical_structure.semantic_domain:
+            query += f" {logical_structure.semantic_domain}"
+        return query
+    
+    # 2. Fallback: extract from proposition names
     query_parts = []
-    
-    # 1. Propositions → core concepts
     if hasattr(logical_structure, 'propositions') and logical_structure.propositions:
-        for prop_name, prop_val in logical_structure.propositions.items():
-            # Extract meaningful words from proposition names
-            # e.g. "earth_is_flat" → "earth flat"
+        for prop_name in logical_structure.propositions:
             words = prop_name.replace('_', ' ').split()
-            meaningful = [w for w in words if len(w) > 2 and w not in {'the','and','for','not'}]
-            query_parts.extend(meaningful[:3])
+            meaningful = [w for w in words if len(w) > 2 and w not in {'the','and','for','not','exists','true','false','is'}]
+            query_parts.extend(meaningful[:2])
     
-    # 2. Relations → structural concepts
-    if hasattr(logical_structure, 'relations') and logical_structure.relations:
-        relation_concepts = {
-            'causal': 'causation cause effect',
-            'temporal': 'temporal sequence',
-            'spatial': 'spatial relationship',
-            'logical': 'logical entailment',
-            'comparative': 'comparison analysis',
-            'hierarchical': 'hierarchy taxonomy classification',
-            'contradictory': 'contradiction paradox',
-        }
-        for rel in logical_structure.relations:
-            rel_type = rel.get('type', '') if isinstance(rel, dict) else str(rel)
-            for key, concepts in relation_concepts.items():
-                if key in rel_type.lower():
-                    query_parts.append(concepts.split()[0])
-    
-    # 3. Formal expression → mathematical/logical structure
-    if hasattr(logical_structure, 'formal_expr') and logical_structure.formal_expr:
-        expr = logical_structure.formal_expr
-        # Map formal structures to searchable concepts
-        structure_map = {
-            '∀': 'universal quantification',
-            '∃': 'existential quantification',
-            '¬': 'negation logical',
-            '→': 'implication conditional',
-            '∧': 'conjunction',
-            '∨': 'disjunction',
-            '∈': 'set membership',
-            '⊆': 'subset relation',
-            '≡': 'equivalence',
-            '⊥': 'contradiction inconsistency',
-        }
-        for sym, concept in structure_map.items():
-            if sym in expr:
-                query_parts.append(concept.split()[0])
-    
-    # 4. Quantifiers → scope of claim
-    if hasattr(logical_structure, 'quantifiers') and logical_structure.quantifiers:
-        if any('universal' in str(q).lower() for q in logical_structure.quantifiers):
-            query_parts.append('universal')
-        if any('existential' in str(q).lower() for q in logical_structure.quantifiers):
-            query_parts.append('existential')
-    
-    # 5. Self-reference detection → Gödel/Russell territory
-    if hasattr(logical_structure, 'self_references') and logical_structure.self_references:
-        if logical_structure.self_references > 0:
-            query_parts.extend(['self-reference', 'incompleteness'])
-    
-    # 6. Contradictions → paradox territory
-    if hasattr(logical_structure, 'contradictions') and logical_structure.contradictions:
-        if logical_structure.contradictions > 0:
-            query_parts.extend(['paradox', 'contradiction'])
-    
-    # 7. Modality → epistemological stance
-    if hasattr(logical_structure, 'modality') and logical_structure.modality:
-        modality_map = {
-            'necessity': 'modal logic necessity',
-            'possibility': 'modal possibility',
-            'obligation': 'deontic logic',
-            'belief': 'epistemic logic belief',
-        }
-        for mod_key, mod_concept in modality_map.items():
-            if mod_key in str(logical_structure.modality).lower():
-                query_parts.append(mod_concept.split()[0])
-    
-    # Deduplicate and build query
-    seen = set()
-    unique_parts = []
-    for p in query_parts:
-        if p.lower() not in seen:
-            seen.add(p.lower())
-            unique_parts.append(p)
-    
-    # Add domain context
-    domain_terms = {
-        "formal_science": "mathematics logic",
-        "natural_science": "science empirical",
-        "humanities": "philosophy humanities",
-        "social_science": "social science",
-        "arts_culture": "arts culture",
-        "information_science": "computer science AI",
-    }
+    # 3. Add domain context
     if context and hasattr(context, 'domain'):
+        domain_terms = {
+            "formal_science": "mathematics",
+            "natural_science": "science",
+            "humanities": "philosophy",
+            "social_science": "political science",
+            "arts_culture": "arts",
+            "information_science": "computer science",
+        }
         extra = domain_terms.get(context.domain, "")
         if extra:
-            unique_parts.append(extra.split()[0])
+            query_parts.append(extra)
     
-    return " ".join(unique_parts[:10])  # cap at 10 terms
+    seen = set()
+    unique = [p for p in query_parts if p.lower() not in seen and not seen.add(p.lower())]
+    return " ".join(unique[:8])
 
 
 def fetch_papers_semantic(logical_structure, claim_text, contexts, 
