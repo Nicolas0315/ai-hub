@@ -631,15 +631,26 @@ class Claim:
                 self._papers = []
         return self._papers
 
-    def fetch_papers(self, max_per_context=3, max_total=10, timeout=10):
-        """Explicitly fetch papers with custom parameters."""
+    def fetch_papers(self, max_per_context=3, max_total=10, timeout=10,
+                     auto_refine=True):
+        """Explicitly fetch papers with custom parameters.
+        
+        If auto_refine=True, automatically generates refined queries
+        when initial results are insufficient (self-correcting search).
+        """
         try:
-            from .paper_reference import fetch_papers_for_claim
+            from .paper_reference import fetch_papers_for_claim, auto_refine_search
             self._papers = fetch_papers_for_claim(
                 self.text, self.contexts,
                 max_papers_per_context=max_per_context,
                 max_total=max_total, timeout=timeout
             )
+            if auto_refine:
+                self._papers = auto_refine_search(
+                    self.text, self.contexts, self._papers,
+                    min_relevant=3, max_rounds=2, timeout=timeout
+                )
+                self._papers = self._papers[:max_total]
         except Exception:
             self._papers = []
         return self._papers

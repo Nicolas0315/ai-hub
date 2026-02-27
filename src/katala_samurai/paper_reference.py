@@ -40,7 +40,7 @@ def _query_openalex(search_query, per_page=5, timeout=10):
         "search": search_query,
         "per_page": str(per_page),
         "select": "id,title,publication_year,cited_by_count,authorships,doi,abstract_inverted_index",
-        "sort": "cited_by_count:desc",
+        "sort": "relevance_score:desc",  # relevance first, not just citations
         "mailto": "katala@openclaw.ai",  # polite pool
     }
     url = "https://api.openalex.org/works?" + urllib.parse.urlencode(params)
@@ -192,6 +192,124 @@ def fetch_papers_for_claim(claim_text, contexts, max_papers_per_context=3,
     # Sort by relevance score
     all_papers.sort(key=lambda p: -p.relevance_score)
     return all_papers[:max_total]
+
+
+def _extract_key_terms(claim_text):
+    """Extract the most salient noun phrases / named entities from claim text."""
+    stops = {"the", "a", "an", "is", "are", "not", "and", "or", "of", "in",
+             "to", "for", "that", "this", "it", "by", "on", "with", "has",
+             "was", "be", "explain", "why", "how", "what", "which", "does",
+             "said", "between", "concisely", "please", "other", "its",
+             "their", "there", "about", "from", "data", "based", "using",
+             "can", "may", "will", "also", "such", "into", "than", "more"}
+    words = [w.strip(",.;:?!()\"'") for w in claim_text.split()]
+    # Keep capitalized words (likely proper nouns) and long content words
+    terms = []
+    for w in words:
+        clean = w.lower().strip(",.;:?!()")
+        if clean in stops or len(clean) < 3:
+            continue
+        # Proper nouns get priority
+        if w[0].isupper() and len(w) > 2:
+            terms.insert(0, w)
+        else:
+            terms.append(clean)
+    return terms[:8]
+
+
+def auto_refine_search(claim_text, contexts, initial_papers,
+                       min_relevant=3, max_rounds=2, timeout=10):
+    """Self-refining paper search: if initial results are insufficient,
+    automatically generate refined queries and search again.
+    
+    Strategy:
+    1. Check if initial papers are domain-relevant (title contains key terms)
+    2. If insufficient, extract core terms and build focused queries
+    3. Search with progressively narrower/broader queries
+    
+    Returns: augmented paper list
+    """
+    key_terms = _extract_key_terms(claim_text)
+    if not key_terms:
+        return initial_papers
+    
+    # Count how many initial papers are actually relevant
+    primary_term = key_terms[0].lower()
+    relevant = [p for p in initial_papers
+                if primary_term in (p.title or "").lower()]
+    
+    if len(relevant) >= min_relevant:
+        return initial_papers  # sufficient, no refinement needed
+    
+    # ── Auto-refinement: generate focused queries
+    all_papers = list(initial_papers)
+    seen_ids = {p.openalex_id for p in all_papers}
+    
+    # Build refined queries from key terms
+    refined_queries = []
+    if len(key_terms) >= 2:
+        # Combination of top terms
+        refined_queries.append(f"{key_terms[0]} {key_terms[1]}")
+        refined_queries.append(f"{key_terms[0]} {key_terms[1]} prediction")
+        refined_queries.append(f"{key_terms[0]} {key_terms[1]} analysis")
+    if len(key_terms) >= 1:
+        refined_queries.append(f"{key_terms[0]} empirical study")
+        refined_queries.append(f"{key_terms[0]} systematic review")
+    
+    # Add domain-specific refinements
+    for ctx in contexts[:2]:
+        domain_key = f"{ctx.domain}/{ctx.subdomain}"
+        if "economics" in domain_key:
+            refined_queries.append(f"{key_terms[0]} market volatility correlation")
+            refined_queries.append(f"{key_terms[0]} macroeconomic indicators")
+        elif "psychology" in domain_key or "philosophy" in domain_key:
+            refined_queries.append(f"{key_terms[0]} cognitive behavioral")
+        elif "physics" in domain_key:
+            refined_queries.append(f"{key_terms[0]} experimental measurement")
+    
+    for round_i in range(min(max_rounds, len(refined_queries))):
+        query = refined_queries[round_i]
+        results = _query_openalex(query, per_page=5, timeout=timeout)
+        
+        for work in results:
+            oa_id = work.get("id", "")
+            if oa_id in seen_ids:
+                continue
+            seen_ids.add(oa_id)
+            
+            title = work.get("title", "")
+            # Relevance filter: must contain at least one key term
+            if not any(t.lower() in title.lower() for t in key_terms[:3]):
+                continue
+            
+            authors = [a.get("author", {}).get("display_name", "")
+                       for a in work.get("authorships", [])[:5] if a.get("author")]
+            abstract = _reconstruct_abstract(work.get("abstract_inverted_index"))
+            cited_by = work.get("cited_by_count", 0)
+            year = work.get("publication_year", 0) or 0
+            
+            ctx_rel = contexts[0].relevance if contexts else 0.5
+            recency = max(0.5, 1.0 - (2026 - year) * 0.02) if year > 0 else 0.5
+            relevance = (min(cited_by, 10000) / 10000) * ctx_rel * recency
+            
+            paper = PaperReference(
+                title=title, year=year, authors=authors,
+                cited_by=cited_by, openalex_id=oa_id,
+                doi=work.get("doi"), abstract=abstract,
+                relevance_score=round(relevance, 4),
+                context_domain=f"auto_refined/{query[:30]}",
+            )
+            all_papers.append(paper)
+        
+        time.sleep(0.15)
+        
+        # Re-check: enough relevant papers now?
+        relevant = [p for p in all_papers if primary_term in (p.title or "").lower()]
+        if len(relevant) >= min_relevant:
+            break
+    
+    all_papers.sort(key=lambda p: -p.relevance_score)
+    return all_papers
 
 
 def papers_to_dict(papers):
