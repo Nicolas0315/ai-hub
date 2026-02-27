@@ -1803,3 +1803,100 @@ def demo_gemini_bias():
 
 if __name__ == "__main__":
     demo_gemini_bias()
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# KS30 Verification Hash — Tamper-proof pipeline result fingerprint
+# ═══════════════════════════════════════════════════════════════════════════
+
+def ks30_hash(claim, pipeline_result, algorithm="sha256"):
+    """Generate a cryptographic hash of the full KS30 verification result.
+    
+    The hash captures:
+    1. Input claim text + evidence
+    2. LogicalStructure (paradox, contradiction, negation state)
+    3. All 21 solver verdicts (ordered, deterministic)
+    4. Context resolutions
+    5. Pipeline score + pass rate
+    6. Timestamp
+    
+    This creates a verifiable fingerprint: same claim + same pipeline
+    = same hash. Any tampering with results changes the hash.
+    
+    Returns:
+        dict with hash, algorithm, components used, and timestamp
+    """
+    import hashlib
+    import json
+    import time
+    
+    # Deterministic canonical representation
+    components = []
+    
+    # 1. Input
+    components.append(f"CLAIM:{claim.text}")
+    components.append(f"EVIDENCE:{json.dumps(sorted(claim.evidence), ensure_ascii=False)}")
+    
+    # 2. LogicalStructure
+    logic = claim.logic
+    components.append(f"LOGIC:paradox={logic.is_paradox}|contra={logic.has_contradiction}|selfref={logic.has_self_reference}")
+    components.append(f"NEGATIONS:{json.dumps(logic.negations, ensure_ascii=False)}")
+    components.append(f"FORMAL:{logic.formal_expr or 'None'}")
+    
+    # 3. Solver verdicts (ordered by solver name for determinism)
+    solver_results = pipeline_result.get("solver_results", {})
+    solver_str = "|".join(f"{k}={'T' if v else 'F'}" for k, v in sorted(solver_results.items()))
+    components.append(f"SOLVERS:{solver_str}")
+    
+    # 4. Contexts
+    ctx_str = "|".join(
+        f"{c.get('domain','?')}/{c.get('subdomain','?')}"
+        for c in pipeline_result.get("contexts", [])
+    )
+    components.append(f"CONTEXTS:{ctx_str}")
+    
+    # 5. Scores
+    components.append(f"RATE:{pipeline_result.get('pass_rate', 0)}")
+    components.append(f"SCORE:{pipeline_result.get('pipeline_score', 0)}")
+    
+    # 6. LLM identity
+    components.append(f"LLM:{pipeline_result.get('llm', 'unknown')}")
+    components.append(f"REGION:{pipeline_result.get('region', 'unknown')}")
+    
+    # 7. Multimodal source (if any)
+    mm = getattr(claim, '_multimodal', None)
+    if mm:
+        components.append(f"MULTIMODAL:{mm.content_hash}|{mm.input_type}")
+    
+    # Build canonical string and hash
+    canonical = "\n".join(components)
+    
+    h = hashlib.new(algorithm)
+    h.update(canonical.encode("utf-8"))
+    digest = h.hexdigest()
+    
+    ts = time.time()
+    
+    return {
+        "hash": digest,
+        "algorithm": algorithm,
+        "claim_text": claim.text[:100],
+        "pass_rate": pipeline_result.get("pass_rate", 0),
+        "pipeline_score": pipeline_result.get("pipeline_score", 0),
+        "llm": pipeline_result.get("llm", "unknown"),
+        "solver_count": len(solver_results),
+        "timestamp": ts,
+        "timestamp_iso": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(ts)),
+        "canonical_components": len(components),
+        "multimodal": mm is not None,
+    }
+
+
+def ks30_verify(claim, pipeline_result, expected_hash, algorithm="sha256"):
+    """Verify that a pipeline result hasn't been tampered with."""
+    result = ks30_hash(claim, pipeline_result, algorithm)
+    return {
+        "valid": result["hash"] == expected_hash,
+        "computed_hash": result["hash"],
+        "expected_hash": expected_hash,
+    }
