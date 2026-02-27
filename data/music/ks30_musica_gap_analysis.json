@@ -1,0 +1,181 @@
+{
+  "prior_research": {
+    "spectrogram_generation": {
+      "papers": [
+        {
+          "title": "GANSynth: Adversarial Neural Audio Synthesis",
+          "authors": "Engel et al. (Google Magenta)",
+          "year": 2019,
+          "venue": "ICLR 2019",
+          "method": "Progressive GAN on magnitude+phase spectrograms",
+          "key_contribution": "Direct spectrogram generation with phase, 16kHz audio",
+          "what_they_have": [
+            "learned spectral features",
+            "phase modeling",
+            "latent interpolation"
+          ]
+        },
+        {
+          "title": "SpecGAN / WaveGAN",
+          "authors": "Donahue et al.",
+          "year": 2019,
+          "venue": "ICLR 2019",
+          "method": "GAN on STFT spectrograms (SpecGAN) or raw waveform (WaveGAN)",
+          "key_contribution": "First direct spectrogram-domain GAN for audio",
+          "what_they_have": [
+            "adversarial training on spectrograms",
+            "unsupervised"
+          ]
+        },
+        {
+          "title": "Jukebox",
+          "authors": "Dhariwal et al. (OpenAI)",
+          "year": 2020,
+          "venue": "arXiv",
+          "method": "VQ-VAE on raw audio, hierarchical generation",
+          "key_contribution": "Minutes-long music with lyrics, multi-genre",
+          "what_they_have": [
+            "long-form structure",
+            "genre conditioning",
+            "lyrics alignment"
+          ]
+        },
+        {
+          "title": "MusicLM / MusicGen",
+          "authors": "Google / Meta",
+          "year": 2023,
+          "venue": "ICML / arXiv",
+          "method": "Text-conditioned audio generation via codebook tokens",
+          "key_contribution": "Text→music, high quality 30s clips",
+          "what_they_have": [
+            "text conditioning",
+            "neural codec",
+            "temporal coherence"
+          ]
+        },
+        {
+          "title": "Riffusion",
+          "authors": "Forsgren & Martiros",
+          "year": 2022,
+          "method": "Stable Diffusion fine-tuned on spectrograms",
+          "key_contribution": "Image diffusion model → spectrogram → audio",
+          "what_they_have": [
+            "diffusion on spectrograms",
+            "text prompting",
+            "interpolation"
+          ]
+        }
+      ],
+      "neural_vocoder": [
+        {
+          "title": "HiFi-GAN",
+          "authors": "Kong et al.",
+          "year": 2020,
+          "method": "GAN-based waveform generation from mel spectrogram",
+          "key_contribution": "High-fidelity, real-time mel→waveform",
+          "what_they_have": [
+            "learned phase reconstruction",
+            "perceptual loss"
+          ]
+        },
+        {
+          "title": "Griffin-Lim Algorithm",
+          "authors": "Griffin & Lim",
+          "year": 1984,
+          "method": "Iterative phase estimation from magnitude STFT",
+          "limitation": "No learned features, metallic artifacts, slow convergence"
+        }
+      ],
+      "music_theory_integration": [
+        {
+          "title": "Music Transformer",
+          "authors": "Huang et al. (Google)",
+          "year": 2019,
+          "method": "Self-attention on MIDI events with relative position",
+          "what_they_have": [
+            "long-range structure",
+            "theory-aware attention"
+          ]
+        },
+        {
+          "title": "Coconet (Bach Doodle)",
+          "authors": "Huang et al. (Google Magenta)",
+          "year": 2019,
+          "method": "Blocked Gibbs sampling for counterpoint",
+          "what_they_have": [
+            "voice leading rules",
+            "harmonization"
+          ]
+        }
+      ],
+      "intro_duration_research": [
+        {
+          "title": "The Effect of Music Tempo on Consumer Behavior in a Restaurant",
+          "authors": "Milliman (1986)",
+          "finding": "Music intro affects engagement within first 3-5 seconds"
+        },
+        {
+          "title": "Spotify skip behavior analysis",
+          "source": "Industry reports 2020-2023",
+          "finding": "50% of skips happen in first 5 seconds. Hooks must appear < 3s for streaming retention"
+        },
+        {
+          "title": "Commercial music production guidelines",
+          "source": "Advertising industry standard",
+          "finding": "TV/web ad music: hook within 2-4 seconds. No pure intro > 4s for 15s/30s spots"
+        }
+      ]
+    }
+  },
+  "gaps": {
+    "1_phase_modeling": {
+      "status": "MISSING",
+      "prior": "GANSynth: magnitude+instantaneous frequency の2チャンネル生成",
+      "ks30_musica": "Griffin-Lim (1984) — 位相を捨てて反復推定。金属的アーティファクト",
+      "impact": "HIGH — 音質の根本的限界",
+      "fix": "HiFi-GAN vocoder導入 or 位相推定ネットワーク"
+    },
+    "2_learned_features": {
+      "status": "MISSING",
+      "prior": "Riffusion/GANSynth: ニューラルネットで学習したスペクトル特徴",
+      "ks30_musica": "手動のスペクトル特徴(centroid/flatness/chroma) + ルールベース",
+      "impact": "MEDIUM — 表現力の限界だが、理論的根拠が明確という強みもある",
+      "fix": "CNN patch encoder (self-supervised) をS3に追加"
+    },
+    "3_temporal_coherence": {
+      "status": "WEAK",
+      "prior": "Jukebox/MusicLM: 分単位の構造的一貫性",
+      "ks30_musica": "パッチの並置 + クロスフェード。長期構造は4コードループに依存",
+      "impact": "MEDIUM — ループ構造で回避しているが、展開がない",
+      "fix": "パッチ間の遷移行列 + エネルギーカーブの大域設計"
+    },
+    "4_intro_duration": {
+      "status": "TOO LONG",
+      "prior": "広告研究: hook < 3-4s。Spotify: 5s以内にskip 50%",
+      "ks30_musica": "Intro 4パッチ × ~1s/patch = ~4s だが内容が薄い",
+      "impact": "HIGH — リスナー離脱リスク",
+      "fix": "Intro ≤ 4s（3パッチ以下）、最初のパッチから和声的内容を含める"
+    },
+    "5_harmonic_transitions": {
+      "status": "WEAK",
+      "prior": "Music Transformer: コード間のvoice leading を学習",
+      "ks30_musica": "パッチ単位の和音マッチング。コード間の遷移が不連続",
+      "impact": "MEDIUM — クロスフェードで緩和しているが和声的遷移ではない",
+      "fix": "隣接パッチのクロマ距離を最小化するソート"
+    },
+    "6_dynamics_expression": {
+      "status": "WEAK",
+      "prior": "楽曲構造のダイナミクス (verse/chorus/bridge)",
+      "ks30_musica": "セクション別のvolume倍率のみ。微細なダイナミクスなし",
+      "impact": "MEDIUM",
+      "fix": "拍内のアクセント(downbeat強調)、フレーズ単位のクレッシェンド/デクレッシェンド"
+    },
+    "7_stereo_field": {
+      "status": "MISSING",
+      "prior": "市販楽曲: ステレオ定位（HH左右、ベース中央）",
+      "ks30_musica": "完全モノラル",
+      "impact": "LOW-MEDIUM — Lofiはモノラル寄りだが、微細なステレオは欲しい",
+      "fix": "L/R独立スペクトログラム生成"
+    }
+  }
+}
