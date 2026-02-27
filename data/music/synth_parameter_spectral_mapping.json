@@ -1,0 +1,182 @@
+{
+  "waveforms": {
+    "sine": {
+      "ja": "正弦波",
+      "knob": "Osc Waveform → Sine",
+      "serum": "Osc A/B Waveform: Basic Shapes → Sine",
+      "massive": "Osc 1/2 Waveform: Sine-Square table pos=0",
+      "spectral": "単一の水平線（基音のみ）。倍音ゼロ",
+      "use": "サブベース、ピュアトーン、FM変調のキャリア"
+    },
+    "sawtooth": {
+      "ja": "ノコギリ波",
+      "knob": "Osc Waveform → Saw",
+      "serum": "Osc A/B: Basic Shapes → Saw",
+      "massive": "Osc: Sawtooth table",
+      "spectral": "全倍音が等間隔に並ぶ（f, 2f, 3f, 4f...）。上に行くほど暗い（1/n減衰）",
+      "use": "リード、パッド、スーパーソウ（Serum: Unison voices）"
+    },
+    "square": {
+      "ja": "矩形波",
+      "knob": "Osc Waveform → Square",
+      "serum": "Osc: Basic Shapes → Square",
+      "massive": "Osc: Sine-Square table pos=max",
+      "spectral": "奇数倍音のみ（f, 3f, 5f, 7f...）。偶数倍音が欠落 = クラリネットと同じ原理",
+      "use": "中空な音色、レトロゲーム音、サブベース"
+    },
+    "triangle": {
+      "ja": "三角波",
+      "knob": "Osc Waveform → Triangle",
+      "serum": "Osc: Basic Shapes → Triangle",
+      "massive": "Custom wavetable",
+      "spectral": "奇数倍音のみだが矩形波より急速に減衰（1/n²）。正弦波に近い",
+      "use": "フルートライクな音色、柔らかいベース"
+    },
+    "noise": {
+      "ja": "ホワイトノイズ",
+      "knob": "Noise Osc Level",
+      "serum": "Noise Osc: On, Level knob",
+      "massive": "Noise module: White/Pink/Digital",
+      "spectral": "全周波数が均等に明るい。水平線なし、全面がランダムに光る",
+      "use": "ハイハット、スネアの質感、ライザー/SFX"
+    }
+  },
+  "filter": {
+    "filter_lpf": {
+      "ja": "ローパスフィルター",
+      "knob": "Filter Cutoff (反時計回り=暗い、時計回り=明るい)",
+      "serum": "Filter: LPF 12/24, Cutoff knob, Res knob",
+      "massive": "Filter 1/2: Lowpass 1-4 pole, Cutoff, Resonance",
+      "spectral": "カットオフ周波数より上の倍音線が消える。下げるほど暗い = 上部が黒くなる",
+      "use": "音の明るさコントロール。Lofiの柔らかさはLPF低めが要因"
+    },
+    "filter_hpf": {
+      "ja": "ハイパスフィルター",
+      "knob": "Filter Type → HPF, Cutoff",
+      "serum": "Filter: HPF 12/24",
+      "massive": "Filter: Highpass",
+      "spectral": "カットオフ以下の周波数が消える。スペクトログラム下部が黒くなる",
+      "use": "低域のゴモゴモ除去、ライザー効果（HPF sweep up）"
+    },
+    "resonance": {
+      "ja": "レゾナンス",
+      "knob": "Filter Resonance (Res/Q)",
+      "serum": "Filter: Res knob (右に回すとカットオフ付近が強調)",
+      "massive": "Filter: Resonance knob",
+      "spectral": "カットオフ周波数の倍音線が極端に明るくなる。高Resで他の倍音が消え正弦波化",
+      "use": "アシッドベース(TB-303)、ワウ効果、フィルターsweep時の「ミョーン」"
+    }
+  },
+  "envelope": {
+    "ja": "エンベロープ (ADSR)",
+    "knob": "Amp Env: Attack, Decay, Sustain, Release",
+    "serum": "ENV 1 (Amp): A/D/S/R スライダー + カーブ調整",
+    "massive": "Envelope 4 (Amp): A/D/S/R + Level",
+    "spectral": {
+      "attack": "倍音線の左端がどれだけ急に立ち上がるか。短A=瞬間出現、長A=フェードイン",
+      "decay": "アタック後の倍音の減衰速度",
+      "sustain": "押し続けた時の明るさレベル（0=pluck、高=pad）",
+      "release": "離した後の倍音の残り具合（短R=ブツ切り、長R=残響的）"
+    },
+    "use": "Pluck=ハープ的、Pad=弦楽器的、Stab=打楽器的"
+  },
+  "lfo": {
+    "ja": "LFO (低周波発振器)",
+    "knob": "LFO Rate, Amount, Destination",
+    "serum": "LFO 1-4: Rate, Shape, Amount → Pitch/Filter/Vol/WT Pos etc.",
+    "massive": "LFO 1-5: Rate, waveform → Macro/Osc/Filter etc.",
+    "spectral": {
+      "pitch": "倍音線が上下にうねる（ビブラート）。Rate=うねり速度、Amount=振幅",
+      "filter": "倍音の上限ラインが周期的に上下（ワウ効果）",
+      "amplitude": "全倍音が同時に明暗を繰り返す（トレモロ）"
+    },
+    "use": "ビブラート(pitch)、ワウ/フィルターsweep(filter)、トレモロ(amp)、ダブステップwobble"
+  },
+  "unison": {
+    "ja": "ユニゾン & デチューン",
+    "knob": "Unison Voices, Detune, Spread",
+    "serum": "Osc A/B: Unison (最大16 voices), Detune, Blend, Width",
+    "massive": "Voicing: Unison 1-16, Pitch Cutoff, Detune",
+    "spectral": "各倍音線が複数に分裂して太い帯になる。Detune大=帯が広い=コーラス効果",
+    "use": "スーパーソウ(EDM)、パッドの厚み、Serum名物のwavetable+unison"
+  },
+  "wavetable": {
+    "ja": "ウェーブテーブル位置",
+    "knob": "Wavetable Position (WT Pos)",
+    "serum": "Osc A/B: WT Position knob (ドラッグで波形テーブルをスキャン)",
+    "massive": "Osc 1/2: WT Position (波形テーブル内の位置)",
+    "spectral": "位置を変えると倍音構成が変化。pos=0(少ない倍音)→pos=max(複雑な倍音)",
+    "serum_specific": "256フレームのウェーブテーブル。LFO/Envで自動スキャン可能",
+    "use": "音色モーフィング（Serumの核心機能）、パッドの時間変化"
+  },
+  "distortion": {
+    "ja": "ディストーション / サチュレーション",
+    "knob": "Drive, Type, Mix",
+    "serum": "FX: Distortion (Tube/Soft Clip/Hard Clip/Lin Fold/Sin Fold/Bitcrush etc.)",
+    "massive": "Insert FX: Classic Tube, Hard Clipper, Bitcrusher",
+    "spectral": {
+      "soft_clip": "元の倍音に加えて新しい倍音が穏やかに出現",
+      "hard_clip": "奇数倍音が大量に追加（矩形波化）。倍音列が密になる",
+      "bitcrush": "高域にエイリアシングノイズ（折り返し歪み）。デジタル質感"
+    },
+    "use": "温かみ(soft)、攻撃性(hard)、ローファイ/レトロ(bitcrush)"
+  },
+  "fm": {
+    "ja": "FM合成",
+    "knob": "FM Amount / Mod Index",
+    "serum": "Osc A→B FM量, or FM from Sub",
+    "massive": "Modulation Osc: Ring Mod / Phase Mod",
+    "spectral": "サイドバンド（基音の周りに対称的に出現する倍音群）。Index大=金属的・ベル的",
+    "use": "DX7ベル音、メタリックベース、エレピ"
+  },
+  "serum_knobs": {
+    "osc_a_wt_position": "ウェーブテーブルスキャン。LFO/ENV接続で時間変化",
+    "osc_a_unison": "1-16ボイス。Detuneで太さ、Blendで混ざり具合",
+    "osc_a_level": "オシレータ音量",
+    "osc_a_pan": "左右定位",
+    "osc_a_octave_semi_fine": "ピッチ（オクターブ/半音/セント）",
+    "osc_a_warp": "Phase Warp, Sync, FM etc. 波形変形モード",
+    "filter_cutoff": "フィルター開閉。最重要パラメータ",
+    "filter_resonance": "カットオフ付近の強調",
+    "filter_drive": "フィルター前段の歪み",
+    "filter_type": "LPF/HPF/BPF/Notch × 12/24dB",
+    "env1_adsr": "アンプエンベロープ（音量の時間変化）",
+    "env2_adsr": "フィルターエンベロープ（明るさの時間変化）",
+    "lfo1_rate": "LFO速度",
+    "lfo1_shape": "Sine/Saw/Square/S&H/Custom",
+    "fx_reverb": "空間の広さ",
+    "fx_delay": "エコー",
+    "fx_chorus": "コーラス（Unison的だがFXで）",
+    "fx_distortion": "歪み（Tube/Clip/Fold/Crush）",
+    "fx_compressor": "ダイナミクス圧縮",
+    "fx_eq": "周波数帯バランス",
+    "macro_1_4": "マクロ1-4（複数パラメータを1ノブで制御）"
+  },
+  "massive_knobs": {
+    "osc_1_2_wt_position": "ウェーブテーブル位置",
+    "osc_1_2_pitch": "ピッチ",
+    "osc_intensity": "Intensity (FM/Ring Mod/Phase Mod量)",
+    "filter_1_2_cutoff": "フィルターカットオフ",
+    "filter_1_2_resonance": "レゾナンス",
+    "filter_routing": "Serial/Parallel フィルタールーティング",
+    "voicing_unison": "ユニゾンボイス数",
+    "voicing_detune": "デチューン量",
+    "insert_fx_1_2": "インサートエフェクト（Tube/Clip/Freq Shift etc.）",
+    "macro_1_8": "マクロ1-8（Massiveの核心: 複数パラメータをモーフ）",
+    "performer": "Performerモジュール（ステップシーケンス的LFO）",
+    "stepper": "Stepper（16ステップパターン）"
+  },
+  "spectral_rules": {
+    "horizontal_lines": "倍音。整数倍=調和的（楽器音）、非整数倍=非調和的（ベル/金属）",
+    "line_spacing": "基音周波数。密=低音、疎=高音",
+    "line_brightness": "各倍音の強さ。明るい=強い",
+    "line_thickness": "ユニゾン/コーラス。太い=複数ボイス",
+    "upper_cutoff": "フィルターカットオフ位置。ここから上が暗い",
+    "brightness_peak": "レゾナンスピーク",
+    "vertical_spikes": "アタック（ADSRのA）",
+    "fade_direction": "時間変化。左→右で明るくなる=Attack長い",
+    "wavy_lines": "LFO変調（ビブラート/トレモロ）",
+    "noise_floor": "ノイズ成分。全域が均等に明るい",
+    "sideband_pairs": "FM合成。基音の周りに対称的な倍音ペア"
+  }
+}
