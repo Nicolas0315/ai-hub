@@ -1,0 +1,49 @@
+[
+  {
+    "claim": "The Earth revolves around the Sun",
+    "ks30_query": "earth revolves around sun earth science geophysics",
+    "ks30b_query": "science",
+    "overlap": 0,
+    "ks30b_unique": [
+      "Statistical Power Analysis for the Behavioral Sciences",
+      "Statistical power analysis for the behavioral sciences",
+      "Nonparametric Statistics for the Behavioral Sciences"
+    ]
+  },
+  {
+    "claim": "Parallel lines never intersect in Euclidean geometry",
+    "ks30_query": "parallel lines never intersect euclidean geometry",
+    "ks30b_query": "",
+    "overlap": 0,
+    "ks30b_unique": []
+  },
+  {
+    "claim": "Consciousness cannot be reduced to computational processes",
+    "ks30_query": "consciousness cannot reduced computational processes philosophy",
+    "ks30b_query": "philosophy",
+    "overlap": 0,
+    "ks30b_unique": [
+      "Lenin and Philosophy and Other Essays",
+      "Speech Acts: An Essay in the Philosophy of Language",
+      "Philosophy in the flesh: the embodied mind and its challenge to Western thought"
+    ]
+  },
+  {
+    "claim": "台湾は独立した主権国家である",
+    "ks30_query": "formal logic paradox political science",
+    "ks30b_query": "social",
+    "overlap": 0,
+    "ks30b_unique": [
+      "G*Power 3: A flexible statistical power analysis program for the social, behavioral, and biomedical sciences",
+      "Social Learning Theory.",
+      "The moderator-mediator variable distinction in social psychological research: Conceptual, strategic, and statistical considerations."
+    ]
+  },
+  {
+    "claim": "短二度の音程はコードトーンと不協和を生む",
+    "ks30_query": "formal logic paradox",
+    "ks30b_query": "",
+    "overlap": 0,
+    "ks30b_unique": []
+  }
+]

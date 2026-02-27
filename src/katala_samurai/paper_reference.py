@@ -328,3 +328,165 @@ def papers_to_dict(papers):
         }
         for p in papers
     ]
+
+
+def _build_search_query_semantic(logical_structure, context):
+    """KS30b: Build search query from S2 LogicalStructure output.
+    
+    KS30:  search(keyword_string) → surface match
+    KS30b: search(S2.output) → semantic match
+    
+    Uses propositions (what is being claimed),
+    relations (how concepts connect),
+    and formal_expr (mathematical structure)
+    to construct a query that matches the MEANING of the claim,
+    not just its keywords.
+    """
+    query_parts = []
+    
+    # 1. Propositions → core concepts
+    if hasattr(logical_structure, 'propositions') and logical_structure.propositions:
+        for prop_name, prop_val in logical_structure.propositions.items():
+            # Extract meaningful words from proposition names
+            # e.g. "earth_is_flat" → "earth flat"
+            words = prop_name.replace('_', ' ').split()
+            meaningful = [w for w in words if len(w) > 2 and w not in {'the','and','for','not'}]
+            query_parts.extend(meaningful[:3])
+    
+    # 2. Relations → structural concepts
+    if hasattr(logical_structure, 'relations') and logical_structure.relations:
+        relation_concepts = {
+            'causal': 'causation cause effect',
+            'temporal': 'temporal sequence',
+            'spatial': 'spatial relationship',
+            'logical': 'logical entailment',
+            'comparative': 'comparison analysis',
+            'hierarchical': 'hierarchy taxonomy classification',
+            'contradictory': 'contradiction paradox',
+        }
+        for rel in logical_structure.relations:
+            rel_type = rel.get('type', '') if isinstance(rel, dict) else str(rel)
+            for key, concepts in relation_concepts.items():
+                if key in rel_type.lower():
+                    query_parts.append(concepts.split()[0])
+    
+    # 3. Formal expression → mathematical/logical structure
+    if hasattr(logical_structure, 'formal_expr') and logical_structure.formal_expr:
+        expr = logical_structure.formal_expr
+        # Map formal structures to searchable concepts
+        structure_map = {
+            '∀': 'universal quantification',
+            '∃': 'existential quantification',
+            '¬': 'negation logical',
+            '→': 'implication conditional',
+            '∧': 'conjunction',
+            '∨': 'disjunction',
+            '∈': 'set membership',
+            '⊆': 'subset relation',
+            '≡': 'equivalence',
+            '⊥': 'contradiction inconsistency',
+        }
+        for sym, concept in structure_map.items():
+            if sym in expr:
+                query_parts.append(concept.split()[0])
+    
+    # 4. Quantifiers → scope of claim
+    if hasattr(logical_structure, 'quantifiers') and logical_structure.quantifiers:
+        if any('universal' in str(q).lower() for q in logical_structure.quantifiers):
+            query_parts.append('universal')
+        if any('existential' in str(q).lower() for q in logical_structure.quantifiers):
+            query_parts.append('existential')
+    
+    # 5. Self-reference detection → Gödel/Russell territory
+    if hasattr(logical_structure, 'self_references') and logical_structure.self_references:
+        if logical_structure.self_references > 0:
+            query_parts.extend(['self-reference', 'incompleteness'])
+    
+    # 6. Contradictions → paradox territory
+    if hasattr(logical_structure, 'contradictions') and logical_structure.contradictions:
+        if logical_structure.contradictions > 0:
+            query_parts.extend(['paradox', 'contradiction'])
+    
+    # 7. Modality → epistemological stance
+    if hasattr(logical_structure, 'modality') and logical_structure.modality:
+        modality_map = {
+            'necessity': 'modal logic necessity',
+            'possibility': 'modal possibility',
+            'obligation': 'deontic logic',
+            'belief': 'epistemic logic belief',
+        }
+        for mod_key, mod_concept in modality_map.items():
+            if mod_key in str(logical_structure.modality).lower():
+                query_parts.append(mod_concept.split()[0])
+    
+    # Deduplicate and build query
+    seen = set()
+    unique_parts = []
+    for p in query_parts:
+        if p.lower() not in seen:
+            seen.add(p.lower())
+            unique_parts.append(p)
+    
+    # Add domain context
+    domain_terms = {
+        "formal_science": "mathematics logic",
+        "natural_science": "science empirical",
+        "humanities": "philosophy humanities",
+        "social_science": "social science",
+        "arts_culture": "arts culture",
+        "information_science": "computer science AI",
+    }
+    if context and hasattr(context, 'domain'):
+        extra = domain_terms.get(context.domain, "")
+        if extra:
+            unique_parts.append(extra.split()[0])
+    
+    return " ".join(unique_parts[:10])  # cap at 10 terms
+
+
+def fetch_papers_semantic(logical_structure, claim_text, contexts, 
+                          max_papers_per_context=3, max_total=10, timeout=10):
+    """KS30b: Fetch papers using S2 LogicalStructure as semantic query.
+    
+    Difference from KS30:
+      KS30:  claim_text → keyword extraction → search
+      KS30b: LogicalStructure → semantic extraction → search
+    """
+    all_papers = []
+    seen_ids = set()
+    
+    for ctx in contexts[:4]:
+        # KS30b: use semantic query builder
+        query = _build_search_query_semantic(logical_structure, ctx)
+        
+        if not query.strip():
+            # Fallback to keyword-based (KS30 behavior)
+            query = _build_search_query(claim_text, ctx)
+        
+        results = _query_openalex(query, per_page=max_papers_per_context, timeout=timeout)
+        
+        for work in results:
+            oa_id = work.get("id", "")
+            if oa_id in seen_ids:
+                continue
+            seen_ids.add(oa_id)
+            
+            authors = [a.get("author",{}).get("display_name","") 
+                       for a in work.get("authorships",[])[:5] if a.get("author",{}).get("display_name")]
+            abstract = _reconstruct_abstract(work.get("abstract_inverted_index"))
+            cited_by = work.get("cited_by_count", 0)
+            year = work.get("publication_year", 0) or 0
+            recency_bonus = max(0.5, 1.0 - (2026-year)*0.02) if year > 0 else 0.5
+            relevance = (min(cited_by,10000)/10000) * ctx.relevance * recency_bonus
+            
+            paper = PaperReference(
+                title=work.get("title","Unknown"), year=year,
+                authors=authors, cited_by=cited_by,
+                openalex_id=oa_id, doi=work.get("doi"),
+                abstract=abstract, relevance_score=relevance,
+                context_domain=f"{ctx.domain}/{ctx.subdomain}"
+            )
+            all_papers.append(paper)
+    
+    all_papers.sort(key=lambda p: p.relevance_score, reverse=True)
+    return all_papers[:max_total]
