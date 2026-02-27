@@ -1,0 +1,190 @@
+{
+  "instrument_datasets": {
+    "NSynth": {
+      "source": "Google Magenta",
+      "url": "https://magenta.tensorflow.org/datasets/nsynth",
+      "size": "305,979 samples",
+      "instruments": "1006 instruments across 11 families",
+      "families": [
+        "bass",
+        "brass",
+        "flute",
+        "guitar",
+        "keyboard",
+        "mallet",
+        "organ",
+        "reed",
+        "string",
+        "synth_lead",
+        "vocal"
+      ],
+      "format": "WAV 16kHz, 4s each",
+      "features": "pitch (MIDI 21-108), velocity (25-127), instrument_source (acoustic/electronic/synthetic)",
+      "license": "CC BY 4.0",
+      "download": "https://magenta.tensorflow.org/datasets/nsynth#files"
+    },
+    "IRMAS": {
+      "source": "Music Technology Group, UPF Barcelona",
+      "url": "https://www.upf.edu/web/mtg/irmas",
+      "size": "6705 training + 2874 test excerpts",
+      "instruments": "11 classes",
+      "families": [
+        "cello",
+        "clarinet",
+        "flute",
+        "acoustic_guitar",
+        "electric_guitar",
+        "organ",
+        "piano",
+        "saxophone",
+        "trumpet",
+        "violin",
+        "voice"
+      ],
+      "format": "WAV 16kHz stereo, 3s each",
+      "features": "instrument recognition, multi-label",
+      "license": "CC BY-NC-SA 3.0"
+    },
+    "GoodSounds": {
+      "source": "Music Technology Group, UPF Barcelona",
+      "url": "https://www.upf.edu/web/mtg/good-sounds",
+      "size": "8000+ single notes",
+      "instruments": "12 instruments",
+      "families": [
+        "flute",
+        "clarinet",
+        "saxophone",
+        "trumpet",
+        "violin",
+        "cello",
+        "bass",
+        "guitar",
+        "piano",
+        "banjo",
+        "ukulele",
+        "mandolin"
+      ],
+      "format": "WAV",
+      "features": "single note recordings, quality rated"
+    },
+    "MedleyDB": {
+      "source": "NYU MARL",
+      "url": "https://medleydb.weebly.com/",
+      "size": "122 multitrack songs",
+      "instruments": "82 instrument labels",
+      "format": "WAV 44.1kHz",
+      "features": "full multitracks with stem-level instrument annotations",
+      "license": "CC BY-NC-SA"
+    },
+    "Philharmonia_Samples": {
+      "source": "Philharmonia Orchestra London",
+      "url": "https://philharmonia.co.uk/resources/sound-samples/",
+      "size": "~13,000 samples",
+      "instruments": "20+ orchestral instruments",
+      "families": [
+        "strings",
+        "woodwinds",
+        "brass",
+        "percussion",
+        "keyboards"
+      ],
+      "format": "MP3/WAV",
+      "features": "individual notes, dynamics (pp to ff), articulations (arco/pizz/trem)",
+      "license": "Free for non-commercial"
+    },
+    "MAPS": {
+      "source": "IRCAM/Telecom ParisTech",
+      "url": "https://adasp.telecom-paris.fr/resources/2010-01-29-maps-database/",
+      "size": "~65GB",
+      "instruments": "9 piano models (Steinway, Yamaha, etc.)",
+      "format": "WAV + MIDI aligned",
+      "features": "piano transcription, note-level aligned MIDI, multiple recording conditions"
+    },
+    "OrchideaSOL": {
+      "source": "IRCAM",
+      "url": "https://forum.ircam.fr/projects/detail/orchideasol/",
+      "size": "~16,000 samples",
+      "instruments": "34 orchestral instruments",
+      "format": "WAV 44.1kHz",
+      "features": "extended techniques, dynamics, articulations"
+    }
+  },
+  "theory_datasets": {
+    "Lakh_MIDI": {
+      "source": "Colin Raffel, Columbia",
+      "url": "https://colinraffel.com/projects/lakh-midi-dataset/",
+      "size": "176,581 MIDI files",
+      "content": "matched to Million Song Dataset",
+      "features": "chord progressions, melodies, drum patterns, tempo, key",
+      "use": "rhythm pattern extraction, harmonic analysis"
+    },
+    "MAESTRO": {
+      "source": "Google Magenta / International Piano-e-Competition",
+      "url": "https://magenta.tensorflow.org/datasets/maestro",
+      "size": "200+ hours, 1,276 performances",
+      "content": "piano performances with aligned MIDI",
+      "features": "expressive timing, dynamics, pedaling",
+      "license": "CC BY-NC-SA 4.0"
+    },
+    "Groove_MIDI": {
+      "source": "Google Magenta",
+      "url": "https://magenta.tensorflow.org/datasets/groove",
+      "size": "13.6 hours, 1150 MIDI files",
+      "content": "drum performances on electronic kit",
+      "features": "velocity, timing offsets (groove/swing), genre-labeled",
+      "genres": [
+        "rock",
+        "funk",
+        "jazz",
+        "latin",
+        "afrobeat",
+        "hiphop"
+      ],
+      "license": "CC BY-SA 4.0",
+      "use": "groove pattern learning, humanization"
+    },
+    "Hooktheory": {
+      "source": "Hooktheory.com",
+      "url": "https://www.hooktheory.com/theorytab",
+      "size": "~35,000 songs analyzed",
+      "content": "chord progressions with Roman numeral analysis",
+      "features": "section-level chords, key, relative notation",
+      "use": "harmonic pattern mining"
+    },
+    "iReal_Pro_Forum": {
+      "source": "iReal Pro community",
+      "url": "https://www.irealpro.com/main-playlists",
+      "size": "~4,000 jazz standards + pop",
+      "content": "chord charts in iReal format",
+      "features": "chord symbols, form (AABA etc), key",
+      "use": "jazz harmony learning"
+    },
+    "RWC_Music_DB": {
+      "source": "AIST Japan",
+      "url": "https://staff.aist.go.jp/m.goto/RWC-MDB/",
+      "size": "315 pieces",
+      "content": "100 pop + 100 royalty-free + 50 classic + 50 jazz + 15 genre",
+      "features": "beat annotations, chord annotations, structure annotations",
+      "license": "Research use"
+    },
+    "GTZAN": {
+      "source": "George Tzanetakis",
+      "size": "1000 tracks × 30s",
+      "content": "10 genres × 100 tracks",
+      "genres": [
+        "blues",
+        "classical",
+        "country",
+        "disco",
+        "hiphop",
+        "jazz",
+        "metal",
+        "pop",
+        "reggae",
+        "rock"
+      ],
+      "use": "genre classification, spectral analysis per genre"
+    }
+  },
+  "collection_date": "2026-02-27"
+}

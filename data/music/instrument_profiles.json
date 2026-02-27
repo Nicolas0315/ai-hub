@@ -1,0 +1,230 @@
+{
+  "piano": {
+    "family": "keyboard",
+    "type": "acoustic",
+    "frequency_range": [
+      27.5,
+      4186
+    ],
+    "fundamental_decay": 2.0,
+    "harmonic_series": [
+      1.0,
+      0.5,
+      0.33,
+      0.25,
+      0.15,
+      0.1
+    ],
+    "attack_ms": 10,
+    "decay_ms": 500,
+    "sustain": 0.3,
+    "release_ms": 200,
+    "spectral_centroid_range": [
+      500,
+      3000
+    ],
+    "characteristic": "hammered strings, bright attack, warm sustain"
+  },
+  "rhodes": {
+    "family": "keyboard",
+    "type": "electromechanical",
+    "frequency_range": [
+      82.4,
+      1047
+    ],
+    "fundamental_decay": 3.0,
+    "harmonic_series": [
+      1.0,
+      0.6,
+      0.1,
+      0.3,
+      0.05
+    ],
+    "attack_ms": 5,
+    "decay_ms": 800,
+    "sustain": 0.2,
+    "release_ms": 300,
+    "spectral_centroid_range": [
+      300,
+      1500
+    ],
+    "characteristic": "bell-like overtones, warm, mellow"
+  },
+  "acoustic_guitar": {
+    "family": "string",
+    "type": "plucked",
+    "frequency_range": [
+      82.4,
+      1047
+    ],
+    "fundamental_decay": 1.5,
+    "harmonic_series": [
+      1.0,
+      0.7,
+      0.5,
+      0.3,
+      0.2,
+      0.15
+    ],
+    "attack_ms": 3,
+    "decay_ms": 300,
+    "sustain": 0.15,
+    "release_ms": 100,
+    "spectral_centroid_range": [
+      800,
+      3500
+    ],
+    "characteristic": "bright pluck, body resonance, string noise"
+  },
+  "electric_bass": {
+    "family": "string",
+    "type": "electric",
+    "frequency_range": [
+      41.2,
+      392
+    ],
+    "fundamental_decay": 1.0,
+    "harmonic_series": [
+      1.0,
+      0.8,
+      0.6,
+      0.4,
+      0.3
+    ],
+    "attack_ms": 5,
+    "decay_ms": 400,
+    "sustain": 0.4,
+    "release_ms": 150,
+    "spectral_centroid_range": [
+      200,
+      1000
+    ],
+    "characteristic": "thick fundamental, pickup character"
+  },
+  "violin": {
+    "family": "string",
+    "type": "bowed",
+    "frequency_range": [
+      196,
+      3136
+    ],
+    "fundamental_decay": 0,
+    "harmonic_series": [
+      1.0,
+      0.6,
+      0.4,
+      0.3,
+      0.2,
+      0.15,
+      0.1
+    ],
+    "attack_ms": 50,
+    "decay_ms": 0,
+    "sustain": 0.9,
+    "release_ms": 100,
+    "spectral_centroid_range": [
+      1000,
+      5000
+    ],
+    "characteristic": "vibrato, bow pressure variation, rich harmonics"
+  },
+  "trumpet": {
+    "family": "brass",
+    "type": "lip-reed",
+    "frequency_range": [
+      165,
+      1047
+    ],
+    "fundamental_decay": 0,
+    "harmonic_series": [
+      1.0,
+      0.9,
+      0.7,
+      0.5,
+      0.4,
+      0.3,
+      0.2
+    ],
+    "attack_ms": 20,
+    "decay_ms": 0,
+    "sustain": 0.85,
+    "release_ms": 50,
+    "spectral_centroid_range": [
+      1500,
+      6000
+    ],
+    "characteristic": "bright, directional, many strong harmonics"
+  },
+  "flute": {
+    "family": "woodwind",
+    "type": "air-reed",
+    "frequency_range": [
+      262,
+      2093
+    ],
+    "fundamental_decay": 0,
+    "harmonic_series": [
+      1.0,
+      0.3,
+      0.1,
+      0.05
+    ],
+    "attack_ms": 30,
+    "decay_ms": 0,
+    "sustain": 0.8,
+    "release_ms": 80,
+    "spectral_centroid_range": [
+      500,
+      2000
+    ],
+    "characteristic": "pure tone, breathy, low harmonics"
+  },
+  "synth_pad": {
+    "family": "synth",
+    "type": "electronic",
+    "frequency_range": [
+      30,
+      8000
+    ],
+    "fundamental_decay": 0,
+    "harmonic_series": [
+      1.0,
+      0.7,
+      0.5,
+      0.4,
+      0.3,
+      0.2
+    ],
+    "attack_ms": 500,
+    "decay_ms": 0,
+    "sustain": 0.9,
+    "release_ms": 1000,
+    "spectral_centroid_range": [
+      200,
+      2000
+    ],
+    "characteristic": "slow attack, lush, detuned oscillators"
+  },
+  "808_kick": {
+    "family": "percussion",
+    "type": "electronic",
+    "frequency_range": [
+      30,
+      200
+    ],
+    "fundamental_decay": 0.5,
+    "harmonic_series": [
+      1.0,
+      0.1
+    ],
+    "attack_ms": 1,
+    "decay_ms": 200,
+    "sustain": 0,
+    "release_ms": 300,
+    "spectral_centroid_range": [
+      40,
+      150
+    ],
+    "characteristic": "sine sweep from ~150Hz to ~40Hz, long tail"
+  }
+}

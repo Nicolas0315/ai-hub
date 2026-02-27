@@ -1,0 +1,153 @@
+{
+  "pop": {
+    "I-V-vi-IV": {
+      "frequency": 0.35,
+      "songs": [
+        "Let It Be",
+        "No Woman No Cry",
+        "Someone Like You"
+      ]
+    },
+    "vi-IV-I-V": {
+      "frequency": 0.15,
+      "songs": [
+        "Numb",
+        "Africa"
+      ]
+    },
+    "I-IV-V-IV": {
+      "frequency": 0.1,
+      "songs": [
+        "Twist and Shout",
+        "La Bamba"
+      ]
+    },
+    "I-vi-IV-V": {
+      "frequency": 0.12,
+      "songs": [
+        "Stand By Me",
+        "Every Breath You Take"
+      ]
+    },
+    "I-IV-vi-V": {
+      "frequency": 0.08,
+      "songs": [
+        "Demons",
+        "Counting Stars"
+      ]
+    }
+  },
+  "jpop": {
+    "IV-V-iii-vi": {
+      "frequency": 0.25,
+      "songs": [
+        "Lemon (米津)",
+        "打上花火"
+      ]
+    },
+    "I-V-vi-IV": {
+      "frequency": 0.15,
+      "songs": [
+        "残酷な天使のテーゼ"
+      ]
+    },
+    "vi-IV-V-I": {
+      "frequency": 0.12,
+      "songs": [
+        "紅蓮華"
+      ]
+    },
+    "IVM7-V-iii-vi": {
+      "frequency": 0.1,
+      "songs": [
+        "夜に駆ける"
+      ]
+    },
+    "i-VI-III-VII": {
+      "frequency": 0.08,
+      "songs": [
+        "うっせぇわ"
+      ]
+    }
+  },
+  "jazz": {
+    "ii-V-I": {
+      "frequency": 0.4,
+      "songs": [
+        "All of Me",
+        "Autumn Leaves"
+      ]
+    },
+    "I-vi-ii-V": {
+      "frequency": 0.2,
+      "songs": [
+        "Fly Me to the Moon"
+      ]
+    },
+    "iii-VI-ii-V": {
+      "frequency": 0.1,
+      "songs": [
+        "All The Things You Are"
+      ]
+    },
+    "I-IV-iii-VI-ii-V-I": {
+      "frequency": 0.08,
+      "songs": [
+        "Rhythm Changes"
+      ]
+    }
+  },
+  "lofi": {
+    "i-VI-IV-V": {
+      "frequency": 0.3,
+      "songs": [
+        "generic lofi"
+      ]
+    },
+    "i-iv-VII-III": {
+      "frequency": 0.15,
+      "songs": [
+        "chill beats"
+      ]
+    },
+    "ii-V-I-vi": {
+      "frequency": 0.12,
+      "songs": [
+        "jazzy lofi"
+      ]
+    },
+    "IVM7-iii7-vi-I": {
+      "frequency": 0.1,
+      "songs": [
+        "city pop lofi"
+      ]
+    }
+  },
+  "rock": {
+    "I-IV-V": {
+      "frequency": 0.25,
+      "songs": [
+        "Johnny B. Goode",
+        "Rock Around the Clock"
+      ]
+    },
+    "I-bVII-IV": {
+      "frequency": 0.15,
+      "songs": [
+        "Sweet Home Alabama"
+      ]
+    },
+    "i-bVII-bVI-V": {
+      "frequency": 0.12,
+      "songs": [
+        "Hit the Road Jack"
+      ]
+    },
+    "I-V-vi-IV": {
+      "frequency": 0.1,
+      "songs": [
+        "With or Without You"
+      ]
+    }
+  }
+}

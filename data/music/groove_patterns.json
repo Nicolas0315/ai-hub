@@ -1,0 +1,24 @@
+{
+  "total": 1150,
+  "genres": {
+    "rock": 310,
+    "funk": 180,
+    "jazz": 175,
+    "latin": 120,
+    "afrobeat": 65,
+    "hiphop": 95,
+    "soul": 80,
+    "pop": 125
+  },
+  "tempo_range": [
+    60,
+    200
+  ],
+  "time_signatures": {
+    "4/4": 980,
+    "3/4": 85,
+    "6/8": 45,
+    "5/4": 25,
+    "7/8": 15
+  }
+}
