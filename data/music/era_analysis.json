@@ -1,0 +1,235 @@
+{
+  "baroque": {
+    "period": "1600-1750",
+    "composers": [
+      "Bach",
+      "Handel",
+      "Vivaldi",
+      "Scarlatti"
+    ],
+    "forms": [
+      "fugue",
+      "suite",
+      "concerto_grosso",
+      "chorale",
+      "passacaglia"
+    ],
+    "harmony": {
+      "system": "tonal, functional harmony emerging",
+      "common_progressions": [
+        "i-iv-V-i",
+        "I-IV-V-I",
+        "i-V-i",
+        "circle_of_fifths"
+      ],
+      "cadences": [
+        "perfect_authentic (V-I)",
+        "half (x-V)",
+        "deceptive (V-vi)",
+        "plagal (IV-I)"
+      ],
+      "modulation": "closely related keys (dominant, relative major/minor)",
+      "dissonance": "prepared suspensions (4-3, 7-6, 9-8), passing tones",
+      "basso_continuo": true
+    },
+    "melody": {
+      "range": "typically within 10th",
+      "motion": "conjunct (stepwise) preferred, leaps prepared and resolved",
+      "ornamentation": [
+        "trill",
+        "mordent",
+        "turn",
+        "appoggiatura"
+      ],
+      "sequences": "very common (melodic/harmonic sequences)",
+      "contour": "arch-shaped phrases, balanced antecedent-consequent"
+    },
+    "rhythm": {
+      "meter": [
+        "4/4",
+        "3/4",
+        "6/8",
+        "3/8",
+        "alla_breve"
+      ],
+      "motor_rhythm": true,
+      "rhythmic_variety": "moderate — steady pulse with ornamental subdivision",
+      "tempo_changes": "minimal within movement (terraced dynamics analog)",
+      "dance_rhythms": [
+        "allemande (4/4 moderate)",
+        "courante (3/4 fast)",
+        "sarabande (3/4 slow, beat 2 stress)",
+        "gigue (6/8 fast)"
+      ]
+    },
+    "texture": {
+      "primary": "polyphonic (multiple independent voices)",
+      "secondary": "homophonic in chorales",
+      "voice_count": "2-6 typical (fugues: 3-5)",
+      "imitation": "pervasive (canon, fugue, invention)"
+    },
+    "dynamics": "terraced (sudden changes, not gradual)",
+    "interval_distribution": {
+      "unison": 0.05,
+      "m2": 0.12,
+      "M2": 0.18,
+      "m3": 0.1,
+      "M3": 0.08,
+      "P4": 0.05,
+      "P5": 0.07,
+      "m6": 0.02,
+      "M6": 0.03,
+      "P8": 0.02
+    }
+  },
+  "classical": {
+    "period": "1750-1820",
+    "composers": [
+      "Mozart",
+      "Haydn",
+      "Beethoven_early",
+      "Clementi"
+    ],
+    "forms": [
+      "sonata",
+      "symphony",
+      "string_quartet",
+      "rondo",
+      "theme_and_variations"
+    ],
+    "harmony": {
+      "system": "fully tonal, functional harmony codified",
+      "common_progressions": [
+        "I-IV-V-I",
+        "I-V-vi-IV",
+        "I-ii-V-I",
+        "I-V6-I"
+      ],
+      "cadences": [
+        "perfect_authentic",
+        "half",
+        "deceptive",
+        "imperfect_authentic"
+      ],
+      "modulation": "to dominant in exposition, remote keys in development",
+      "dissonance": "appoggiaturas, chromatic passing tones, Alberti bass",
+      "pedal_points": "common in development sections"
+    },
+    "melody": {
+      "range": "wider than baroque, up to 2 octaves",
+      "motion": "balanced conjunct/disjunct, graceful leaps",
+      "ornamentation": "less than baroque, more written-out",
+      "character": "singable, balanced phrases (4+4, 8+8 bars)",
+      "periodic_structure": true
+    },
+    "rhythm": {
+      "meter": [
+        "4/4",
+        "3/4",
+        "2/4",
+        "6/8"
+      ],
+      "motor_rhythm": false,
+      "alberti_bass": true,
+      "rhythmic_variety": "high — contrasting rhythms between themes",
+      "tempo_changes": "between movements, some within (Beethoven)"
+    },
+    "texture": {
+      "primary": "homophonic (melody + accompaniment)",
+      "secondary": "polyphonic in development sections",
+      "accompaniment_patterns": [
+        "alberti_bass",
+        "broken_chords",
+        "block_chords",
+        "tremolo"
+      ]
+    },
+    "dynamics": "gradual (crescendo/diminuendo, wide range pp-ff)",
+    "sonata_form": {
+      "exposition": {
+        "theme1": "tonic",
+        "bridge": "modulating",
+        "theme2": "dominant/relative_major"
+      },
+      "development": "fragmentation, sequences, remote keys",
+      "recapitulation": {
+        "theme1": "tonic",
+        "bridge": "adjusted",
+        "theme2": "tonic"
+      },
+      "coda": "optional, affirms tonic"
+    },
+    "interval_distribution": {
+      "unison": 0.04,
+      "m2": 0.1,
+      "M2": 0.16,
+      "m3": 0.12,
+      "M3": 0.1,
+      "P4": 0.06,
+      "P5": 0.08,
+      "m6": 0.03,
+      "M6": 0.04,
+      "P8": 0.03
+    }
+  },
+  "romantic": {
+    "period": "1820-1900",
+    "composers": [
+      "Chopin",
+      "Liszt",
+      "Brahms",
+      "Wagner",
+      "Tchaikovsky"
+    ],
+    "forms": [
+      "tone_poem",
+      "character_piece",
+      "expanded_sonata",
+      "lied",
+      "opera"
+    ],
+    "harmony": {
+      "system": "expanded tonal, chromatic harmony",
+      "common_progressions": [
+        "i-VI-ii°-V",
+        "chromatic_mediant",
+        "augmented_6th"
+      ],
+      "modulation": "remote keys, enharmonic modulation, continuous",
+      "dissonance": "free use, delayed resolution, Tristan chord"
+    },
+    "melody": {
+      "range": "very wide, virtuosic",
+      "character": "long lyrical lines, emotional expression primary",
+      "rubato": true
+    },
+    "texture": {
+      "primary": "rich homophonic with complex accompaniment",
+      "orchestration": "massive expansion, new instruments"
+    },
+    "dynamics": "extreme range (pppp to ffff), long crescendi"
+  },
+  "modern": {
+    "period": "1900-present",
+    "composers": [
+      "Debussy",
+      "Stravinsky",
+      "Schoenberg",
+      "Bartók",
+      "Ravel"
+    ],
+    "harmony": {
+      "system": "modal, atonal, serial, quartal, extended",
+      "common_progressions": [
+        "parallel_chords",
+        "whole_tone",
+        "octatonic"
+      ],
+      "dissonance": "emancipated, no resolution required"
+    },
+    "rhythm": {
+      "meter": "irregular, changing, polyrhythm, polymeter",
+      "additive_rhythms": true
+    }
+  }
+}
