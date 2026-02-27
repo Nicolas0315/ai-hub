@@ -9,6 +9,7 @@ Design principle (Youta Hilono):
   Therefore: paper reference = grounding in human knowledge + embodied experience.
 """
 
+import re
 import urllib.request
 import urllib.parse
 import json
@@ -344,22 +345,30 @@ def _build_search_query_semantic(logical_structure, context):
             query += f" {logical_structure.semantic_domain}"
         return query
     
-    # 2. Fallback: extract from proposition names
+    # 2. Fallback: n-gram extraction from claim text (bypass S2 entirely)
+    #    When LLM fails, S2 output is garbage ({'p0': True}).
+    #    Instead of parsing garbage, extract content words directly from
+    #    the original claim and send to OpenAlex title search.
+    #    This guarantees S7 gets minimum viable input even without S2.
+    claim_text = getattr(logical_structure, '_source_text', '') or ''
+    if claim_text:
+        return _ngram_fallback_query(claim_text, context)
+    
+    # 3. Last resort: proposition name parsing
     query_parts = []
     if hasattr(logical_structure, 'propositions') and logical_structure.propositions:
         for prop_name in logical_structure.propositions:
             words = prop_name.replace('_', ' ').split()
-            meaningful = [w for w in words if len(w) > 2 and w not in {'the','and','for','not','exists','true','false','is'}]
+            meaningful = [w for w in words if len(w) > 2 and w not in {'the','and','for','not','exists','true','false','is','p0','p1','p2'}]
             query_parts.extend(meaningful[:2])
     
-    # 3. Add domain context
     if context and hasattr(context, 'domain'):
         domain_terms = {
             "formal_science": "mathematics",
             "natural_science": "science",
             "humanities": "philosophy",
             "social_science": "political science",
-            "arts_culture": "arts",
+            "arts_culture": "arts music",
             "information_science": "computer science",
         }
         extra = domain_terms.get(context.domain, "")
@@ -369,6 +378,76 @@ def _build_search_query_semantic(logical_structure, context):
     seen = set()
     unique = [p for p in query_parts if p.lower() not in seen and not seen.add(p.lower())]
     return " ".join(unique[:8])
+
+
+def _ngram_fallback_query(claim_text, context=None):
+    """Extract searchable n-grams directly from claim text.
+    
+    Bypasses S2 entirely. Used when LLM extraction fails.
+    Handles both English and Japanese (CJK) text.
+    """
+    stops_en = {'the','a','an','is','are','was','were','be','been','being',
+                'not','and','or','of','in','to','for','that','this','it',
+                'by','on','with','has','have','had','do','does','did',
+                'can','cannot','could','would','should','may','might',
+                'which','what','who','how','why','where','when',
+                'said','between','about','from','into','through'}
+    
+    # CJK detection
+    has_cjk = any('一' <= c <= '鿿' or '぀' <= c <= 'ヿ' for c in claim_text)
+    
+    if has_cjk:
+        # Split on Japanese particles
+        parts = re.split('[のはとをにでがもへ]', claim_text)
+        terms = [p.strip() for p in parts if len(p.strip()) > 0]
+        ascii_terms = [w for w in re.findall(r'[a-zA-Z]+', claim_text) if len(w) > 2]
+        terms = terms + ascii_terms
+        ascii_terms = [w for w in re.findall(r'[a-zA-Z]+', claim_text) if len(w) > 2]
+        terms = terms + ascii_terms
+    else:
+        words = [w.strip(',.;:?!\'\"()') for w in claim_text.lower().split()]
+        terms = [w for w in words if w not in stops_en and len(w) > 2]
+    
+    # Add domain hint
+    if context and hasattr(context, 'domain') and hasattr(context, 'subdomain'):
+        domain_hints = {
+            'formal_science': 'mathematics',
+            'natural_science': 'science',
+            'humanities': 'philosophy',
+            'social_science': 'politics',
+            'arts_culture': 'arts music',
+        }
+        hint = domain_hints.get(context.domain, '')
+        if hint:
+            terms.append(hint)
+    
+    # For CJK terms: OpenAlex indexes English titles primarily.
+    # Translate key concepts to English equivalents.
+    if has_cjk:
+        cjk_to_en = {
+            '短二度': 'minor second', '音程': 'interval', 'コードトーン': 'chord tone',
+            '不協和': 'dissonance', '協和': 'consonance', '和声': 'harmony',
+            '対位法': 'counterpoint', '音楽': 'music', '旋律': 'melody',
+            '台湾': 'Taiwan', '独立': 'independence', '主権': 'sovereignty',
+            '国家': 'state nation', '意識': 'consciousness', '計算': 'computation',
+        }
+        en_terms = []
+        for t in terms:
+            # Try exact match first
+            if t in cjk_to_en:
+                en_terms.append(cjk_to_en[t])
+            else:
+                # Try substring match
+                matched = False
+                for cjk, en in cjk_to_en.items():
+                    if cjk in t:
+                        en_terms.append(en)
+                        matched = True
+                if not matched and len(t) > 1:
+                    en_terms.append(t)  # keep as-is (might be a name)
+        terms = en_terms if en_terms else terms
+    
+    return ' '.join(terms[:8])
 
 
 def fetch_papers_semantic(logical_structure, claim_text, contexts, 
