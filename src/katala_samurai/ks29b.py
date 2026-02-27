@@ -286,8 +286,12 @@ def resolve_contexts(claim_text, evidence=None, max_contexts=5):
             hits = 0
             for kw in info["keywords"]:
                 kw_lower = kw.lower()
-                # For short keywords (<=3 chars), require word boundaries
-                if len(kw_lower) <= 3:
+                # Unicode math symbols: direct substring match (∈, ∉, ⟺, etc.)
+                if any(ord(c) > 127 for c in kw_lower):
+                    if kw_lower in lower:
+                        hits += 1
+                # For short ASCII keywords (<=3 chars), require word boundaries
+                elif len(kw_lower) <= 3:
                     if _re.search(r'\b' + _re.escape(kw_lower) + r'\b', lower):
                         hits += 1
                 else:

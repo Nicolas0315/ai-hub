@@ -77,7 +77,24 @@ def _build_search_query(claim_text, context):
              "was", "be", "explain", "why", "how", "what", "which", "does",
              "said", "between", "concisely", "please"}
     words = [w.strip(",.;:?!()\"'") for w in claim_text.lower().split()]
-    content_words = [w for w in words if w not in stops and len(w) > 2][:6]
+    content_words = [w for w in words if w not in stops and len(w) > 2
+                     and all(ord(c) < 128 for c in w)][:6]
+    
+    # For formal expressions with math symbols, add concept keywords
+    math_concepts = {
+        "∈": "membership", "∉": "non-membership", "⟺": "biconditional",
+        "∀": "universal quantifier", "∃": "existential",
+        "→": "implication", "¬": "negation",
+    }
+    for sym, concept in math_concepts.items():
+        if sym in claim_text and concept not in " ".join(content_words):
+            content_words.append(concept)
+    
+    # Detect well-known mathematical structures
+    if "∉ x" in claim_text and "∈" in claim_text:
+        content_words.extend(["Russell", "paradox"])
+    if content_words == [] or all(len(w) <= 2 for w in content_words):
+        content_words = ["formal", "logic", "paradox"]
     
     # Add domain context
     domain_terms = {
