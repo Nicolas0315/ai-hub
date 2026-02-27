@@ -315,6 +315,180 @@ def resolve_contexts(claim_text, evidence=None, max_contexts=5):
     return unique[:max_contexts]
 
 
+# ═══════════════════════════════════════════════════════════════════════════
+# Counterpoint Generation — 反対意見・異なる視点の複数提示
+# ═══════════════════════════════════════════════════════════════════════════
+
+class Counterpoint:
+    """A counterargument or alternative perspective on a claim."""
+    def __init__(self, perspective, argument, domain=None, strength=0.5,
+                 source_tradition=None):
+        self.perspective = perspective      # e.g. "constructivist", "empiricist"
+        self.argument = argument            # the actual counter-argument text
+        self.domain = domain                # academic domain this comes from
+        self.strength = strength            # 0.0-1.0 how strong this counter is
+        self.source_tradition = source_tradition  # intellectual tradition
+
+    def __repr__(self):
+        return f"[{self.perspective}] ({self.strength:.1f}) {self.argument[:60]}..."
+
+
+# Counter-argument templates by domain and claim pattern
+_COUNTER_TEMPLATES = {
+    "formal_science": {
+        "axiom_dependence": {
+            "perspective": "Axiom-relative",
+            "template": "This claim's truth value depends on the axiom system. In {alt_system}, the result differs.",
+            "strength": 0.8,
+            "tradition": "Mathematical pluralism",
+        },
+        "incompleteness": {
+            "perspective": "Gödelian",
+            "template": "By Gödel's incompleteness theorems, no sufficiently powerful formal system can prove all true statements within itself. This claim may be undecidable in certain systems.",
+            "strength": 0.6,
+            "tradition": "Foundations of mathematics",
+        },
+        "constructivist": {
+            "perspective": "Constructivist",
+            "template": "A constructivist rejects non-constructive proofs. This claim requires demonstrating an explicit witness/construction, not merely proving non-contradiction.",
+            "strength": 0.5,
+            "tradition": "Brouwer / Intuitionism",
+        },
+    },
+    "natural_science": {
+        "falsifiability": {
+            "perspective": "Popperian",
+            "template": "Is this claim falsifiable? If no conceivable observation could disprove it, it lies outside empirical science.",
+            "strength": 0.7,
+            "tradition": "Critical rationalism (Popper)",
+        },
+        "paradigm_shift": {
+            "perspective": "Kuhnian",
+            "template": "Current scientific consensus supports this, but paradigm shifts have overturned 'established facts' before. The claim is true within the current paradigm.",
+            "strength": 0.4,
+            "tradition": "Philosophy of science (Kuhn)",
+        },
+        "measurement": {
+            "perspective": "Operationalist",
+            "template": "The truth of this claim depends on how we measure/define the terms. Different measurement frameworks may yield different conclusions.",
+            "strength": 0.5,
+            "tradition": "Operationalism (Bridgman)",
+        },
+    },
+    "humanities": {
+        "temporal": {
+            "perspective": "Temporal",
+            "template": "This claim's truth value depends on the time frame. {subject} existed historically but does not exist presently in physical form.",
+            "strength": 0.7,
+            "tradition": "Analytic philosophy of time",
+        },
+        "phenomenological": {
+            "perspective": "Phenomenological",
+            "template": "From Husserl's perspective, 'existence' requires intentional consciousness directed at the object. Existence-claims require specifying the mode of being.",
+            "strength": 0.5,
+            "tradition": "Phenomenology (Husserl/Heidegger)",
+        },
+        "linguistic": {
+            "perspective": "Linguistic-analytic",
+            "template": "The predicate 'exists' is not a real predicate (Kant). Saying '{subject} exists' adds nothing to the concept of {subject}.",
+            "strength": 0.6,
+            "tradition": "Kantian critique / Analytic philosophy",
+        },
+    },
+    "social_science": {
+        "perspectival": {
+            "perspective": "Perspectival",
+            "template": "This claim reflects one political/cultural perspective. Alternative frameworks (e.g., {alt_framework}) evaluate differently.",
+            "strength": 0.6,
+            "tradition": "Political philosophy",
+        },
+        "power_analysis": {
+            "perspective": "Critical theory",
+            "template": "Who benefits from this claim being accepted as true? Power structures shape which claims are legitimized.",
+            "strength": 0.5,
+            "tradition": "Frankfurt School / Foucault",
+        },
+    },
+}
+
+
+def generate_counterpoints(claim_text, contexts, logic_structure, max_per_context=2):
+    """Generate counterarguments and alternative perspectives for a claim.
+    
+    Uses detected contexts + logical structure to produce relevant counters.
+    
+    TODO: Replace template matching with LLM-based generation when API connected.
+    LLM prompt: "Given claim '{text}' evaluated in context {ctx},
+    generate the strongest counterargument and an alternative perspective
+    from a different intellectual tradition."
+    """
+    lower = claim_text.lower()
+    counterpoints = []
+    seen_perspectives = set()
+    
+    for ctx in contexts:
+        domain = ctx.domain
+        templates = _COUNTER_TEMPLATES.get(domain, {})
+        
+        added = 0
+        for key, tmpl in templates.items():
+            if added >= max_per_context:
+                break
+            if tmpl["perspective"] in seen_perspectives:
+                continue
+            
+            # Customize template based on claim content
+            argument = tmpl["template"]
+            
+            if domain == "formal_science":
+                if key == "axiom_dependence" and ctx.axiom_system:
+                    alt = "GF(2)" if ctx.axiom_system == "Peano" else "Peano arithmetic"
+                    argument = argument.format(alt_system=alt)
+                elif key == "axiom_dependence":
+                    continue  # skip if no axiom system to contrast
+                    
+            elif domain == "humanities":
+                # Extract subject for templates
+                words = [w for w in claim_text.split() if w[0].isupper() and len(w) > 2]
+                subject = words[0] if words else "the subject"
+                argument = argument.replace("{subject}", subject)
+                
+            elif domain == "social_science":
+                if "{alt_framework}" in argument:
+                    argument = argument.format(alt_framework="realism, liberalism, constructivism")
+            
+            # Adjust strength based on logical structure
+            strength = tmpl["strength"]
+            if logic_structure.is_paradox and key == "incompleteness":
+                strength = min(1.0, strength + 0.3)  # paradox = strong Gödelian counter
+            if not logic_structure.formal_expr and key == "constructivist":
+                strength = min(1.0, strength + 0.1)  # informal = constructivist concern
+            
+            cp = Counterpoint(
+                perspective=tmpl["perspective"],
+                argument=argument,
+                domain=f"{ctx.domain}/{ctx.subdomain}",
+                strength=round(strength, 2),
+                source_tradition=tmpl["tradition"],
+            )
+            counterpoints.append(cp)
+            seen_perspectives.add(tmpl["perspective"])
+            added += 1
+    
+    # Always add a meta-epistemic counter if none generated
+    if not counterpoints:
+        counterpoints.append(Counterpoint(
+            perspective="Meta-epistemic",
+            argument="The confidence in this claim should be proportional to the quality and quantity of evidence. Current evidence level: " + 
+                     ("supported" if logic_structure.confidence > 0.5 else "insufficient"),
+            domain="epistemology",
+            strength=0.3,
+            source_tradition="Bayesian epistemology",
+        ))
+    
+    return sorted(counterpoints, key=lambda x: -x.strength)
+
+
 def _llm_parse_logic(text, llm_pipeline):
     """LLM-based logical structure extraction.
 
@@ -349,6 +523,9 @@ class Claim:
 
         # ── Context resolution: which academic domains fit this claim?
         self.contexts = resolve_contexts(text, self.evidence)
+
+        # ── Counterpoint generation: opposing views & alternative perspectives
+        self.counterpoints = generate_counterpoints(text, self.contexts, self.logic)
 
         # Backward compat: propositions from logic structure
         self.propositions = self.logic.propositions
@@ -1082,6 +1259,17 @@ class LLMPipeline:
                 ctx_eval["suggestion"] = ctx.recontextualized_claim
             context_evaluations.append(ctx_eval)
 
+        # Counterpoints
+        counter_list = []
+        for cp in getattr(claim, 'counterpoints', []):
+            counter_list.append({
+                "perspective": cp.perspective,
+                "argument": cp.argument,
+                "domain": cp.domain,
+                "strength": cp.strength,
+                "tradition": cp.source_tradition,
+            })
+
         return {
             "llm": self.llm_name,
             "region": self.profile["region"],
@@ -1092,6 +1280,7 @@ class LLMPipeline:
             "pipeline_score": round(score, 4),
             "biases": self.profile["known_biases"],
             "contexts": context_evaluations,
+            "counterpoints": counter_list,
             "elapsed": round(time.time() - t0, 4),
         }
 
