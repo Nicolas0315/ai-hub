@@ -557,7 +557,8 @@ def s20_cross_ratio(claim):
 # Solver Registry
 # ═══════════════════════════════════════════════════════════════════════════
 
-SOLVERS_21 = [
+# Full 21 solvers (including non-discriminating ones for future fix)
+SOLVERS_21_FULL = [
     ("S01_Z3_SMT",              "形式論理",     s01_z3_smt),
     ("S02_SAT_Glucose3",        "形式論理",     s02_sat_glucose),
     ("S03_SymPy",               "形式論理",     s03_sympy),
@@ -577,6 +578,19 @@ SOLVERS_21 = [
     ("S16_PrimeDistribution",   "数論",         s16_prime_distribution),
     ("S17_LatticeOrder",        "順序理論",     s17_lattice_partial_order),
     ("S18_KolmogorovAxioms",    "確率論",       s18_kolmogorov_axioms),
+    ("S19_CategoryFunctor",     "圏論",         s19_category_functor),
+    ("S20_CrossRatio",          "射影幾何",     s20_cross_ratio),
+]
+
+# Active solvers — only the 8 that actually discriminate between claims
+# The other 13 are FLAT (always True or always False) and parked until fixed
+SOLVERS_21 = [
+    ("S05_ShannonEntropy",      "情報幾何",     s05_shannon_entropy),
+    ("S12_MinkowskiCausal",     "因果構造",     s12_minkowski_causal),
+    ("S13_RamseyPigeonhole",    "組合せ論",     s13_ramsey_pigeonhole),
+    ("S15_GraphConnectivity",   "グラフ理論",   s15_graph_connectivity),
+    ("S16_PrimeDistribution",   "数論",         s16_prime_distribution),
+    ("S17_LatticeOrder",        "順序理論",     s17_lattice_partial_order),
     ("S19_CategoryFunctor",     "圏論",         s19_category_functor),
     ("S20_CrossRatio",          "射影幾何",     s20_cross_ratio),
 ]
@@ -739,7 +753,7 @@ class LLMPipeline:
             "region": self.profile["region"],
             "provider": self.profile["provider"],
             "solver_results": results,
-            "passed": f"{passed}/21",
+            "passed": f"{passed}/{len(SOLVERS_21)}",
             "pass_rate": round(rate, 4),
             "pipeline_score": round(score, 4),
             "biases": self.profile["known_biases"],
