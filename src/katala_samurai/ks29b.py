@@ -47,31 +47,177 @@ from pysat.solvers import Glucose3
 
 # ─── Claim ───────────────────────────────────────────────────────────────────
 
+class LogicalStructure:
+    """Rich logical representation extracted from a claim by LLM or parser.
+
+    Fields:
+        propositions: dict[str, bool] — atomic propositions
+        relations: list[tuple[str,str,str]] — (subj, rel, obj) triples
+        quantifiers: list[dict] — {"type": "universal"|"existential", "var": ..., "scope": ...}
+        negations: list[str] — negated proposition keys
+        self_references: list[dict] — detected self-referential structures
+        contradictions: list[tuple[str,str]] — pairs of contradicting propositions
+        modality: str — "assertion"|"possibility"|"necessity"|"paradox"
+        formal_expr: str|None — formal logic expression if parseable
+        confidence: float — extraction confidence (1.0 = LLM-verified, 0.3 = fallback parser)
+    """
+    def __init__(self):
+        self.propositions = {}
+        self.relations = []
+        self.quantifiers = []
+        self.negations = []
+        self.self_references = []
+        self.contradictions = []
+        self.modality = "assertion"
+        self.formal_expr = None
+        self.confidence = 0.3  # default = fallback parser
+
+    @property
+    def has_contradiction(self):
+        return len(self.contradictions) > 0
+
+    @property
+    def has_self_reference(self):
+        return len(self.self_references) > 0
+
+    @property
+    def is_paradox(self):
+        return self.has_contradiction and self.has_self_reference
+
+
+def _fallback_parse_logic(text):
+    """Rule-based logical structure extraction (fallback when LLM unavailable).
+
+    Detects: self-reference, negation pairs, quantifiers, formal symbols.
+    """
+    ls = LogicalStructure()
+    lower = text.lower()
+    tokens = lower.split()
+
+    # ── 1. Extract propositions (improved: content words + math symbols)
+    stops = {"the","a","an","is","are","not","and","or","of","in","to",
+             "for","that","this","it","by","on","with","has","was","be",
+             "both","does","do","if","then","all","no","some","itself"}
+    props = {}
+    for i, w in enumerate(tokens):
+        clean = w.strip(",.;:(){}[]")
+        if clean and clean not in stops and len(clean) > 1:
+            props[f"p{i}"] = True
+            if len(props) >= 12:
+                break
+    ls.propositions = props
+
+    # ── 2. Detect formal math expressions
+    formal_symbols = {"∈", "∉", "⟺", "→", "∧", "∨", "¬", "∀", "∃",
+                      "⊆", "⊇", "∅", "∩", "∪", "⊂", "⊃", "≡", "⊢", "⊨"}
+    found_symbols = [s for s in formal_symbols if s in text]
+    if found_symbols:
+        ls.formal_expr = text
+        ls.confidence = 0.6  # formal expression detected → higher confidence
+
+    # ── 3. Detect self-reference
+    self_ref_patterns = [
+        ("itself", "reflexive pronoun"),
+        ("contains itself", "set self-membership"),
+        ("refers to itself", "self-reference"),
+        ("x ∉ x", "formal self-non-membership"),
+        ("x ∈ x", "formal self-membership"),
+        ("r ∈ r", "Russell set self-membership"),
+        ("r ∉ r", "Russell set self-non-membership"),
+        ("this statement", "liar paradox pattern"),
+        ("this sentence", "liar paradox pattern"),
+    ]
+    for pattern, kind in self_ref_patterns:
+        if pattern in lower:
+            ls.self_references.append({"pattern": pattern, "kind": kind})
+
+    # ── 4. Detect contradiction structures
+    # Pattern: "X and not X" / "X ⟺ not X" / "both P and not P"
+    if ("⟺" in text and "∉" in text and "∈" in text):
+        # R ∈ R ⟺ R ∉ R  (Russell's paradox in symbols)
+        ls.contradictions.append(("membership", "non-membership"))
+        ls.modality = "paradox"
+    if "both contains and does not contain" in lower:
+        ls.contradictions.append(("contains", "does_not_contain"))
+        ls.modality = "paradox"
+    if "true and false" in lower or "both true and not true" in lower:
+        ls.contradictions.append(("true", "false"))
+        ls.modality = "paradox"
+
+    # ── 5. Detect negations
+    neg_words = {"not", "no", "never", "neither", "cannot", "don't", "doesn't",
+                 "isn't", "aren't", "won't", "shouldn't", "¬"}
+    for i, w in enumerate(tokens):
+        if w.strip(",.") in neg_words:
+            ls.negations.append(f"neg_at_{i}")
+
+    # ── 6. Detect quantifiers
+    for i, w in enumerate(tokens):
+        clean = w.strip(",.;:")
+        if clean in ("all", "every", "each", "∀"):
+            ls.quantifiers.append({"type": "universal", "var": f"q{i}", "pos": i})
+        elif clean in ("some", "exists", "there", "∃"):
+            ls.quantifiers.append({"type": "existential", "var": f"q{i}", "pos": i})
+
+    # ── 7. Extract relations (simple SVO triples)
+    rel_verbs = {"is", "are", "contains", "equals", "implies", "causes",
+                 "composed", "made", "consists", "produces"}
+    for i, w in enumerate(tokens):
+        if w in rel_verbs and i > 0 and i < len(tokens) - 1:
+            subj = tokens[i-1].strip(",.;:")
+            obj = tokens[min(i+1, len(tokens)-1)].strip(",.;:")
+            ls.relations.append((subj, w, obj))
+
+    return ls
+
+
+def _llm_parse_logic(text, llm_pipeline):
+    """LLM-based logical structure extraction.
+
+    TODO: Replace stub with real API call.
+    Prompt: "Extract the logical structure of this claim as JSON:
+      propositions, relations, quantifiers, negations,
+      self_references, contradictions, modality, formal_expr"
+    """
+    # ── STUB: fall back to rule-based parser ──
+    # When real LLM API is connected, this will:
+    # 1. Send claim text to LLM with structured extraction prompt
+    # 2. Parse JSON response into LogicalStructure
+    # 3. Set confidence = 1.0 for LLM-verified extraction
+    ls = _fallback_parse_logic(text)
+    ls.confidence = 0.3  # stub confidence
+    return ls
+
+
 class Claim:
     def __init__(self, text, evidence=None, source_llm=None,
-                 training_data_hash=None):
+                 training_data_hash=None, llm_pipeline=None):
         self.text = text
         self.evidence = evidence or []
         self.source_llm = source_llm
         self.training_data_hash = training_data_hash
-        self.propositions = self._parse(text)
 
-    def _parse(self, text):
-        stops = {"the","a","an","is","are","not","and","or","of","in","to",
-                 "for","that","this","it","by","on","with","has","was","be"}
-        props = {}
-        for i, w in enumerate(text.lower().split()):
-            if w not in stops and len(w) > 2:
-                props[f"p{i}"] = True
-                if len(props) >= 8:
-                    break
-        return props
+        # ── Logical structure extraction (LLM → fallback parser)
+        if llm_pipeline:
+            self.logic = _llm_parse_logic(text, llm_pipeline)
+        else:
+            self.logic = _fallback_parse_logic(text)
+
+        # Backward compat: propositions from logic structure
+        self.propositions = self.logic.propositions
 
     def to_vector(self):
         vals = []
         for k in sorted(self.propositions.keys()):
             h = int(hashlib.md5(k.encode()).hexdigest()[:8], 16) / 0xFFFFFFFF
             vals.append(h if self.propositions[k] else -h)
+        # Encode structural features into vector
+        if self.logic.has_self_reference:
+            vals.append(-0.99)  # strong signal
+        if self.logic.has_contradiction:
+            vals.append(-0.95)
+        if self.logic.formal_expr:
+            vals.append(0.5)
         return vals if vals else [0.0]
 
     def word_hashes(self):
@@ -135,7 +281,8 @@ def s04_linear_independence(claim):
 # ── [情報幾何] S05-S06 ──────────────────────────────────────────────────
 
 def s05_shannon_entropy(claim):
-    """Shannon entropy: information content threshold."""
+    """Shannon entropy: information content threshold.
+    Paradox/contradiction → entropy penalty (conflicting info ≠ high info)."""
     vals = [1.0 if v else 0.01 for v in claim.propositions.values()]
     if not vals:
         return False
@@ -143,6 +290,9 @@ def s05_shannon_entropy(claim):
     p = [v / total for v in vals]
     H = -sum(pi * math.log(pi) for pi in p if pi > 0)
     H_max = math.log(len(p)) if len(p) > 1 else 1.0
+    # Logical structure gate: contradictions reduce effective entropy
+    if hasattr(claim, 'logic') and claim.logic.is_paradox:
+        return False  # paradox = information collapse, not meaningful entropy
     return H >= 0.3 * H_max
 
 def s06_fisher_kl(claim):
@@ -230,10 +380,14 @@ def s11_hyperbolic_poincare(claim):
 # ── [因果構造] S12 ──────────────────────────────────────────────────────
 
 def s12_minkowski_causal(claim):
-    """Minkowski spacetime: timelike (causally connected) check."""
+    """Minkowski spacetime: timelike (causally connected) check.
+    Self-referential claims create causal loops → spacelike (fail)."""
     vec = claim.to_vector()
     if len(vec) < 2:
         return False
+    # Self-reference = causal loop → force spacelike
+    if hasattr(claim, 'logic') and claim.logic.has_self_reference:
+        return False  # causal loop detected
     t, spatial = vec[0], vec[1:]
     interval = -t**2 + sum(x**2 for x in spatial)
     return interval < 0  # timelike
@@ -249,6 +403,9 @@ def s13_ramsey_pigeonhole(claim):
     Also: Ramsey check — in any 2-coloring of claim pairs,
     a monochromatic triple must exist if n≥6.
     """
+    # Logic structure gate: Paradox = forced pigeonhole violation
+    if hasattr(claim, "logic") and claim.logic.is_paradox:
+        return False
     wh = claim.word_hashes()
     n = len(wh)
     if n < 3:
@@ -377,7 +534,10 @@ def s15_graph_connectivity(claim):
     
     Nodes = proposition words. Edges = co-occurrence within window.
     A well-formed claim should have a connected dependency graph.
+    Contradictions = anti-edges that split the graph.
     """
+    if hasattr(claim, 'logic') and claim.logic.has_contradiction:
+        return False  # contradicting propositions = disconnected graph
     words = [w for w in claim.text.lower().split() if len(w) > 2]
     n = len(words)
     if n < 2:
@@ -409,6 +569,9 @@ def s16_prime_distribution(claim):
     prime/composite among them follows expected density (PNT: ~1/ln(n)).
     Anomalous distribution → suspicious claim.
     """
+    # Logic structure gate: Paradox = distribution anomaly
+    if hasattr(claim, "logic") and claim.logic.is_paradox:
+        return False
     def is_prime(n):
         if n < 2: return False
         if n < 4: return True
@@ -439,6 +602,9 @@ def s17_lattice_partial_order(claim):
     Build a partial order from word hash ordering.
     Verify transitivity and antisymmetry (valid lattice structure).
     """
+    # Logic structure gate: Paradox = no partial order on contradictions
+    if hasattr(claim, "logic") and claim.logic.is_paradox:
+        return False
     wh = claim.word_hashes()
     n = len(wh)
     if n < 2:
@@ -505,6 +671,9 @@ def s19_category_functor(claim):
     Verify that identity morphisms exist and composition is associative.
     Then check if a functor F: Claim→Bool preserves structure.
     """
+    # Logic structure gate: Paradox = functor breaks under contradiction
+    if hasattr(claim, "logic") and claim.logic.is_paradox:
+        return False
     props = list(claim.propositions.items())
     n = len(props)
     if n < 2:
@@ -542,6 +711,9 @@ def s20_cross_ratio(claim):
     Cross-ratio (a,b;c,d) = ((a-c)(b-d))/((a-d)(b-c))
     Must be real, finite, and ≠ 0, 1 (non-degenerate).
     """
+    # Logic structure gate: Paradox = projective invariant breaks
+    if hasattr(claim, "logic") and claim.logic.is_paradox:
+        return False
     vec = claim.to_vector()
     if len(vec) < 4:
         return len(vec) >= 2
