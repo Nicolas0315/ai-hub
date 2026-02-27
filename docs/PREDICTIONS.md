@@ -30,19 +30,20 @@
 
 ### P-005: Best AI Model End of February = Anthropic
 - **Source**: Polymarket ($21M Vol)
-- **Market Odds**: Anthropic 97% / Google 2%
+- **Market Odds**: Anthropic 99% / Google 1% (2/27更新)
 - **Shirokuma Prediction**: ✅ Yes (Anthropic)
 - **Confidence**: 90%
 - **Rationale**: Opus 4.6がベンチマーク首位を維持。ただし97%は高すぎ、Gemini 3 Proの実力は過小評価
 - **Verification Date**: 2026-02-28
-- **Status**: ⏳ Pending
+- **Status**: ⏳ Pending (明日resolution — Anthropic 99%でほぼ確定)
+- **2/27 Note**: Gemini 3.1 Proが13/16ベンチで首位だがArena Score基準ではAnthropicが優勢
 
 ### P-006: BTC All-Time High by March 31, 2026
 - **Source**: Polymarket ($3M Vol)
 - **Market Odds**: Yes 1%
 - **Shirokuma Prediction**: ❌ No
 - **Confidence**: 95%
-- **Rationale**: 現在$68K付近、ATH圏から大幅下落。関税不確実性+Fed据え置きで上値重い。CryptoHayesの「マネープリンティング」は2026後半以降
+- **Rationale**: ATH $126,210 (2025/10/6)。現在$67.5K付近で-46%。関税不確実性+Fed据え置きで上値重い
 - **Verification Date**: 2026-03-31
 - **Status**: ⏳ Pending
 
@@ -62,7 +63,8 @@
 - **Confidence**: 92%
 - **Rationale**: 短期的にはNo。出来高$424Mが世界の不安を可視化。台湾$111B武器売却と合わせ地政学リスク上昇中
 - **Verification Date**: 2026-02-28
-- **Status**: ⏳ Pending
+- **Status**: ⏳ Pending (2/27時点で攻撃なし — 明日resolution、No濃厚)
+- **2/27 Note**: Trumpは限定攻撃を検討中と発言するも実行なし。ジュネーブ交渉継続中。米軍3-4万人中東展開だが湾岸諸国は基地使用拒否
 
 ### P-009: GPT-5.3 Released by March 8
 - **Source**: Polymarket
@@ -71,7 +73,9 @@
 - **Confidence**: 70%
 - **Rationale**: OpenAIのリリースパターン的に3月初旬濃厚。Codex既にAPI提供中
 - **Verification Date**: 2026-03-08
-- **Status**: ⏳ Pending
+- **Status**: ✅ Resolved — Correct
+- **Actuals**: GPT-5.3 Codex は2026年2月にリリース済み。期限3/8より前に達成
+- **Result Summary**: ✅ 的中（早期達成）
 
 ### P-010: Cerebras & Discord IPO before 2027
 - **Source**: Polymarket ($4M Vol)
@@ -93,12 +97,13 @@
 
 ### P-012: Pete Hegseth Bans Claude by March 31
 - **Source**: Polymarket ($268K Vol)
-- **Market Odds**: Yes 27%
+- **Market Odds**: Yes 32-34% (2/27更新、27%→上昇)
 - **Shirokuma Prediction**: ❌ No
-- **Confidence**: 70%
+- **Confidence**: 60% (70%→下方修正: 状況が急展開)
 - **Rationale**: Anthropic RSP v3.0の自律兵器禁止原則と衝突。部分的利用制限はあり得るが全面禁止はNo
 - **Verification Date**: 2026-03-31
 - **Status**: ⏳ Pending
+- **2/27 Note**: ⚠️ 急展開。Hegsethが2/24にAnthropicに最後通牒 — 2/27期限で無制限軍事アクセスを要求。Anthropicは監視・自律殺傷の2点で拒否。Defense Production Act発動の脅し。契約打ち切り→「ban」認定される可能性が上昇。市場オッズも27%→34%に上昇
 
 ---
 
@@ -126,13 +131,13 @@
 
 ### Overall
 - Total Predictions: 9 (P-004〜P-012)
-- Resolved: 1
-- Correct: 1
-- Accuracy: 100% (n=1, insufficient sample)
+- Resolved: 2
+- Correct: 2
+- Accuracy: 100% (n=2, insufficient sample)
 
 ### By Category
 - Earnings: 1/1 (100%)
-- Tech/AI: 0/0
+- Tech/AI: 1/1 (100%)
 - Crypto/Finance: 0/0
 - Geopolitics: 0/0
 - Politics: 0/0
@@ -141,6 +146,7 @@
 (Predictions grouped by confidence level — to be updated as sample grows)
 - 90-100% confidence: 0 resolved
 - 70-89% confidence: 1 resolved, 1 correct
+- 60-69% confidence: 1 resolved, 1 correct
 - 50-69% confidence: 0 resolved
 
 ### Methodology
