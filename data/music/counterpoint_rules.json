@@ -1,0 +1,193 @@
+{
+  "meta": {
+    "source": "Fux 'Gradus ad Parnassum' (1725) + Bach practice",
+    "scope": "Species counterpoint (strict) + Free counterpoint (fugal)"
+  },
+  "species": {
+    "first": {
+      "ratio": "1:1 (whole note against whole note)",
+      "rules": {
+        "all_consonant": true,
+        "consonances": [
+          "P1",
+          "m3",
+          "M3",
+          "P5",
+          "m6",
+          "M6",
+          "P8"
+        ],
+        "start_end": "P1 or P8",
+        "prefer": "contrary and oblique motion",
+        "avoid": "similar motion to perfect consonance",
+        "parallel_P5_P8": "FORBIDDEN",
+        "same_interval_limit": 3
+      }
+    },
+    "second": {
+      "ratio": "2:1 (two half notes per whole note)",
+      "rules": {
+        "downbeat": "must be consonant",
+        "offbeat": "dissonant only if approached AND left by step (passing tone)",
+        "successive_downbeat_P5": "allowed only if intervening note leaps > 3rd"
+      }
+    },
+    "third": {
+      "ratio": "4:1 (four quarter notes per whole note)",
+      "rules": {
+        "first_quarter": "must be consonant",
+        "other_quarters": "stepwise passing tones between consonances",
+        "cambiata": "allowed (e.g., 8-7-5-6 above)"
+      }
+    },
+    "fourth": {
+      "ratio": "syncopation (suspensions)",
+      "rules": {
+        "preparation": "consonant note tied over barline",
+        "suspension": "dissonant on downbeat (held note)",
+        "resolution": "step DOWN to consonance",
+        "common_suspensions": {
+          "above": [
+            "7-6",
+            "4-3",
+            "9-8"
+          ],
+          "below": [
+            "2-3",
+            "9-10"
+          ]
+        },
+        "max_consecutive": 3,
+        "chain_suspension": "4-3 resolved becomes preparation for next"
+      }
+    },
+    "fifth": {
+      "ratio": "florid (mixed rhythms from species 1-4)",
+      "rules": {
+        "mix_rhythms": true,
+        "avoid_prolonged_same_value": true,
+        "leaps": "max P5, rare P8 or m6 ascending",
+        "dissonances": "per species 2-4 rules"
+      }
+    }
+  },
+  "melodic_rules": {
+    "forbidden_leaps": [
+      "augmented_4th",
+      "7th_any",
+      "intervals_gt_octave",
+      "descending_6th",
+      "ascending_M6"
+    ],
+    "leap_recovery": "after large leap (>P4), step back in opposite direction",
+    "no_exposed_tritone": "unidirectional run must not outline tritone",
+    "no_repeated_notes": "in strict counterpoint (exceptions in species 1)",
+    "range": "each voice within octave, preferably 6th-7th for invertibility",
+    "climax": "single high point per phrase, not repeated"
+  },
+  "harmonic_intervals": {
+    "perfect_consonance": {
+      "P1": 0,
+      "P5": 7,
+      "P8": 12
+    },
+    "imperfect_consonance": {
+      "m3": 3,
+      "M3": 4,
+      "m6": 8,
+      "M6": 9
+    },
+    "dissonance": {
+      "m2": 1,
+      "M2": 2,
+      "P4": 5,
+      "A4/d5": 6,
+      "m7": 10,
+      "M7": 11
+    },
+    "rules": {
+      "perfect_to_perfect": "only by contrary or oblique motion",
+      "imperfect_to_perfect": "only by contrary or oblique motion",
+      "imperfect_to_imperfect": "parallel OK (3rds, 6ths) up to 3-4 consecutive",
+      "begin_and_end": "perfect consonance (P1, P5, P8)"
+    }
+  },
+  "invertible_counterpoint": {
+    "at_octave": {
+      "description": "voices swap at P8 — most common in Bach",
+      "interval_inversion": {
+        "P1→P8": "safe",
+        "m3→M6": "safe",
+        "M3→m6": "safe",
+        "P5→P4": "AVOID (P4 dissonant in 2-voice)",
+        "m6→M3": "safe",
+        "M6→m3": "safe",
+        "P8→P1": "safe"
+      },
+      "practical": "use 3rds and 6ths primarily; avoid P5 between subject+CS"
+    },
+    "at_tenth": {
+      "description": "voices swap at 10th",
+      "note": "3→8 (safe), 6→5 (risky), 10→1 (safe)"
+    },
+    "at_twelfth": {
+      "description": "voices swap at 12th (compound P5)",
+      "note": "5→8 (safe), differs from octave inversion"
+    }
+  },
+  "fugue_specific": {
+    "subject": {
+      "length": "2-4 bars typical",
+      "tonal_outline": "emphasize tonic and dominant",
+      "range": "within octave preferred (aids invertibility)",
+      "rhythmic_profile": "distinctive, recognizable head motif",
+      "ending": "on tonic or dominant (determines real vs tonal answer)"
+    },
+    "answer": {
+      "real": "exact P5 transposition (when subject stays near tonic)",
+      "tonal": "adjusted: tonic↔dominant mutation at head/tail",
+      "rule": "if subject emphasizes I→V, answer must V→I (tonal)"
+    },
+    "countersubject": {
+      "invertible": "MUST work above AND below subject (double CP at 8ve)",
+      "rhythmic": "complementary to subject (fill gaps)",
+      "melodic": "contrary motion preferred when subject ascends",
+      "intervals_with_subject": "3rds and 6ths primary; NO P5s (break at inversion)"
+    },
+    "episode": {
+      "material": "derived from subject/CS fragments",
+      "techniques": [
+        "sequence (descending circle of 5ths)",
+        "fragmentation",
+        "inversion of motif",
+        "stretto (partial)"
+      ],
+      "function": "modulate to related keys, provide contrast"
+    },
+    "stretto": {
+      "description": "overlapping subject entries at closer time intervals",
+      "interval": "typically P4/P5, but any works if voice leading holds",
+      "climactic": true
+    },
+    "devices": {
+      "inversion": "subject upside down (intervals reversed)",
+      "augmentation": "subject in doubled note values",
+      "diminution": "subject in halved note values",
+      "retrograde": "subject backwards (rare in Bach)"
+    }
+  },
+  "free_counterpoint_additions": {
+    "non_chord_tones": [
+      "passing",
+      "neighbor",
+      "appoggiatura",
+      "suspension",
+      "anticipation",
+      "escape_tone",
+      "pedal"
+    ],
+    "chromaticism": "allowed for secondary dominants, modulation",
+    "voice_exchange": "two voices swap notes (e.g., C-E → E-C)",
+    "note": "Bach's fugues use free counterpoint with species principles as foundation"
+  }
+}
