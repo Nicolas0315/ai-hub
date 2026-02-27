@@ -225,3 +225,54 @@ def multimodal_to_claim(mm_input, additional_evidence=None):
     claim = Claim(text=text, evidence=evidence)
     claim._multimodal = mm_input
     return claim
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# Unified Multimodal Entry Point
+# ═══════════════════════════════════════════════════════════════════════════
+
+def process_any(source_path=None, source_url=None, source_base64=None,
+                mime_type=None, api_key=None):
+    """Unified multimodal processor — auto-detects input type.
+    
+    Supports: images, audio, video
+    Returns: Claim ready for KS30 pipeline
+    
+    Usage:
+        claim = process_any(source_path="/path/to/file.mp4")
+        result = LLMPipeline('gemini-3-pro').run(claim)
+    """
+    # Auto-detect type from mime or extension
+    if mime_type:
+        media_type = mime_type.split("/")[0]  # image, audio, video
+    elif source_path:
+        ext = Path(source_path).suffix.lower()
+        audio_exts = {".mp3", ".wav", ".m4a", ".ogg", ".flac", ".aac", ".wma"}
+        video_exts = {".mp4", ".avi", ".mov", ".mkv", ".webm", ".flv", ".wmv"}
+        image_exts = {".jpg", ".jpeg", ".png", ".gif", ".webp", ".bmp", ".tiff"}
+        
+        if ext in audio_exts:
+            media_type = "audio"
+        elif ext in video_exts:
+            media_type = "video"
+        elif ext in image_exts:
+            media_type = "image"
+        else:
+            media_type = "image"  # default
+    else:
+        media_type = "image"
+    
+    if media_type == "audio":
+        from .audio_analysis import analyze_audio, audio_to_claim
+        analysis = analyze_audio(source_path, api_key)
+        return audio_to_claim(analysis)
+    
+    elif media_type == "video":
+        from .video_analysis import analyze_video, video_to_claim
+        analysis = analyze_video(source_path, api_key=api_key)
+        return video_to_claim(analysis)
+    
+    else:  # image
+        mm = process_multimodal(source_path, source_url, source_base64, 
+                                mime_type or "image/png", api_key)
+        return multimodal_to_claim(mm)
