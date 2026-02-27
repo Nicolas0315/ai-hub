@@ -1,0 +1,92 @@
+{
+  "genre": "lofi_pop",
+  "tracks_analyzed": 7,
+  "tempo": {
+    "mean": 120.6,
+    "std": 22.4,
+    "range": [
+      81.0,
+      152.0
+    ]
+  },
+  "centroid_hz": 1413.0,
+  "top_keys": {
+    "C major": 3,
+    "Eb minor": 2,
+    "F# minor": 1,
+    "D major": 1
+  },
+  "avg_mfcc": [
+    -301.5127923148019,
+    119.49709647042411,
+    13.471781866891044,
+    18.014315554073878,
+    3.4478981154305592,
+    1.2958375385829382,
+    -6.905159558568682,
+    -5.618650555610657,
+    -6.212115398475102,
+    -6.305900797247887,
+    -9.300335271017891,
+    -9.877828664013318,
+    -8.327947667666844
+  ],
+  "tracks": [
+    {
+      "file": "BME88lS6aVY.wav",
+      "tempo": 152.0,
+      "key": "Eb minor",
+      "centroid_hz": 1909.9,
+      "onset_density": 3.8,
+      "rms_db": -23.1
+    },
+    {
+      "file": "BfPZp30enLc.wav",
+      "tempo": 107.7,
+      "key": "F# minor",
+      "centroid_hz": 1039.1,
+      "onset_density": 5.1,
+      "rms_db": -18.2
+    },
+    {
+      "file": "PLLRRXURicM.wav",
+      "tempo": 80.7,
+      "key": "D major",
+      "centroid_hz": 599.7,
+      "onset_density": 3.4,
+      "rms_db": -16.7
+    },
+    {
+      "file": "aJOTlE1K90k.wav",
+      "tempo": 123.0,
+      "key": "C major",
+      "centroid_hz": 1739.6,
+      "onset_density": 4.0,
+      "rms_db": -18.5
+    },
+    {
+      "file": "japanese_lofi_mix.wav",
+      "tempo": 107.7,
+      "key": "C major",
+      "centroid_hz": 541.4,
+      "onset_density": 1.5,
+      "rms_db": -31.2
+    },
+    {
+      "file": "kqMrQkU6ld4.wav",
+      "tempo": 143.6,
+      "key": "Eb minor",
+      "centroid_hz": 1922.6,
+      "onset_density": 3.2,
+      "rms_db": -27.4
+    },
+    {
+      "file": "mac_demarco_chamber.wav",
+      "tempo": 129.2,
+      "key": "C major",
+      "centroid_hz": 2140.6,
+      "onset_density": 5.9,
+      "rms_db": -14.6
+    }
+  ]
+}
