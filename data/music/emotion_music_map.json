@@ -1,0 +1,148 @@
+{
+  "joy": {
+    "tempo_range": [
+      120,
+      160
+    ],
+    "mode": "major",
+    "register": "high",
+    "dynamics": "f-ff",
+    "rhythm": "syncopated, dotted, dance-like",
+    "articulation": "staccato, leggiero",
+    "intervals": "ascending thirds, sixths, octave leaps",
+    "harmony": "consonant, I-IV-V, bright keys (D, A, E)",
+    "timbre": "bright, open, strings+brass",
+    "ornaments": "trills, grace notes",
+    "references": [
+      "Hevner 1936 affective lists",
+      "Juslin & Sloboda 2001"
+    ]
+  },
+  "sadness": {
+    "tempo_range": [
+      40,
+      72
+    ],
+    "mode": "minor",
+    "register": "low-mid",
+    "dynamics": "pp-p",
+    "rhythm": "legato, sustained, slow harmonic rhythm",
+    "articulation": "legato, sostenuto",
+    "intervals": "descending seconds, minor thirds, sighing figures",
+    "harmony": "minor, chromatic, Neapolitan, diminished",
+    "timbre": "dark, muted, cello, oboe",
+    "ornaments": "appoggiaturas (Seufzer/sigh motif)",
+    "references": [
+      "Cooke 1959 Language of Music",
+      "Gabrielsson & Lindström 2010"
+    ]
+  },
+  "anger": {
+    "tempo_range": [
+      130,
+      180
+    ],
+    "mode": "minor",
+    "register": "wide (extremes)",
+    "dynamics": "ff-fff, sfz",
+    "rhythm": "driving, repeated, short aggressive values",
+    "articulation": "marcato, accented, sforzando",
+    "intervals": "tritones, minor seconds, large dissonant leaps",
+    "harmony": "diminished, augmented, unresolved dissonance",
+    "timbre": "harsh, brass, percussion-heavy",
+    "ornaments": "tremolo, rapid repeated notes",
+    "references": [
+      "Scherer & Zentner 2001"
+    ]
+  },
+  "fear": {
+    "tempo_range": [
+      80,
+      140
+    ],
+    "mode": "minor/chromatic",
+    "register": "extreme (very high or very low)",
+    "dynamics": "pp with sudden ff",
+    "rhythm": "irregular, unexpected pauses, accelerating",
+    "articulation": "tremolo, sul ponticello",
+    "intervals": "tritones, minor seconds, augmented intervals",
+    "harmony": "chromatic, whole-tone, unresolved",
+    "timbre": "thin, col legno, muted, dissonant clusters",
+    "ornaments": "flutter tongue, harmonics",
+    "references": [
+      "Balkwill & Thompson 1999"
+    ]
+  },
+  "tenderness": {
+    "tempo_range": [
+      60,
+      80
+    ],
+    "mode": "major",
+    "register": "mid",
+    "dynamics": "pp-mp",
+    "rhythm": "flowing, triple meter, gentle",
+    "articulation": "legato, dolce, espressivo",
+    "intervals": "small ascending, thirds, sixths",
+    "harmony": "major 7ths, sus4 resolving, warm progressions",
+    "timbre": "warm, strings, flute, harp",
+    "ornaments": "gentle turns, vibrato",
+    "references": [
+      "Juslin 2000 five-factor model"
+    ]
+  },
+  "triumph": {
+    "tempo_range": [
+      100,
+      130
+    ],
+    "mode": "major",
+    "register": "high, wide",
+    "dynamics": "ff-fff",
+    "rhythm": "dotted (march), fanfare patterns",
+    "articulation": "marcato, bold",
+    "intervals": "perfect fourths, fifths, octaves (fanfare)",
+    "harmony": "I-IV-V, plagal cadence, pedal on tonic",
+    "timbre": "full orchestra, brass fanfare, timpani",
+    "ornaments": "trills on cadences",
+    "references": [
+      "Huron 2006 Sweet Anticipation"
+    ]
+  },
+  "mystery": {
+    "tempo_range": [
+      50,
+      80
+    ],
+    "mode": "modal/whole-tone",
+    "register": "mid-low",
+    "dynamics": "pp-p",
+    "rhythm": "free, rubato, long sustained notes",
+    "articulation": "legato, con sordino",
+    "intervals": "augmented seconds, tritones, fourths",
+    "harmony": "modal (Dorian, Phrygian), parallel chords, quartal",
+    "timbre": "muted, ethereal, celesta, harp harmonics",
+    "ornaments": "glissando, harmonics",
+    "references": [
+      "Debussy techniques, Ravel orchestration"
+    ]
+  },
+  "nostalgia": {
+    "tempo_range": [
+      60,
+      90
+    ],
+    "mode": "major with minor inflections",
+    "register": "mid",
+    "dynamics": "mp-mf",
+    "rhythm": "waltz-like or gentle swing, rubato",
+    "articulation": "espressivo, portato",
+    "intervals": "descending sixths, falling phrases that rise again",
+    "harmony": "bittersweet: major key with borrowed minor chords (iv, bVI)",
+    "timbre": "warm, nostalgic: piano, strings, music box quality",
+    "ornaments": "grace notes, gentle vibrato",
+    "references": [
+      "Barrett et al. 2010 music-evoked nostalgia"
+    ]
+  }
+}
