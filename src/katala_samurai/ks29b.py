@@ -171,6 +171,150 @@ def _fallback_parse_logic(text):
     return ls
 
 
+# ═══════════════════════════════════════════════════════════════════════════
+# Context Resolution — どの学問文脈が最適かを複数解出
+# ═══════════════════════════════════════════════════════════════════════════
+
+class AcademicContext:
+    """A possible academic/scientific context for evaluating a claim."""
+    def __init__(self, domain, subdomain, relevance, axiom_system=None,
+                 evaluation_note="", recontextualized_claim=None):
+        self.domain = domain            # e.g. "formal_science", "natural_science", "humanities"
+        self.subdomain = subdomain      # e.g. "abstract_algebra", "history", "epistemology"
+        self.relevance = relevance      # 0.0-1.0 how well this context fits
+        self.axiom_system = axiom_system  # e.g. "GF(2)", "ZFC", "Euclidean", None
+        self.evaluation_note = evaluation_note  # what changes in this context
+        self.recontextualized_claim = recontextualized_claim  # claim rewritten for this context
+
+    def __repr__(self):
+        ax = f" [{self.axiom_system}]" if self.axiom_system else ""
+        return f"{self.domain}/{self.subdomain}{ax} (rel={self.relevance:.2f})"
+
+
+# Domain taxonomy for context matching
+DOMAIN_TAXONOMY = {
+    # ── 形式科学 (Formal Sciences) ──
+    "formal_science": {
+        "arithmetic":       {"keywords": ["1+1", "2+2", "addition", "sum", "plus", "equals", "計算"],
+                            "axiom_systems": ["Peano", "PA"]},
+        "abstract_algebra": {"keywords": ["field", "group", "ring", "F2", "GF(", "binary field", "二元体", "公理系", "XOR", "AND"],
+                            "axiom_systems": ["GF(2)", "GF(p)", "ZFC"]},
+        "set_theory":       {"keywords": ["set", "∈", "∉", "subset", "contains", "集合", "元"],
+                            "axiom_systems": ["ZFC", "NBG"]},
+        "logic":            {"keywords": ["implies", "⟹", "⟺", "∀", "∃", "paradox", "パラドックス", "矛盾", "命題"],
+                            "axiom_systems": ["propositional", "first-order", "modal"]},
+        "topology":         {"keywords": ["continuous", "connected", "open set", "compact", "位相"],
+                            "axiom_systems": ["metric", "general"]},
+        "number_theory":    {"keywords": ["prime", "divisible", "modular", "素数", "整数"],
+                            "axiom_systems": ["PA", "ZFC"]},
+    },
+    # ── 自然科学 (Natural Sciences) ──
+    "natural_science": {
+        "physics":          {"keywords": ["force", "energy", "mass", "speed", "light", "quantum", "物理", "力", "エネルギー"],
+                            "axiom_systems": ["Newtonian", "relativistic", "quantum"]},
+        "chemistry":        {"keywords": ["atom", "molecule", "element", "hydrogen", "oxygen", "水", "化学", "composed"],
+                            "axiom_systems": ["standard_model"]},
+        "biology":          {"keywords": ["cell", "DNA", "species", "evolution", "生物", "細胞"],
+                            "axiom_systems": ["evolutionary"]},
+        "earth_science":    {"keywords": ["earth", "round", "climate", "地球", "丸い"],
+                            "axiom_systems": ["standard_model"]},
+    },
+    # ── 人文科学 (Humanities) ──
+    "humanities": {
+        "philosophy":       {"keywords": ["exist", "existence", "being", "consciousness", "存在", "哲学", "認識"],
+                            "axiom_systems": None},
+        "history":          {"keywords": ["existed", "born", "died", "century", "war", "歴史", "時代"],
+                            "axiom_systems": None},
+        "epistemology":     {"keywords": ["knowledge", "truth", "belief", "justified", "真理", "知識", "認識論"],
+                            "axiom_systems": ["JTB", "reliabilist"]},
+    },
+    # ── 社会科学 (Social Sciences) ──
+    "social_science": {
+        "politics":         {"keywords": ["government", "state", "independent", "sovereign", "nation", "政治", "国家"],
+                            "axiom_systems": None},
+        "economics":        {"keywords": ["market", "price", "GDP", "trade", "経済", "市場"],
+                            "axiom_systems": ["neoclassical", "Keynesian"]},
+    },
+}
+
+
+def resolve_contexts(claim_text, evidence=None, max_contexts=5):
+    """Resolve which academic contexts best fit a claim.
+    
+    Returns list of AcademicContext sorted by relevance (descending).
+    
+    TODO: Replace keyword matching with LLM-based context resolution
+    when API is connected. LLM prompt:
+    "Given claim: '{text}', list the top academic domains/subdomains
+     where this claim should be evaluated, with relevance scores,
+     applicable axiom systems, and how the claim's truth value
+     changes in each context."
+    """
+    lower = claim_text.lower()
+    evidence = evidence or []
+    contexts = []
+    
+    for domain, subdomains in DOMAIN_TAXONOMY.items():
+        for subdomain, info in subdomains.items():
+            # Keyword matching (fallback; LLM will replace this)
+            hits = sum(1 for kw in info["keywords"] if kw.lower() in lower)
+            if hits == 0:
+                continue
+            
+            relevance = min(1.0, hits * 0.3 + 0.1)
+            
+            # Evidence boost
+            if evidence:
+                relevance = min(1.0, relevance + 0.1)
+            
+            axiom_systems = info.get("axiom_systems") or [None]
+            
+            for ax in axiom_systems:
+                note = ""
+                reclaim = None
+                
+                # Context-specific evaluation notes
+                if subdomain == "abstract_algebra" and ax == "GF(2)":
+                    if "1+1" in claim_text or "1+1" in claim_text:
+                        note = "In GF(2): 1+1=0 is TRUE (additive inverse)"
+                        reclaim = f"[GF(2) context] {claim_text}"
+                        relevance = min(1.0, relevance + 0.2)
+                elif subdomain == "arithmetic" and ax == "Peano":
+                    if "1+1=0" in claim_text or "1＋1＝0" in claim_text:
+                        note = "In Peano arithmetic: 1+1=0 is FALSE (1+1=2)"
+                elif subdomain == "philosophy" or subdomain == "history":
+                    if any(w in lower for w in ["exist", "存在"]):
+                        note = "Evaluate via historical evidence and philosophical framework"
+                
+                ctx = AcademicContext(
+                    domain=domain,
+                    subdomain=subdomain,
+                    relevance=round(relevance, 3),
+                    axiom_system=ax,
+                    evaluation_note=note,
+                    recontextualized_claim=reclaim,
+                )
+                contexts.append(ctx)
+    
+    # If no context matched, default to "general assertion"
+    if not contexts:
+        contexts.append(AcademicContext(
+            domain="general", subdomain="assertion",
+            relevance=0.5, evaluation_note="No specific academic context detected"
+        ))
+    
+    # Sort by relevance, deduplicate same subdomain+axiom
+    seen = set()
+    unique = []
+    for c in sorted(contexts, key=lambda x: -x.relevance):
+        key = (c.subdomain, c.axiom_system)
+        if key not in seen:
+            seen.add(key)
+            unique.append(c)
+    
+    return unique[:max_contexts]
+
+
 def _llm_parse_logic(text, llm_pipeline):
     """LLM-based logical structure extraction.
 
@@ -202,6 +346,9 @@ class Claim:
             self.logic = _llm_parse_logic(text, llm_pipeline)
         else:
             self.logic = _fallback_parse_logic(text)
+
+        # ── Context resolution: which academic domains fit this claim?
+        self.contexts = resolve_contexts(text, self.evidence)
 
         # Backward compat: propositions from logic structure
         self.propositions = self.logic.propositions
@@ -920,6 +1067,21 @@ class LLMPipeline:
         score = rate * 0.7 + self.profile["confidence_base"] * 0.3
         score *= evidence_factor
 
+        # Context-aware evaluation
+        context_evaluations = []
+        for ctx in getattr(claim, 'contexts', []):
+            ctx_eval = {
+                "domain": ctx.domain,
+                "subdomain": ctx.subdomain,
+                "axiom_system": ctx.axiom_system,
+                "relevance": ctx.relevance,
+                "evaluation_note": ctx.evaluation_note,
+            }
+            # If context provides a recontextualized claim, note it
+            if ctx.recontextualized_claim:
+                ctx_eval["suggestion"] = ctx.recontextualized_claim
+            context_evaluations.append(ctx_eval)
+
         return {
             "llm": self.llm_name,
             "region": self.profile["region"],
@@ -929,6 +1091,7 @@ class LLMPipeline:
             "pass_rate": round(rate, 4),
             "pipeline_score": round(score, 4),
             "biases": self.profile["known_biases"],
+            "contexts": context_evaluations,
             "elapsed": round(time.time() - t0, 4),
         }
 
