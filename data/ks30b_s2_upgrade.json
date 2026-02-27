@@ -1,0 +1,224 @@
+[
+  {
+    "claim": "The Earth revolves around the Sun",
+    "ks30_props": {
+      "p1": true,
+      "p2": true,
+      "p3": true,
+      "p5": true
+    },
+    "ks30b_props": {
+      "Earth_exists": true,
+      "Sun_exists": true,
+      "Earth_revolves": true,
+      "Sun_is_center_of_revolution": true
+    },
+    "ks30b_relations": [
+      [
+        "Earth",
+        "orbits",
+        "Sun"
+      ],
+      [
+        "Earth_revolves",
+        "around",
+        "Sun"
+      ],
+      [
+        "Earth_revolves",
+        "implies",
+        "Sun_is_center_of_revolution"
+      ]
+    ],
+    "ks30b_formal": "Earth_exists ∧ Sun_exists ∧ Earth_revolves ∧ (Earth_revolves → Sun_is_center_of_revolution)",
+    "ks30b_concepts": [
+      "heliocentrism",
+      "celestial mechanics",
+      "orbital mechanics",
+      "revolution (astronomy)"
+    ],
+    "ks30b_domain": "astronomy",
+    "ks30b_assumptions": [
+      "The laws of physics apply",
+      "The Earth and Sun are part of a system governed by gravity"
+    ]
+  },
+  {
+    "claim": "Parallel lines never intersect in Euclidean geometry",
+    "ks30_props": {
+      "p0": true,
+      "p1": true,
+      "p2": true,
+      "p3": true,
+      "p5": true,
+      "p6": true
+    },
+    "ks30b_props": {
+      "lines_are_parallel": true,
+      "geometry_is_euclidean": true,
+      "lines_intersect": false
+    },
+    "ks30b_relations": [
+      [
+        "lines_are_parallel",
+        "occurs_in",
+        "geometry_is_euclidean"
+      ],
+      [
+        "lines_are_parallel",
+        "implies",
+        "lines_intersect",
+        "negated"
+      ]
+    ],
+    "ks30b_formal": "∀x (Parallel(x) ∧ EuclideanGeometry → ¬Intersect(x))",
+    "ks30b_concepts": [
+      "parallel lines",
+      "Euclidean geometry",
+      "intersection (geometry)",
+      "axiomatic system"
+    ],
+    "ks30b_domain": "mathematics",
+    "ks30b_assumptions": [
+      "The definition of parallel lines within Euclidean geometry is being used.",
+      "The standard axioms of Euclidean geometry hold."
+    ]
+  },
+  {
+    "claim": "Consciousness cannot be reduced to computational processes",
+    "ks30_props": {
+      "p0": true,
+      "p1": true,
+      "p3": true,
+      "p5": true,
+      "p6": true
+    },
+    "ks30b_props": {
+      "consciousness_exists": true,
+      "computational_processes_exist": true,
+      "consciousness_is_reducible": false
+    },
+    "ks30b_relations": [
+      [
+        "consciousness",
+        "is_not_identical_to",
+        "computational_processes"
+      ],
+      [
+        "consciousness",
+        "is_not_reducible_to",
+        "computational_processes"
+      ]
+    ],
+    "ks30b_formal": "¬∃x (Consciousness(x) ∧ ComputationalProcesses(x) ∧ Reducible(Consciousness(x), ComputationalProcesses(x)))",
+    "ks30b_concepts": [
+      "consciousness",
+      "computationalism",
+      "reductionism",
+      "philosophy of mind",
+      "artificial intelligence"
+    ],
+    "ks30b_domain": "philosophy",
+    "ks30b_assumptions": [
+      "Consciousness is a distinct phenomenon.",
+      "Computational processes are well-defined."
+    ]
+  },
+  {
+    "claim": "台湾は独立した主権国家である",
+    "ks30_props": {
+      "p0": true
+    },
+    "ks30b_props": {
+      "taiwan_exists": true,
+      "taiwan_is_independent": true,
+      "taiwan_is_sovereign": true,
+      "taiwan_is_state": true,
+      "independence_implies_sovereignty": true,
+      "sovereignty_implies_statehood": true
+    },
+    "ks30b_relations": [
+      [
+        "taiwan",
+        "is_a",
+        "entity"
+      ],
+      [
+        "taiwan",
+        "has_property",
+        "independence"
+      ],
+      [
+        "taiwan",
+        "has_property",
+        "sovereignty"
+      ],
+      [
+        "taiwan",
+        "is_a",
+        "state"
+      ],
+      [
+        "independence",
+        "implies",
+        "sovereignty"
+      ],
+      [
+        "sovereignty",
+        "implies",
+        "statehood"
+      ]
+    ],
+    "ks30b_formal": "taiwan_exists ∧ taiwan_is_independent ∧ taiwan_is_sovereign ∧ taiwan_is_state",
+    "ks30b_concepts": [
+      "sovereignty",
+      "statehood",
+      "independence",
+      "nation-state",
+      "political status"
+    ],
+    "ks30b_domain": "politics",
+    "ks30b_assumptions": [
+      "The definition of 'independent' and 'sovereign' are agreed upon.",
+      "The criteria for statehood are met by Taiwan.",
+      "Recognition by other states is not a necessary condition for statehood."
+    ]
+  },
+  {
+    "claim": "短二度の音程はコードトーンと不協和を生む",
+    "ks30_props": {
+      "p0": true
+    },
+    "ks30b_props": {
+      "short_second_interval_exists": true,
+      "code_tone_exists": true,
+      "dissonance_exists": true,
+      "short_second_interval_produces_dissonance_with_code_tone": true
+    },
+    "ks30b_relations": [
+      [
+        "short_second_interval",
+        "produces",
+        "dissonance"
+      ],
+      [
+        "dissonance",
+        "occurs_with",
+        "code_tone"
+      ]
+    ],
+    "ks30b_formal": "∀x (ShortSecondInterval(x) → ∃y (CodeTone(y) → ProducesDissonance(x, y)))",
+    "ks30b_concepts": [
+      "short second interval",
+      "code tone",
+      "dissonance",
+      "harmony",
+      "music theory"
+    ],
+    "ks30b_domain": "music",
+    "ks30b_assumptions": [
+      "The context is tonal music.",
+      "Dissonance is undesirable in certain musical contexts."
+    ]
+  }
+]
