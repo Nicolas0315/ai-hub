@@ -1,0 +1,618 @@
+{
+  "tracks": [
+    {
+      "name": "BME88lS6aVY",
+      "tempo": 152.0,
+      "key": "Eb",
+      "chords": [
+        "Bmaj7",
+        "Gmaj7",
+        "Abm9",
+        "F#maj7",
+        "Bmaj7",
+        "F#maj7",
+        "Bmaj7",
+        "Bmaj7",
+        "Bmaj7",
+        "B",
+        "D",
+        "Bb7",
+        "F#maj7",
+        "Amaj7",
+        "Bbmaj7",
+        "Ab"
+      ],
+      "avg_confidence": 0.626,
+      "extension_ratio": 0.642,
+      "top_chords": {
+        "Bmaj7": 7,
+        "Bbmaj7": 5,
+        "F#maj7": 4,
+        "Eb": 4,
+        "B": 3,
+        "Fmaj7": 3
+      },
+      "top_bigrams": [
+        [
+          [
+            "Abm9",
+            "F#maj7"
+          ],
+          2
+        ],
+        [
+          [
+            "F#maj7",
+            "Bmaj7"
+          ],
+          2
+        ],
+        [
+          [
+            "Bmaj7",
+            "Bmaj7"
+          ],
+          2
+        ]
+      ],
+      "top_4grams": [
+        [
+          [
+            "Bmaj7",
+            "Gmaj7",
+            "Abm9",
+            "F#maj7"
+          ],
+          1
+        ],
+        [
+          [
+            "Gmaj7",
+            "Abm9",
+            "F#maj7",
+            "Bmaj7"
+          ],
+          1
+        ]
+      ]
+    },
+    {
+      "name": "BfPZp30enLc",
+      "tempo": 107.7,
+      "key": "A",
+      "chords": [
+        "C",
+        "F#m9",
+        "D",
+        "Bm",
+        "E",
+        "Amaj7",
+        "E",
+        "E",
+        "E",
+        "F#m9",
+        "F#m",
+        "F#m9",
+        "D",
+        "E7",
+        "D",
+        "E"
+      ],
+      "avg_confidence": 0.697,
+      "extension_ratio": 0.286,
+      "top_chords": {
+        "E": 10,
+        "F#m9": 5,
+        "D": 5,
+        "F#m": 5,
+        "C#m": 3,
+        "Amaj7": 2
+      },
+      "top_bigrams": [
+        [
+          [
+            "E",
+            "E"
+          ],
+          6
+        ],
+        [
+          [
+            "F#m9",
+            "D"
+          ],
+          2
+        ],
+        [
+          [
+            "E",
+            "Amaj7"
+          ],
+          2
+        ]
+      ],
+      "top_4grams": [
+        [
+          [
+            "E",
+            "E",
+            "E",
+            "E"
+          ],
+          2
+        ],
+        [
+          [
+            "C",
+            "F#m9",
+            "D",
+            "Bm"
+          ],
+          1
+        ]
+      ]
+    },
+    {
+      "name": "PLLRRXURicM",
+      "tempo": 80.7,
+      "key": "D",
+      "chords": [
+        "Gmaj7",
+        "Gmaj7",
+        "Gmaj7",
+        "Bm",
+        "F#m7",
+        "F#m7",
+        "D",
+        "Bm",
+        "Em9",
+        "Em9",
+        "Bm7",
+        "Em9",
+        "F#m7",
+        "F#m7",
+        "F#m7",
+        "F#m7"
+      ],
+      "avg_confidence": 0.764,
+      "extension_ratio": 0.769,
+      "top_chords": {
+        "Gmaj7": 8,
+        "F#m7": 7,
+        "Em9": 4,
+        "F#m": 3,
+        "Bm": 2,
+        "D": 1
+      },
+      "top_bigrams": [
+        [
+          [
+            "Gmaj7",
+            "Gmaj7"
+          ],
+          5
+        ],
+        [
+          [
+            "F#m7",
+            "F#m7"
+          ],
+          4
+        ],
+        [
+          [
+            "Gmaj7",
+            "Bm"
+          ],
+          1
+        ]
+      ],
+      "top_4grams": [
+        [
+          [
+            "Gmaj7",
+            "Gmaj7",
+            "Gmaj7",
+            "Bm"
+          ],
+          1
+        ],
+        [
+          [
+            "Gmaj7",
+            "Gmaj7",
+            "Bm",
+            "F#m7"
+          ],
+          1
+        ]
+      ]
+    },
+    {
+      "name": "aJOTlE1K90k",
+      "tempo": 129.2,
+      "key": "C",
+      "chords": [
+        "C#m7",
+        "Ab",
+        "Gmaj7",
+        "G7",
+        "Emaj7",
+        "C",
+        "Gmaj7",
+        "Gm9",
+        "Emaj7",
+        "Am",
+        "Gmaj7",
+        "G7",
+        "Emaj7",
+        "E7",
+        "Ebmaj7",
+        "Cm9"
+      ],
+      "avg_confidence": 0.666,
+      "extension_ratio": 0.425,
+      "top_chords": {
+        "C": 10,
+        "F": 4,
+        "Gmaj7": 3,
+        "Emaj7": 3,
+        "G": 3,
+        "G7": 2
+      },
+      "top_bigrams": [
+        [
+          [
+            "C",
+            "C"
+          ],
+          7
+        ],
+        [
+          [
+            "F",
+            "F"
+          ],
+          3
+        ],
+        [
+          [
+            "Gmaj7",
+            "G7"
+          ],
+          2
+        ]
+      ],
+      "top_4grams": [
+        [
+          [
+            "C",
+            "C",
+            "C",
+            "C"
+          ],
+          3
+        ],
+        [
+          [
+            "C#m7",
+            "Ab",
+            "Gmaj7",
+            "G7"
+          ],
+          1
+        ]
+      ]
+    },
+    {
+      "name": "japanese_lofi_mix",
+      "tempo": 215.3,
+      "key": "C",
+      "chords": [
+        "Gm9",
+        "Am7",
+        "Am",
+        "F",
+        "F",
+        "F",
+        "F",
+        "F",
+        "Am7",
+        "Am7",
+        "F",
+        "F",
+        "F",
+        "Fmaj7",
+        "Fmaj7",
+        "Fmaj7"
+      ],
+      "avg_confidence": 0.758,
+      "extension_ratio": 0.657,
+      "top_chords": {
+        "Fmaj7": 19,
+        "F": 9,
+        "Am7": 3,
+        "Am": 2,
+        "Gm9": 1,
+        "C": 1
+      },
+      "top_bigrams": [
+        [
+          [
+            "Fmaj7",
+            "Fmaj7"
+          ],
+          17
+        ],
+        [
+          [
+            "F",
+            "F"
+          ],
+          6
+        ],
+        [
+          [
+            "Gm9",
+            "Am7"
+          ],
+          1
+        ]
+      ],
+      "top_4grams": [
+        [
+          [
+            "Fmaj7",
+            "Fmaj7",
+            "Fmaj7",
+            "Fmaj7"
+          ],
+          13
+        ],
+        [
+          [
+            "F",
+            "F",
+            "F",
+            "F"
+          ],
+          2
+        ]
+      ]
+    },
+    {
+      "name": "kqMrQkU6ld4",
+      "tempo": 143.6,
+      "key": "F#",
+      "chords": [
+        "Amaj7",
+        "Ebm7",
+        "Eb",
+        "Ebm7",
+        "Abm7",
+        "Bbm7",
+        "Ebm7",
+        "F#",
+        "F#",
+        "Ebm",
+        "C#",
+        "Bb7",
+        "F#",
+        "Bbm7",
+        "F#maj7",
+        "Ebm"
+      ],
+      "avg_confidence": 0.709,
+      "extension_ratio": 0.531,
+      "top_chords": {
+        "F#": 10,
+        "Bb7": 5,
+        "Ebm7": 4,
+        "Bbm7": 4,
+        "Ebm": 3,
+        "Eb7": 3
+      },
+      "top_bigrams": [
+        [
+          [
+            "F#",
+            "F#"
+          ],
+          3
+        ],
+        [
+          [
+            "Eb7",
+            "F#"
+          ],
+          3
+        ],
+        [
+          [
+            "C#",
+            "Bb7"
+          ],
+          2
+        ]
+      ],
+      "top_4grams": [
+        [
+          [
+            "Amaj7",
+            "Ebm7",
+            "Eb",
+            "Ebm7"
+          ],
+          1
+        ],
+        [
+          [
+            "Ebm7",
+            "Eb",
+            "Ebm7",
+            "Abm7"
+          ],
+          1
+        ]
+      ]
+    },
+    {
+      "name": "mac_demarco_chamber",
+      "tempo": 129.2,
+      "key": "C",
+      "chords": [
+        "F",
+        "Dm",
+        "Dm7",
+        "C",
+        "C",
+        "C",
+        "Em7",
+        "G",
+        "G",
+        "G",
+        "Em7",
+        "Am",
+        "Am7",
+        "Fmaj7",
+        "Fmaj7",
+        "F"
+      ],
+      "avg_confidence": 0.71,
+      "extension_ratio": 0.19,
+      "top_chords": {
+        "C": 11,
+        "G": 9,
+        "F": 7,
+        "Am": 3,
+        "Dm": 2,
+        "Em7": 2
+      },
+      "top_bigrams": [
+        [
+          [
+            "C",
+            "C"
+          ],
+          8
+        ],
+        [
+          [
+            "G",
+            "G"
+          ],
+          6
+        ],
+        [
+          [
+            "F",
+            "F"
+          ],
+          3
+        ]
+      ],
+      "top_4grams": [
+        [
+          [
+            "C",
+            "C",
+            "C",
+            "C"
+          ],
+          2
+        ],
+        [
+          [
+            "C",
+            "C",
+            "C",
+            "G"
+          ],
+          2
+        ]
+      ]
+    }
+  ],
+  "aggregate": {
+    "top_chords": {
+      "F": 10,
+      "Gmaj7": 7,
+      "F#m7": 6,
+      "Bmaj7": 5,
+      "D": 5,
+      "C": 5,
+      "E": 5,
+      "Fmaj7": 5,
+      "F#maj7": 4,
+      "Am7": 4
+    },
+    "top_progressions": [
+      {
+        "prog": [
+          "F",
+          "F"
+        ],
+        "count": 6
+      },
+      {
+        "prog": [
+          "F#m7",
+          "F#m7"
+        ],
+        "count": 4
+      },
+      {
+        "prog": [
+          "Fmaj7",
+          "Fmaj7"
+        ],
+        "count": 3
+      },
+      {
+        "prog": [
+          "F#maj7",
+          "Bmaj7"
+        ],
+        "count": 2
+      },
+      {
+        "prog": [
+          "Bmaj7",
+          "Bmaj7"
+        ],
+        "count": 2
+      },
+      {
+        "prog": [
+          "F#m9",
+          "D"
+        ],
+        "count": 2
+      },
+      {
+        "prog": [
+          "D",
+          "Bm"
+        ],
+        "count": 2
+      },
+      {
+        "prog": [
+          "E",
+          "E"
+        ],
+        "count": 2
+      }
+    ],
+    "avg_extension_ratio": 0.5,
+    "keys": [
+      "Eb",
+      "A",
+      "D",
+      "C",
+      "C",
+      "F#",
+      "C"
+    ]
+  }
+}
