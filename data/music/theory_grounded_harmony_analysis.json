@@ -1,0 +1,683 @@
+{
+  "theory_sources": [
+    "Kostka, S. & Payne, D. (2017). Tonal Harmony. McGraw-Hill. Ch. 9-13.",
+    "Aldwell, E. & Schachter, C. (2018). Harmony and Voice Leading. Cengage. Ch. 6-8.",
+    "島岡譲 (1964). 和声—理論と実習 I-III. 音楽之友社. (芸大和声)",
+    "Hein, E. (2021). 'Lo-fi hip hop beats to study/relax to': The aesthetics of democratized music production. Popular Music, 40(3-4).",
+    "Harrison, D. (1994). Harmonic Function in Chromatic Music. U Chicago Press.",
+    "Levine, M. (1995). The Jazz Theory Book. Sher Music."
+  ],
+  "lofi_principles": [
+    "Modal interchange (borrowed chords from parallel minor/major)",
+    "Non-functional harmony: chords chosen for color, not resolution",
+    "Loop-based = no teleological harmonic motion (no goal-directed cadence)",
+    "7th/9th as default sonority (not as dissonance requiring resolution)",
+    "Plagal > Authentic: IV→I motion preferred over V→I"
+  ],
+  "seventh_type_reference": {
+    "maj7": {
+      "quality": "major-major 7th",
+      "dissonance": "low (半音差 B-C in Cmaj7, しかし柔らかい不協和)",
+      "resolution_required": false,
+      "explanation": "長7度は協和的不協和。ジャズ/ポピュラーでは色彩として定着。古典和声では非和声音扱い (Aldwell Ch.26)",
+      "lofi_usage": "浮遊感・ノスタルジアの源泉。解決不要で自由にループ可能"
+    },
+    "m7": {
+      "quality": "minor-minor 7th",
+      "dissonance": "low-moderate",
+      "resolution_required": false,
+      "explanation": "短7度は比較的協和。ii7, iii7, vi7 で自然に出現。ジャズでは基本ボイシング (Kostka Ch.13)",
+      "lofi_usage": "メランコリックな色彩。Am7→Dm7 等のm7連鎖がLofiの定番"
+    },
+    "dominant_7": {
+      "quality": "major-minor 7th (dominant 7th)",
+      "dissonance": "high (tritone between 3rd and 7th)",
+      "resolution_required": true,
+      "explanation": "三全音(トライトーン)を含む唯一の自然7th和音。解決先はI (Kostka Ch.9, 芸大和声 I §24)。解決なしは機能和声の違反",
+      "lofi_usage": "⚠️ 要注意: V7→I の文脈でのみ使用。ループ内で浮遊させると古典的には破綻。ただしネオソウル/ジャズでは意図的に未解決で使う場合あり",
+      "geidai_rule": "V7の第7音は必ず下行順次進行で解決 (芸大和声 I, §24-25)"
+    },
+    "m9": {
+      "quality": "minor 9th (extended)",
+      "dissonance": "moderate",
+      "resolution_required": false,
+      "explanation": "9thはテンション。ジャズ理論ではavailable tension (Mark Levine, Jazz Theory Book, 1995)",
+      "lofi_usage": "最も「Lofi的」な響き。Am9→Dm9 の進行はジャンル定義的"
+    },
+    "half_dim7": {
+      "quality": "half-diminished 7th (ø7)",
+      "dissonance": "high",
+      "resolution_required": true,
+      "explanation": "V7の根音省略形として機能。iiø7→V7→i がminor ii-V-i (芸大和声 II §35)",
+      "lofi_usage": "稀。使う場合はii→V文脈で"
+    }
+  },
+  "track_analyses": [
+    {
+      "track": "BME88lS6aVY",
+      "key": "Eb major",
+      "chords": [
+        "Bmaj7",
+        "Gmaj7",
+        "Abm9",
+        "F#maj7",
+        "Bmaj7",
+        "F#maj7",
+        "Bmaj7",
+        "Bmaj7"
+      ],
+      "analysis": [
+        {
+          "chord": "Bmaj7",
+          "roman_numeral": "♭VI",
+          "degree": 8,
+          "function": "color/modal",
+          "seventh_type": "maj7",
+          "resolution_required": false,
+          "explanation": "Non-primary function: used for color"
+        },
+        {
+          "chord": "Gmaj7",
+          "roman_numeral": "III/IV",
+          "degree": 4,
+          "function": "color/modal",
+          "seventh_type": "maj7",
+          "resolution_required": false,
+          "explanation": "Non-primary function: used for color"
+        },
+        {
+          "chord": "Abm9",
+          "roman_numeral": "IV",
+          "degree": 5,
+          "function": "subdominant",
+          "seventh_type": "m9",
+          "resolution_required": false,
+          "explanation": "Pre-dominant: tends toward V"
+        },
+        {
+          "chord": "F#maj7",
+          "roman_numeral": "♭III/III",
+          "degree": 3,
+          "function": "color/modal",
+          "seventh_type": "maj7",
+          "resolution_required": false,
+          "explanation": "Non-primary function: used for color"
+        },
+        {
+          "chord": "Bmaj7",
+          "roman_numeral": "♭VI",
+          "degree": 8,
+          "function": "color/modal",
+          "seventh_type": "maj7",
+          "resolution_required": false,
+          "explanation": "Non-primary function: used for color"
+        },
+        {
+          "chord": "F#maj7",
+          "roman_numeral": "♭III/III",
+          "degree": 3,
+          "function": "color/modal",
+          "seventh_type": "maj7",
+          "resolution_required": false,
+          "explanation": "Non-primary function: used for color"
+        },
+        {
+          "chord": "Bmaj7",
+          "roman_numeral": "♭VI",
+          "degree": 8,
+          "function": "color/modal",
+          "seventh_type": "maj7",
+          "resolution_required": false,
+          "explanation": "Non-primary function: used for color"
+        },
+        {
+          "chord": "Bmaj7",
+          "roman_numeral": "♭VI",
+          "degree": 8,
+          "function": "color/modal",
+          "seventh_type": "maj7",
+          "resolution_required": false,
+          "explanation": "Non-primary function: used for color"
+        }
+      ],
+      "warnings": 0
+    },
+    {
+      "track": "BfPZp30enLc",
+      "key": "A major",
+      "chords": [
+        "C",
+        "F#m9",
+        "D",
+        "Bm",
+        "E",
+        "Amaj7",
+        "E",
+        "E"
+      ],
+      "analysis": [
+        {
+          "chord": "C",
+          "roman_numeral": "♭III/III",
+          "degree": 3,
+          "function": "color/modal",
+          "seventh_type": null,
+          "resolution_required": false,
+          "explanation": "Non-primary function: used for color"
+        },
+        {
+          "chord": "F#m9",
+          "roman_numeral": "VI",
+          "degree": 9,
+          "function": "color/modal",
+          "seventh_type": "m9",
+          "resolution_required": false,
+          "explanation": "Non-primary function: used for color"
+        },
+        {
+          "chord": "D",
+          "roman_numeral": "IV",
+          "degree": 5,
+          "function": "subdominant",
+          "seventh_type": null,
+          "resolution_required": false,
+          "explanation": "Pre-dominant: tends toward V"
+        },
+        {
+          "chord": "Bm",
+          "roman_numeral": "II",
+          "degree": 2,
+          "function": "subdominant",
+          "seventh_type": null,
+          "resolution_required": false,
+          "explanation": "Pre-dominant: tends toward V"
+        },
+        {
+          "chord": "E",
+          "roman_numeral": "V",
+          "degree": 7,
+          "function": "dominant",
+          "seventh_type": null,
+          "resolution_required": false,
+          "explanation": "V without 7th: dominant function but weaker pull",
+          "pattern": "ii-V detected (jazz cadential preparation)"
+        },
+        {
+          "chord": "Amaj7",
+          "roman_numeral": "I",
+          "degree": 0,
+          "function": "tonic",
+          "seventh_type": "maj7",
+          "resolution_required": false,
+          "explanation": "色彩的7th: maj7は不協和度が低く解決義務なし (Kostka Ch.13)",
+          "pattern": "V-I authentic cadence (resolution achieved)"
+        },
+        {
+          "chord": "E",
+          "roman_numeral": "V",
+          "degree": 7,
+          "function": "dominant",
+          "seventh_type": null,
+          "resolution_required": false,
+          "explanation": "V without 7th: dominant function but weaker pull"
+        },
+        {
+          "chord": "E",
+          "roman_numeral": "V",
+          "degree": 7,
+          "function": "dominant",
+          "seventh_type": null,
+          "resolution_required": false,
+          "explanation": "V without 7th: dominant function but weaker pull"
+        }
+      ],
+      "warnings": 0
+    },
+    {
+      "track": "PLLRRXURicM",
+      "key": "D major",
+      "chords": [
+        "Gmaj7",
+        "Gmaj7",
+        "Gmaj7",
+        "Bm",
+        "F#m7",
+        "F#m7",
+        "D",
+        "Bm"
+      ],
+      "analysis": [
+        {
+          "chord": "Gmaj7",
+          "roman_numeral": "IV",
+          "degree": 5,
+          "function": "subdominant",
+          "seventh_type": "maj7",
+          "resolution_required": false,
+          "explanation": "Pre-dominant: tends toward V"
+        },
+        {
+          "chord": "Gmaj7",
+          "roman_numeral": "IV",
+          "degree": 5,
+          "function": "subdominant",
+          "seventh_type": "maj7",
+          "resolution_required": false,
+          "explanation": "Pre-dominant: tends toward V"
+        },
+        {
+          "chord": "Gmaj7",
+          "roman_numeral": "IV",
+          "degree": 5,
+          "function": "subdominant",
+          "seventh_type": "maj7",
+          "resolution_required": false,
+          "explanation": "Pre-dominant: tends toward V"
+        },
+        {
+          "chord": "Bm",
+          "roman_numeral": "VI",
+          "degree": 9,
+          "function": "color/modal",
+          "seventh_type": null,
+          "resolution_required": false,
+          "explanation": "Non-primary function: used for color"
+        },
+        {
+          "chord": "F#m7",
+          "roman_numeral": "III/IV",
+          "degree": 4,
+          "function": "color/modal",
+          "seventh_type": "m7",
+          "resolution_required": false,
+          "explanation": "Non-primary function: used for color"
+        },
+        {
+          "chord": "F#m7",
+          "roman_numeral": "III/IV",
+          "degree": 4,
+          "function": "color/modal",
+          "seventh_type": "m7",
+          "resolution_required": false,
+          "explanation": "Non-primary function: used for color"
+        },
+        {
+          "chord": "D",
+          "roman_numeral": "I",
+          "degree": 0,
+          "function": "tonic",
+          "seventh_type": null,
+          "resolution_required": false,
+          "explanation": "色彩的7th: maj7は不協和度が低く解決義務なし (Kostka Ch.13)"
+        },
+        {
+          "chord": "Bm",
+          "roman_numeral": "VI",
+          "degree": 9,
+          "function": "color/modal",
+          "seventh_type": null,
+          "resolution_required": false,
+          "explanation": "Non-primary function: used for color"
+        }
+      ],
+      "warnings": 0
+    },
+    {
+      "track": "aJOTlE1K90k",
+      "key": "C major",
+      "chords": [
+        "C#m7",
+        "Ab",
+        "Gmaj7",
+        "G7",
+        "Emaj7",
+        "C",
+        "Gmaj7",
+        "Gm9"
+      ],
+      "analysis": [
+        {
+          "chord": "C#m7",
+          "roman_numeral": "♭II",
+          "degree": 1,
+          "function": "color/modal",
+          "seventh_type": "m7",
+          "resolution_required": false,
+          "explanation": "Non-primary function: used for color"
+        },
+        {
+          "chord": "Ab",
+          "roman_numeral": "♭VI",
+          "degree": 8,
+          "function": "color/modal",
+          "seventh_type": null,
+          "resolution_required": false,
+          "explanation": "Non-primary function: used for color"
+        },
+        {
+          "chord": "Gmaj7",
+          "roman_numeral": "V",
+          "degree": 7,
+          "function": "dominant",
+          "seventh_type": "maj7",
+          "resolution_required": false,
+          "explanation": "V without 7th: dominant function but weaker pull"
+        },
+        {
+          "chord": "G7",
+          "roman_numeral": "V",
+          "degree": 7,
+          "function": "dominant",
+          "seventh_type": "dominant_7",
+          "resolution_required": true,
+          "explanation": "解決義務あり: 第3音(導音)→主音上行, 第7音→下行解決 (芸大和声 I, §24)"
+        },
+        {
+          "chord": "Emaj7",
+          "roman_numeral": "III/IV",
+          "degree": 4,
+          "function": "color/modal",
+          "seventh_type": "maj7",
+          "resolution_required": false,
+          "explanation": "Non-primary function: used for color",
+          "warning": "⚠️ G7 requires resolution to I, but goes to Emaj7"
+        },
+        {
+          "chord": "C",
+          "roman_numeral": "I",
+          "degree": 0,
+          "function": "tonic",
+          "seventh_type": null,
+          "resolution_required": false,
+          "explanation": "色彩的7th: maj7は不協和度が低く解決義務なし (Kostka Ch.13)"
+        },
+        {
+          "chord": "Gmaj7",
+          "roman_numeral": "V",
+          "degree": 7,
+          "function": "dominant",
+          "seventh_type": "maj7",
+          "resolution_required": false,
+          "explanation": "V without 7th: dominant function but weaker pull"
+        },
+        {
+          "chord": "Gm9",
+          "roman_numeral": "V",
+          "degree": 7,
+          "function": "dominant",
+          "seventh_type": "m9",
+          "resolution_required": false,
+          "explanation": "V without 7th: dominant function but weaker pull"
+        }
+      ],
+      "warnings": 1
+    },
+    {
+      "track": "japanese_lofi_mix",
+      "key": "C major",
+      "chords": [
+        "Gm9",
+        "Am7",
+        "Am",
+        "F",
+        "F",
+        "F",
+        "F",
+        "F"
+      ],
+      "analysis": [
+        {
+          "chord": "Gm9",
+          "roman_numeral": "V",
+          "degree": 7,
+          "function": "dominant",
+          "seventh_type": "m9",
+          "resolution_required": false,
+          "explanation": "V without 7th: dominant function but weaker pull"
+        },
+        {
+          "chord": "Am7",
+          "roman_numeral": "VI",
+          "degree": 9,
+          "function": "color/modal",
+          "seventh_type": "m7",
+          "resolution_required": false,
+          "explanation": "Non-primary function: used for color"
+        },
+        {
+          "chord": "Am",
+          "roman_numeral": "VI",
+          "degree": 9,
+          "function": "color/modal",
+          "seventh_type": null,
+          "resolution_required": false,
+          "explanation": "Non-primary function: used for color"
+        },
+        {
+          "chord": "F",
+          "roman_numeral": "IV",
+          "degree": 5,
+          "function": "subdominant",
+          "seventh_type": null,
+          "resolution_required": false,
+          "explanation": "Pre-dominant: tends toward V"
+        },
+        {
+          "chord": "F",
+          "roman_numeral": "IV",
+          "degree": 5,
+          "function": "subdominant",
+          "seventh_type": null,
+          "resolution_required": false,
+          "explanation": "Pre-dominant: tends toward V"
+        },
+        {
+          "chord": "F",
+          "roman_numeral": "IV",
+          "degree": 5,
+          "function": "subdominant",
+          "seventh_type": null,
+          "resolution_required": false,
+          "explanation": "Pre-dominant: tends toward V"
+        },
+        {
+          "chord": "F",
+          "roman_numeral": "IV",
+          "degree": 5,
+          "function": "subdominant",
+          "seventh_type": null,
+          "resolution_required": false,
+          "explanation": "Pre-dominant: tends toward V"
+        },
+        {
+          "chord": "F",
+          "roman_numeral": "IV",
+          "degree": 5,
+          "function": "subdominant",
+          "seventh_type": null,
+          "resolution_required": false,
+          "explanation": "Pre-dominant: tends toward V"
+        }
+      ],
+      "warnings": 0
+    },
+    {
+      "track": "kqMrQkU6ld4",
+      "key": "F# major",
+      "chords": [
+        "Ebø7",
+        "Ebm7",
+        "Eb",
+        "Ebm7",
+        "Abm7",
+        "Fdim",
+        "Ebm7",
+        "F#"
+      ],
+      "analysis": [
+        {
+          "chord": "Ebø7",
+          "roman_numeral": "VI",
+          "degree": 9,
+          "function": "color/modal",
+          "seventh_type": "half_dim7",
+          "resolution_required": false,
+          "explanation": "Non-primary function: used for color"
+        },
+        {
+          "chord": "Ebm7",
+          "roman_numeral": "VI",
+          "degree": 9,
+          "function": "color/modal",
+          "seventh_type": "m7",
+          "resolution_required": false,
+          "explanation": "Non-primary function: used for color"
+        },
+        {
+          "chord": "Eb",
+          "roman_numeral": "VI",
+          "degree": 9,
+          "function": "color/modal",
+          "seventh_type": null,
+          "resolution_required": false,
+          "explanation": "Non-primary function: used for color"
+        },
+        {
+          "chord": "Ebm7",
+          "roman_numeral": "VI",
+          "degree": 9,
+          "function": "color/modal",
+          "seventh_type": "m7",
+          "resolution_required": false,
+          "explanation": "Non-primary function: used for color"
+        },
+        {
+          "chord": "Abm7",
+          "roman_numeral": "II",
+          "degree": 2,
+          "function": "subdominant",
+          "seventh_type": "m7",
+          "resolution_required": false,
+          "explanation": "Pre-dominant: tends toward V"
+        },
+        {
+          "chord": "Fdim",
+          "roman_numeral": "VII",
+          "degree": 11,
+          "function": "color/modal",
+          "seventh_type": null,
+          "resolution_required": false,
+          "explanation": "Non-primary function: used for color"
+        },
+        {
+          "chord": "Ebm7",
+          "roman_numeral": "VI",
+          "degree": 9,
+          "function": "color/modal",
+          "seventh_type": "m7",
+          "resolution_required": false,
+          "explanation": "Non-primary function: used for color"
+        },
+        {
+          "chord": "F#",
+          "roman_numeral": "I",
+          "degree": 0,
+          "function": "tonic",
+          "seventh_type": null,
+          "resolution_required": false,
+          "explanation": "色彩的7th: maj7は不協和度が低く解決義務なし (Kostka Ch.13)"
+        }
+      ],
+      "warnings": 0
+    },
+    {
+      "track": "mac_demarco_chamber",
+      "key": "C major",
+      "chords": [
+        "F",
+        "Dm",
+        "Dm7",
+        "C",
+        "C",
+        "C",
+        "Em7",
+        "G"
+      ],
+      "analysis": [
+        {
+          "chord": "F",
+          "roman_numeral": "IV",
+          "degree": 5,
+          "function": "subdominant",
+          "seventh_type": null,
+          "resolution_required": false,
+          "explanation": "Pre-dominant: tends toward V"
+        },
+        {
+          "chord": "Dm",
+          "roman_numeral": "II",
+          "degree": 2,
+          "function": "subdominant",
+          "seventh_type": null,
+          "resolution_required": false,
+          "explanation": "Pre-dominant: tends toward V"
+        },
+        {
+          "chord": "Dm7",
+          "roman_numeral": "II",
+          "degree": 2,
+          "function": "subdominant",
+          "seventh_type": "m7",
+          "resolution_required": false,
+          "explanation": "Pre-dominant: tends toward V"
+        },
+        {
+          "chord": "C",
+          "roman_numeral": "I",
+          "degree": 0,
+          "function": "tonic",
+          "seventh_type": null,
+          "resolution_required": false,
+          "explanation": "色彩的7th: maj7は不協和度が低く解決義務なし (Kostka Ch.13)"
+        },
+        {
+          "chord": "C",
+          "roman_numeral": "I",
+          "degree": 0,
+          "function": "tonic",
+          "seventh_type": null,
+          "resolution_required": false,
+          "explanation": "色彩的7th: maj7は不協和度が低く解決義務なし (Kostka Ch.13)"
+        },
+        {
+          "chord": "C",
+          "roman_numeral": "I",
+          "degree": 0,
+          "function": "tonic",
+          "seventh_type": null,
+          "resolution_required": false,
+          "explanation": "色彩的7th: maj7は不協和度が低く解決義務なし (Kostka Ch.13)"
+        },
+        {
+          "chord": "Em7",
+          "roman_numeral": "III/IV",
+          "degree": 4,
+          "function": "color/modal",
+          "seventh_type": "m7",
+          "resolution_required": false,
+          "explanation": "Non-primary function: used for color"
+        },
+        {
+          "chord": "G",
+          "roman_numeral": "V",
+          "degree": 7,
+          "function": "dominant",
+          "seventh_type": null,
+          "resolution_required": false,
+          "explanation": "V without 7th: dominant function but weaker pull"
+        }
+      ],
+      "warnings": 0
+    }
+  ]
+}
