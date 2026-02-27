@@ -197,7 +197,7 @@ DOMAIN_TAXONOMY = {
     "formal_science": {
         "arithmetic":       {"keywords": ["1+1", "2+2", "addition", "sum", "plus", "equals", "計算"],
                             "axiom_systems": ["Peano", "PA"]},
-        "abstract_algebra": {"keywords": ["field", "group", "ring", "F2", "GF(", "binary field", "二元体", "公理系", "XOR", "AND"],
+        "abstract_algebra": {"keywords": ["field", "group", "ring", "F2", "GF(", "binary field", "二元体", "公理系", "XOR", "AND gate", "AND operation", "logical AND"],
                             "axiom_systems": ["GF(2)", "GF(p)", "ZFC"]},
         "set_theory":       {"keywords": ["set", "∈", "∉", "subset", "contains", "集合", "元"],
                             "axiom_systems": ["ZFC", "NBG"]},
@@ -235,6 +235,30 @@ DOMAIN_TAXONOMY = {
         "economics":        {"keywords": ["market", "price", "GDP", "trade", "経済", "市場"],
                             "axiom_systems": ["neoclassical", "Keynesian"]},
     },
+    # ── 芸術・文化 (Arts & Culture) ──
+    "arts_culture": {
+        "literature":       {"keywords": ["novel", "author", "poet", "translation", "literary", "translated",
+                                         "小説", "作家", "訳", "文学", "漱石", "soseki", "夏目", "natsume"],
+                            "axiom_systems": None},
+        "music":            {"keywords": ["symphony", "composer", "opus", "sonata", "concerto", "orchestra",
+                                         "交響曲", "作曲", "楽章", "beethoven", "wagner", "mozart", "bach",
+                                         "ベートーヴェン", "ワーグナー", "モーツァルト"],
+                            "axiom_systems": None},
+        "visual_arts":      {"keywords": ["painting", "sculpture", "gallery", "museum", "絵画", "彫刻", "美術"],
+                            "axiom_systems": None},
+        "linguistics":      {"keywords": ["language", "grammar", "semantics", "translation", "dialect",
+                                         "言語", "文法", "意味論", "翻訳", "方言"],
+                            "axiom_systems": None},
+    },
+    # ── 情報科学・AI (Information Science & AI) ──
+    "information_science": {
+        "ai_ethics":        {"keywords": ["AI said", "AI bias", "AI generated", "chatbot", "language model",
+                                         "GPT", "LLM", "artificial intelligence", "AI倫理", "生成AI"],
+                            "axiom_systems": None},
+        "computer_science": {"keywords": ["algorithm", "computation", "program", "software", "code",
+                                         "アルゴリズム", "計算", "プログラム"],
+                            "axiom_systems": ["Church-Turing"]},
+    },
 }
 
 
@@ -250,14 +274,25 @@ def resolve_contexts(claim_text, evidence=None, max_contexts=5):
      applicable axiom systems, and how the claim's truth value
      changes in each context."
     """
+    import re as _re
     lower = claim_text.lower()
     evidence = evidence or []
     contexts = []
     
     for domain, subdomains in DOMAIN_TAXONOMY.items():
         for subdomain, info in subdomains.items():
-            # Keyword matching (fallback; LLM will replace this)
-            hits = sum(1 for kw in info["keywords"] if kw.lower() in lower)
+            # Word-boundary keyword matching to avoid substring false positives
+            # e.g. "sum" in "chosen" or "AND" in "and Wagner"
+            hits = 0
+            for kw in info["keywords"]:
+                kw_lower = kw.lower()
+                # For short keywords (<=3 chars), require word boundaries
+                if len(kw_lower) <= 3:
+                    if _re.search(r'\b' + _re.escape(kw_lower) + r'\b', lower):
+                        hits += 1
+                else:
+                    if kw_lower in lower:
+                        hits += 1
             if hits == 0:
                 continue
             
@@ -407,6 +442,40 @@ _COUNTER_TEMPLATES = {
             "template": "Who benefits from this claim being accepted as true? Power structures shape which claims are legitimized.",
             "strength": 0.5,
             "tradition": "Frankfurt School / Foucault",
+        },
+    },
+    "arts_culture": {
+        "cultural_context": {
+            "perspective": "Cultural-contextual",
+            "template": "This claim must be evaluated within its cultural and historical context. Meaning and interpretation vary across cultures and eras.",
+            "strength": 0.7,
+            "tradition": "Cultural studies / Hermeneutics",
+        },
+        "authorial_intent": {
+            "perspective": "Intentionalist vs Death-of-Author",
+            "template": "Is authorial intent the authority for meaning? Barthes argues the text stands independent of its creator's intentions.",
+            "strength": 0.6,
+            "tradition": "Barthes / Post-structuralism",
+        },
+        "apocryphal": {
+            "perspective": "Historical-critical",
+            "template": "Is this attribution historically verified, or is it apocryphal/legendary? Many famous attributions lack primary source evidence.",
+            "strength": 0.7,
+            "tradition": "Source criticism / Historical method",
+        },
+    },
+    "information_science": {
+        "alignment": {
+            "perspective": "AI Alignment",
+            "template": "AI outputs reflect training data biases and alignment procedures (RLHF/Constitutional AI). The 'AI said X' framing obscures the systemic origin of the output.",
+            "strength": 0.7,
+            "tradition": "AI Safety / Alignment research",
+        },
+        "attribution": {
+            "perspective": "Attribution skeptic",
+            "template": "Can this output be reliably attributed to a specific AI system? Version, prompt, temperature, and context all affect outputs.",
+            "strength": 0.6,
+            "tradition": "AI forensics / Reproducibility",
         },
     },
 }
