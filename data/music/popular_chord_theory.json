@@ -1,0 +1,135 @@
+{
+  "diatonic_7th_chords": {
+    "description": "ダイアトニック7thコード（メジャーキー）",
+    "I": {
+      "type": "maj7",
+      "function": "Tonic",
+      "tensions": [
+        "9",
+        "#11",
+        "13"
+      ],
+      "avoid": [
+        "4(11)"
+      ]
+    },
+    "ii": {
+      "type": "m7",
+      "function": "Subdominant",
+      "tensions": [
+        "9",
+        "11"
+      ],
+      "avoid": [
+        "6(13)"
+      ]
+    },
+    "iii": {
+      "type": "m7",
+      "function": "Tonic",
+      "tensions": [
+        "11"
+      ],
+      "avoid": [
+        "b2(b9)",
+        "6(b13)"
+      ]
+    },
+    "IV": {
+      "type": "maj7",
+      "function": "Subdominant",
+      "tensions": [
+        "9",
+        "#11",
+        "13"
+      ],
+      "avoid": [
+        "none"
+      ]
+    },
+    "V": {
+      "type": "7",
+      "function": "Dominant",
+      "tensions": [
+        "9",
+        "13"
+      ],
+      "avoid": [
+        "4(11)"
+      ]
+    },
+    "vi": {
+      "type": "m7",
+      "function": "Tonic",
+      "tensions": [
+        "9",
+        "11"
+      ],
+      "avoid": [
+        "b2(b6)"
+      ]
+    },
+    "vii": {
+      "type": "m7b5",
+      "function": "Dominant",
+      "tensions": [
+        "11",
+        "b13"
+      ],
+      "avoid": [
+        "b2(b9)"
+      ]
+    }
+  },
+  "avoid_note_rule": {
+    "definition": "コードトーンの半音上（短二度上）に位置するスケールノート",
+    "reason": "コードトーンと短二度でぶつかり、コードの響きを濁す",
+    "examples": {
+      "Cmaj7_avoid": "F (= Eの半音上 = 3rdと短二度) → 4度はImaj7のアヴォイド",
+      "Dm7_avoid": "Bb相当なし。ただしB(=6th=13th)がCのルートと→ vim7ではb6がアヴォイド",
+      "Em7_avoid": "F(=b9, ルートEの半音上) + C(=b13, Bの半音上)"
+    },
+    "lofi_exception": "Lofiでは9th/11thをテンションとして積極使用するが、アヴォイドは避ける"
+  },
+  "tension_vs_avoid": {
+    "tension": "コードに色彩を加える音（短二度でぶつからない）。自由に使える",
+    "avoid": "コードトーンと短二度でぶつかる音。メロディで一瞬触れるのはOK、ハーモニーに含めるのはNG",
+    "key_distinction": "9th/11th/13thのうち、コードトーンと半音関係にあるものがアヴォイド"
+  },
+  "lofi_common_progressions": {
+    "source": "Chord progressions commonly used in Lo-Fi Hip Hop / Chillhop",
+    "4_chord_loops": [
+      {
+        "prog": "Imaj7 → vim7 → iim7 → IVmaj7",
+        "name": "Standard Lofi Loop",
+        "frequency": "very common"
+      },
+      {
+        "prog": "vim7 → IVmaj7 → Imaj7 → Vmaj7",
+        "name": "Axis of Awesome (lofi)",
+        "frequency": "common"
+      },
+      {
+        "prog": "IVmaj7 → iiim7 → vim7 → iim7",
+        "name": "Descending 3rds",
+        "frequency": "common"
+      },
+      {
+        "prog": "Imaj7 → IVmaj7 → vim7 → Vmaj7",
+        "name": "Pop Lofi",
+        "frequency": "common"
+      },
+      {
+        "prog": "iim7 → Vmaj7 → Imaj7 → vim7",
+        "name": "Jazz Lofi (no V7)",
+        "frequency": "moderate"
+      }
+    ],
+    "rules": [
+      "V7(ドミナント7th)は使わない → Vmaj7で代用",
+      "全コードに7thまたは9thを付ける（トライアドは使わない）",
+      "4コードを2-4小節ずつループ",
+      "ルートは3度下行 or 4度上行が自然"
+    ]
+  }
+}
