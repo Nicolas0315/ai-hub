@@ -1,0 +1,354 @@
+{
+  "violin": {
+    "ja": "ヴァイオリン",
+    "section": "弦楽器",
+    "range": "G3-E7",
+    "description": "最高音域弦。倍音豊富、ビブラート明瞭",
+    "spectral": {
+      "centroid_hz": 2701,
+      "rolloff_hz": 5306,
+      "bandwidth_hz": 2329,
+      "flatness": 0.0584,
+      "harmonic_ratio": 0.261,
+      "attack_sharpness": 0.465,
+      "prominent_freq_hz": [
+        16,
+        92,
+        145,
+        205,
+        312
+      ]
+    },
+    "visual_signature": "複雑な倍音 / 柔らかいアタック / centroid 2701Hz"
+  },
+  "viola": {
+    "ja": "ヴィオラ",
+    "section": "弦楽器",
+    "range": "C3-E6",
+    "description": "中音域。ヴァイオリンより暗い音色",
+    "spectral": {
+      "centroid_hz": 1833,
+      "rolloff_hz": 3358,
+      "bandwidth_hz": 1686,
+      "flatness": 0.0107,
+      "harmonic_ratio": 0.993,
+      "attack_sharpness": 0.451,
+      "prominent_freq_hz": [
+        296,
+        371,
+        441,
+        587,
+        662
+      ]
+    },
+    "visual_signature": "調和的（倍音あり） / 柔らかいアタック / centroid 1833Hz"
+  },
+  "cello": {
+    "ja": "チェロ",
+    "section": "弦楽器",
+    "range": "C2-C6",
+    "description": "低〜中音域。人声に最も近い倍音構造",
+    "spectral": {
+      "centroid_hz": 1636,
+      "rolloff_hz": 4237,
+      "bandwidth_hz": 2385,
+      "flatness": 0.0034,
+      "harmonic_ratio": 0.896,
+      "attack_sharpness": 0.221,
+      "prominent_freq_hz": [
+        97,
+        199,
+        296,
+        447,
+        598
+      ]
+    },
+    "visual_signature": "純音に近い（倍音少） / 柔らかいアタック / centroid 1636Hz"
+  },
+  "contrabass": {
+    "ja": "コントラバス",
+    "section": "弦楽器",
+    "range": "E1-G4",
+    "description": "最低音弦。基音が強く倍音は控えめ",
+    "spectral": {
+      "centroid_hz": 778,
+      "rolloff_hz": 1531,
+      "bandwidth_hz": 1021,
+      "flatness": 0.0871,
+      "harmonic_ratio": 0.88,
+      "attack_sharpness": 0.317,
+      "prominent_freq_hz": [
+        81,
+        167,
+        264,
+        334,
+        441
+      ]
+    },
+    "visual_signature": "複雑な倍音 / 柔らかいアタック / centroid 778Hz"
+  },
+  "flute": {
+    "ja": "フルート",
+    "section": "木管楽器",
+    "range": "C4-C7",
+    "description": "ほぼ純音。倍音が少なく透明",
+    "spectral": {
+      "centroid_hz": 1391,
+      "rolloff_hz": 2533,
+      "bandwidth_hz": 1404,
+      "flatness": 0.0186,
+      "harmonic_ratio": 0.854,
+      "attack_sharpness": 0.398,
+      "prominent_freq_hz": [
+        97,
+        199,
+        296,
+        398,
+        452
+      ]
+    },
+    "visual_signature": "調和的（倍音あり） / 柔らかいアタック / centroid 1391Hz"
+  },
+  "oboe": {
+    "ja": "オーボエ",
+    "section": "木管楽器",
+    "range": "Bb3-A6",
+    "description": "鼻にかかる音色。奇数倍音が強い",
+    "spectral": {
+      "centroid_hz": 1792,
+      "rolloff_hz": 3392,
+      "bandwidth_hz": 1820,
+      "flatness": 0.0475,
+      "harmonic_ratio": 0.843,
+      "attack_sharpness": 0.564,
+      "prominent_freq_hz": [
+        81,
+        178,
+        264,
+        350,
+        441
+      ]
+    },
+    "visual_signature": "調和的（倍音あり） / 明瞭なアタック / centroid 1792Hz"
+  },
+  "clarinet": {
+    "ja": "クラリネット",
+    "section": "木管楽器",
+    "range": "D3-Bb6",
+    "description": "閉管。奇数倍音のみ（偶数倍音欠落）",
+    "spectral": {
+      "centroid_hz": 2362,
+      "rolloff_hz": 4356,
+      "bandwidth_hz": 2160,
+      "flatness": 0.0328,
+      "harmonic_ratio": 0.247,
+      "attack_sharpness": 0.408,
+      "prominent_freq_hz": [
+        27,
+        97,
+        161,
+        237,
+        307
+      ]
+    },
+    "visual_signature": "調和的（倍音あり） / 柔らかいアタック / centroid 2362Hz"
+  },
+  "bassoon": {
+    "ja": "ファゴット",
+    "section": "木管楽器",
+    "range": "Bb1-Eb5",
+    "description": "低音木管。倍音が密で暗い",
+    "spectral": {
+      "centroid_hz": 603,
+      "rolloff_hz": 791,
+      "bandwidth_hz": 642,
+      "flatness": 0.0,
+      "harmonic_ratio": 0.96,
+      "attack_sharpness": 0.269,
+      "prominent_freq_hz": [
+        97,
+        194,
+        248,
+        328,
+        441
+      ]
+    },
+    "visual_signature": "純音に近い（倍音少） / 柔らかいアタック / centroid 603Hz"
+  },
+  "trumpet": {
+    "ja": "トランペット",
+    "section": "金管楽器",
+    "range": "F#3-D6",
+    "description": "明るく鋭い。高次倍音が強い",
+    "spectral": {
+      "centroid_hz": 632,
+      "rolloff_hz": 1162,
+      "bandwidth_hz": 1242,
+      "flatness": 0.0079,
+      "harmonic_ratio": 0.768,
+      "attack_sharpness": 0.434,
+      "prominent_freq_hz": [
+        48,
+        113,
+        199,
+        296,
+        393
+      ]
+    },
+    "visual_signature": "純音に近い（倍音少） / 柔らかいアタック / centroid 632Hz"
+  },
+  "french_horn": {
+    "ja": "ホルン",
+    "section": "金管楽器",
+    "range": "B1-F5",
+    "description": "丸い音色。中次倍音が豊か",
+    "spectral": {
+      "centroid_hz": 1180,
+      "rolloff_hz": 2216,
+      "bandwidth_hz": 1471,
+      "flatness": 0.0131,
+      "harmonic_ratio": 0.554,
+      "attack_sharpness": 0.544,
+      "prominent_freq_hz": [
+        59,
+        118,
+        183,
+        237,
+        312
+      ]
+    },
+    "visual_signature": "調和的（倍音あり） / 明瞭なアタック / centroid 1180Hz"
+  },
+  "trombone": {
+    "ja": "トロンボーン",
+    "section": "金管楽器",
+    "range": "E2-Bb4",
+    "description": "太い音色。倍音が均等に分布",
+    "spectral": {
+      "centroid_hz": 932,
+      "rolloff_hz": 1633,
+      "bandwidth_hz": 1156,
+      "flatness": 0.0007,
+      "harmonic_ratio": 0.865,
+      "attack_sharpness": 0.443,
+      "prominent_freq_hz": [
+        11,
+        70,
+        140,
+        210,
+        280
+      ]
+    },
+    "visual_signature": "純音に近い（倍音少） / 柔らかいアタック / centroid 932Hz"
+  },
+  "tuba": {
+    "ja": "チューバ",
+    "section": "金管楽器",
+    "range": "D1-F4",
+    "description": "最低音金管。基音が非常に強い",
+    "spectral": {
+      "centroid_hz": 1007,
+      "rolloff_hz": 1881,
+      "bandwidth_hz": 1257,
+      "flatness": 0.0009,
+      "harmonic_ratio": 0.79,
+      "attack_sharpness": 0.345,
+      "prominent_freq_hz": [
+        59,
+        145,
+        221,
+        296,
+        393
+      ]
+    },
+    "visual_signature": "純音に近い（倍音少） / 柔らかいアタック / centroid 1007Hz"
+  },
+  "timpani": {
+    "ja": "ティンパニ",
+    "section": "打楽器",
+    "range": "D2-A3",
+    "description": "音程あり。基音＋非調和倍音",
+    "spectral": {
+      "centroid_hz": 1125,
+      "rolloff_hz": 1610,
+      "bandwidth_hz": 916,
+      "flatness": 0.2355,
+      "harmonic_ratio": 0.996,
+      "attack_sharpness": 0.239,
+      "prominent_freq_hz": [
+        743,
+        883,
+        1114,
+        1324,
+        1486
+      ]
+    },
+    "visual_signature": "ノイズ的（広帯域） / 柔らかいアタック / centroid 1125Hz"
+  },
+  "snare_drum": {
+    "ja": "スネアドラム",
+    "section": "打楽器",
+    "range": "noise",
+    "description": "広帯域ノイズ＋スナッピーのバズ",
+    "spectral": {
+      "centroid_hz": 1605,
+      "rolloff_hz": 3450,
+      "bandwidth_hz": 1575,
+      "flatness": 0.4284,
+      "harmonic_ratio": 0.377,
+      "attack_sharpness": 1.826,
+      "prominent_freq_hz": [
+        108,
+        199,
+        264,
+        361,
+        415
+      ]
+    },
+    "visual_signature": "ノイズ的（広帯域） / 明瞭なアタック / centroid 1605Hz"
+  },
+  "piano": {
+    "ja": "ピアノ",
+    "section": "鍵盤楽器",
+    "range": "A0-C8",
+    "description": "打弦。アタック明瞭、最広音域",
+    "spectral": {
+      "centroid_hz": 595,
+      "rolloff_hz": 881,
+      "bandwidth_hz": 659,
+      "flatness": 0.0323,
+      "harmonic_ratio": 0.895,
+      "attack_sharpness": 0.44,
+      "prominent_freq_hz": [
+        102,
+        156,
+        210,
+        312,
+        415
+      ]
+    },
+    "visual_signature": "調和的（倍音あり） / 柔らかいアタック / centroid 595Hz"
+  },
+  "harp": {
+    "ja": "ハープ",
+    "section": "撥弦楽器",
+    "range": "Cb1-G#7",
+    "description": "撥弦。アタック後すぐ減衰",
+    "spectral": {
+      "centroid_hz": 996,
+      "rolloff_hz": 1741,
+      "bandwidth_hz": 1339,
+      "flatness": 0.0437,
+      "harmonic_ratio": 0.875,
+      "attack_sharpness": 0.413,
+      "prominent_freq_hz": [
+        350,
+        415,
+        468,
+        554,
+        624
+      ]
+    },
+    "visual_signature": "調和的（倍音あり） / 柔らかいアタック / centroid 996Hz"
+  }
+}
