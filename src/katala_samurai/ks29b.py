@@ -1587,7 +1587,19 @@ class LLMPipeline:
         # Evidence gate
         evidence_factor = 1.0 if claim.evidence else 0.4
 
-        score = rate * 0.7 + self.profile["confidence_base"] * 0.3
+        # Real LLM API confidence (replaces hardcoded confidence_base)
+        llm_confidence = self.profile["confidence_base"]  # default fallback
+        llm_verdict = None
+        try:
+            from .llm_api import evaluate_claim
+            verdict = evaluate_claim(self.llm_name, claim.text, claim.evidence)
+            if not verdict.error:
+                llm_confidence = verdict.confidence
+                llm_verdict = verdict
+        except Exception:
+            pass  # fallback to confidence_base
+
+        score = rate * 0.7 + llm_confidence * 0.3
         score *= evidence_factor
 
         # Context-aware evaluation
@@ -1638,6 +1650,13 @@ class LLMPipeline:
             "counterpoints": counter_list,
             "papers": paper_list,
             "elapsed": round(time.time() - t0, 4),
+            "llm_verdict": {
+                "confidence": llm_verdict.confidence if llm_verdict else self.profile["confidence_base"],
+                "reasoning": llm_verdict.reasoning if llm_verdict else "STUB",
+                "cultural_note": llm_verdict.cultural_note if llm_verdict else "none",
+                "is_real_api": llm_verdict is not None and llm_verdict.error is None,
+                "latency_ms": llm_verdict.latency_ms if llm_verdict else 0,
+            } if True else None,
         }
 
 
