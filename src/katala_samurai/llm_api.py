@@ -46,22 +46,33 @@ Rules:
 
 
 def _parse_llm_json(text):
-    """Extract JSON from LLM response (handles markdown wrapping)."""
+    """Extract JSON from LLM response (handles markdown wrapping, multiline)."""
     text = text.strip()
     if text.startswith("```"):
         lines = text.split("\n")
-        text = "\n".join(lines[1:-1] if lines[-1].strip() == "```" else lines[1:])
+        text = "\n".join(lines[1:-1] if lines[-1].strip().startswith("```") else lines[1:])
+        text = text.strip()
     try:
         return json.loads(text)
     except json.JSONDecodeError:
-        # Try to find JSON in text
-        import re
-        m = re.search(r'\{[^}]+\}', text, re.DOTALL)
-        if m:
-            try:
-                return json.loads(m.group())
-            except:
-                pass
+        pass
+    # Try to find JSON object with nested braces
+    import re
+    # Match outermost { ... }
+    depth = 0
+    start = -1
+    for i, c in enumerate(text):
+        if c == "{":
+            if depth == 0:
+                start = i
+            depth += 1
+        elif c == "}":
+            depth -= 1
+            if depth == 0 and start >= 0:
+                try:
+                    return json.loads(text[start:i+1])
+                except:
+                    start = -1
     return None
 
 
@@ -108,7 +119,7 @@ def _call_gemini(claim_text, evidence, model="gemini-2.0-flash", api_key=None, t
         "contents": [{"parts": [{"text": EVAL_PROMPT.format(
             claim_text=claim_text, evidence=json.dumps(evidence, ensure_ascii=False)
         )}]}],
-        "generationConfig": {"temperature": 0.1, "maxOutputTokens": 500}
+        "generationConfig": {"temperature": 0.1, "maxOutputTokens": 2048}
     }
     try:
         data = json.dumps(payload).encode()
@@ -182,12 +193,45 @@ def _call_qwen(claim_text, evidence, model="qwen-plus", api_key=None, timeout=30
 # ═══════════════════════════════════════════════════════════════════════════
 
 # Maps LLM names to their API call functions + models
+
+def _call_anthropic(claim_text, evidence, model="claude-sonnet-4-6", api_key=None, timeout=30):
+    """Anthropic Claude API call (Messages API format)."""
+    api_key = api_key or os.environ.get("ANTHROPIC_API_KEY", "")
+    if not api_key:
+        return None, "No ANTHROPIC_API_KEY"
+
+    url = "https://api.anthropic.com/v1/messages"
+    payload = {
+        "model": model,
+        "max_tokens": 500,
+        "messages": [{"role": "user", "content": EVAL_PROMPT.format(
+            claim_text=claim_text, evidence=json.dumps(evidence, ensure_ascii=False)
+        )}],
+    }
+    try:
+        data = json.dumps(payload).encode()
+        req = urllib.request.Request(url, data=data, headers={
+            "Content-Type": "application/json",
+            "x-api-key": api_key,
+            "anthropic-version": "2023-06-01",
+        }, method="POST")
+        with urllib.request.urlopen(req, timeout=timeout) as resp:
+            result = json.loads(resp.read().decode())
+            return result["content"][0]["text"], None
+    except Exception as e:
+        return None, str(e)
+
+
 LLM_REGISTRY = {
-    "gpt-5":          {"fn": _call_openai,  "model": "gpt-4o",                 "key_env": "OPENAI_API_KEY"},
-    "mistral-large":  {"fn": _call_mistral, "model": "mistral-large-latest",   "key_env": "MISTRAL_API_KEY"},
+    # ── Cloud APIs (latest models as of 2026-02-27) ──────────────────
+    "gpt-5":          {"fn": _call_openai,  "model": "gpt-5.2",               "key_env": "OPENAI_API_KEY"},
+    "claude-opus":    {"fn": _call_anthropic, "model": "claude-opus-4-6",      "key_env": "ANTHROPIC_API_KEY"},
+    "claude-sonnet":  {"fn": _call_anthropic, "model": "claude-sonnet-4-6",    "key_env": "ANTHROPIC_API_KEY"},
+    "mistral-large":  {"fn": _call_mistral, "model": "mistral-large-latest",  "key_env": "MISTRAL_API_KEY"},
     "qwen-3":         {"fn": _call_qwen,    "model": "qwen-plus",             "key_env": "DASHSCOPE_API_KEY"},
-    "gemini-3-pro":   {"fn": _call_gemini,  "model": "gemini-2.0-flash",      "key_env": "GEMINI_API_KEY"},
-    # Open-weight models — use OpenAI-compatible endpoints (vLLM, Ollama, etc.)
+    "gemini-3-pro":   {"fn": _call_gemini,  "model": "gemini-3.1-pro-preview","key_env": "GEMINI_API_KEY"},
+    "gemini-flash":   {"fn": _call_gemini,  "model": "gemini-3-flash-preview","key_env": "GEMINI_API_KEY"},
+    # ── Open-weight models (Ollama via Tailscale or API) ─────────────
     "sea-lion":       {"fn": _call_openai,  "model": "sea-lion-v3-7b",        "key_env": "SEALION_API_KEY",   "base_url": None},
     "jais-2":         {"fn": _call_openai,  "model": "jais-adapted-70b-chat", "key_env": "JAIS_API_KEY",      "base_url": None},
     "inkuba-lm":      {"fn": _call_openai,  "model": "inkuba-instruct",       "key_env": "INKUBA_API_KEY",    "base_url": None},
