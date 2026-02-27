@@ -593,6 +593,9 @@ class Claim:
         # ── Context resolution: which academic domains fit this claim?
         self.contexts = resolve_contexts(text, self.evidence)
 
+        # ── Paper references: peer-reviewed grounding (lazy-loaded)
+        self._papers = None  # fetch on demand via .papers property
+
         # ── Counterpoint generation: opposing views & alternative perspectives
         self.counterpoints = generate_counterpoints(text, self.contexts, self.logic)
 
@@ -612,6 +615,30 @@ class Claim:
         if self.logic.formal_expr:
             vals.append(0.5)
         return vals if vals else [0.0]
+
+    @property
+    def papers(self):
+        """Lazy-load paper references from OpenAlex API."""
+        if self._papers is None:
+            try:
+                from .paper_reference import fetch_papers_for_claim
+                self._papers = fetch_papers_for_claim(self.text, self.contexts)
+            except Exception:
+                self._papers = []
+        return self._papers
+
+    def fetch_papers(self, max_per_context=3, max_total=10, timeout=10):
+        """Explicitly fetch papers with custom parameters."""
+        try:
+            from .paper_reference import fetch_papers_for_claim
+            self._papers = fetch_papers_for_claim(
+                self.text, self.contexts,
+                max_papers_per_context=max_per_context,
+                max_total=max_total, timeout=timeout
+            )
+        except Exception:
+            self._papers = []
+        return self._papers
 
     def word_hashes(self):
         """Deterministic numerical representation per word."""
@@ -1328,6 +1355,15 @@ class LLMPipeline:
                 ctx_eval["suggestion"] = ctx.recontextualized_claim
             context_evaluations.append(ctx_eval)
 
+        # Paper references (if fetched)
+        paper_list = []
+        if hasattr(claim, '_papers') and claim._papers is not None:
+            try:
+                from .paper_reference import papers_to_dict
+                paper_list = papers_to_dict(claim._papers)
+            except Exception:
+                pass
+
         # Counterpoints
         counter_list = []
         for cp in getattr(claim, 'counterpoints', []):
@@ -1350,6 +1386,7 @@ class LLMPipeline:
             "biases": self.profile["known_biases"],
             "contexts": context_evaluations,
             "counterpoints": counter_list,
+            "papers": paper_list,
             "elapsed": round(time.time() - t0, 4),
         }
 
