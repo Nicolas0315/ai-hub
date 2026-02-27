@@ -1,0 +1,178 @@
+{
+  "eq": {
+    "description": "Equalization — frequency band gain/cut to shape tonal balance",
+    "types": {
+      "parametric": {
+        "params": ["frequency", "gain_dB", "Q_bandwidth"],
+        "use": "surgical cuts, resonance removal, tonal shaping"
+      },
+      "shelving": {
+        "params": ["frequency", "gain_dB"],
+        "types": ["low_shelf", "high_shelf"],
+        "use": "broad tonal tilt (warmth/brightness)"
+      },
+      "highpass": {
+        "params": ["frequency", "slope_dB_oct"],
+        "common_slopes": [12, 18, 24],
+        "use": "remove rumble/mud below cutoff"
+      },
+      "lowpass": {
+        "params": ["frequency", "slope_dB_oct"],
+        "use": "remove harshness/air above cutoff, lofi effect"
+      }
+    },
+    "frequency_bands": {
+      "sub_bass":    {"range": [20, 60],    "character": "feel more than hear, chest rumble"},
+      "bass":        {"range": [60, 250],   "character": "warmth, body, muddiness zone"},
+      "low_mid":     {"range": [250, 500],  "character": "boxiness, body, nasal quality"},
+      "mid":         {"range": [500, 2000],  "character": "presence, clarity, honk"},
+      "upper_mid":   {"range": [2000, 4000], "character": "attack, intelligibility, harshness"},
+      "presence":    {"range": [4000, 6000], "character": "definition, sibilance, edge"},
+      "brilliance":  {"range": [6000, 10000],"character": "air, sparkle, detail"},
+      "air":         {"range": [10000, 20000],"character": "shimmer, openness, noise floor"}
+    },
+    "instrument_eq_guide": {
+      "kick":    {"boost": [60, 3000], "cut": [300, 500], "hp": 30, "note": "sub weight + beater click, cut boxiness"},
+      "snare":   {"boost": [200, 5000], "cut": [800], "note": "body at 200, crack at 5k, cut ring at 800"},
+      "hihat":   {"hp": 300, "boost": [8000, 12000], "note": "highpass aggressively, shimmer on top"},
+      "bass":    {"boost": [80, 700], "cut": [250], "hp": 30, "note": "fundamental + finger/pick attack"},
+      "guitar":  {"hp": 80, "boost": [3000], "cut": [500], "note": "clear mud, presence boost"},
+      "piano":   {"hp": 60, "boost": [3000, 10000], "cut": [300], "note": "wide range, clarity + air"},
+      "rhodes":  {"hp": 100, "boost": [1000], "lp": 6000, "note": "warm, rolled off top = lofi"},
+      "vocals":  {"hp": 80, "boost": [3000, 10000], "cut": [300, 800], "note": "presence + air, cut mud/nasal"},
+      "strings": {"hp": 100, "boost": [3000, 10000], "cut": [500], "note": "bow presence + air"},
+      "synth_pad": {"hp": 100, "lp": 8000, "cut": [500], "note": "make space, avoid masking"}
+    },
+    "masking_pairs": [
+      ["kick", "bass", "sub_bass/bass — sidechain or carve 60-100Hz"],
+      ["vocals", "guitar", "upper_mid — cut guitar at vocal presence freq"],
+      ["snare", "vocals", "mid — brief conflict, usually OK"],
+      ["piano", "guitar", "low_mid to mid — both wide-range, need careful carving"]
+    ]
+  },
+  "compression": {
+    "description": "Dynamic range control — reduces loud peaks, brings up quiet parts",
+    "params": {
+      "threshold_dB": "level where compression begins",
+      "ratio": "amount of gain reduction (2:1 = gentle, 10:1 = limiting)",
+      "attack_ms": "how fast compressor reacts to transients",
+      "release_ms": "how fast compressor lets go after signal drops",
+      "knee_dB": "soft (gradual onset) vs hard (abrupt) compression curve",
+      "makeup_gain_dB": "compensate for volume reduction"
+    },
+    "types": {
+      "VCA": {"character": "clean, precise, fast", "use": "drums, bus, mastering"},
+      "FET": {"character": "aggressive, punchy, colored", "use": "vocals, drums, parallel"},
+      "Optical": {"character": "smooth, musical, slow", "use": "vocals, bass, gentle leveling"},
+      "Tube/Variable-mu": {"character": "warm, glue, vintage", "use": "bus, mastering, warmth"}
+    },
+    "techniques": {
+      "serial": {
+        "method": "2+ compressors in chain, each doing 2-3dB",
+        "use": "transparent control, vocals"
+      },
+      "parallel": {
+        "method": "blend compressed + dry signal",
+        "use": "punch without killing dynamics, drums"
+      },
+      "sidechain": {
+        "method": "compressor triggered by external signal",
+        "use": "duck bass when kick hits, pumping effect"
+      },
+      "multiband": {
+        "method": "compress different frequency bands independently",
+        "use": "mastering, controlling bass without affecting highs"
+      }
+    },
+    "instrument_settings": {
+      "kick":    {"ratio": "4:1", "attack_ms": "10-30", "release_ms": "50-100", "note": "fast attack clips transient, slow lets click through"},
+      "snare":   {"ratio": "3:1-6:1", "attack_ms": "5-15", "release_ms": "50-100", "note": "shape snap vs body balance"},
+      "bass":    {"ratio": "4:1-8:1", "attack_ms": "10-30", "release_ms": "100-200", "note": "even out dynamics, keep consistent level"},
+      "vocals":  {"ratio": "2:1-4:1", "attack_ms": "10-30", "release_ms": "100-200", "note": "optical style for smooth leveling"},
+      "guitar":  {"ratio": "2:1-4:1", "attack_ms": "15-30", "release_ms": "100-200", "note": "gentle, preserve dynamics"},
+      "rhodes":  {"ratio": "2:1-3:1", "attack_ms": "20-40", "release_ms": "150-300", "note": "gentle, keep bell attack"},
+      "bus":     {"ratio": "2:1-4:1", "attack_ms": "10-30", "release_ms": "100-300", "note": "glue, 1-3dB max reduction"},
+      "master":  {"ratio": "1.5:1-2:1", "attack_ms": "20-50", "release_ms": "200-500", "note": "transparent, 1-2dB max"}
+    }
+  },
+  "reverb": {
+    "description": "Simulates acoustic space — creates depth, width, and cohesion",
+    "params": {
+      "decay_time_s": "how long reverb tail lasts (RT60)",
+      "pre_delay_ms": "gap before reverb starts (preserves source clarity)",
+      "diffusion": "density of early reflections (smooth vs granular)",
+      "damping": "high-frequency absorption over time (natural = more damping)",
+      "wet_dry_mix": "balance of reverb vs original",
+      "room_size": "perceived space size",
+      "early_reflections": "first bounces — define space shape",
+      "late_reflections": "diffuse tail — define space size"
+    },
+    "types": {
+      "room": {"decay": "0.2-0.8s", "character": "intimate, natural", "use": "drums, guitar, close sound"},
+      "plate": {"decay": "1-3s", "character": "bright, dense, smooth", "use": "vocals, snare, classic pop"},
+      "hall": {"decay": "1.5-5s", "character": "spacious, grand", "use": "orchestral, ballads, pads"},
+      "chamber": {"decay": "0.8-1.5s", "character": "warm, controlled", "use": "strings, ensemble"},
+      "spring": {"decay": "1-3s", "character": "metallic, boingy, lo-fi", "use": "guitar amp, vintage, dub"},
+      "convolution": {"character": "captures real space impulse response", "use": "realistic placement"},
+      "shimmer": {"character": "pitch-shifted tails, ethereal", "use": "ambient, post-rock, pads"},
+      "reverse": {"character": "swell before transient", "use": "transitions, effects, vocals"}
+    },
+    "instrument_settings": {
+      "kick":    {"type": "room/none", "decay": "0.2-0.5s", "note": "short or none — keep tight in low end"},
+      "snare":   {"type": "plate/room", "decay": "0.5-1.5s", "pre_delay_ms": "10-30", "note": "plate for pop, room for rock"},
+      "hihat":   {"type": "room", "decay": "0.3-0.5s", "note": "subtle, same space as kit"},
+      "vocals":  {"type": "plate/hall", "decay": "1-2.5s", "pre_delay_ms": "20-60", "note": "pre-delay preserves diction"},
+      "guitar":  {"type": "room/spring", "decay": "0.5-1.5s", "note": "spring for clean, room for distorted"},
+      "piano":   {"type": "hall/chamber", "decay": "1-3s", "note": "natural space, not too wet"},
+      "strings": {"type": "hall", "decay": "2-4s", "note": "lush, wide, blends ensemble"},
+      "synth_pad": {"type": "hall/shimmer", "decay": "2-5s", "note": "huge space, ambient"},
+      "rhodes":  {"type": "plate/spring", "decay": "1-2s", "note": "plate for smooth, spring for lofi"}
+    },
+    "depth_placement": {
+      "front": {"wet": "5-15%", "pre_delay": "30-60ms", "use": "vocals, lead"},
+      "middle": {"wet": "15-30%", "pre_delay": "15-30ms", "use": "guitar, keys, backing"},
+      "back": {"wet": "30-50%", "pre_delay": "0-15ms", "use": "pads, strings, ambience"}
+    }
+  },
+  "mix_bus_chain": {
+    "description": "Standard master/bus processing chain order",
+    "chain": [
+      {"stage": "EQ (subtractive)", "purpose": "remove problem frequencies first"},
+      {"stage": "Compression", "purpose": "glue and dynamics control"},
+      {"stage": "EQ (additive)", "purpose": "tonal enhancement after compression"},
+      {"stage": "Saturation/Tape", "purpose": "harmonic warmth, subtle distortion"},
+      {"stage": "Stereo imaging", "purpose": "width control, mono compatibility"},
+      {"stage": "Limiter", "purpose": "final peak control, loudness"}
+    ]
+  },
+  "genre_mix_profiles": {
+    "lofi": {
+      "eq": "aggressive LPF at 8-12kHz, slight HPF at 40Hz, warm low-mids boosted",
+      "compression": "heavy parallel compression on drums, gentle on everything else",
+      "reverb": "plate/spring, moderate decay, vinyl character",
+      "special": "bitcrush, tape wobble, vinyl crackle, sidechain pump",
+      "loudness_lufs": -16
+    },
+    "jpop": {
+      "eq": "bright and clean, presence boost on vocals, tight low end",
+      "compression": "punchy drums, well-controlled vocals, bus glue",
+      "reverb": "plate on vocals, room on drums, hall on strings",
+      "special": "vocal doubling, wide stereo, precise automation",
+      "loudness_lufs": -12
+    },
+    "hiphop": {
+      "eq": "heavy sub-bass, scooped mids, crispy highs",
+      "compression": "heavy on vocals, sidechain bass to kick, parallel drums",
+      "reverb": "short plate on vocals, almost none on 808",
+      "special": "808 saturation, vocal FX chains, ad-lib delays",
+      "loudness_lufs": -10
+    },
+    "jazz": {
+      "eq": "minimal, natural frequency balance, gentle HPF",
+      "compression": "very light or none, preserve dynamics",
+      "reverb": "natural room/hall, realistic placement",
+      "special": "minimal processing, live feel, dynamic range preserved",
+      "loudness_lufs": -18
+    }
+  }
+}
