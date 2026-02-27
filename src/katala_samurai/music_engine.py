@@ -549,3 +549,206 @@ def generate_and_verify_fugue(tonic=62, seed=None):
         "signatures_used": len(signatures),
         "bach_subjects_trained": len(bach_subjects),
     }
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# Stage 4: Cope Hybrid — Markov Generation + Rule-Based Voice Leading
+# ═══════════════════════════════════════════════════════════════════════════
+
+class VoiceLeadingOptimizer:
+    """Post-generation optimizer that fixes counterpoint violations
+    while preserving the Markov-generated melodic character.
+    
+    Cope's insight: generate freely, then filter/repair.
+    """
+    
+    MINOR_SCALE = [0, 2, 3, 5, 7, 8, 10]  # relative to tonic
+    
+    def __init__(self, tonic=62):
+        self.tonic = tonic
+        self.tonic_pc = tonic % 12
+    
+    def _snap_to_scale(self, pitch):
+        """Snap pitch to nearest scale tone."""
+        pc = pitch % 12
+        rel = (pc - self.tonic_pc) % 12
+        dists = [(abs(rel - s) if abs(rel - s) <= 6 else 12 - abs(rel - s), s)
+                 for s in self.MINOR_SCALE]
+        _, best = min(dists)
+        return (pitch // 12) * 12 + (self.tonic_pc + best) % 12
+    
+    def fix_parallel_motion(self, voice_upper, voice_lower):
+        """Eliminate parallel fifths and octaves by adjusting the upper voice."""
+        fixed = list(voice_upper)
+        
+        for i in range(len(fixed) - 1):
+            if i >= len(voice_lower) - 1:
+                break
+            
+            p1_now, p1_next = fixed[i][0], fixed[i+1][0]
+            p2_now, p2_next = voice_lower[i][0], voice_lower[i+1][0]
+            
+            interval_now = abs(p1_now - p2_now) % 12
+            interval_next = abs(p1_next - p2_next) % 12
+            
+            motion_same = ((p1_next - p1_now) > 0) == ((p2_next - p2_now) > 0)
+            
+            # Parallel fifths
+            if interval_now == 7 and interval_next == 7 and motion_same:
+                # Fix: move upper voice by step in contrary motion
+                new_pitch = p1_next + (1 if p2_next > p2_now else -1)
+                fixed[i+1] = (self._snap_to_scale(new_pitch), fixed[i+1][1])
+            
+            # Parallel octaves
+            if interval_now in (0, 12) and interval_next in (0, 12) and motion_same:
+                new_pitch = p1_next + 2
+                fixed[i+1] = (self._snap_to_scale(new_pitch), fixed[i+1][1])
+        
+        return fixed
+    
+    def fix_voice_crossing(self, voices):
+        """Ensure voices don't cross (soprano > alto > bass)."""
+        fixed = [list(v) for v in voices]
+        
+        for i in range(min(len(v) for v in fixed)):
+            pitches = [fixed[vi][i][0] for vi in range(len(fixed))]
+            # Sort descending (voice 0 = highest)
+            sorted_p = sorted(pitches, reverse=True)
+            for vi in range(len(fixed)):
+                if fixed[vi][i][0] != sorted_p[vi]:
+                    fixed[vi][i] = (sorted_p[vi], fixed[vi][i][1])
+        
+        return fixed
+    
+    def add_suspensions(self, voice, beat_positions=None):
+        """Add prepared suspensions (4-3, 7-6, 9-8) for expressiveness."""
+        if len(voice) < 4:
+            return voice
+        
+        result = list(voice)
+        # Every 4-8 notes, try to create a suspension
+        for i in range(2, len(result) - 1, random.randint(4, 8)):
+            p_prev = result[i-1][0]
+            p_curr = result[i][0]
+            p_next = result[i+1][0] if i+1 < len(result) else p_curr
+            
+            # If descending by step, hold the previous note (suspension)
+            if p_prev - p_curr in (1, 2) and p_curr - p_next in (0, 1, 2):
+                # Extend previous note into current position, then resolve
+                result[i] = (p_prev, result[i][1] * 0.6)  # held note (suspension)
+                # Insert resolution
+                result.insert(i+1, (p_curr, result[i][1] * 0.4))
+        
+        return result
+    
+    def ensure_cadence(self, voices, cadence_type="perfect"):
+        """Ensure proper cadence at the end."""
+        if not voices or not voices[-1]:
+            return voices
+        
+        fixed = [list(v) for v in voices]
+        tonic = self.tonic
+        
+        if cadence_type == "perfect":
+            # Bass: V → I
+            if len(fixed) >= 3 and len(fixed[2]) >= 2:
+                fixed[2][-2] = (tonic - 12 + 7, fixed[2][-2][1])  # dominant
+                fixed[2][-1] = (tonic - 12, 2.0)  # tonic (long)
+            # Soprano: leading tone → tonic
+            if len(fixed[0]) >= 2:
+                fixed[0][-2] = (tonic + 11, fixed[0][-2][1])  # leading tone
+                fixed[0][-1] = (tonic + 12, 2.0)  # tonic (octave above)
+            # Alto: resolve to third
+            if len(fixed) >= 2 and len(fixed[1]) >= 1:
+                fixed[1][-1] = (tonic + 3, 2.0)  # minor third
+        
+        elif cadence_type == "picardy":
+            # Same but major third at end
+            if len(fixed) >= 3 and len(fixed[2]) >= 2:
+                fixed[2][-2] = (tonic - 12 + 7, fixed[2][-2][1])
+                fixed[2][-1] = (tonic - 12, 2.0)
+            if len(fixed[0]) >= 2:
+                fixed[0][-2] = (tonic + 11, fixed[0][-2][1])
+                fixed[0][-1] = (tonic + 12, 2.0)
+            if len(fixed) >= 2 and len(fixed[1]) >= 1:
+                fixed[1][-1] = (tonic + 4, 2.0)  # MAJOR third (Picardy)
+        
+        return fixed
+    
+    def optimize(self, voices):
+        """Full voice-leading optimization pipeline."""
+        result = [list(v) for v in voices]
+        
+        # 1. Fix voice crossing
+        result = self.fix_voice_crossing(result)
+        
+        # 2. Fix parallel motion (pairwise)
+        for i in range(len(result)):
+            for j in range(i+1, len(result)):
+                result[i] = self.fix_parallel_motion(result[i], result[j])
+        
+        # 3. Ensure proper cadence
+        result = self.ensure_cadence(result, "picardy")
+        
+        return result
+
+
+def generate_hybrid_fugue(tonic=62, seed=None, num_voices=3):
+    """Generate a fugue using Cope's hybrid approach:
+    1. Extract signatures from Bach corpus
+    2. Generate melodies via Markov chain
+    3. Optimize voice leading with rule-based system
+    4. Verify with music theory solver
+    
+    Returns dict with voices, analysis, before/after scores.
+    """
+    if seed is not None:
+        random.seed(seed)
+    
+    # Stage 1: Signatures
+    signatures, bach_subjects = extract_signatures_from_bach()
+    
+    # Stage 2: Markov generation
+    gen = BachMarkovGenerator(order=2)
+    gen.train(bach_subjects)
+    
+    subject = gen.generate_fugue_subject(tonic=tonic, seed=seed)
+    subject_len = len(subject)
+    
+    # Answer: transpose up a fifth (tonal answer)
+    answer = []
+    for p, d in subject:
+        new_p = p + 7
+        answer.append((new_p, d))
+    
+    # Countersubject via Markov
+    counter = gen.generate_melody(length=subject_len, tonic=tonic + 4,
+                                   seed=(seed + 7) if seed else None)
+    
+    # Free voice for episodes
+    free = gen.generate_melody(length=subject_len, tonic=tonic - 5,
+                                seed=(seed + 13) if seed else None)
+    
+    voices_raw = [subject, answer, counter][:num_voices]
+    
+    # Pre-optimization score
+    pre_analysis = analyze_music(voices_raw, subject=subject, signatures=signatures)
+    
+    # Stage 3: Voice-leading optimization
+    optimizer = VoiceLeadingOptimizer(tonic=tonic)
+    voices_opt = optimizer.optimize(voices_raw)
+    
+    # Post-optimization score
+    post_analysis = analyze_music(voices_opt, subject=subject, signatures=signatures)
+    
+    return {
+        "voices_raw": voices_raw,
+        "voices_optimized": voices_opt,
+        "subject": subject,
+        "pre_score": pre_analysis.theory_score,
+        "post_score": post_analysis.theory_score,
+        "pre_analysis": pre_analysis,
+        "post_analysis": post_analysis,
+        "signatures_count": len(signatures),
+        "improvement": post_analysis.theory_score - pre_analysis.theory_score,
+    }
