@@ -15,6 +15,10 @@ except ImportError:
     RUST_AVAILABLE = False
 
 
+def _has(name: str) -> bool:
+    return bool(RUST_AVAILABLE and _rust is not None and hasattr(_rust, name))
+
+
 def _tokenize(text: str) -> list[str]:
     return [
         t.lower()
@@ -34,13 +38,13 @@ def _cosine(a: list[float], b: list[float]) -> float:
 
 
 def htlf_similarity_matrix(source_emb: list[list[float]], target_emb: list[list[float]]) -> list[list[float]]:
-    if RUST_AVAILABLE:
+    if _has("compute_similarity_matrix"):
         return _rust.compute_similarity_matrix(source_emb, target_emb)
     return [[max(0.0, min(1.0, _cosine(a, b))) for b in target_emb] for a in source_emb]
 
 
 def htlf_greedy_match(sim_matrix: list[list[float]], threshold: float) -> list[tuple[int, int, float]]:
-    if RUST_AVAILABLE:
+    if _has("greedy_bipartite_match"):
         return _rust.greedy_bipartite_match(sim_matrix, threshold)
     candidates: list[tuple[float, int, int]] = []
     for i, row in enumerate(sim_matrix):
@@ -66,7 +70,7 @@ def htlf_r_struct_typed(
     type_weights: dict[str, float],
     mismatch_penalties: dict[tuple[str, str], float],
 ) -> float:
-    if RUST_AVAILABLE:
+    if _has("compute_r_struct_typed"):
         return float(_rust.compute_r_struct_typed(source_edges, target_edges, node_mapping, type_weights, mismatch_penalties))
 
     mapping = dict(node_mapping)
@@ -92,7 +96,7 @@ def htlf_r_struct_typed(
 
 
 def htlf_tfidf_overlap(source_terms: list[str], target_text: str, idf_weights: dict[str, float]) -> float:
-    if RUST_AVAILABLE:
+    if _has("compute_tfidf_overlap"):
         return float(_rust.compute_tfidf_overlap(source_terms, target_text, idf_weights))
     tokens = Counter(_tokenize(target_text))
     num = 0.0
@@ -107,10 +111,10 @@ def htlf_tfidf_overlap(source_terms: list[str], target_text: str, idf_weights: d
 
 
 def htlf_distance(a: list[float], b: list[float], method: str = "cosine", cov_inv: Optional[list[list[float]]] = None) -> float:
-    if RUST_AVAILABLE:
-        if method == "mahalanobis" and cov_inv is not None:
+    if _has("cosine_distance"):
+        if method == "mahalanobis" and cov_inv is not None and _has("mahalanobis_distance"):
             return float(_rust.mahalanobis_distance(a, b, cov_inv))
-        if method == "wasserstein":
+        if method == "wasserstein" and _has("wasserstein_1d"):
             return float(_rust.wasserstein_1d(a, b))
         return float(_rust.cosine_distance(a, b))
 
@@ -135,14 +139,14 @@ def htlf_distance(a: list[float], b: list[float], method: str = "cosine", cov_in
 
 
 def htlf_batch_qualia_distances(source_vectors: list[list[float]], target_vectors: list[list[float]], method: str = "cosine") -> list[float]:
-    if RUST_AVAILABLE:
+    if _has("batch_qualia_distances"):
         return [float(x) for x in _rust.batch_qualia_distances(source_vectors, target_vectors, method)]
     n = min(len(source_vectors), len(target_vectors))
     return [htlf_distance(source_vectors[i], target_vectors[i], method=method) for i in range(n)]
 
 
 def htlf_classify_profile_batch(r_structs: list[float], r_contexts: list[float], r_qualias: list[float | None]) -> list[str]:
-    if RUST_AVAILABLE:
+    if _has("classify_profile_batch"):
         return list(_rust.classify_profile_batch(r_structs, r_contexts, r_qualias))
 
     out: list[str] = []
