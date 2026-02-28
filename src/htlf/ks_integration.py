@@ -169,13 +169,20 @@ class HTLFScorer:
     def _measurement_provenance(self, lv: LossVector) -> dict[str, ProvenanceOrigin]:
         parser_backend = getattr(lv, "parser_backend", "llm")
         context_backend = getattr(lv, "context_backend", "llm_reader")
-        qualia_backend = getattr(lv, "qualia_backend", "llm_ensemble")
+        qualia_backend = getattr(lv, "qualia_backend", "online_approximation")
         matcher_backend = getattr(lv, "matcher_backend", "sentence_transformers")
+
+        if qualia_backend in {"behavioral_experiment", "physiological_proxy"}:
+            qualia_origin: ProvenanceOrigin = "SELF"
+        elif qualia_backend == "online_approximation":
+            qualia_origin = "DESIGNER"
+        else:
+            qualia_origin = "EXTERNAL"
 
         return {
             "R_struct": "SELF" if parser_backend == "mock" else "EXTERNAL",
             "R_context": "SELF" if context_backend == "heuristic" else "EXTERNAL",
-            "R_qualia": "SELF" if qualia_backend == "behavioral" else "EXTERNAL",
+            "R_qualia": qualia_origin,
             "matcher": "SELF" if matcher_backend == "sentence_transformers" else ("EXTERNAL" if matcher_backend == "api" else "SELF"),
         }
 
@@ -245,7 +252,7 @@ class HTLFScorer:
             profile_type=profile,
             parser_backend="mock",
             context_backend="heuristic",
-            qualia_backend="behavioral",
+            qualia_backend="online_approximation",
             matcher_backend="sentence_transformers",
         )
 

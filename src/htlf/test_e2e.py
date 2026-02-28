@@ -9,6 +9,8 @@ from htlf.ks_integration import HTLFScorer
 from htlf.matcher import match_dags
 from htlf.parser import extract_dag
 from htlf.pipeline import run_pipeline
+from htlf.qualia_baselines import EMOTION_MECHANISM_WEIGHTS, MUSIC_BASELINES, VISUAL_BASELINES
+from htlf.qualia_engine import BehavioralExperiment, OnlineApproximation
 from htlf.scorer import compute_scores
 
 
@@ -174,3 +176,50 @@ def test_measurement_reliability_penalizes_external() -> None:
 
     external_heavy = scorer._measurement_reliability({"SELF": 0.0, "EXTERNAL": 1.0})
     assert base.measurement_reliability > external_heavy
+
+
+def test_online_approximation_unit_and_context_adjustment() -> None:
+    oa = OnlineApproximation()
+    delta_high, score_high = oa.compute_online_qualia(
+        "major fast warm melody with hopeful cadence",
+        "bright, energetic and positive musical description",
+        r_context=0.9,
+    )
+    delta_low, score_low = oa.compute_online_qualia(
+        "major fast warm melody with hopeful cadence",
+        "bright, energetic and positive musical description",
+        r_context=0.2,
+    )
+
+    assert 0.0 <= delta_high <= 1.0
+    assert 0.0 <= score_high <= 1.0
+    assert 0.0 <= score_low <= 1.0
+    assert score_high >= score_low
+    assert abs(delta_high - delta_low) <= 1e-9
+
+
+def test_baseline_distribution_integrity() -> None:
+    assert MUSIC_BASELINES
+    assert VISUAL_BASELINES
+    assert pytest.approx(1.0, abs=1e-9) == sum(EMOTION_MECHANISM_WEIGHTS.values())
+
+    for baseline in (MUSIC_BASELINES, VISUAL_BASELINES):
+        for _, axes in baseline.items():
+            for axis in ("valence", "arousal"):
+                mean, std = axes[axis]
+                assert 0.0 <= mean <= 1.0
+                assert 0.0 < std <= 1.0
+
+
+def test_music_to_nl_r_qualia_online_pipeline() -> None:
+    source = "minor slow melody with dissonant tension and delayed resolution"
+    target = "悲しさと緊張が続いた後に、少し安堵が訪れるような音楽"
+    result = run_pipeline(source, target, use_mock_parser=True, qualia_mode="online")
+    assert 0.0 <= (result.r_qualia or 0.0) <= 1.0
+    assert result.qualia_backend == "online_approximation"
+
+
+def test_behavioral_context_adjustment_formula() -> None:
+    be = BehavioralExperiment()
+    adjusted = be.adjust_for_context(0.8, 0.5)
+    assert adjusted == pytest.approx(0.8 * (0.5 + 0.5 * 0.5))

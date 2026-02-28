@@ -6,6 +6,7 @@ import argparse
 import json
 from dataclasses import asdict, dataclass
 from pathlib import Path
+from typing import Literal
 
 from .matcher import get_similarity_backend_name, match_dags
 from .parser import extract_dag
@@ -23,7 +24,7 @@ class LossVector:
     profile_type: str
     parser_backend: str = "llm"
     context_backend: str = "heuristic"
-    qualia_backend: str = "behavioral"
+    qualia_backend: str = "online_approximation"
     matcher_backend: str = "lexical"
 
 
@@ -32,6 +33,9 @@ def run_pipeline(
     target_text: str,
     threshold: float = 0.7,
     use_mock_parser: bool = False,
+    qualia_mode: Literal["online", "behavioral", "physio"] = "online",
+    responses_data: dict | None = None,
+    physio_data: dict | None = None,
 ) -> LossVector:
     """Run end-to-end HTLF scoring pipeline."""
     source_dag = extract_dag(source_text, use_mock=use_mock_parser)
@@ -44,6 +48,9 @@ def run_pipeline(
         match_result=match_result,
         source_text=source_text,
         target_text=target_text,
+        qualia_mode=qualia_mode,
+        responses_data=responses_data,
+        physio_data=physio_data,
     )
 
     return LossVector(
@@ -82,6 +89,14 @@ def main() -> None:
 
     parser.add_argument("--threshold", type=float, default=0.7, help="Node match threshold")
     parser.add_argument("--mock-parser", action="store_true", help="Use heuristic parser instead of OpenAI API")
+    parser.add_argument(
+        "--qualia-mode",
+        choices=["online", "behavioral", "physio"],
+        default="online",
+        help="R_qualia mode: online (default), behavioral, or physio",
+    )
+    parser.add_argument("--responses-file", help="JSON file for behavioral participant responses")
+    parser.add_argument("--physio-file", help="JSON file for physiological signals")
 
     parser.add_argument("--source-layer", choices=["math", "formal_language", "natural_language", "music", "creative"])
     parser.add_argument("--target-layer", choices=["math", "formal_language", "natural_language", "music", "creative"])
@@ -99,11 +114,25 @@ def main() -> None:
         source_text = _read_text(Path(args.source))
         target_text = _read_text(Path(args.target))
 
+        responses_data = None
+        physio_data = None
+        if args.qualia_mode == "behavioral":
+            if not args.responses_file:
+                raise SystemExit("--responses-file is required for --qualia-mode behavioral")
+            responses_data = json.loads(_read_text(Path(args.responses_file)))
+        if args.qualia_mode == "physio":
+            if not args.physio_file:
+                raise SystemExit("--physio-file is required for --qualia-mode physio")
+            physio_data = json.loads(_read_text(Path(args.physio_file)))
+
         result = run_pipeline(
             source_text=source_text,
             target_text=target_text,
             threshold=args.threshold,
             use_mock_parser=args.mock_parser,
+            qualia_mode=args.qualia_mode,
+            responses_data=responses_data,
+            physio_data=physio_data,
         )
         print(json.dumps(asdict(result), ensure_ascii=False, indent=2))
         return

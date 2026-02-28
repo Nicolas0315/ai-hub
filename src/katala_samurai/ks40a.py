@@ -73,6 +73,9 @@ class KS40a(KS39b):
                 source_text=str(source_text),
                 target_text=claim_text,
                 use_mock_parser=use_mock_parser,
+                qualia_mode=str(kwargs.get("qualia_mode", "online")),
+                responses_data=kwargs.get("responses_data"),
+                physio_data=kwargs.get("physio_data"),
             )
         else:
             inferred_target = target_layer or self._htlf.detect_layer(claim_text)

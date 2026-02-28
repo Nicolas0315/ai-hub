@@ -13,6 +13,7 @@ from typing import Any, Literal
 
 from .matcher import MatchResult
 from .parser import DAG
+from .qualia_engine import compute_qualia
 
 ProfilePair = Literal["struct_context", "struct_qualia", "context_qualia", "struct", "context", "qualia"]
 ProfileMode = Literal["sum", "prod"]
@@ -501,21 +502,43 @@ TARGET:\n{target_text[:10000]}"""
         return None
 
 
-def compute_r_qualia_with_backend(source_text: str, target_text: str) -> tuple[float, str]:
-    """LLM ensemble proxy: median(3 ratings)/5.0, fallback to heuristic."""
-    ratings: list[float] = []
-    for temp in (0.0, 0.4, 0.8):
-        r = _llm_qualia_one(source_text, target_text, temperature=temp)
-        if r is not None:
-            ratings.append(r)
-    if ratings:
-        med = statistics.median(ratings)
-        return (max(0.0, min(1.0, med / 5.0)), "llm_ensemble")
-    return (_heuristic_qualia(source_text, target_text), "behavioral")
+def compute_r_qualia_with_backend(
+    source_text: str,
+    target_text: str,
+    *,
+    r_context: float,
+    qualia_mode: Literal["online", "behavioral", "physio"] = "online",
+    responses_data: dict[str, Any] | None = None,
+    physio_data: dict[str, Any] | None = None,
+) -> tuple[float, str]:
+    q = compute_qualia(
+        source_text=source_text,
+        target_text=target_text,
+        r_context=r_context,
+        mode=qualia_mode,
+        responses_data=responses_data,
+        physio_data=physio_data,
+    )
+    return (q.score, q.backend)
 
 
-def compute_r_qualia(source_text: str, target_text: str) -> float:
-    return compute_r_qualia_with_backend(source_text, target_text)[0]
+def compute_r_qualia(
+    source_text: str,
+    target_text: str,
+    *,
+    r_context: float,
+    qualia_mode: Literal["online", "behavioral", "physio"] = "online",
+    responses_data: dict[str, Any] | None = None,
+    physio_data: dict[str, Any] | None = None,
+) -> float:
+    return compute_r_qualia_with_backend(
+        source_text,
+        target_text,
+        r_context=r_context,
+        qualia_mode=qualia_mode,
+        responses_data=responses_data,
+        physio_data=physio_data,
+    )[0]
 
 
 def classify_profiles(
@@ -580,11 +603,21 @@ def compute_scores(
     target_text: str,
     alpha: float = 0.5,
     beta: float = 0.5,
+    qualia_mode: Literal["online", "behavioral", "physio"] = "online",
+    responses_data: dict[str, Any] | None = None,
+    physio_data: dict[str, Any] | None = None,
 ) -> ScoreResult:
     """Compute HTLF Phase 2 score bundle."""
     r_struct = compute_r_struct(source_dag, target_dag, match_result)
     r_context, context_backend = compute_r_context_with_backend(source_text, target_text)
-    r_qualia, qualia_backend = compute_r_qualia_with_backend(source_text, target_text)
+    r_qualia, qualia_backend = compute_r_qualia_with_backend(
+        source_text,
+        target_text,
+        r_context=r_context,
+        qualia_mode=qualia_mode,
+        responses_data=responses_data,
+        physio_data=physio_data,
+    )
 
     profile_type, profile_score, all_profiles = classify_profiles(
         r_struct=r_struct,
