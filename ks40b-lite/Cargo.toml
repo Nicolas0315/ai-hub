@@ -6,7 +6,7 @@ description = "Standalone KS40b verification engine for OpenClaw self-maintenanc
 
 [lib]
 name = "ks40b_lite"
-crate-type = ["rlib"]
+crate-type = ["cdylib", "rlib"]
 
 [dependencies]
 pyo3 = { version = "0.24", features = ["extension-module"] }
