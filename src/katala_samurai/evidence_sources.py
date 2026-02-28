@@ -44,7 +44,7 @@ def _gov_estat_search(terms, max_results=5):
             return {"source": "e-stat", "available": False, "reason": "no_api_key"}
         params["appId"] = app_id
         url = "https://api.e-stat.go.jp/rest/3.0/app/json/getStatsList?" + urllib.parse.urlencode(params)
-        req = urllib.request.Request(url, headers={"User-Agent": "KS31c-L4/1.0"})
+        req = urllib.request.Request(url, headers={"User-Agent": "KS31d-L4/1.0"})
         with urllib.request.urlopen(req, timeout=8) as resp:
             data = _json.loads(resp.read().decode())
             results = data.get("GET_STATS_LIST", {}).get("DATALIST_INF", {}).get("TABLE_INF", [])
@@ -66,7 +66,7 @@ def _gov_mlit_search(terms):
     try:
         params = {"keyword": query, "limit": "5"}
         url = "https://www.reinfolib.mlit.go.jp/ex-api/external/XIT001?" + urllib.parse.urlencode(params)
-        req = urllib.request.Request(url, headers={"User-Agent": "KS31c-L4/1.0"})
+        req = urllib.request.Request(url, headers={"User-Agent": "KS31d-L4/1.0"})
         with urllib.request.urlopen(req, timeout=8) as resp:
             data = _json.loads(resp.read().decode())
             results = data.get("data", [])
@@ -112,7 +112,7 @@ def gdelt_search(terms, max_results=10):
             "sort": "DateDesc",
         }
         url = "https://api.gdeltproject.org/api/v2/doc/doc?" + urllib.parse.urlencode(params)
-        req = urllib.request.Request(url, headers={"User-Agent": "KS31c-L4/1.0"})
+        req = urllib.request.Request(url, headers={"User-Agent": "KS31d-L4/1.0"})
         with urllib.request.urlopen(req, timeout=10) as resp:
             data = _json.loads(resp.read().decode())
             articles = data.get("articles", [])
@@ -174,7 +174,7 @@ def firecrawl_verify(url_or_query, api_key=None):
             headers={
                 "Authorization": f"Bearer {key}",
                 "Content-Type": "application/json",
-                "User-Agent": "KS31c-L4/1.0",
+                "User-Agent": "KS31d-L4/1.0",
             },
             method="POST",
         )
