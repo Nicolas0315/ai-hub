@@ -4,10 +4,9 @@ from __future__ import annotations
 
 import re
 from dataclasses import asdict, dataclass
-from typing import TYPE_CHECKING, Any, Literal
+from typing import Any, Literal
 
-if TYPE_CHECKING:
-    from .pipeline import LossVector
+from .pipeline import LossVector
 
 Layer = Literal["math", "formal_language", "natural_language", "music", "creative"]
 ProvenanceOrigin = Literal["SELF", "DESIGNER", "EXTERNAL", "AMBIGUOUS"]

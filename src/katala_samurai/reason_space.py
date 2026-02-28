@@ -34,7 +34,16 @@ class ReasonSpace:
     def analyze_coherence(self) -> Dict[str, Any]:
         """Check mutual coherence of all registered reasons."""
         if len(self._reasons) < 2:
-            return {"coherence": 1.0, "conflicts": [], "isolated": [], "clusters": 0}
+            return {
+                "coherence": 1.0,
+                "conflicts": [],
+                "conflict_count": 0,
+                "isolated_solvers": [],
+                "support_pairs": 0,
+                "confidence_modifier": 0,
+                "assessment": "COHERENT",
+                "clusters": 0,
+            }
         
         conflicts = []
         support_pairs = []
