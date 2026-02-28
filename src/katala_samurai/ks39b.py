@@ -49,7 +49,10 @@ class KS39b(KS39a):
         claim_text = claim.text if hasattr(claim, 'text') else str(claim)
 
         # ── Run KS39a pipeline ──
-        result = super().verify(claim, store=store, skip_s28=skip_s28, **kwargs)
+                # Filter out HTLF-specific kwargs before passing to KS33b (which doesn't accept **kwargs)
+        _htlf_keys = {"source_text", "source_layer", "target_layer", "use_mock_parser", "qualia_mode", "responses_data", "physio_data"}
+        parent_kwargs = {k: v for k, v in kwargs.items() if k not in _htlf_keys}
+        result = super().verify(claim, store=store, skip_s28=skip_s28, **parent_kwargs)
 
         if isinstance(result, dict) and "results" in result:
             result["version"] = self.VERSION
