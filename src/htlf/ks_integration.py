@@ -119,6 +119,38 @@ class HTLFScorer:
     def infer_source_layer_from_claim(self, claim_text: str, target: Layer) -> Layer:
         return self._infer_source_layer_from_claim(claim_text, target)
 
+    def check_multilayer_consistency(self, texts: list[str]) -> dict[str, object]:
+        """Heuristic cross-layer consistency check for KS40b."""
+        non_empty = [t for t in texts if isinstance(t, str) and t.strip()]
+        if not non_empty:
+            return {"layer_set": [], "consistency_score": 0.0, "contradictions": []}
+
+        layers = [self.detect_layer(t) for t in non_empty]
+        has_neg = any(re.search(r"\b(not|never|no|cannot|isn't|aren't|ない|ではない)\b", t.lower()) for t in non_empty)
+        has_pos = any(re.search(r"\b(is|are|can|will|does|できる|である|なる)\b", t.lower()) for t in non_empty)
+
+        contradictions: list[dict[str, str]] = []
+        if len(set(layers)) > 1 and has_neg and has_pos:
+            contradictions.append({
+                "type": "cross_layer_polarity_conflict",
+                "detail": "positive/negative assertion markers co-exist across layers",
+            })
+
+        token_sets = [set(re.findall(r"[\w\-\u3040-\u30ff\u4e00-\u9faf]+", t.lower())) for t in non_empty]
+        if len(token_sets) >= 2:
+            inter = set.intersection(*token_sets)
+            union = set.union(*token_sets)
+            overlap = len(inter) / max(1, len(union))
+        else:
+            overlap = 1.0
+
+        score = max(0.0, min(1.0, 0.8 * overlap + (0.2 if not contradictions else 0.0)))
+        return {
+            "layer_set": sorted(set(layers)),
+            "consistency_score": round(score, 4),
+            "contradictions": contradictions,
+        }
+
     def _extract_ks39b_confidence(
         self,
         ks39b_result: dict[str, Any] | None,
