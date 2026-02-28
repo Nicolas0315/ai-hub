@@ -1,0 +1,10 @@
+# Beethoven Symphony No. 5 - Formal Musical Analysis
+# Source: ESM Rochester / Wikipedia / Silverman (2019)
+
+First Movement: Allegro con brio (Sonata Form, C minor). Opens with the fate motif (short-short-short-long) in C minor, expanded through imitations, sequences, and fermatas into a dramatic tutti outburst. Exposition introduces a forceful first theme (C minor), followed by a lyrical second theme in E-flat major (relative major, piano, with motif in strings). Development driven by texture, dynamics, and orchestral color rather than extensive modulation, reducing to single-note exchanges. Recapitulation restates themes in C minor with an extended developmental coda, thwarting C major resolution. Harmony features a reverse circle-of-fifths progression (G minor to F-sharp minor) and an unexpected shift to C major for the second theme.
+
+Second Movement: Andante con moto (Double Variations, A-flat major). Noble piano theme in lower strings contrasts with a forte C major militaristic theme (trumpets, timpani). Variations build tension, including an A-flat minor passage, culminating in a triumphant tutti return.
+
+Third Movement: Scherzo: Allegro (C minor transitioning to C major). Cellos and basses open with a stern theme; trio in C major uses contrapuntal texture. Scherzo returns pizzicato, disrupting symmetry, ending in a 50-measure harmonically ambiguous passage linking to the finale.
+
+Fourth Movement: Allegro (Sonata/Rondo Form, C major). Powerful C major chord introducing piccolo, contrabassoon, and trombones for new timbre. Long coda compressing themes, accelerating to presto, concluding with 29 fortissimo C major chords. Overarching progression from C minor struggle to C major victory.
