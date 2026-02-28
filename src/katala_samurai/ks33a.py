@@ -35,6 +35,7 @@ try:
     from .content_understanding import analyze_content
     from .goal_quality import filter_goals_by_quality
     from .learning_optimizer import LearningOptimizer
+    from .goal_intelligence import enhance_goals
 except ImportError:
     from ks32a import KS32a, Claim
     from ephemeral_learning import EphemeralSession
@@ -42,6 +43,7 @@ except ImportError:
     from content_understanding import analyze_content
     from goal_quality import filter_goals_by_quality
     from learning_optimizer import LearningOptimizer
+    from goal_intelligence import enhance_goals
 
 
 class KS33a(KS32a):
@@ -105,6 +107,17 @@ class KS33a(KS32a):
                 "before": quality_result["total"],
                 "after": quality_result["filtered"],
                 "avg_quality": quality_result["avg_quality"],
+            }
+
+        # ── Goal Intelligence Enhancement ──
+        if goals.get("goal_results"):
+            gi_result = enhance_goals(claim.text, goals["goal_results"], store=store)
+            result["autonomous_goals"]["intelligence"] = {
+                "coverage_ratio": gi_result["coverage"]["ratio"],
+                "covered_angles": gi_result["coverage"]["covered"],
+                "uncovered_angles": gi_result["coverage"]["uncovered"],
+                "meta_goals_added": gi_result["meta_goals_added"],
+                "total_enhanced": gi_result["total_goals"],
             }
         
         if not self.session.enabled:
