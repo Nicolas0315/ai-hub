@@ -25,6 +25,7 @@ _TEMPLATES = [
         "patterns": [
             re.compile(r'(\b\w+(?:\s+\w+)?)\s+(causes?|produces?|creates?|generates?|induces?|triggers?)\s+(.+)', re.I),
             re.compile(r'(\b\w+(?:\s+\w+)?)\s+(leads?\s+to|results?\s+in)\s+(.+)', re.I),
+            re.compile(r'(\b\w+(?:\s+\w+){0,2})\s+(enables?|allows?|facilitates?|permits?)\s+(.+)', re.I),
         ],
         "slots": ["agent", "action", "result"],
         "known_analogs": [
@@ -109,7 +110,7 @@ _TEMPLATES = [
         "name": "comparison",
         "description": "X is more/less/similar/different than Y",
         "patterns": [
-            re.compile(r'(\b\w+(?:\s+\w+){0,2})\s+(?:is\s+)?(?:more|less|greater|smaller|faster|slower|higher|lower)\s+(?:than\s+)?(.+)', re.I),
+            re.compile(r'(\b\w+(?:\s+\w+){0,2})\s+(?:is\s+)?(?:more|less|greater|smaller|faster|slower|higher|lower|\w+er)\s+than\s+(.+)', re.I),
             re.compile(r'(\b\w+(?:\s+\w+){0,2})\s+(?:is\s+)?(?:similar|identical|equivalent|comparable)\s+to\s+(.+)', re.I),
             re.compile(r'(\b\w+(?:\s+\w+){0,2})\s+(?:is\s+)?(?:different|distinct|unlike)\s+(?:from\s+)?(.+)', re.I),
         ],
