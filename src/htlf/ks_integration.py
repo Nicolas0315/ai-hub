@@ -4,9 +4,10 @@ from __future__ import annotations
 
 import re
 from dataclasses import asdict, dataclass
-from typing import Any, Literal
+from typing import TYPE_CHECKING, Any, Literal
 
-from .pipeline import LossVector, run_pipeline
+if TYPE_CHECKING:
+    from .pipeline import LossVector
 
 Layer = Literal["math", "formal_language", "natural_language", "music", "creative"]
 ProvenanceOrigin = Literal["SELF", "DESIGNER", "EXTERNAL", "AMBIGUOUS"]
@@ -63,10 +64,12 @@ class HTLFScorer:
         if not claim_text.strip():
             raise ValueError("claim_text must not be empty")
 
-        inferred_target = target_layer or self._infer_layer(claim_text)
+        inferred_target = target_layer or self.detect_layer(claim_text)
 
         if source_text and source_text.strip():
-            inferred_source = source_layer or self._infer_layer(source_text)
+            inferred_source = source_layer or self.detect_layer(source_text)
+            from .pipeline import run_pipeline
+
             lv = run_pipeline(source_text=source_text, target_text=claim_text, use_mock_parser=use_mock_parser)
             fidelity = self._clamp01(1.0 - lv.total_loss)
             conf = 0.85
@@ -105,6 +108,16 @@ class HTLFScorer:
 
     def evaluate_dict(self, *args: object, **kwargs: object) -> dict[str, object]:
         return asdict(self.evaluate(*args, **kwargs))
+
+    # Public interface for KS40 integration
+    def detect_layer(self, text: str) -> Layer:
+        return self._infer_layer(text)
+
+    def estimate_loss_vector(self, source_layer: Layer, target_layer: Layer) -> "LossVector":
+        return self._estimate_loss_vector(source_layer, target_layer)
+
+    def infer_source_layer_from_claim(self, claim_text: str, target: Layer) -> Layer:
+        return self._infer_source_layer_from_claim(claim_text, target)
 
     def _extract_ks39b_confidence(
         self,

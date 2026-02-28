@@ -62,6 +62,18 @@ python -m htlf.pipeline \
   --ks39b-confidence 0.81
 ```
 
+KS39b `verify()` の出力JSONをそのまま渡すこともできます。
+
+```bash
+python -m htlf.pipeline \
+  --mode ks \
+  --claim /path/to/claim.txt \
+  --source /path/to/source.txt \
+  --ks39b-result /path/to/ks39b_verify_result.json
+```
+
+`--mode ks29b` と `--ks29b-score` は後方互換のため引き続き利用可能です。
+
 ---
 
 ## 統合スコア式
