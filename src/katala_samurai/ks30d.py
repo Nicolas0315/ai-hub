@@ -21,6 +21,7 @@ KS30c additions (Design: Youta Hilono, 2026-02-28):
   - StageStoreは再現可能性の記録であり、学習DBではない
 
 KS30d additions (Design: Youta Hilono, 2026-02-28):
+  [A-solvers] Analogy Solvers (A01-A05): non-LLM analogy expansion pipeline
   [D-1] Unknown Term Resolution: 未知の用語検出 → 内部参照(memory/knowledge) + 外部参照(OpenAlex査読論文) → 応答前に自動解決
 """
 
@@ -30,6 +31,13 @@ import time
 import urllib.request
 import urllib.parse
 import json as _json
+
+try:
+    from .analogy_solvers import run_analogy_solvers
+except ImportError:
+    import sys as _sys
+    _sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    from analogy_solvers import run_analogy_solvers
 
 # Stage externalization for cross-stage reference integrity
 try:
@@ -833,6 +841,9 @@ class KS30d(object):
             store=store,
         )
 
+        # [A-solvers] Analogy expansion (non-LLM, parallel to S01-S28)
+        analogy_result = run_analogy_solvers(claim.text, store=store)
+
         # [C-1] S2 concept confidence estimation
         claim_concepts_raw = list(claim.propositions.keys())
         concept_confidences = {}
@@ -888,6 +899,7 @@ class KS30d(object):
             "papers_aligned": len([p for p in understood_papers if p["alignment_score"] > 0]),
             "unknown_terms_resolved": d1_result["resolved_internally"] + d1_result["resolved_externally"],
             "unknown_terms_unresolved": d1_result["unresolved"],
+            "analogy_candidates": analogy_result["candidates_generated"],
             "top_paper": understood_papers[0]["title"] if understood_papers else None,
         }
         if store is not None:
