@@ -52,10 +52,21 @@ def _jaccard(a: str, b: str) -> float:
     return len(ta & tb) / len(ta | tb)
 
 
+def get_similarity_backend_name() -> str:
+    try:
+        from sentence_transformers import SentenceTransformer  # type: ignore
+
+        _ = SentenceTransformer("all-MiniLM-L6-v2")
+        return "sentence_transformers"
+    except Exception:
+        return "lexical"
+
+
 def _get_similarity_backend() -> Callable[[list[str], list[str]], list[list[float]]]:
     """Return embedding similarity backend with fallback."""
 
-    try:
+    backend = get_similarity_backend_name()
+    if backend == "sentence_transformers":
         from sentence_transformers import SentenceTransformer  # type: ignore
 
         model = SentenceTransformer("all-MiniLM-L6-v2")
@@ -73,12 +84,11 @@ def _get_similarity_backend() -> Callable[[list[str], list[str]], list[list[floa
             return sim
 
         return embed_similarity
-    except Exception:
 
-        def lexical_similarity(source_texts: list[str], target_texts: list[str]) -> list[list[float]]:
-            return [[_jaccard(a, b) for b in target_texts] for a in source_texts]
+    def lexical_similarity(source_texts: list[str], target_texts: list[str]) -> list[list[float]]:
+        return [[_jaccard(a, b) for b in target_texts] for a in source_texts]
 
-        return lexical_similarity
+    return lexical_similarity
 
 
 def _node_edge_signature(dag: DAG) -> dict[str, set[str]]:

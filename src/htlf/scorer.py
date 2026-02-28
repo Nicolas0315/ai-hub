@@ -67,6 +67,8 @@ class ScoreResult:
     profile_score: float
     total_loss: float
     all_profiles: list[ProfileScore]
+    context_backend: str = "heuristic"
+    qualia_backend: str = "heuristic"
 
 
 @dataclass(slots=True)
@@ -434,7 +436,7 @@ def _heuristic_context_score(source_text: str, target_text: str) -> float:
     return max(0.0, min(1.0, 0.75 * premise_score + 0.25 * global_semantic))
 
 
-def compute_r_context(source_text: str, target_text: str, model: str = "gpt-4o-mini") -> float:
+def compute_r_context_with_backend(source_text: str, target_text: str, model: str = "gpt-4o-mini") -> tuple[float, str]:
     """LLM-as-reader protocol with OpenAI -> Gemini -> heuristic fallback."""
     items = _extract_premises_with_llm(source_text)
     if not items:
@@ -453,9 +455,13 @@ def compute_r_context(source_text: str, target_text: str, model: str = "gpt-4o-m
             weighted_sum += item.weight * sim
             total_weight += item.weight
         if total_weight > 0:
-            return max(0.0, min(1.0, weighted_sum / total_weight))
+            return (max(0.0, min(1.0, weighted_sum / total_weight)), "llm_reader")
 
-    return _heuristic_context_score(source_text, target_text)
+    return (_heuristic_context_score(source_text, target_text), "heuristic")
+
+
+def compute_r_context(source_text: str, target_text: str, model: str = "gpt-4o-mini") -> float:
+    return compute_r_context_with_backend(source_text, target_text, model=model)[0]
 
 
 def compute_r_context_batch(cases: list[tuple[str, str]]) -> list[float]:
@@ -495,8 +501,8 @@ TARGET:\n{target_text[:10000]}"""
         return None
 
 
-def compute_r_qualia(source_text: str, target_text: str) -> float:
-    """LLM ensemble proxy: median(3 ratings)/5.0, Gemini-backed via fallback chain."""
+def compute_r_qualia_with_backend(source_text: str, target_text: str) -> tuple[float, str]:
+    """LLM ensemble proxy: median(3 ratings)/5.0, fallback to heuristic."""
     ratings: list[float] = []
     for temp in (0.0, 0.4, 0.8):
         r = _llm_qualia_one(source_text, target_text, temperature=temp)
@@ -504,8 +510,12 @@ def compute_r_qualia(source_text: str, target_text: str) -> float:
             ratings.append(r)
     if ratings:
         med = statistics.median(ratings)
-        return max(0.0, min(1.0, med / 5.0))
-    return _heuristic_qualia(source_text, target_text)
+        return (max(0.0, min(1.0, med / 5.0)), "llm_ensemble")
+    return (_heuristic_qualia(source_text, target_text), "behavioral")
+
+
+def compute_r_qualia(source_text: str, target_text: str) -> float:
+    return compute_r_qualia_with_backend(source_text, target_text)[0]
 
 
 def classify_profiles(
@@ -573,8 +583,8 @@ def compute_scores(
 ) -> ScoreResult:
     """Compute HTLF Phase 2 score bundle."""
     r_struct = compute_r_struct(source_dag, target_dag, match_result)
-    r_context = compute_r_context(source_text, target_text)
-    r_qualia = compute_r_qualia(source_text, target_text)
+    r_context, context_backend = compute_r_context_with_backend(source_text, target_text)
+    r_qualia, qualia_backend = compute_r_qualia_with_backend(source_text, target_text)
 
     profile_type, profile_score, all_profiles = classify_profiles(
         r_struct=r_struct,
@@ -593,4 +603,6 @@ def compute_scores(
         profile_score=profile_score,
         total_loss=total_loss,
         all_profiles=all_profiles,
+        context_backend=context_backend,
+        qualia_backend=qualia_backend,
     )

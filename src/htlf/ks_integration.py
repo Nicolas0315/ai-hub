@@ -1,25 +1,30 @@
-"""HTLF ↔ KS29B integration interface (Phase 3)."""
+"""HTLF ↔ KS integration interface (KS39b Self-Other Boundary aware)."""
 
 from __future__ import annotations
 
 import re
 from dataclasses import asdict, dataclass
-from typing import Literal
+from typing import Any, Literal
 
 from .pipeline import LossVector, run_pipeline
 
 Layer = Literal["math", "formal_language", "natural_language", "music", "creative"]
+ProvenanceOrigin = Literal["SELF", "DESIGNER", "EXTERNAL", "AMBIGUOUS"]
 
 
 @dataclass(slots=True)
 class HTLFResult:
-    """Unified result payload for KS29B + HTLF scoring."""
+    """Unified result payload for KS39b + HTLF scoring."""
 
     translation_fidelity: float
     loss_vector: LossVector
     profile_type: str
     confidence: float
-    ks29b_score: float
+    ks39b_confidence: float
+    measurement_provenance: dict[str, ProvenanceOrigin]
+    provenance_distribution: dict[str, float]
+    measurement_reliability: float
+    self_other_boundary: dict[str, Any]
     final_score: float
     source_layer: Layer
     target_layer: Layer
@@ -36,7 +41,7 @@ AXIS_PRIOR: dict[tuple[Layer, Layer], tuple[float, float, float]] = {
 
 
 class HTLFScorer:
-    """KS29Bの信頼性スコアにHTLF翻訳忠実度を統合。"""
+    """KS39bの信頼性にHTLF翻訳忠実度をSelf-Other Boundary考慮で統合。"""
 
     def __init__(self, alpha: float = 0.7, beta: float = 0.3) -> None:
         if alpha < 0 or beta < 0 or (alpha + beta) <= 0:
@@ -51,16 +56,10 @@ class HTLFScorer:
         source_text: str | None = None,
         source_layer: Layer | None = None,
         target_layer: Layer | None = None,
-        ks29b_score: float | None = None,
+        ks39b_result: dict[str, Any] | None = None,
+        ks39b_confidence: float | None = None,
+        use_mock_parser: bool = False,
     ) -> HTLFResult:
-        """Evaluate one claim with optional source text.
-
-        Returns HTLFResult with:
-        - translation_fidelity: float (0-1)
-        - loss_vector: LossVector
-        - profile_type: str
-        - confidence: float
-        """
         if not claim_text.strip():
             raise ValueError("claim_text must not be empty")
 
@@ -68,7 +67,7 @@ class HTLFScorer:
 
         if source_text and source_text.strip():
             inferred_source = source_layer or self._infer_layer(source_text)
-            lv = run_pipeline(source_text=source_text, target_text=claim_text)
+            lv = run_pipeline(source_text=source_text, target_text=claim_text, use_mock_parser=use_mock_parser)
             fidelity = self._clamp01(1.0 - lv.total_loss)
             conf = 0.85
         else:
@@ -77,23 +76,79 @@ class HTLFScorer:
             fidelity = self._clamp01(1.0 - lv.total_loss)
             conf = 0.55
 
-        base_ks29b = self._clamp01(ks29b_score if ks29b_score is not None else self._estimate_ks29b_score(claim_text))
-        final_score = self._clamp01(self.alpha * base_ks29b + self.beta * fidelity)
+        measurement_provenance = self._measurement_provenance(lv)
+        provenance_distribution = self._distribution_from_tags(measurement_provenance)
+        measurement_reliability = self._measurement_reliability(provenance_distribution)
+
+        boundary = (ks39b_result or {}).get("self_other_boundary") if ks39b_result else {}
+        base_ks39b = self._extract_ks39b_confidence(ks39b_result, ks39b_confidence, claim_text)
+
+        # final = α × ks39b_confidence + β × translation_fidelity × measurement_reliability
+        final_score = self._clamp01(
+            self.alpha * base_ks39b + self.beta * fidelity * measurement_reliability
+        )
 
         return HTLFResult(
             translation_fidelity=fidelity,
             loss_vector=lv,
             profile_type=lv.profile_type,
             confidence=conf,
-            ks29b_score=base_ks29b,
+            ks39b_confidence=base_ks39b,
+            measurement_provenance=measurement_provenance,
+            provenance_distribution=provenance_distribution,
+            measurement_reliability=measurement_reliability,
+            self_other_boundary=boundary if isinstance(boundary, dict) else {},
             final_score=final_score,
             source_layer=inferred_source,
             target_layer=inferred_target,
         )
 
     def evaluate_dict(self, *args: object, **kwargs: object) -> dict[str, object]:
-        """JSON-friendly helper."""
         return asdict(self.evaluate(*args, **kwargs))
+
+    def _extract_ks39b_confidence(
+        self,
+        ks39b_result: dict[str, Any] | None,
+        ks39b_confidence: float | None,
+        claim_text: str,
+    ) -> float:
+        if ks39b_confidence is not None:
+            return self._clamp01(ks39b_confidence)
+        if ks39b_result and isinstance(ks39b_result, dict):
+            if "final_confidence" in ks39b_result:
+                return self._clamp01(float(ks39b_result.get("final_confidence", 0.5)))
+            if "confidence" in ks39b_result:
+                return self._clamp01(float(ks39b_result.get("confidence", 0.5)))
+        return self._clamp01(self._estimate_ks39b_confidence(claim_text))
+
+    def _measurement_provenance(self, lv: LossVector) -> dict[str, ProvenanceOrigin]:
+        parser_backend = getattr(lv, "parser_backend", "llm")
+        context_backend = getattr(lv, "context_backend", "llm_reader")
+        qualia_backend = getattr(lv, "qualia_backend", "llm_ensemble")
+        matcher_backend = getattr(lv, "matcher_backend", "sentence_transformers")
+
+        return {
+            "R_struct": "SELF" if parser_backend == "mock" else "EXTERNAL",
+            "R_context": "SELF" if context_backend == "heuristic" else "EXTERNAL",
+            "R_qualia": "SELF" if qualia_backend == "behavioral" else "EXTERNAL",
+            "matcher": "SELF" if matcher_backend == "sentence_transformers" else ("EXTERNAL" if matcher_backend == "api" else "SELF"),
+        }
+
+    def _distribution_from_tags(self, tags: dict[str, ProvenanceOrigin]) -> dict[str, float]:
+        counts = {"SELF": 0, "DESIGNER": 0, "EXTERNAL": 0, "AMBIGUOUS": 0}
+        for origin in tags.values():
+            counts[origin] = counts.get(origin, 0) + 1
+        total = max(1, sum(counts.values()))
+        return {k: v / total for k, v in counts.items() if v > 0}
+
+    def _measurement_reliability(self, distribution: dict[str, float]) -> float:
+        self_w = distribution.get("SELF", 0.0)
+        ext_w = distribution.get("EXTERNAL", 0.0)
+        amb_w = distribution.get("AMBIGUOUS", 0.0)
+        des_w = distribution.get("DESIGNER", 0.0)
+        # SELF寄りほど高信頼、EXTERNAL/AMBIGUOUSで減衰
+        reliability = 0.25 + 0.85 * self_w - 0.35 * ext_w - 0.20 * amb_w - 0.10 * des_w
+        return self._clamp01(reliability)
 
     def _infer_layer(self, text: str) -> Layer:
         t = text.strip().lower()
@@ -124,7 +179,6 @@ class HTLFScorer:
             if pair in AXIS_PRIOR:
                 r_struct, r_context, r_qualia = AXIS_PRIOR[pair]
             elif (target_layer, source_layer) in AXIS_PRIOR:
-                # reverse direction slightly degrades context/qualia
                 a, b, c = AXIS_PRIOR[(target_layer, source_layer)]
                 r_struct, r_context, r_qualia = a * 0.95, b * 0.90, c * 0.85
             else:
@@ -144,9 +198,13 @@ class HTLFScorer:
             r_qualia=self._clamp01(r_qualia),
             total_loss=self._clamp01(total),
             profile_type=profile,
+            parser_backend="mock",
+            context_backend="heuristic",
+            qualia_backend="behavioral",
+            matcher_backend="sentence_transformers",
         )
 
-    def _estimate_ks29b_score(self, claim_text: str) -> float:
+    def _estimate_ks39b_confidence(self, claim_text: str) -> float:
         text = claim_text.lower()
         score = 0.52
 

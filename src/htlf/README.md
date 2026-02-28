@@ -6,7 +6,7 @@ HTLF は、異なる記号レイヤー間（数学 / 形式言語 / 自然言語
 - `R_context`: 文脈復元度
 - `R_qualia`: 体験的質感の復元度
 
-Phase 3 では、KS29B の信頼性スコアと HTLF の翻訳忠実度を統合するインターフェースを追加しました。
+Phase 3 では、KS39b の信頼性スコアと HTLF の翻訳忠実度を統合するインターフェースを追加しました。
 
 ---
 
@@ -33,11 +33,11 @@ python -m htlf.pipeline \
   --target /path/to/target.txt
 ```
 
-### 2) KS29B 統合モード（Phase 3）
+### 2) KS39b 統合モード（Phase 3）
 
 ```bash
 python -m htlf.pipeline \
-  --mode ks29b \
+  --mode ks \
   --claim "This paper claims X reduces Y by 32% (p<0.05)." \
   --source "Original abstract text here..."
 ```
@@ -46,20 +46,20 @@ python -m htlf.pipeline \
 
 ```bash
 python -m htlf.pipeline \
-  --mode ks29b \
+  --mode ks \
   --claim /path/to/claim.txt \
   --source /path/to/source.txt \
   --alpha 0.7 \
   --beta 0.3
 ```
 
-### 3) 事前算出済み KS29B スコアを注入
+### 3) 事前算出済み KS39b スコアを注入
 
 ```bash
 python -m htlf.pipeline \
-  --mode ks29b \
+  --mode ks \
   --claim "..." \
-  --ks29b-score 0.81
+  --ks39b-confidence 0.81
 ```
 
 ---
@@ -67,11 +67,23 @@ python -m htlf.pipeline \
 ## 統合スコア式
 
 ```text
-final = α × ks29b_score + β × translation_fidelity
+final = α × ks39b_confidence + β × translation_fidelity × measurement_reliability
 ```
 
 - `translation_fidelity = 1 - total_loss`
+- `measurement_reliability = f(provenance_distribution)`
 - `α, β` は CLI で調整可能（正規化されます）
+
+### provenance tracking（Self-Other Boundary連携）
+
+HTLF 側は各計測軸に provenance tag を付与します。
+
+- `R_struct`: parser が mock なら `SELF`、LLM抽出なら `EXTERNAL`
+- `R_context`: ヒューリスティックなら `SELF`、LLM-as-readerなら `EXTERNAL`
+- `R_qualia`: 行動実験/heuristicなら `SELF`、LLM ensembleなら `EXTERNAL`
+- `matcher`: sentence-transformers（ローカル）なら `SELF`、API呼び出しなら `EXTERNAL`
+
+`SELF` 比率が高いほど `measurement_reliability` は上がり、`EXTERNAL` 比率が高いほど HTLF 側の寄与は自動的に減衰します。
 
 ---
 
@@ -89,7 +101,7 @@ claim_text ------------------------------------------+-----+
                                                      |     |
                                                      v     |
                                      +------------------+  |
-                                     | KS29B score      |  |
+                                     | KS39b score      |  |
                                      | (provided/est.)  |  |
                                      +------------------+  |
                                                      |     |
@@ -117,9 +129,9 @@ claim_text ------------------------------------------+-----+
 
 - **Phase 3 (今回)**
   - 行動主義的 `R_qualia` 計測プロトコル文書化
-  - `HTLFScorer` (`ks29b_integration.py`) 追加
-  - `pipeline.py --mode ks29b` 追加
-  - KS29B × HTLF 統合式の実装
+  - `HTLFScorer` (`ks_integration.py`) 追加
+  - `pipeline.py --mode ks` 追加
+  - KS39b × HTLF 統合式の実装
 
 ---
 
@@ -127,5 +139,5 @@ claim_text ------------------------------------------+-----+
 
 - `src/htlf/pipeline.py` — CLIエントリポイント
 - `src/htlf/scorer.py` — 3軸スコア計算
-- `src/htlf/ks29b_integration.py` — KS29B統合インターフェース
+- `src/htlf/ks_integration.py` — KS39b統合インターフェース
 - `docs/research/htlf-qualia-protocol.md` — Phase 3 プロトコル
