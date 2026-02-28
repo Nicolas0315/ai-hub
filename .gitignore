@@ -52,3 +52,5 @@ Thumbs.db
 data/matsuri_logs/
 __pycache__/
 runs/
+rust_accel/target/
+rust_accel/*.whl
