@@ -57,20 +57,29 @@ def get_similarity_backend_name() -> str:
     try:
         from sentence_transformers import SentenceTransformer  # type: ignore
 
-        _ = SentenceTransformer("all-MiniLM-L6-v2")
+        _ = _get_cached_model()
         return "sentence_transformers"
     except Exception:
         return "lexical"
 
 
+_CACHED_MODEL = None
+
+
+def _get_cached_model():
+    """Singleton-cached SentenceTransformer to avoid repeated loading."""
+    global _CACHED_MODEL
+    if _CACHED_MODEL is None:
+        from sentence_transformers import SentenceTransformer  # type: ignore
+        _CACHED_MODEL = SentenceTransformer("all-MiniLM-L6-v2")
+    return _CACHED_MODEL
+
+
 def _get_similarity_backend() -> Callable[[list[str], list[str]], list[list[float]]]:
     """Return embedding similarity backend with fallback."""
 
-    backend = get_similarity_backend_name()
-    if backend == "sentence_transformers":
-        from sentence_transformers import SentenceTransformer  # type: ignore
-
-        model = SentenceTransformer("all-MiniLM-L6-v2")
+    try:
+        model = _get_cached_model()
 
         def embed_similarity(source_texts: list[str], target_texts: list[str]) -> list[list[float]]:
             source_emb = model.encode(source_texts, normalize_embeddings=True)
@@ -81,6 +90,8 @@ def _get_similarity_backend() -> Callable[[list[str], list[str]], list[list[floa
             )
 
         return embed_similarity
+    except Exception:
+        pass
 
     def lexical_similarity(source_texts: list[str], target_texts: list[str]) -> list[list[float]]:
         return [[_jaccard(a, b) for b in target_texts] for a in source_texts]

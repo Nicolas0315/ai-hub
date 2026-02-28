@@ -97,42 +97,149 @@ def _normalize_edge_type(relation: str, edge_type: str | None = None) -> EdgeTyp
     return "SUPPORTS"
 
 
+def _extract_noun_phrases(text: str) -> list[str]:
+    """Extract key noun phrases / concepts using regex patterns."""
+    patterns = [
+        # Technical compound terms (e.g., "gene editing", "gravitational waves")
+        r'\b[A-Z][a-z]+(?:\s+[A-Z][a-z]+)+\b',
+        # Acronyms with optional expansion
+        r'\b[A-Z]{2,6}(?:-[A-Za-z0-9]+)*\b',
+        # Hyphenated compounds (e.g., "CRISPR-Cas9")
+        r'\b[A-Za-z]+-[A-Za-z0-9]+(?:-[A-Za-z0-9]+)*\b',
+        # Japanese technical terms (katakana compounds)
+        r'[ァ-ヴー]{3,}(?:・[ァ-ヴー]{2,})*',
+        # Key noun phrases: adjective + noun patterns
+        r'\b(?:the\s+)?(?:[a-z]+\s+){0,2}(?:system|theory|model|method|process|mechanism|structure|function|principle|framework|algorithm|protocol|technique|analysis|experiment|measurement|frequency|wavelength|amplitude|velocity|energy|field|force|particle|molecule|protein|genome|sequence|mutation|expression|receptor|pathway|network|architecture|layer|module|component|parameter|variable|distribution|probability|correlation|coefficient|matrix|vector|tensor|gradient|optimization|convergence|iteration|approximation|transformation|decomposition|representation|embedding|encoding|decoding|inference|prediction|classification|regression|clustering|segmentation|detection|recognition|generation|synthesis|composition|harmony|melody|rhythm|tempo|timbre|chord|scale|mode|tonality|modulation|cadence|counterpoint|fugue|sonata|symphony|concerto|texture|canvas|brushstroke|palette|perspective|proportion|symmetry|contrast|saturation|luminance|hue)\b',
+    ]
+    found: dict[str, int] = {}  # term -> first position
+    text_lower = text.lower()
+    for pat in patterns:
+        for m in re.finditer(pat, text):
+            term = m.group().strip()
+            if len(term) < 3 or term.lower() in ('the', 'and', 'for', 'with', 'from', 'that', 'this', 'which'):
+                continue
+            key = term.lower()
+            if key not in found:
+                found[key] = m.start()
+    # Also extract sentence-level key claims for edge diversity
+    return sorted(found.keys(), key=lambda k: found[k])
+
+
+def _deduplicate_concepts(concepts: list[str], max_nodes: int = 25) -> list[str]:
+    """Remove near-duplicate concepts."""
+    result: list[str] = []
+    for c in concepts:
+        is_dup = False
+        for existing in result:
+            if c in existing or existing in c:
+                is_dup = True
+                break
+        if not is_dup:
+            result.append(c)
+        if len(result) >= max_nodes:
+            break
+    return result
+
+
+def _infer_edge_type_between(src_text: str, tgt_text: str, full_text: str) -> tuple[str, EdgeType]:
+    """Infer relationship between two concepts based on their co-occurrence context."""
+    src_low = src_text.lower()
+    tgt_low = tgt_text.lower()
+    
+    # Find sentences containing both concepts
+    sentences = [s.strip() for s in re.split(r'(?<=[.!?。！？])\s+', full_text) if s.strip()]
+    co_sentences = [s for s in sentences if src_low in s.lower() and tgt_low in s.lower()]
+    
+    if co_sentences:
+        ctx = co_sentences[0].lower()
+        if any(k in ctx for k in ['cause', 'result', 'lead to', 'produce', 'enable', 'trigger', 'induce']):
+            return ('causes', 'CAUSAL')
+        if any(k in ctx for k in ['define', 'means', 'refers to', 'known as', 'called']):
+            return ('defines', 'DEFINES')
+        if any(k in ctx for k in ['measure', 'quantif', 'percent', 'ratio', 'rate', 'frequency']):
+            return ('quantifies', 'QUANTIFIES')
+        if any(k in ctx for k in ['however', 'but', 'contrast', 'unlike', 'whereas', 'despite']):
+            return ('contrasts', 'CONTRADICTS')
+        if any(k in ctx for k in ['require', 'depend', 'need', 'prerequisite', 'given']):
+            return ('depends_on', 'PREMISE')
+    
+    return ('supports', 'SUPPORTS')
+
+
 def _heuristic_extract(text: str, max_nodes: int = 20) -> DAG:
-    """Fallback parser when API access is unavailable."""
-    sentences = [s.strip() for s in re.split(r"(?<=[.!?。！？])\s+", text) if s.strip()]
-    if not sentences:
-        sentences = [text[:200].strip()] if text.strip() else ["(empty)"]
-
-    selected = sentences[: max(5, min(max_nodes, len(sentences)))]
+    """Concept-level DAG extraction using noun phrase mining + co-occurrence edges."""
+    # Phase 1: Extract concepts
+    concepts = _extract_noun_phrases(text)
+    
+    # Also add key sentences as claim nodes for coverage
+    sentences = [s.strip() for s in re.split(r'(?<=[.!?。！？])\s+', text) if s.strip()]
+    key_sentences = sentences[:5]  # First 5 sentences as anchor claims
+    
+    concepts = _deduplicate_concepts(concepts, max_nodes=max_nodes - len(key_sentences))
+    
+    # Build nodes: concepts first, then key sentences
     nodes: list[DAGNode] = []
-    for idx, sentence in enumerate(selected, 1):
-        node_type: NodeType = "equation" if _is_equation_like(sentence) else "claim"
-        nodes.append(DAGNode(id=f"n{idx}", node_type=node_type, text=sentence[:400]))
-
+    for idx, concept in enumerate(concepts, 1):
+        node_type: NodeType = "equation" if _is_equation_like(concept) else "concept"
+        nodes.append(DAGNode(id=f"c{idx}", node_type=node_type, text=concept))
+    
+    for idx, sentence in enumerate(key_sentences, 1):
+        node_type = "equation" if _is_equation_like(sentence) else "claim"
+        nodes.append(DAGNode(id=f"s{idx}", node_type=node_type, text=sentence[:400]))
+    
+    if not nodes:
+        nodes.append(DAGNode(id="n1", node_type="claim", text=text[:200].strip() or "(empty)"))
+    
+    # Phase 2: Build edges from co-occurrence + semantic inference
     edges: list[DAGEdge] = []
-    for idx in range(1, len(nodes)):
+    text_lower = text.lower()
+    
+    # Concept-to-concept edges (co-occurrence in same sentence)
+    for i in range(len(concepts)):
+        for j in range(i + 1, len(concepts)):
+            # Check if they co-occur in a sentence
+            ci_low = concepts[i].lower()
+            cj_low = concepts[j].lower()
+            co_occurs = any(ci_low in s.lower() and cj_low in s.lower() for s in sentences)
+            if co_occurs:
+                relation, edge_type = _infer_edge_type_between(concepts[i], concepts[j], text)
+                edges.append(DAGEdge(
+                    source=f"c{i+1}", target=f"c{j+1}",
+                    relation=relation, edge_type=edge_type,
+                ))
+    
+    # Concept-to-sentence edges (concept mentioned in sentence)
+    for i, concept in enumerate(concepts):
+        for j, sentence in enumerate(key_sentences):
+            if concept.lower() in sentence.lower():
+                edges.append(DAGEdge(
+                    source=f"c{i+1}", target=f"s{j+1}",
+                    relation="supports", edge_type="SUPPORTS",
+                ))
+    
+    # Sentence chain edges (sequential)
+    for i in range(len(key_sentences) - 1):
+        cur_txt = key_sentences[i + 1].lower()
         relation = "supports"
-        prev_txt = nodes[idx - 1].text.lower()
-        cur_txt = nodes[idx].text.lower()
-        if any(k in cur_txt for k in ["because", "therefore", "thus", "hence", "なので", "したがって"]):
+        if any(k in cur_txt for k in ["because", "therefore", "thus", "hence"]):
             relation = "causes"
-        elif any(k in cur_txt for k in ["define", "means", "とは", "定義"]):
+        elif any(k in cur_txt for k in ["define", "means"]):
             relation = "defines"
-        elif any(k in cur_txt for k in ["however", "but", "一方", "しかし", "contrary", "矛盾"]):
+        elif any(k in cur_txt for k in ["however", "but", "contrary"]):
             relation = "contrasts"
-        elif "if" in prev_txt or "when" in prev_txt or "場合" in prev_txt or "前提" in prev_txt:
-            relation = "depends_on"
-        elif any(k in cur_txt for k in ["%", "percent", "ratio", "倍", "比率", "統計", "measurement"]):
-            relation = "quantifies"
-        edges.append(
-            DAGEdge(
-                source=nodes[idx - 1].id,
-                target=nodes[idx].id,
-                relation=relation,
-                edge_type=_normalize_edge_type(relation),
-            )
-        )
-
+        edges.append(DAGEdge(
+            source=f"s{i+1}", target=f"s{i+2}",
+            relation=relation, edge_type=_normalize_edge_type(relation),
+        ))
+    
+    # If no edges were created, add fallback sequential edges
+    if not edges and len(nodes) > 1:
+        for i in range(len(nodes) - 1):
+            edges.append(DAGEdge(
+                source=nodes[i].id, target=nodes[i+1].id,
+                relation="supports", edge_type="SUPPORTS",
+            ))
+    
     return DAG(nodes=nodes, edges=edges)
 
 

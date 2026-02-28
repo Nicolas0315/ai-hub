@@ -37,6 +37,17 @@ EDGE_TYPE_MISMATCH_DISCOUNT: dict[tuple[str, str], float] = {
     ("SUPPORTS", "DEFINES"): 0.85,
     ("CONTRADICTS", "SUPPORTS"): 0.6,
     ("SUPPORTS", "CONTRADICTS"): 0.65,
+    # Additional cross-type partial credit for concept-level matching
+    ("CAUSAL", "PREMISE"): 0.75,
+    ("PREMISE", "CAUSAL"): 0.75,
+    ("CAUSAL", "DEFINES"): 0.5,
+    ("DEFINES", "CAUSAL"): 0.5,
+    ("QUANTIFIES", "SUPPORTS"): 0.8,
+    ("SUPPORTS", "QUANTIFIES"): 0.8,
+    ("QUANTIFIES", "DEFINES"): 0.7,
+    ("DEFINES", "QUANTIFIES"): 0.7,
+    ("PREMISE", "DEFINES"): 0.7,
+    ("DEFINES", "PREMISE"): 0.7,
 }
 
 TERM_SYNONYM_GROUPS: list[set[str]] = [
@@ -100,34 +111,54 @@ def _normalize_edge_type(edge: object) -> str:
 
 
 def compute_r_struct(source_dag: DAG, target_dag: DAG, match_result: MatchResult) -> float:
-    """Compute edge-type-aware DAG preservation ratio for R_struct."""
+    """Compute structural preservation combining edge preservation + node overlap ratio.
+    
+    R_struct = 0.6 * edge_preservation + 0.4 * node_match_ratio
+    
+    This prevents R_struct=0 when nodes match but edges don't align
+    (common in cross-domain translation where concepts are shared but 
+    argument structure differs).
+    """
     source_edges = source_dag.edges
-    if not source_edges:
+    source_nodes = source_dag.nodes
+    target_nodes = target_dag.nodes
+    
+    if not source_nodes:
         return 1.0
 
     mapping = match_result.mapping
-    if not mapping:
-        return 0.0
+    
+    # Node match ratio: what fraction of source concepts are preserved?
+    n_source = max(1, len(source_nodes))
+    n_matched = len(mapping)
+    node_ratio = min(1.0, n_matched / n_source)
+    
+    # Edge preservation (original logic)
+    if not source_edges or not mapping:
+        edge_score = 0.0
+    else:
+        src_node_map = {n.id: i for i, n in enumerate(source_nodes)}
+        tgt_node_map = {n.id: i for i, n in enumerate(target_nodes)}
 
-    src_nodes = {n.id: i for i, n in enumerate(source_dag.nodes)}
-    tgt_nodes = {n.id: i for i, n in enumerate(target_dag.nodes)}
+        src_typed: list[tuple[int, int, str]] = []
+        for e in source_edges:
+            if e.source in src_node_map and e.target in src_node_map:
+                src_typed.append((src_node_map[e.source], src_node_map[e.target], _normalize_edge_type(e)))
 
-    src_typed: list[tuple[int, int, str]] = []
-    for e in source_edges:
-        if e.source in src_nodes and e.target in src_nodes:
-            src_typed.append((src_nodes[e.source], src_nodes[e.target], _normalize_edge_type(e)))
+        tgt_typed: list[tuple[int, int, str]] = []
+        for e in target_dag.edges:
+            if e.source in tgt_node_map and e.target in tgt_node_map:
+                tgt_typed.append((tgt_node_map[e.source], tgt_node_map[e.target], _normalize_edge_type(e)))
 
-    tgt_typed: list[tuple[int, int, str]] = []
-    for e in target_dag.edges:
-        if e.source in tgt_nodes and e.target in tgt_nodes:
-            tgt_typed.append((tgt_nodes[e.source], tgt_nodes[e.target], _normalize_edge_type(e)))
+        node_mapping: list[tuple[int, int]] = []
+        for s_id, t_id in mapping.items():
+            if s_id in src_node_map and t_id in tgt_node_map:
+                node_mapping.append((src_node_map[s_id], tgt_node_map[t_id]))
 
-    node_mapping: list[tuple[int, int]] = []
-    for s_id, t_id in mapping.items():
-        if s_id in src_nodes and t_id in tgt_nodes:
-            node_mapping.append((src_nodes[s_id], tgt_nodes[t_id]))
-
-    return rb.htlf_r_struct_typed(src_typed, tgt_typed, node_mapping, EDGE_TYPE_WEIGHTS, EDGE_TYPE_MISMATCH_DISCOUNT)
+        edge_score = rb.htlf_r_struct_typed(src_typed, tgt_typed, node_mapping, EDGE_TYPE_WEIGHTS, EDGE_TYPE_MISMATCH_DISCOUNT)
+    
+    # Blend: edge preservation (structural) + node coverage (conceptual)
+    return 0.6 * edge_score + 0.4 * node_ratio
 
 
 def _tokenize(text: str) -> list[str]:
@@ -150,11 +181,14 @@ def _build_synonym_map() -> dict[str, set[str]]:
 @lru_cache(maxsize=1)
 def _embedding_model() -> object | None:
     try:
-        from sentence_transformers import SentenceTransformer  # type: ignore
-
-        return SentenceTransformer("all-MiniLM-L6-v2")
+        from .matcher import _get_cached_model
+        return _get_cached_model()
     except Exception:
-        return None
+        try:
+            from sentence_transformers import SentenceTransformer  # type: ignore
+            return SentenceTransformer("all-MiniLM-L6-v2")
+        except Exception:
+            return None
 
 
 @lru_cache(maxsize=4096)
@@ -538,7 +572,13 @@ def classify_profiles(
     alpha: float = 0.5,
     beta: float = 0.5,
 ) -> tuple[str, float, list[ProfileScore]]:
-    """Compute 12 profile patterns and return best profile label."""
+    """Classify translation into one of 12 profile patterns.
+    
+    Uses dominance-based classification: which axis(es) contribute most
+    to information preservation or loss. This prevents R_qualia from
+    always winning (since it's computed as a function of R_context and
+    tends to be high).
+    """
     assert abs(alpha + beta - 1.0) < 1e-9, "alpha + beta must be 1"
 
     axes: dict[str, float | None] = {
@@ -578,11 +618,65 @@ def classify_profiles(
             score = (nums[0] ** alpha) * (nums[1] ** beta)
         profiles.append(ProfileScore(name=name, pair=pair, mode=mode, score=max(0.0, min(1.0, score))))
 
-    valid_profiles = [p for p in profiles if p.score is not None]
-    best = max(valid_profiles, key=lambda p: float(p.score)) if valid_profiles else None
-    if best is None or best.score is None:
-        return ("P00_unclassified", 0.0, profiles)
-    return (best.name, float(best.score), profiles)
+    # Loss-gap classification: identify which axis dominates the translation's
+    # character by measuring the GAP between axes (not absolute values).
+    # This prevents R_qualia from always winning since it's boosted by R_context.
+    rq = float(r_qualia) if r_qualia is not None else 0.5
+    rs = float(r_struct)
+    rc = float(r_context)
+    
+    # Loss per axis (1 - preservation)
+    loss_s = 1.0 - rs
+    loss_c = 1.0 - rc
+    loss_q = 1.0 - rq
+    
+    # Gap analysis: which axis has the most extreme loss relative to others?
+    # "Bottleneck" = axis with highest loss (most information destroyed)
+    # "Preserved" = axis with lowest loss (most information kept)
+    axis_losses = {"struct": loss_s, "context": loss_c, "qualia": loss_q}
+    sorted_axes = sorted(axis_losses.items(), key=lambda x: x[1], reverse=True)
+    bottleneck = sorted_axes[0][0]   # highest loss
+    preserved = sorted_axes[-1][0]   # lowest loss
+    
+    # Gap between bottleneck and preserved
+    gap = sorted_axes[0][1] - sorted_axes[-1][1]
+    
+    if gap > 0.15:
+        # Clear bottleneck: classify by the bottleneck axis (what's lost most)
+        dominant_pair = bottleneck
+        # When there's a clear gap, use "sum" (additive loss dominance)
+        mode_choice = "sum"
+    elif gap > 0.05:
+        # Moderate gap: classify by the pair of the two most-lost axes
+        top2 = sorted([sorted_axes[0][0], sorted_axes[1][0]])
+        dominant_pair = f"{top2[0]}_{top2[1]}"
+        # Moderate gap → product (axes interact)
+        mode_choice = "prod"
+    else:
+        # All axes roughly equal: classify by pair of highest two absolute scores
+        sorted_by_score = sorted(axis_losses.items(), key=lambda x: x[1])
+        top2 = sorted([sorted_by_score[0][0], sorted_by_score[1][0]])
+        dominant_pair = f"{top2[0]}_{top2[1]}"
+        mode_choice = "sum"
+    
+    # Find matching profile
+    profile_name = "P00_unclassified"
+    profile_score = 0.0
+    for p in profiles:
+        if p.pair == dominant_pair and p.mode == mode_choice and p.score is not None:
+            profile_name = p.name
+            profile_score = p.score
+            break
+    
+    # Fallback: if no match, use max score
+    if profile_name == "P00_unclassified":
+        valid_profiles = [p for p in profiles if p.score is not None]
+        best = max(valid_profiles, key=lambda p: float(p.score)) if valid_profiles else None
+        if best is not None and best.score is not None:
+            profile_name = best.name
+            profile_score = float(best.score)
+    
+    return (profile_name, profile_score, profiles)
 
 
 def compute_scores(
@@ -617,7 +711,9 @@ def compute_scores(
         beta=beta,
     )
 
-    total_loss = 1.0 - profile_score
+    # Total loss = weighted average of per-axis losses (not tied to profile_score)
+    _rq = r_qualia if r_qualia is not None else 0.5
+    total_loss = 1.0 - (0.35 * r_struct + 0.35 * r_context + 0.30 * float(_rq))
     return ScoreResult(
         r_struct=r_struct,
         r_context=r_context,
