@@ -14,6 +14,7 @@ from typing import Any, Literal
 from .matcher import MatchResult
 from .parser import DAG
 from .qualia_engine import compute_qualia
+from . import rust_bridge as rb
 
 ProfilePair = Literal["struct_context", "struct_qualia", "context_qualia", "struct", "context", "qualia"]
 ProfileMode = Literal["sum", "prod"]
@@ -108,37 +109,25 @@ def compute_r_struct(source_dag: DAG, target_dag: DAG, match_result: MatchResult
     if not mapping:
         return 0.0
 
-    target_index: dict[tuple[str, str], list[str]] = {}
-    for edge in target_dag.edges:
-        key = (edge.source, edge.target)
-        target_index.setdefault(key, []).append(_normalize_edge_type(edge))
+    src_nodes = {n.id: i for i, n in enumerate(source_dag.nodes)}
+    tgt_nodes = {n.id: i for i, n in enumerate(target_dag.nodes)}
 
-    weighted_score = 0.0
-    total_weight = 0.0
+    src_typed: list[tuple[int, int, str]] = []
+    for e in source_edges:
+        if e.source in src_nodes and e.target in src_nodes:
+            src_typed.append((src_nodes[e.source], src_nodes[e.target], _normalize_edge_type(e)))
 
-    for edge in source_edges:
-        mapped_source = mapping.get(edge.source)
-        mapped_target = mapping.get(edge.target)
-        if not mapped_source or not mapped_target:
-            continue
+    tgt_typed: list[tuple[int, int, str]] = []
+    for e in target_dag.edges:
+        if e.source in tgt_nodes and e.target in tgt_nodes:
+            tgt_typed.append((tgt_nodes[e.source], tgt_nodes[e.target], _normalize_edge_type(e)))
 
-        src_type = _normalize_edge_type(edge)
-        weight = EDGE_TYPE_WEIGHTS.get(src_type, 1.0)
-        total_weight += weight
+    node_mapping: list[tuple[int, int]] = []
+    for s_id, t_id in mapping.items():
+        if s_id in src_nodes and t_id in tgt_nodes:
+            node_mapping.append((src_nodes[s_id], tgt_nodes[t_id]))
 
-        best = 0.0
-        for tgt_type in target_index.get((mapped_source, mapped_target), []):
-            if tgt_type == src_type:
-                best = max(best, 1.0)
-            else:
-                best = max(best, EDGE_TYPE_MISMATCH_DISCOUNT.get((src_type, tgt_type), 0.5))
-
-        weighted_score += weight * best
-
-    if total_weight == 0:
-        return 0.0
-
-    return max(0.0, min(1.0, weighted_score / total_weight))
+    return rb.htlf_r_struct_typed(src_typed, tgt_typed, node_mapping, EDGE_TYPE_WEIGHTS, EDGE_TYPE_MISMATCH_DISCOUNT)
 
 
 def _tokenize(text: str) -> list[str]:
@@ -434,7 +423,8 @@ def _heuristic_context_score(source_text: str, target_text: str) -> float:
 
     premise_score = (weighted_sum / total_weight) if total_weight > 0 else 0.0
     global_semantic = _text_similarity(source_text[:4000], target_text[:4000])
-    return max(0.0, min(1.0, 0.75 * premise_score + 0.25 * global_semantic))
+    tfidf = rb.htlf_tfidf_overlap(_tokenize(source_text), target_text, idf)
+    return max(0.0, min(1.0, 0.55 * premise_score + 0.25 * global_semantic + 0.20 * tfidf))
 
 
 def compute_r_context_with_backend(source_text: str, target_text: str, model: str = "gpt-4o-mini") -> tuple[float, str]:

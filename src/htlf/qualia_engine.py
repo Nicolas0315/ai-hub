@@ -15,6 +15,7 @@ from dataclasses import dataclass
 from typing import Any, Literal
 
 from .qualia_baselines import EMOTION_MECHANISM_WEIGHTS, merged_baseline_space
+from . import rust_bridge as rb
 
 DistanceMetric = Literal["cosine", "mahalanobis", "wasserstein"]
 
@@ -79,11 +80,14 @@ def _wasserstein_approx(a: list[float], b: list[float]) -> float:
 
 
 def _compute_distance(a: list[float], b: list[float], metric: DistanceMetric) -> float:
-    if metric == "mahalanobis":
-        return _diag_mahalanobis(a, b)
-    if metric == "wasserstein":
-        return _wasserstein_approx(a, b)
-    return _cosine_distance(a, b)
+    try:
+        return rb.htlf_distance(a, b, method=metric)
+    except Exception:
+        if metric == "mahalanobis":
+            return _diag_mahalanobis(a, b)
+        if metric == "wasserstein":
+            return _wasserstein_approx(a, b)
+        return _cosine_distance(a, b)
 
 
 class BehavioralExperiment:

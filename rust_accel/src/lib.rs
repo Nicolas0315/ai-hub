@@ -503,6 +503,218 @@ fn cache_clear() -> PyResult<()> {
     Ok(())
 }
 
+
+
+// ══════════════════════════════════════════════
+// MODULE 10: HTLF acceleration
+// ══════════════════════════════════════════════
+
+fn cosine_similarity(a: &[f64], b: &[f64]) -> f64 {
+    if a.is_empty() || b.is_empty() || a.len() != b.len() { return 0.0; }
+    let mut dot = 0.0;
+    let mut na = 0.0;
+    let mut nb = 0.0;
+    for (x, y) in a.iter().zip(b.iter()) {
+        dot += x * y;
+        na += x * x;
+        nb += y * y;
+    }
+    if na <= 1e-12 || nb <= 1e-12 { return 0.0; }
+    (dot / (na.sqrt() * nb.sqrt())).clamp(-1.0, 1.0)
+}
+
+#[pyfunction]
+fn compute_similarity_matrix(source_embeddings: Vec<Vec<f64>>, target_embeddings: Vec<Vec<f64>>) -> PyResult<Vec<Vec<f64>>> {
+    let matrix: Vec<Vec<f64>> = source_embeddings.par_iter().map(|s| {
+        target_embeddings.iter().map(|t| cosine_similarity(s, t).clamp(0.0, 1.0)).collect()
+    }).collect();
+    Ok(matrix)
+}
+
+#[pyfunction]
+fn greedy_bipartite_match(sim_matrix: Vec<Vec<f64>>, threshold: f64) -> PyResult<Vec<(usize, usize, f64)>> {
+    let mut cands: Vec<(f64, usize, usize)> = Vec::new();
+    for (i, row) in sim_matrix.iter().enumerate() {
+        for (j, s) in row.iter().enumerate() {
+            cands.push((*s, i, j));
+        }
+    }
+    cands.sort_by(|a, b| b.0.partial_cmp(&a.0).unwrap_or(std::cmp::Ordering::Equal));
+    let mut used_i: HashSet<usize> = HashSet::new();
+    let mut used_j: HashSet<usize> = HashSet::new();
+    let mut out: Vec<(usize, usize, f64)> = Vec::new();
+    for (s, i, j) in cands {
+        if s < threshold || used_i.contains(&i) || used_j.contains(&j) { continue; }
+        used_i.insert(i);
+        used_j.insert(j);
+        out.push((i, j, s));
+    }
+    Ok(out)
+}
+
+#[pyfunction]
+fn compute_r_struct_typed(
+    source_edges: Vec<(usize, usize, String)>,
+    target_edges: Vec<(usize, usize, String)>,
+    node_mapping: Vec<(usize, usize)>,
+    type_weights: HashMap<String, f64>,
+    mismatch_penalties: HashMap<(String, String), f64>,
+) -> PyResult<f64> {
+    if source_edges.is_empty() { return Ok(1.0); }
+    let mapping: HashMap<usize, usize> = node_mapping.into_iter().collect();
+    if mapping.is_empty() { return Ok(0.0); }
+
+    let mut tgt_index: HashMap<(usize, usize), Vec<String>> = HashMap::new();
+    for (s, t, tp) in target_edges {
+        tgt_index.entry((s, t)).or_default().push(tp);
+    }
+
+    let mut weighted_score = 0.0;
+    let mut total_weight = 0.0;
+
+    for (s, t, src_tp) in source_edges {
+        let ms = if let Some(v) = mapping.get(&s) { *v } else { continue };
+        let mt = if let Some(v) = mapping.get(&t) { *v } else { continue };
+
+        let w = *type_weights.get(&src_tp).unwrap_or(&1.0);
+        total_weight += w;
+
+        let mut best: f64 = 0.0;
+        if let Some(cands) = tgt_index.get(&(ms, mt)) {
+            for tgt_tp in cands {
+                if tgt_tp == &src_tp {
+                    best = best.max(1.0);
+                } else {
+                    let key = (src_tp.clone(), tgt_tp.clone());
+                    best = best.max(*mismatch_penalties.get(&key).unwrap_or(&0.5));
+                }
+            }
+        }
+        weighted_score += w * best;
+    }
+
+    if total_weight <= 1e-12 { return Ok(0.0); }
+    Ok((weighted_score / total_weight).clamp(0.0, 1.0))
+}
+
+#[pyfunction]
+fn compute_tfidf_overlap(source_terms: Vec<String>, target_text: String, idf_weights: HashMap<String, f64>) -> PyResult<f64> {
+    if source_terms.is_empty() { return Ok(0.0); }
+    let tgt_tokens: HashSet<String> = WORD_RE.find_iter(&target_text.to_lowercase()).map(|m| m.as_str().to_string()).collect();
+    let mut num = 0.0;
+    let mut den = 0.0;
+    for t in source_terms {
+        let key = t.to_lowercase();
+        let w = *idf_weights.get(&key).unwrap_or(&1.0);
+        den += w;
+        if tgt_tokens.contains(&key) { num += w; }
+    }
+    if den <= 1e-12 { return Ok(0.0); }
+    Ok((num / den).clamp(0.0, 1.0))
+}
+
+#[pyfunction]
+fn cosine_distance(a: Vec<f64>, b: Vec<f64>) -> PyResult<f64> {
+    let cos = cosine_similarity(&a, &b);
+    Ok(((1.0 - cos) / 2.0).clamp(0.0, 1.0))
+}
+
+#[pyfunction]
+fn mahalanobis_distance(a: Vec<f64>, b: Vec<f64>, cov_inv: Vec<Vec<f64>>) -> PyResult<f64> {
+    if a.is_empty() || b.is_empty() || a.len() != b.len() || cov_inv.len() != a.len() {
+        return Ok(1.0);
+    }
+    let d: Vec<f64> = a.iter().zip(b.iter()).map(|(x, y)| x - y).collect();
+    let mut quad = 0.0;
+    for i in 0..d.len() {
+        if cov_inv[i].len() != d.len() { return Ok(1.0); }
+        for j in 0..d.len() {
+            quad += d[i] * cov_inv[i][j] * d[j];
+        }
+    }
+    let dist = quad.abs().sqrt() / (d.len() as f64).sqrt();
+    Ok(dist.clamp(0.0, 1.0))
+}
+
+#[pyfunction]
+fn wasserstein_1d(a: Vec<f64>, b: Vec<f64>) -> PyResult<f64> {
+    if a.is_empty() || b.is_empty() || a.len() != b.len() { return Ok(1.0); }
+    let mut sa = a;
+    let mut sb = b;
+    sa.sort_by(|x, y| x.partial_cmp(y).unwrap_or(std::cmp::Ordering::Equal));
+    sb.sort_by(|x, y| x.partial_cmp(y).unwrap_or(std::cmp::Ordering::Equal));
+    let mut sum = 0.0;
+    for (x, y) in sa.iter().zip(sb.iter()) { sum += (x - y).abs(); }
+    Ok((sum / sa.len() as f64).clamp(0.0, 1.0))
+}
+
+#[pyfunction]
+fn batch_qualia_distances(source_vectors: Vec<Vec<f64>>, target_vectors: Vec<Vec<f64>>, method: String) -> PyResult<Vec<f64>> {
+    let n = source_vectors.len().min(target_vectors.len());
+    let m = method.to_lowercase();
+    let out: Vec<f64> = (0..n).into_par_iter().map(|i| {
+        match m.as_str() {
+            "wasserstein" => wasserstein_1d(source_vectors[i].clone(), target_vectors[i].clone()).unwrap_or(1.0),
+            "mahalanobis" => {
+                // diagonal approx covariance inverse
+                let a = &source_vectors[i];
+                let b = &target_vectors[i];
+                if a.is_empty() || b.is_empty() || a.len() != b.len() { return 1.0; }
+                let mut sum = 0.0;
+                for (x, y) in a.iter().zip(b.iter()) {
+                    let v = (((x.abs() + y.abs()) / 2.0).powi(2) + 1e-3).max(1e-6);
+                    sum += ((x - y).powi(2)) / v;
+                }
+                (sum.sqrt() / (a.len() as f64).sqrt()).clamp(0.0, 1.0)
+            }
+            _ => cosine_distance(source_vectors[i].clone(), target_vectors[i].clone()).unwrap_or(1.0),
+        }
+    }).collect();
+    Ok(out)
+}
+
+#[pyfunction]
+fn classify_profile_batch(r_structs: Vec<f64>, r_contexts: Vec<f64>, r_qualias: Vec<Option<f64>>) -> PyResult<Vec<String>> {
+    let n = r_structs.len().min(r_contexts.len()).min(r_qualias.len());
+    let mut out = Vec::with_capacity(n);
+
+    for i in 0..n {
+        let rs = r_structs[i].clamp(0.0, 1.0);
+        let rc = r_contexts[i].clamp(0.0, 1.0);
+        let rq = r_qualias[i].map(|v| v.clamp(0.0, 1.0));
+
+        let mut best_name = "P00_unclassified".to_string();
+        let mut best_score = -1.0;
+
+        let candidates: Vec<(&str, Option<f64>)> = vec![
+            ("P01_struct_context_sum", Some((rs + rc) / 2.0)),
+            ("P02_struct_context_prod", Some((rs * rc).sqrt())),
+            ("P03_struct_qualia_sum", rq.map(|q| (rs + q) / 2.0)),
+            ("P04_struct_qualia_prod", rq.map(|q| (rs * q).sqrt())),
+            ("P05_context_qualia_sum", rq.map(|q| (rc + q) / 2.0)),
+            ("P06_context_qualia_prod", rq.map(|q| (rc * q).sqrt())),
+            ("P07_struct_sum", Some(rs)),
+            ("P08_struct_prod", Some(rs)),
+            ("P09_context_sum", Some(rc)),
+            ("P10_context_prod", Some(rc)),
+            ("P11_qualia_sum", rq),
+            ("P12_qualia_prod", rq),
+        ];
+
+        for (name, score_opt) in candidates {
+            if let Some(score) = score_opt {
+                if score > best_score {
+                    best_score = score;
+                    best_name = name.to_string();
+                }
+            }
+        }
+        out.push(best_name);
+    }
+
+    Ok(out)
+}
+
 // ══════════════════════════════════════════════
 // PyModule
 // ══════════════════════════════════════════════
@@ -528,5 +740,14 @@ fn ks_accel(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(cache_put, m)?)?;
     m.add_function(wrap_pyfunction!(cache_stats, m)?)?;
     m.add_function(wrap_pyfunction!(cache_clear, m)?)?;
+    m.add_function(wrap_pyfunction!(compute_similarity_matrix, m)?)?;
+    m.add_function(wrap_pyfunction!(greedy_bipartite_match, m)?)?;
+    m.add_function(wrap_pyfunction!(compute_r_struct_typed, m)?)?;
+    m.add_function(wrap_pyfunction!(compute_tfidf_overlap, m)?)?;
+    m.add_function(wrap_pyfunction!(cosine_distance, m)?)?;
+    m.add_function(wrap_pyfunction!(mahalanobis_distance, m)?)?;
+    m.add_function(wrap_pyfunction!(wasserstein_1d, m)?)?;
+    m.add_function(wrap_pyfunction!(batch_qualia_distances, m)?)?;
+    m.add_function(wrap_pyfunction!(classify_profile_batch, m)?)?;
     Ok(())
 }

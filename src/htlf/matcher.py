@@ -8,6 +8,7 @@ from dataclasses import dataclass
 from typing import Callable
 
 from .parser import DAG
+from . import rust_bridge as rb
 
 
 @dataclass(slots=True)
@@ -74,14 +75,10 @@ def _get_similarity_backend() -> Callable[[list[str], list[str]], list[list[floa
         def embed_similarity(source_texts: list[str], target_texts: list[str]) -> list[list[float]]:
             source_emb = model.encode(source_texts, normalize_embeddings=True)
             target_emb = model.encode(target_texts, normalize_embeddings=True)
-            sim: list[list[float]] = []
-            for se in source_emb:
-                row = []
-                for te in target_emb:
-                    value = float((se * te).sum())
-                    row.append(max(0.0, min(1.0, value)))
-                sim.append(row)
-            return sim
+            return rb.htlf_similarity_matrix(
+                [[float(x) for x in row] for row in source_emb],
+                [[float(x) for x in row] for row in target_emb],
+            )
 
         return embed_similarity
 

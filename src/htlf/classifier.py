@@ -13,6 +13,8 @@ from dataclasses import dataclass
 from itertools import combinations
 from typing import Literal
 
+from . import rust_bridge as rb
+
 Layer = Literal["math", "formal_language", "natural_language", "music", "creative"]
 Axis = Literal["struct", "context", "qualia"]
 CompositionMode = Literal["sum", "prod"]
@@ -224,3 +226,12 @@ def classify_profile(
         r_qualia=_clamp01(observed[2]),
         correlation=corr,
     )
+
+
+def classify_profile_batch(
+    r_structs: list[float],
+    r_contexts: list[float],
+    r_qualias: list[float | None],
+) -> list[str]:
+    """Batch classify profile type names via Rust bridge with Python fallback."""
+    return rb.htlf_classify_profile_batch(r_structs, r_contexts, r_qualias)
