@@ -57,6 +57,7 @@ try:
     from .analogy_solvers import run_analogy_solvers, a06_chain_decompose
     from .meta_verifier import run_meta_verification
     from .domain_bridge import bridge_domain
+    from .analogical_transfer import run_analogical_transfer
     from .semantic_bridge import extract_semantics, analyze_causality, semantic_enrichment_delta
     from .stage_store import StageStore
 except ImportError:
@@ -68,8 +69,10 @@ except ImportError:
     from meta_verifier import run_meta_verification
     try:
         from .domain_bridge import bridge_domain
+        from .analogical_transfer import run_analogical_transfer
     except ImportError:
         from domain_bridge import bridge_domain
+        from analogical_transfer import run_analogical_transfer
     from semantic_bridge import extract_semantics, analyze_causality, semantic_enrichment_delta
     from stage_store import StageStore
 
