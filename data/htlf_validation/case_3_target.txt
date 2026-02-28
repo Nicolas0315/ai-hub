@@ -1,0 +1,17 @@
+CRISPR: A revolutionary gene-editing tool transforming science (composite news summary, 2013-2015)
+
+Scientists have developed a revolutionary new tool that allows them to edit DNA with unprecedented precision, raising hopes of curing genetic diseases but also sparking ethical concerns about designer babies.
+
+The technique, known as CRISPR-Cas9, works like a pair of molecular scissors that can cut and paste DNA at specific locations in the genome. Researchers say it could transform medicine by allowing doctors to fix genetic defects that cause diseases like cystic fibrosis, sickle cell anemia, and certain cancers.
+
+"This is a game-changer for biology," said Jennifer Doudna, a biochemist at the University of California, Berkeley, who co-developed the technology. "We now have the ability to rewrite the code of life."
+
+The system was adapted from a natural defense mechanism found in bacteria, which use it to fight off invading viruses. Scientists figured out how to reprogram this bacterial immune system to target any gene they choose.
+
+Unlike previous gene-editing methods, which were expensive and time-consuming, CRISPR is fast, cheap, and remarkably easy to use. A graduate student can learn the technique in a matter of days, and the materials cost just a few dollars.
+
+The technology has already been used to create disease-resistant crops, engineer mosquitoes that cannot spread malaria, and develop potential treatments for HIV. In China, researchers have even used it to create super-muscled dogs and micro-pigs.
+
+But the power of CRISPR has also raised serious ethical questions. Some scientists worry that it could be used to make permanent changes to the human germline — alterations that would be passed on to future generations. Others fear it could lead to a world of designer babies, where parents select traits like intelligence, appearance, or athletic ability.
+
+Doudna herself has called for a worldwide moratorium on using CRISPR to edit human embryos, saying scientists need time to consider the ethical implications.

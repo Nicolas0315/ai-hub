@@ -1,0 +1,17 @@
+AI breakthrough could spark medical revolution (BBC News, July 22, 2021)
+
+Artificial intelligence has been used to predict the structures of almost every protein made by the human body. The development could help supercharge the discovery of new drugs to treat disease, alongside other applications.
+
+Proteins are essential building blocks of living organisms; every cell we have in us is packed with them. Understanding the shapes of proteins is critical for advancing medicine, but until now, only a fraction of these have been worked out.
+
+Researchers used a program called AlphaFold to predict the structures of 350,000 proteins belonging to humans and other organisms.
+
+The instructions for making human proteins are contained in our genomes — the DNA contained in the nuclei of human cells. There are around 20,000 of these proteins expressed by the human genome. Collectively, biologists refer to this full complement as the "proteome."
+
+Commenting on the results from AlphaFold, Dr Demis Hassabis, chief executive and co-founder of artificial intelligence company DeepMind, said: "We believe it's the most complete and accurate picture of the human proteome to date."
+
+"We believe this work represents the most significant contribution AI has made to advancing the state of scientific knowledge to date."
+
+"And I think it's a great illustration and example of the kind of benefits AI can bring to society." He added: "We're just so excited to see what the community is going to do with this."
+
+Proteins are made up of chains of smaller building blocks called amino acids. These chains fold in myriad different ways, forming a unique 3D shape. A protein's shape determines its function in the human body. The research could lead to enzymes that can break down the plastic polluting our environment.

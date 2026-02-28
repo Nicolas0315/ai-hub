@@ -1,0 +1,17 @@
+GPT-4 is here: OpenAI's new AI model is its most capable yet (news composite, March 2023)
+
+OpenAI has released GPT-4, the latest and most powerful version of the artificial intelligence technology that underpins its popular chatbot ChatGPT. The company says the new model is more creative, more accurate, and capable of handling much more nuanced instructions than its predecessor.
+
+In a dramatic demonstration, OpenAI showed GPT-4 turning a hand-drawn sketch of a website into working computer code, and solving complex problems that had stumped earlier versions of the AI. The model can now process both images and text, a significant upgrade from GPT-3.5, which could only work with text.
+
+GPT-4 can pass the bar exam with a score in the top 10 percent of test takers, compared with GPT-3.5, which scored in the bottom 10 percent. It also achieved high scores on a wide range of standardized tests, from the SAT to Advanced Placement exams.
+
+"This is the most capable and aligned model we've ever released," said Sam Altman, OpenAI's chief executive.
+
+However, experts cautioned that GPT-4 still has significant limitations. The model can still "hallucinate" — confidently stating incorrect information as fact — and can make reasoning errors on complex problems. OpenAI acknowledged these shortcomings, saying the model "still is not fully reliable."
+
+The release comes amid growing concerns about the rapid pace of AI development and its potential impact on jobs, education, and society. Some researchers have called for a pause in the development of systems more powerful than GPT-4, warning of potential risks to society.
+
+GPT-4 is available to paying subscribers of ChatGPT Plus at $20 per month, and OpenAI is making the technology available to developers through its API. Companies including Morgan Stanley, Duolingo, and Khan Academy have already begun integrating GPT-4 into their products.
+
+The model was trained on a vast amount of text data from the internet, and then refined using feedback from human trainers. OpenAI says it spent six months improving the safety of the system before release.
