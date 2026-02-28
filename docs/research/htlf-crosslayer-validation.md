@@ -131,3 +131,44 @@ R_struct is frequently 0.000, likely because the heuristic mock parser generates
 3. **Cross-modal qualia refinement** — Develop a qualia sub-metric that distinguishes true cross-modal qualia (music→language) from register-shift qualia (technical→accessible)
 4. **Behavioral validation** — Collect human participant ratings for a subset of pairs using the behavioral qualia mode
 5. **Expand to other cross-layer directions** — NL→music, NL→visual, music→visual
+
+## 8. Reverse Direction Test (NL → Specialized)
+
+All 18 pairs run in reverse: general/review text as source → formal analysis as target.
+
+| Pair | FWD R_s | REV R_s | FWD R_c | REV R_c | FWD R_q | REV R_q | FWD Loss | REV Loss |
+|------|---------|---------|---------|---------|---------|---------|----------|----------|
+| music_1 (Beethoven) | 0.381 | 0.231 | 0.509 | 0.489 | 0.754 | 0.745 | 0.246 | 0.255 |
+| music_2 (Debussy) | 0.000 | 0.000 | 0.469 | 0.457 | 0.735 | 0.729 | 0.265 | 0.271 |
+| music_3 (Miles Davis) | 0.248 | 0.400 | 0.551 | 0.520 | 0.775 | 0.760 | 0.225 | 0.240 |
+| music_4 (Stravinsky) | 0.000 | 0.000 | 0.491 | 0.467 | 0.746 | 0.733 | 0.254 | 0.267 |
+| music_5 (Bach) | 0.187 | 0.223 | 0.565 | 0.508 | 0.783 | 0.754 | 0.218 | 0.246 |
+| visual_1 (Monet) | 0.000 | 0.000 | 0.516 | 0.529 | 0.758 | 0.765 | 0.242 | 0.235 |
+| visual_2 (Rothko) | 0.250 | 0.333 | 0.598 | 0.559 | 0.799 | 0.779 | 0.201 | 0.221 |
+| visual_3 (Kandinsky) | 0.000 | 0.000 | 0.549 | 0.533 | 0.775 | 0.767 | 0.225 | 0.233 |
+| visual_4 (Vermeer) | 0.000 | 0.000 | 0.553 | 0.544 | 0.777 | 0.772 | 0.223 | 0.228 |
+| visual_5 (Picasso) | 0.000 | 0.000 | 0.555 | 0.499 | 0.778 | 0.749 | 0.222 | 0.251 |
+| theory_1 (Sonata) | 0.167 | 0.167 | 0.543 | 0.499 | 0.771 | 0.749 | 0.229 | 0.251 |
+| theory_2 (Fugue) | 0.000 | 0.000 | 0.536 | 0.500 | 0.768 | 0.750 | 0.232 | 0.250 |
+| theory_3 (Modal Jazz) | 0.000 | 0.000 | 0.531 | 0.529 | 0.765 | 0.765 | 0.235 | 0.235 |
+| case_1 (LIGO) | 0.000 | 0.000 | 0.577 | 0.535 | 0.788 | 0.768 | 0.212 | 0.232 |
+| case_2 (AlphaFold) | 0.000 | 0.000 | 0.531 | 0.503 | 0.765 | 0.751 | 0.235 | 0.249 |
+| case_3 (CRISPR) | 0.692 | 0.692 | 0.497 | 0.476 | 0.748 | 0.738 | 0.252 | 0.262 |
+| case_4 (mRNA) | 0.271 | 0.283 | 0.548 | 0.532 | 0.774 | 0.766 | 0.226 | 0.234 |
+| case_5 (GPT-4) | 0.460 | 0.569 | 0.586 | 0.610 | 0.793 | 0.805 | 0.207 | 0.195 |
+
+### Direction Asymmetry Analysis
+
+| Category | FWD Loss avg | REV Loss avg | Δ (REV-FWD) | Asymmetric? |
+|----------|-------------|-------------|-------------|-------------|
+| Music→NL / NL→Music | 0.242 | 0.256 | +0.014 | Slight (NL→Music harder) |
+| Visual→NL / NL→Visual | 0.223 | 0.234 | +0.011 | Slight |
+| Theory→NL / NL→Theory | 0.232 | 0.245 | +0.013 | Slight |
+| Math→NL / NL→Math | 0.226 | 0.234 | +0.008 | Minimal |
+
+### Key Finding: Translation is nearly symmetric
+- Reverse direction consistently shows ~1-1.5% higher loss
+- This means NL→Specialized is slightly harder than Specialized→NL
+- The asymmetry is small but consistent across ALL categories
+- R_context drops more than R_struct in reverse (NL lacks the precise vocabulary to reconstruct formal structure)
+- Exception: GPT-4 case shows LOWER reverse loss (0.195 vs 0.207) — news article about GPT-4 contains enough technical info to reconstruct the original
