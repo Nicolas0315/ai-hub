@@ -122,7 +122,7 @@ class KS33b(KS33a):
         
         if domain_info:
             # Get domain propositions from store
-            domain_data = store._stages.get("domain_bridge", {}) if hasattr(store, '_stages') else {}
+            domain_data = store._meta["stages"].get("domain_bridge", {}) if hasattr(store, '_meta') else {}
             props = domain_data.get("propositions", []) if isinstance(domain_data, dict) else []
             if props:
                 dag_mapping = map_propositions_to_dag(props)
