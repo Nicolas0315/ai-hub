@@ -1,226 +1,205 @@
 """
-Self-Other Boundary Model — KS39a
+Self-Other Boundary Model — Provenance tracking for KS judgments.
 
-Provenance tracking + self-other distinction for verification processes.
+Problem: KS can't distinguish between:
+  - Its own computation (solver outputs)
+  - Designer's embedded decisions (thresholds, weights, rules)
+  - External sources (LLM API, ConceptNet, OpenAlex)
 
-3 components:
-  1) Provenance Tracker: tags every judgment with origin (SELF/DESIGNER/EXTERNAL/INHERITED)
-  2) Boundary Detector: identifies when KS is executing designer cognition vs its own
-  3) Attribution Auditor: post-hoc audit of "who decided what"
+This module tracks WHERE each judgment originates,
+measures fusion risk (designer-system boundary blur),
+and flags when KS can't tell its own reasoning from the designer's.
 
-Design request: Youta Hilono, 2026-02-28
-Implementation: Shirokuma, 2026-02-28
+Inspired by Theory of Mind (Premack & Woodruff, 1978)
+and Self-Other Distinction in cognitive neuroscience (Decety & Sommerville, 2003).
+
+Design: Youta Hilono, 2026-02-28
 """
 
-from typing import Dict, List, Any, Optional
+from typing import Dict, Any, List, Optional
 from enum import Enum
-import hashlib
-import time
+from dataclasses import dataclass, field
 
 
-class Origin(Enum):
-    """Who originated this judgment?"""
-    SELF = "self"              # KS's own solver/pipeline computation
-    DESIGNER = "designer"      # Youta's architectural decision (hardcoded logic)
-    EXTERNAL = "external"      # LLM API response, web data, user input
-    INHERITED = "inherited"    # Carried from parent KS version without re-derivation
-    AMBIGUOUS = "ambiguous"    # Cannot determine origin
+class Origin(str, Enum):
+    """Where a judgment comes from."""
+    SELF = "self"           # KS's own solver computation
+    DESIGNER = "designer"   # Youta's design decisions (hardcoded thresholds, rules)
+    EXTERNAL = "external"   # LLM API, ConceptNet, OpenAlex, web sources
+    AMBIGUOUS = "ambiguous"  # Can't determine origin
 
 
-class ProvenanceRecord:
-    """Single provenance entry."""
-    __slots__ = ("stage", "origin", "confidence", "reasoning", "timestamp", "fingerprint")
-    
-    def __init__(self, stage: str, origin: Origin, confidence: float,
-                 reasoning: str = "", timestamp: float = 0):
-        self.stage = stage
-        self.origin = origin
-        self.confidence = confidence
-        self.reasoning = reasoning
-        self.timestamp = timestamp or time.time()
-        self.fingerprint = hashlib.sha256(
-            f"{stage}:{origin.value}:{confidence}:{reasoning}".encode()
-        ).hexdigest()[:12]
+@dataclass
+class Provenance:
+    """Track the origin of a single judgment."""
+    solver_id: str
+    origin: Origin
+    confidence: float
+    reason: str = ""
+    detail: str = ""
 
 
-class ProvenanceTracker:
-    """Tags every judgment with its origin."""
-    
+class SelfOtherBoundary:
+    """Track and analyze the provenance of all judgments in a verification."""
+
+    # ── Designer-embedded components (hardcoded by Youta) ──
+    DESIGNER_COMPONENTS = {
+        # Thresholds
+        "surprise_threshold",       # 0.15 in PredictiveEngine
+        "dead_zone_range",          # 0.4-0.6 in SelfCorrector
+        "early_exit_threshold",     # LOW + decisive in KS37a
+        "toxicity_check_interval",  # every N in KS37a
+        # Weights/matrices
+        "type_effectiveness_matrix",  # 7x7 in MetacognitivePlanner
+        "strategy_repertoire",       # 7 strategies in AdaptiveStrategy
+        "type_similarity_matrix",    # in AutonomousLearner
+        "neuro_type_mods",          # serotonergic in Neuromodulator
+        # Rules
+        "fusion_rules",             # StageFusion pairs
+        "claim_patterns",           # regex patterns in classify_claim
+        "verdict_thresholds",       # 0.65/0.35 boundaries
+        "anti_accumulation",        # S28 design principle
+    }
+
+    # ── Self-computed components ──
+    SELF_COMPONENTS = {
+        "solver_output",            # S01-S27 raw results
+        "bootstrap_ci",             # statistical computation
+        "lateral_inhibition",       # signal processing
+        "coherence_score",          # pairwise analysis
+        "prediction_error",         # delta computation
+        "calibration_check",        # self-corrector
+        "fragility_test",           # ablation result
+    }
+
+    # ── External components ──
+    EXTERNAL_COMPONENTS = {
+        "conceptnet_lookup",
+        "openlex_query",
+        "wordnet_lookup",
+        "llm_api_response",
+        "web_fetch_result",
+        "pdf_extraction",
+    }
+
     def __init__(self):
-        self._records: List[ProvenanceRecord] = []
-        # Designer-originated components (hardcoded architectural decisions)
-        self._designer_stages = {
-            "anti_accumulation",      # Design principle: don't accumulate
-            "ephemeral_toggle",       # E1/E2/E3 toggle design
-            "solver_weights",         # Initial solver weight assignment
-            "layer_priority",         # L1-L7 ordering
-            "inhibition_params",      # Lateral inhibition parameters
-            "neuromod_curves",        # Neuromodulation sensitivity curves
-            "predictive_priors",      # Predictive coding priors
-            "reason_space_topology",  # Space of reasons graph structure
-        }
-    
-    def record(self, stage: str, confidence: float, reasoning: str = "",
-               origin: Optional[Origin] = None) -> ProvenanceRecord:
-        """Record a judgment with provenance."""
-        if origin is None:
-            origin = self._classify_origin(stage, reasoning)
-        
-        rec = ProvenanceRecord(stage, origin, confidence, reasoning)
-        self._records.append(rec)
-        return rec
-    
-    def _classify_origin(self, stage: str, reasoning: str) -> Origin:
-        """Auto-classify origin based on stage name and reasoning content."""
-        # Designer decisions
-        if stage in self._designer_stages:
-            return Origin.DESIGNER
-        
-        # External: LLM responses, web fetches
-        external_markers = ["llm_response", "api_", "web_", "openalex", "semantic_bridge"]
-        if any(m in stage.lower() for m in external_markers):
-            return Origin.EXTERNAL
-        
-        # Self: solver computations, statistical tests, formal logic
-        self_markers = ["S0", "S1", "S2", "L1", "L2", "L3", "L4", "L5", "L6", "L7",
-                        "bootstrap", "cosine", "entropy", "inhibit", "coherence"]
-        if any(m in stage for m in self_markers):
-            return Origin.SELF
-        
-        # Inherited: version tags, parent results
-        if "inherit" in stage.lower() or "parent" in stage.lower():
-            return Origin.INHERITED
-        
-        return Origin.AMBIGUOUS
-    
-    def get_all(self) -> List[Dict[str, Any]]:
-        return [
-            {
-                "stage": r.stage,
-                "origin": r.origin.value,
-                "confidence": r.confidence,
-                "reasoning": r.reasoning[:100],
-                "fingerprint": r.fingerprint,
-            }
-            for r in self._records
-        ]
-    
-    def summary(self) -> Dict[str, Any]:
-        """Provenance summary: who contributed how much?"""
-        counts = {o.value: 0 for o in Origin}
-        conf_sums = {o.value: 0.0 for o in Origin}
-        
-        for r in self._records:
-            counts[r.origin.value] += 1
-            conf_sums[r.origin.value] += r.confidence
-        
-        total = len(self._records) or 1
-        return {
-            "total_judgments": len(self._records),
-            "origin_distribution": {
-                k: {"count": v, "pct": round(v / total * 100, 1)}
-                for k, v in counts.items() if v > 0
-            },
-            "avg_confidence_by_origin": {
-                k: round(conf_sums[k] / counts[k], 4) if counts[k] > 0 else None
-                for k in counts if counts[k] > 0
-            },
-        }
+        self._judgments: List[Provenance] = []
 
+    def register(self, solver_id: str, origin: Origin, confidence: float,
+                 reason: str = "", detail: str = ""):
+        """Register a judgment with its provenance."""
+        self._judgments.append(Provenance(
+            solver_id=solver_id,
+            origin=origin,
+            confidence=confidence,
+            reason=reason[:200],
+            detail=detail[:200],
+        ))
 
-class BoundaryDetector:
-    """Detects when KS is executing designer cognition vs its own reasoning."""
-    
-    def __init__(self, tracker: ProvenanceTracker):
-        self.tracker = tracker
-    
-    def detect_fusion(self) -> Dict[str, Any]:
-        """Check if self/designer boundary is blurred."""
-        records = self.tracker._records
-        if not records:
-            return {"fusion_risk": 0, "assessment": "NO_DATA"}
-        
-        ambiguous = sum(1 for r in records if r.origin == Origin.AMBIGUOUS)
-        designer = sum(1 for r in records if r.origin == Origin.DESIGNER)
-        self_count = sum(1 for r in records if r.origin == Origin.SELF)
-        total = len(records)
-        
-        # Fusion risk: high ambiguity + high designer ratio = can't tell who's thinking
-        ambig_ratio = ambiguous / total
-        designer_ratio = designer / total if total > 0 else 0
-        
-        fusion_risk = round(ambig_ratio * 0.6 + designer_ratio * 0.4, 4)
-        
-        if fusion_risk > 0.7:
-            assessment = "FUSED"
-            detail = "KSは自己と設計者の判断を区別できていない"
-        elif fusion_risk > 0.4:
-            assessment = "BLURRED"
-            detail = "境界が曖昧。一部の判断の出所が不明"
-        elif fusion_risk > 0.15:
-            assessment = "PARTIAL"
-            detail = "概ね区別できているが、一部曖昧な領域あり"
+    def register_auto(self, solver_id: str, confidence: float,
+                      component: str, reason: str = ""):
+        """Auto-detect origin from component name."""
+        if component in self.DESIGNER_COMPONENTS:
+            origin = Origin.DESIGNER
+        elif component in self.SELF_COMPONENTS:
+            origin = Origin.SELF
+        elif component in self.EXTERNAL_COMPONENTS:
+            origin = Origin.EXTERNAL
         else:
-            assessment = "CLEAR"
-            detail = "自己と設計者の境界が明確"
-        
-        return {
-            "fusion_risk": fusion_risk,
-            "assessment": assessment,
-            "detail": detail,
-            "ambiguous_pct": round(ambig_ratio * 100, 1),
-            "designer_pct": round(designer_ratio * 100, 1),
-            "self_pct": round(self_count / total * 100, 1) if total > 0 else 0,
-        }
+            origin = Origin.AMBIGUOUS
+        self.register(solver_id, origin, confidence, reason, component)
 
+    def analyze(self) -> Dict[str, Any]:
+        """Analyze provenance distribution and fusion risk."""
+        if not self._judgments:
+            return {
+                "total_judgments": 0,
+                "origin_distribution": {},
+                "fusion": {"fusion_risk": 0.0, "assessment": "NO_DATA"},
+                "attribution": {"dominant_origin": "none", "self_sufficient": True},
+            }
 
-class AttributionAuditor:
-    """Post-hoc audit: who decided the final verdict?"""
-    
-    def __init__(self, tracker: ProvenanceTracker):
-        self.tracker = tracker
-    
-    def audit(self, final_verdict: str, final_confidence: float) -> Dict[str, Any]:
-        """Audit the final verdict attribution."""
-        records = self.tracker._records
-        if not records:
-            return {"attribution": "UNKNOWN", "dominant_origin": "N/A"}
-        
-        # Which origin contributed most to the final confidence?
-        origin_influence = {}
-        for r in records:
-            o = r.origin.value
-            if o not in origin_influence:
-                origin_influence[o] = {"weight_sum": 0, "count": 0}
-            origin_influence[o]["weight_sum"] += r.confidence
-            origin_influence[o]["count"] += 1
-        
-        # Dominant origin
-        dominant = max(origin_influence.items(), key=lambda x: x[1]["weight_sum"])
-        
-        # Check if verdict could change without designer components
-        designer_records = [r for r in records if r.origin == Origin.DESIGNER]
-        self_records = [r for r in records if r.origin == Origin.SELF]
-        
-        self_only_conf = (
-            sum(r.confidence for r in self_records) / len(self_records)
-            if self_records else 0.5
-        )
-        
-        dependency = abs(final_confidence - self_only_conf)
-        
+        total = len(self._judgments)
+
+        # ── Origin distribution ──
+        counts = {o.value: 0 for o in Origin}
+        conf_by_origin = {o.value: [] for o in Origin}
+
+        for j in self._judgments:
+            counts[j.origin.value] += 1
+            conf_by_origin[j.origin.value].append(j.confidence)
+
+        distribution = {k: round(v / total, 3) for k, v in counts.items() if v > 0}
+
+        # ── Fusion risk: how blurred is the self-designer boundary? ──
+        # High fusion = KS can't distinguish its own reasoning from designer's
+        self_count = counts["self"]
+        designer_count = counts["designer"]
+        ambiguous_count = counts["ambiguous"]
+
+        if self_count + designer_count == 0:
+            fusion_risk = 0.0
+        else:
+            # Fusion risk increases when:
+            # 1) Designer proportion is high (KS is just executing designer's rules)
+            # 2) Ambiguous proportion is high (can't tell who decided)
+            # 3) Self and designer confidences converge (indistinguishable)
+            designer_ratio = designer_count / total
+            ambiguous_ratio = ambiguous_count / total
+
+            # Confidence convergence: how similar are self vs designer confidences?
+            self_confs = conf_by_origin["self"]
+            designer_confs = conf_by_origin["designer"]
+            if self_confs and designer_confs:
+                self_mean = sum(self_confs) / len(self_confs)
+                designer_mean = sum(designer_confs) / len(designer_confs)
+                convergence = 1.0 - abs(self_mean - designer_mean)
+            else:
+                convergence = 0.5
+
+            fusion_risk = round(
+                designer_ratio * 0.4 +
+                ambiguous_ratio * 0.3 +
+                convergence * 0.3,
+                4
+            )
+
+        # Fusion assessment
+        if fusion_risk > 0.7:
+            fusion_assessment = "HIGH"
+            fusion_detail = "KSの判断と設計者の判断が融合している。独立性が低い"
+        elif fusion_risk > 0.4:
+            fusion_assessment = "PARTIAL"
+            fusion_detail = "概ね区別できているが、一部曖昧な領域あり"
+        else:
+            fusion_assessment = "LOW"
+            fusion_detail = "KSの判断と設計者の判断は明確に区別されている"
+
+        # ── Attribution: who dominates the judgment? ──
+        dominant = max(counts, key=counts.get) if counts else "self"
+
+        # Self-sufficiency: would the conclusion change without designer input?
+        designer_dependency = designer_count / max(total, 1)
+        self_sufficient = designer_dependency < 0.3
+
         return {
-            "final_verdict": final_verdict,
-            "final_confidence": final_confidence,
-            "dominant_origin": dominant[0],
-            "origin_influence": {
-                k: round(v["weight_sum"] / v["count"], 4)
-                for k, v in origin_influence.items()
+            "total_judgments": total,
+            "origin_distribution": distribution,
+            "fusion": {
+                "fusion_risk": fusion_risk,
+                "assessment": fusion_assessment,
+                "detail": fusion_detail,
             },
-            "designer_dependency": round(dependency, 4),
-            "self_sufficient": dependency < 0.1,
-            "note": (
-                "設計者判断を除外しても結論は変わらない" if dependency < 0.1
-                else f"設計者判断への依存度: {dependency:.1%}"
-            ),
+            "attribution": {
+                "dominant_origin": dominant,
+                "designer_dependency": round(designer_dependency, 3),
+                "self_sufficient": self_sufficient,
+                "note": (
+                    "設計者判断を除外しても結論は変わらない" if self_sufficient
+                    else "設計者判断への依存度が高い。独立検証を推奨"
+                ),
+            },
         }
+
+    def clear(self):
+        self._judgments.clear()
