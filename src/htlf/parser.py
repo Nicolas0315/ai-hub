@@ -9,6 +9,7 @@ from dataclasses import asdict, dataclass
 from typing import Any, Literal
 
 NodeType = Literal["claim", "concept", "equation"]
+EdgeType = Literal["CAUSAL", "PREMISE", "SUPPORTS", "CONTRADICTS", "DEFINES", "QUANTIFIES"]
 
 
 @dataclass(slots=True)
@@ -27,6 +28,7 @@ class DAGEdge:
     source: str
     target: str
     relation: str
+    edge_type: EdgeType = "SUPPORTS"
 
 
 @dataclass(slots=True)
@@ -52,14 +54,15 @@ Extract a directed acyclic graph (DAG) from the given text.
 Output JSON schema:
 {
   "nodes": [{"id": "n1", "node_type": "claim|concept|equation", "text": "..."}],
-  "edges": [{"source": "n1", "target": "n2", "relation": "supports|depends_on|causes|defines|contrasts|instantiates"}]
+  "edges": [{"source": "n1", "target": "n2", "relation": "supports|depends_on|causes|defines|contrasts|instantiates", "edge_type": "CAUSAL|PREMISE|SUPPORTS|CONTRADICTS|DEFINES|QUANTIFIES"}]
 }
 
 Rules:
 1) Keep 5-30 important nodes only.
 2) node_type=equation only for mathematical symbols/equations.
 3) Ensure edges are acyclic and reference existing IDs.
-4) Output JSON only. No markdown.
+4) edge_type must be one of: CAUSAL, PREMISE, SUPPORTS, CONTRADICTS, DEFINES, QUANTIFIES.
+5) Output JSON only. No markdown.
 
 Text:
 ---
@@ -70,6 +73,28 @@ Text:
 
 def _is_equation_like(text: str) -> bool:
     return bool(re.search(r"[=<>∀∃Σ∫]|\b(omega|lambda|sigma|delta|epsilon|SNR|GDT)\b", text, re.IGNORECASE))
+
+
+def _normalize_edge_type(relation: str, edge_type: str | None = None) -> EdgeType:
+    relation_low = relation.lower().strip()
+    if edge_type:
+        et = edge_type.strip().upper()
+        if et in {"CAUSAL", "PREMISE", "SUPPORTS", "CONTRADICTS", "DEFINES", "QUANTIFIES"}:
+            return et  # type: ignore[return-value]
+
+    if relation_low in {"causes", "cause", "because", "therefore"}:
+        return "CAUSAL"
+    if relation_low in {"depends_on", "depends", "requires", "premise", "prerequisite"}:
+        return "PREMISE"
+    if relation_low in {"supports", "support", "instantiates", "evidence_for"}:
+        return "SUPPORTS"
+    if relation_low in {"contrasts", "contradicts", "refutes", "opposes"}:
+        return "CONTRADICTS"
+    if relation_low in {"defines", "definition_of", "means"}:
+        return "DEFINES"
+    if relation_low in {"quantifies", "measures", "estimates", "computes"}:
+        return "QUANTIFIES"
+    return "SUPPORTS"
 
 
 def _heuristic_extract(text: str, max_nodes: int = 20) -> DAG:
@@ -93,11 +118,20 @@ def _heuristic_extract(text: str, max_nodes: int = 20) -> DAG:
             relation = "causes"
         elif any(k in cur_txt for k in ["define", "means", "とは", "定義"]):
             relation = "defines"
-        elif any(k in cur_txt for k in ["however", "but", "一方", "しかし"]):
+        elif any(k in cur_txt for k in ["however", "but", "一方", "しかし", "contrary", "矛盾"]):
             relation = "contrasts"
-        elif "if" in prev_txt or "when" in prev_txt:
+        elif "if" in prev_txt or "when" in prev_txt or "場合" in prev_txt or "前提" in prev_txt:
             relation = "depends_on"
-        edges.append(DAGEdge(source=nodes[idx - 1].id, target=nodes[idx].id, relation=relation))
+        elif any(k in cur_txt for k in ["%", "percent", "ratio", "倍", "比率", "統計", "measurement"]):
+            relation = "quantifies"
+        edges.append(
+            DAGEdge(
+                source=nodes[idx - 1].id,
+                target=nodes[idx].id,
+                relation=relation,
+                edge_type=_normalize_edge_type(relation),
+            )
+        )
 
     return DAG(nodes=nodes, edges=edges)
 
@@ -127,6 +161,10 @@ def _dag_from_dict(payload: dict[str, Any]) -> DAG:
             source=str(edge["source"]),
             target=str(edge["target"]),
             relation=str(edge.get("relation", "supports")),
+            edge_type=_normalize_edge_type(
+                relation=str(edge.get("relation", "supports")),
+                edge_type=edge.get("edge_type"),
+            ),
         )
         for edge in payload.get("edges", [])
     ]

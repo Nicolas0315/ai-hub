@@ -35,7 +35,12 @@ class MatchResult:
 
 
 def _tokenize(text: str) -> set[str]:
-    return {t for t in re.findall(r"\w+", text.lower()) if len(t) > 1}
+    # English words + Japanese chunks
+    return {
+        t.lower()
+        for t in re.findall(r"[A-Za-z0-9_]+|[一-龯ぁ-んァ-ヴー]+", text)
+        if len(t) > 1
+    }
 
 
 def _jaccard(a: str, b: str) -> float:
@@ -76,8 +81,25 @@ def _get_similarity_backend() -> Callable[[list[str], list[str]], list[list[floa
         return lexical_similarity
 
 
+def _node_edge_signature(dag: DAG) -> dict[str, set[str]]:
+    sig: dict[str, set[str]] = {n.id: set() for n in dag.nodes}
+    for e in dag.edges:
+        edge_type = getattr(e, "edge_type", "SUPPORTS")
+        sig.setdefault(e.source, set()).add(f"out:{edge_type}")
+        sig.setdefault(e.target, set()).add(f"in:{edge_type}")
+    return sig
+
+
+def _signature_alignment_bonus(source_sig: set[str], target_sig: set[str]) -> float:
+    if not source_sig or not target_sig:
+        return 0.0
+    overlap = len(source_sig & target_sig) / max(1, len(source_sig | target_sig))
+    # small bonus to prioritize edge-type compatible node matches
+    return 0.15 * overlap
+
+
 def match_dags(source_dag: DAG, target_dag: DAG, threshold: float = 0.7) -> MatchResult:
-    """Run greedy bipartite matching based on cosine similarity."""
+    """Run greedy bipartite matching based on semantic similarity + edge-type signature bonus."""
     source_nodes = source_dag.nodes
     target_nodes = target_dag.nodes
     if not source_nodes or not target_nodes:
@@ -86,11 +108,16 @@ def match_dags(source_dag: DAG, target_dag: DAG, threshold: float = 0.7) -> Matc
     similarity_fn = _get_similarity_backend()
     matrix = similarity_fn([n.text for n in source_nodes], [n.text for n in target_nodes])
 
+    src_sig = _node_edge_signature(source_dag)
+    tgt_sig = _node_edge_signature(target_dag)
+
     candidate_pairs: list[tuple[float, int, int]] = []
     for i, row in enumerate(matrix):
         for j, value in enumerate(row):
-            if not math.isnan(value):
-                candidate_pairs.append((value, i, j))
+            if math.isnan(value):
+                continue
+            bonus = _signature_alignment_bonus(src_sig.get(source_nodes[i].id, set()), tgt_sig.get(target_nodes[j].id, set()))
+            candidate_pairs.append((max(0.0, min(1.0, value + bonus)), i, j))
     candidate_pairs.sort(reverse=True, key=lambda x: x[0])
 
     used_source: set[int] = set()
