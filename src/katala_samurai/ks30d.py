@@ -505,18 +505,23 @@ def resolve_unknown_terms(text, known_concepts=None, knowledge_dir=None, store=N
                 if resolution["internal_found"]:
                     break
         
-        # Step 4: OpenAlex search (fresh, no cache)
+        # Step 4: OpenAlex search (fresh, no cache) — title + abstract match
         if not resolution["internal_found"]:
             try:
-                papers = _fetch_openalex_abstracts(term, per_page=3, timeout=8)
+                papers = _fetch_openalex_abstracts(term, per_page=5, timeout=8)
                 for paper in papers:
+                    title = paper.get("title", "")
                     abstract = _reconstruct_abstract(paper.get("abstract_inverted_index"))
-                    if abstract and term.lower() in abstract.lower():
+                    # Match against title OR abstract
+                    title_match = term.lower() in title.lower()
+                    abstract_match = abstract and term.lower() in abstract.lower()
+                    if title_match or abstract_match:
                         resolution["external_found"] = True
                         resolution["external_papers"].append({
-                            "title": paper.get("title", "")[:100],
+                            "title": title[:100],
                             "year": paper.get("publication_year"),
                             "cited_by": paper.get("cited_by_count", 0),
+                            "match_type": "title" if title_match else "abstract",
                         })
             except Exception:
                 pass
