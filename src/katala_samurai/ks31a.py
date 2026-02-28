@@ -41,11 +41,20 @@ Principles:
     and invites further analysis from new angles.
 
 Verdicts:
-  VERIFIED            — high confidence, all steps pass clearly
-  EXPLORING           — mixed signals, borderline steps, or implicit gaps;
+  VERIFIED            — high confidence, content and form both substantiated
+  EXPLORING           — mixed signals, form-only verdicts, or implicit gaps;
                         further analysis from new angles is recommended
   PARTIALLY_VERIFIED  — structural issues identified but partial support exists  
   UNVERIFIED          — clear failure points identified
+
+Layer 4 (Meta-Verification):
+  M1: Counter-Factual Probe — negates claim, re-verifies with L1, compares pass rates
+      If delta < 0.10: L1 is content-blind → FORMAL_ONLY flag
+  M2: OpenAlex Evidence Probe — searches academic literature for support
+      NO_ACADEMIC_SUPPORT / CONTRADICTED / STRONG_SUPPORT
+
+  Meta-verdicts: SUBSTANTIVE / FORM_ONLY / UNSUPPORTED / CONTESTED / HOLLOW
+  HOLLOW = form passes + no academic support = most severe downgrade
 """
 
 import os
@@ -56,6 +65,7 @@ import hashlib
 try:
     from .ks30d import KS30d, Claim
     from .analogy_solvers import run_analogy_solvers, a06_chain_decompose
+    from .meta_verifier import run_meta_verification
     from .stage_store import StageStore
 except ImportError:
     _dir = os.path.dirname(os.path.abspath(__file__))
@@ -63,6 +73,10 @@ except ImportError:
         sys.path.insert(0, _dir)
     from ks30d import KS30d, Claim
     from analogy_solvers import run_analogy_solvers, a06_chain_decompose
+    try:
+        from .meta_verifier import run_meta_verification
+    except ImportError:
+        from meta_verifier import run_meta_verification
     from stage_store import StageStore
 
 
@@ -283,8 +297,43 @@ class KS31a:
         if store:
             store.write("KS31a_R4_synthesis", synthesis)
 
-        # ── Final verdict: combine R1 and R4 ─────────────────────────
+        # ── Round 5: L4 meta-verification ────────────────────────────
+        # Run counter-factual and evidence probes on the original claim
+        meta = run_meta_verification(
+            claim.text,
+            lambda x: self.l1.verify_lightweight(x, evidence=claim.evidence),
+            r1["final_score"],
+            evidence_list=claim.evidence,
+            store=store,
+        )
+        trace.append({"round": 5, "layer": "L4", "action": "meta_verify",
+                       "meta_verdict": meta["meta_verdict"],
+                       "flags": meta["flags"],
+                       "confidence_modifier": meta["confidence_modifier"]})
+
+        # Also run M1 on each step that was borderline
+        step_meta = []
+        for i, sr in enumerate(step_results):
+            if sr["pass_rate"] <= 0.85:  # borderline or lower
+                sm = run_meta_verification(
+                    sr["text"],
+                    lambda x: self.l1.verify_lightweight(x, evidence=claim.evidence),
+                    sr["pass_rate"],
+                )
+                step_meta.append({"step": i, "meta": sm["meta_verdict"], "flags": sm["flags"]})
+        
+        if store and step_meta:
+            store.write("KS31a_R5_step_meta", step_meta)
+
+        # ── Final verdict: combine R1, R4, and L4 ───────────────────
         final_verdict, final_score = self._combine_verdicts(r1, synthesis)
+        
+        # Apply L4 modifier
+        final_score = round(final_score * meta["confidence_modifier"], 4)
+        if meta["meta_verdict"] == "HOLLOW" and final_verdict in ("VERIFIED", "EXPLORING"):
+            final_verdict = "EXPLORING"  # downgrade: form passes but no substance
+        elif meta["meta_verdict"] == "FORM_ONLY" and final_verdict == "VERIFIED":
+            final_verdict = "EXPLORING"  # can't trust form-only VERIFIED
 
         elapsed = time.time() - t0
         return self._build_output(
@@ -328,6 +377,11 @@ class KS31a:
         }
 
         if synthesis:
+            output["meta_verification"] = {
+                "meta_verdict": meta["meta_verdict"] if 'meta' in dir() else None,
+                "flags": meta["flags"] if 'meta' in dir() else [],
+                "confidence_modifier": meta["confidence_modifier"] if 'meta' in dir() else 1.0,
+            }
             output["synthesis"] = {
                 "composite_verdict": synthesis["composite_verdict"],
                 "reason": synthesis["reason"],
