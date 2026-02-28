@@ -1,0 +1,9 @@
+{
+  "stage": "S17_Lorentz",
+  "timestamp": "2026-02-28T07:03:16.898362+00:00",
+  "data": {
+    "passed": false,
+    "claim_hash": "The sun revolves around the Earth"
+  },
+  "metadata": {}
+}

@@ -1,0 +1,28 @@
+{
+  "stage": "KS31e_R0_L5_semantics",
+  "timestamp": "2026-02-28T07:03:16.881357+00:00",
+  "data": {
+    "mode": "llm",
+    "propositions": [
+      {
+        "text": "The sun revolves.",
+        "type": "factual"
+      },
+      {
+        "text": "The Earth is the center of the sun's revolution.",
+        "type": "factual"
+      }
+    ],
+    "implicit_assumptions": [
+      "There is a defined center of revolution.",
+      "The Earth is a stationary reference point."
+    ],
+    "key_entities": [
+      "sun",
+      "Earth"
+    ],
+    "causal_links": [],
+    "latency_ms": 1404.0
+  },
+  "metadata": {}
+}

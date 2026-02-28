@@ -1,0 +1,16 @@
+{
+  "stage": "S28_Reproducibility",
+  "timestamp": "2026-02-28T07:13:19.821497+00:00",
+  "data": {
+    "passed": false,
+    "score": 0.6475,
+    "breakdown": {
+      "data_hash_verification": 0.3,
+      "weight_reproducibility": 0.75,
+      "multi_llm_consensus": 1.0,
+      "training_determinism": 0.7,
+      "composite_score": 0.647
+    }
+  },
+  "metadata": {}
+}

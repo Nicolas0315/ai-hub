@@ -1,0 +1,1839 @@
+{
+  "stage": "A_analogy_solvers",
+  "timestamp": "2026-02-28T07:19:02.713188+00:00",
+  "data": {
+    "a01_decomposition": {
+      "Water": {
+        "original": "Water",
+        "compound_splits": [],
+        "prefix": null,
+        "suffix": null
+      },
+      "boils": {
+        "original": "boils",
+        "compound_splits": [],
+        "prefix": null,
+        "suffix": null
+      },
+      "at": {
+        "original": "at",
+        "compound_splits": [],
+        "prefix": null,
+        "suffix": null
+      },
+      "degrees": {
+        "original": "degrees",
+        "compound_splits": [
+          "deg+rees",
+          "degr+ees"
+        ],
+        "prefix": null,
+        "suffix": null
+      },
+      "Celsius": {
+        "original": "Celsius",
+        "compound_splits": [
+          "cel+sius",
+          "cels+ius"
+        ],
+        "prefix": null,
+        "suffix": null
+      },
+      "sea": {
+        "original": "sea",
+        "compound_splits": [],
+        "prefix": null,
+        "suffix": null
+      },
+      "level": {
+        "original": "level",
+        "compound_splits": [],
+        "prefix": null,
+        "suffix": null
+      }
+    },
+    "a02_phonetic": {
+      "degrees": {
+        "word": "degrees",
+        "phones": [
+          "D",
+          "IH0",
+          "G",
+          "R",
+          "IY1",
+          "Z"
+        ],
+        "neighbors": [
+          {
+            "word": "agrees",
+            "phones": [
+              "AH0",
+              "G",
+              "R",
+              "IY1",
+              "Z"
+            ],
+            "distance": 2
+          }
+        ],
+        "pattern_matches": [
+          {
+            "word": "decrees",
+            "phones": [
+              "D",
+              "IH0",
+              "K",
+              "R",
+              "IY1",
+              "Z"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "defrees",
+            "phones": [
+              "D",
+              "IH0",
+              "F",
+              "R",
+              "IY1",
+              "Z"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "degreed",
+            "phones": [
+              "D",
+              "IH0",
+              "G",
+              "R",
+              "IY1",
+              "D"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "decrease",
+            "phones": [
+              "D",
+              "IH0",
+              "K",
+              "R",
+              "IY1",
+              "S"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "decreed",
+            "phones": [
+              "D",
+              "IH0",
+              "K",
+              "R",
+              "IY1",
+              "D"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "defries",
+            "phones": [
+              "D",
+              "IH0",
+              "F",
+              "R",
+              "IY1",
+              "Z"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "devries",
+            "phones": [
+              "D",
+              "IH0",
+              "V",
+              "R",
+              "IY1",
+              "S"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "defreese",
+            "phones": [
+              "D",
+              "EH1",
+              "F",
+              "R",
+              "IY0",
+              "S"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "decries",
+            "phones": [
+              "D",
+              "IH0",
+              "K",
+              "R",
+              "AY1",
+              "Z"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "depress",
+            "phones": [
+              "D",
+              "IH0",
+              "P",
+              "R",
+              "EH1",
+              "S"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "duvrees",
+            "phones": [
+              "D",
+              "UW0",
+              "V",
+              "R",
+              "IY1",
+              "Z"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "dearden",
+            "phones": [
+              "D",
+              "IH1",
+              "R",
+              "D",
+              "AH0",
+              "N"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "dearest",
+            "phones": [
+              "D",
+              "IH1",
+              "R",
+              "AH0",
+              "S",
+              "T"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "debeers",
+            "phones": [
+              "D",
+              "IH0",
+              "B",
+              "IH1",
+              "R",
+              "Z"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "decides",
+            "phones": [
+              "D",
+              "IH2",
+              "S",
+              "AY1",
+              "D",
+              "Z"
+            ],
+            "vowel_diff": 1
+          }
+        ],
+        "papers": [
+          {
+            "title": "On phonetic convergence during conversational interaction",
+            "year": 2006,
+            "cited_by": 754
+          },
+          {
+            "title": "Interaction of Native- and Second-Language Vowel System(s) in Early and Late Bilinguals",
+            "year": 2005,
+            "cited_by": 221
+          },
+          {
+            "title": "Conversational role influences speech imitation",
+            "year": 2010,
+            "cited_by": 122
+          }
+        ]
+      },
+      "Celsius": {
+        "word": "Celsius",
+        "phones": [
+          "S",
+          "EH1",
+          "L",
+          "S",
+          "IY0",
+          "AH0",
+          "S"
+        ],
+        "neighbors": [],
+        "pattern_matches": [
+          {
+            "word": "celinda",
+            "phones": [
+              "CH",
+              "EH0",
+              "L",
+              "IY1",
+              "N",
+              "D",
+              "AH0"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "delfina",
+            "phones": [
+              "D",
+              "EH2",
+              "L",
+              "F",
+              "IY1",
+              "N",
+              "AH0"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "delrina",
+            "phones": [
+              "D",
+              "EH2",
+              "L",
+              "R",
+              "IY1",
+              "N",
+              "AH0"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "fermium",
+            "phones": [
+              "F",
+              "EH1",
+              "R",
+              "M",
+              "IY0",
+              "AH0",
+              "M"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "heaviest",
+            "phones": [
+              "HH",
+              "EH1",
+              "V",
+              "IY0",
+              "AH0",
+              "S",
+              "T"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "melvina",
+            "phones": [
+              "M",
+              "EH0",
+              "L",
+              "V",
+              "IY1",
+              "N",
+              "AH0"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "pentium",
+            "phones": [
+              "P",
+              "EH1",
+              "N",
+              "T",
+              "IY0",
+              "AH0",
+              "M"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "belarus",
+            "phones": [
+              "B",
+              "EH0",
+              "L",
+              "AA1",
+              "R",
+              "AH0",
+              "S"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "belsito",
+            "phones": [
+              "B",
+              "EH0",
+              "L",
+              "S",
+              "IY1",
+              "T",
+              "OW0"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "calcium",
+            "phones": [
+              "K",
+              "AE1",
+              "L",
+              "S",
+              "IY0",
+              "AH0",
+              "M"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "vilnius",
+            "phones": [
+              "V",
+              "IH1",
+              "L",
+              "N",
+              "IY0",
+              "AH0",
+              "S"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "bellini's",
+            "phones": [
+              "B",
+              "EH0",
+              "L",
+              "IY1",
+              "N",
+              "IY0",
+              "Z"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "bellizzi",
+            "phones": [
+              "B",
+              "EH0",
+              "L",
+              "IY1",
+              "T",
+              "S",
+              "IY0"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "cadmium",
+            "phones": [
+              "K",
+              "AE1",
+              "D",
+              "M",
+              "IY0",
+              "AH0",
+              "M"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "calvina",
+            "phones": [
+              "K",
+              "AA0",
+              "L",
+              "V",
+              "IY1",
+              "N",
+              "AH0"
+            ],
+            "vowel_diff": 1
+          }
+        ],
+        "papers": [
+          {
+            "title": "Comparability and measurement in typological science: The bright future for linguistics",
+            "year": 2020,
+            "cited_by": 131
+          },
+          {
+            "title": "The international surface temperature initiative global land surface databank: monthly temperature d",
+            "year": 2014,
+            "cited_by": 125
+          },
+          {
+            "title": "Languages of Science in the Eighteenth Century",
+            "year": 2011,
+            "cited_by": 43
+          }
+        ]
+      },
+      "Water": {
+        "word": "Water",
+        "phones": [
+          "W",
+          "AO1",
+          "T",
+          "ER0"
+        ],
+        "neighbors": [
+          {
+            "word": "after",
+            "phones": [
+              "AE1",
+              "F",
+              "T",
+              "ER0"
+            ],
+            "distance": 2
+          },
+          {
+            "word": "actor",
+            "phones": [
+              "AE1",
+              "K",
+              "T",
+              "ER0"
+            ],
+            "distance": 2
+          },
+          {
+            "word": "aller",
+            "phones": [
+              "AO1",
+              "L",
+              "ER0"
+            ],
+            "distance": 2
+          },
+          {
+            "word": "akhtar",
+            "phones": [
+              "AE1",
+              "K",
+              "T",
+              "ER0"
+            ],
+            "distance": 2
+          },
+          {
+            "word": "allor",
+            "phones": [
+              "AO1",
+              "L",
+              "ER0"
+            ],
+            "distance": 2
+          }
+        ],
+        "pattern_matches": [
+          {
+            "word": "alter",
+            "phones": [
+              "AO1",
+              "L",
+              "T",
+              "ER0"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "alder",
+            "phones": [
+              "AO1",
+              "L",
+              "D",
+              "ER0"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "allers",
+            "phones": [
+              "AO1",
+              "L",
+              "ER0",
+              "Z"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "almer",
+            "phones": [
+              "AO1",
+              "L",
+              "M",
+              "ER0"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "altar",
+            "phones": [
+              "AO1",
+              "L",
+              "T",
+              "ER0"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "aubert",
+            "phones": [
+              "AO1",
+              "B",
+              "ER0",
+              "T"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "augers",
+            "phones": [
+              "AO1",
+              "G",
+              "ER0",
+              "Z"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "cater",
+            "phones": [
+              "K",
+              "EY1",
+              "T",
+              "ER0"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "eaters",
+            "phones": [
+              "IY1",
+              "T",
+              "ER0",
+              "Z"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "hater",
+            "phones": [
+              "HH",
+              "EY1",
+              "T",
+              "ER0"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "kater",
+            "phones": [
+              "K",
+              "EY1",
+              "T",
+              "ER0"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "later",
+            "phones": [
+              "L",
+              "EY1",
+              "T",
+              "ER0"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "mater",
+            "phones": [
+              "M",
+              "AA1",
+              "T",
+              "ER0"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "pater",
+            "phones": [
+              "P",
+              "EY1",
+              "T",
+              "ER0"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "rater",
+            "phones": [
+              "R",
+              "EY1",
+              "T",
+              "ER0"
+            ],
+            "vowel_diff": 1
+          }
+        ],
+        "papers": [
+          {
+            "title": "Preliminaries to Speech Analysis: The Distinctive Features and Their Correlates",
+            "year": 1953,
+            "cited_by": 1169
+          },
+          {
+            "title": "The bilingual brain. Proficiency and age of acquisition of the second language",
+            "year": 1998,
+            "cited_by": 738
+          },
+          {
+            "title": "Advances in the Cross‐Linguistic Study of Ideophones",
+            "year": 2012,
+            "cited_by": 573
+          }
+        ]
+      },
+      "_sius": {
+        "word": "sius",
+        "phones": null,
+        "neighbors": [],
+        "note": "not in CMU dictionary",
+        "papers": []
+      },
+      "_ees": {
+        "word": "ees",
+        "phones": null,
+        "neighbors": [],
+        "note": "not in CMU dictionary",
+        "papers": []
+      },
+      "_ius": {
+        "word": "ius",
+        "phones": null,
+        "neighbors": [],
+        "note": "not in CMU dictionary",
+        "papers": []
+      },
+      "_rees": {
+        "word": "rees",
+        "phones": [
+          "R",
+          "IY1",
+          "Z"
+        ],
+        "neighbors": [
+          {
+            "word": "ades",
+            "phones": [
+              "EY1",
+              "D",
+              "Z"
+            ],
+            "distance": 2
+          },
+          {
+            "word": "'tis",
+            "phones": [
+              "T",
+              "IH1",
+              "Z"
+            ],
+            "distance": 2
+          },
+          {
+            "word": "a's",
+            "phones": [
+              "EY1",
+              "Z"
+            ],
+            "distance": 2
+          },
+          {
+            "word": "a.'s",
+            "phones": [
+              "EY1",
+              "Z"
+            ],
+            "distance": 2
+          },
+          {
+            "word": "a.s",
+            "phones": [
+              "EY1",
+              "Z"
+            ],
+            "distance": 2
+          },
+          {
+            "word": "abbs",
+            "phones": [
+              "AE1",
+              "B",
+              "Z"
+            ],
+            "distance": 2
+          },
+          {
+            "word": "abs",
+            "phones": [
+              "AE1",
+              "B",
+              "Z"
+            ],
+            "distance": 2
+          },
+          {
+            "word": "ad's",
+            "phones": [
+              "AE1",
+              "D",
+              "Z"
+            ],
+            "distance": 2
+          },
+          {
+            "word": "adds",
+            "phones": [
+              "AE1",
+              "D",
+              "Z"
+            ],
+            "distance": 2
+          },
+          {
+            "word": "ads",
+            "phones": [
+              "AE1",
+              "D",
+              "Z"
+            ],
+            "distance": 2
+          },
+          {
+            "word": "ads'",
+            "phones": [
+              "AE1",
+              "D",
+              "Z"
+            ],
+            "distance": 2
+          },
+          {
+            "word": "adz",
+            "phones": [
+              "AE1",
+              "D",
+              "Z"
+            ],
+            "distance": 2
+          },
+          {
+            "word": "aerie",
+            "phones": [
+              "EH1",
+              "R",
+              "IY0"
+            ],
+            "distance": 2
+          },
+          {
+            "word": "'cause",
+            "phones": [
+              "K",
+              "AH0",
+              "Z"
+            ],
+            "distance": 2
+          },
+          {
+            "word": "abbey's",
+            "phones": [
+              "AE1",
+              "B",
+              "IY0",
+              "Z"
+            ],
+            "distance": 2
+          }
+        ],
+        "pattern_matches": [
+          {
+            "word": "reese",
+            "phones": [
+              "R",
+              "IY1",
+              "S"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "bees",
+            "phones": [
+              "B",
+              "IY1",
+              "Z"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "beese",
+            "phones": [
+              "B",
+              "IY1",
+              "Z"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "cees",
+            "phones": [
+              "S",
+              "IY1",
+              "Z"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "dees",
+            "phones": [
+              "D",
+              "IY1",
+              "Z"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "deese",
+            "phones": [
+              "D",
+              "IY1",
+              "Z"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "fees",
+            "phones": [
+              "F",
+              "IY1",
+              "Z"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "re's",
+            "phones": [
+              "R",
+              "EY1",
+              "Z"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "reisch",
+            "phones": [
+              "R",
+              "AY1",
+              "SH"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "reiss",
+            "phones": [
+              "R",
+              "AY1",
+              "S"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "reisz",
+            "phones": [
+              "R",
+              "AY1",
+              "SH"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "ress",
+            "phones": [
+              "R",
+              "EH1",
+              "S"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "reusch",
+            "phones": [
+              "R",
+              "OY1",
+              "SH"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "reuss",
+            "phones": [
+              "R",
+              "UW1",
+              "S"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "ries",
+            "phones": [
+              "R",
+              "AY1",
+              "Z"
+            ],
+            "vowel_diff": 1
+          }
+        ],
+        "papers": [
+          {
+            "title": "Language‐specific tuning of visual cortex? Functional properties of the Visual Word Form Area",
+            "year": 2002,
+            "cited_by": 1256
+          },
+          {
+            "title": "AT THE INTERFACE: DYNAMIC INTERACTIONS OF EXPLICIT AND IMPLICIT LANGUAGE KNOWLEDGE",
+            "year": 2005,
+            "cited_by": 861
+          },
+          {
+            "title": "Reconstructing Speech from Human Auditory Cortex",
+            "year": 2012,
+            "cited_by": 625
+          }
+        ]
+      },
+      "_cels": {
+        "word": "cels",
+        "phones": [
+          "S",
+          "EH1",
+          "L",
+          "Z"
+        ],
+        "neighbors": [
+          {
+            "word": "ails",
+            "phones": [
+              "EY1",
+              "L",
+              "Z"
+            ],
+            "distance": 2
+          },
+          {
+            "word": "alls",
+            "phones": [
+              "AO1",
+              "L",
+              "Z"
+            ],
+            "distance": 2
+          },
+          {
+            "word": "abeles",
+            "phones": [
+              "AH0",
+              "B",
+              "EH1",
+              "L",
+              "Z"
+            ],
+            "distance": 2
+          },
+          {
+            "word": "ahles",
+            "phones": [
+              "EY1",
+              "AH0",
+              "L",
+              "Z"
+            ],
+            "distance": 2
+          },
+          {
+            "word": "ailes",
+            "phones": [
+              "AY1",
+              "L",
+              "Z"
+            ],
+            "distance": 2
+          },
+          {
+            "word": "airs",
+            "phones": [
+              "EH1",
+              "R",
+              "Z"
+            ],
+            "distance": 2
+          },
+          {
+            "word": "al's",
+            "phones": [
+              "AE1",
+              "L",
+              "Z"
+            ],
+            "distance": 2
+          },
+          {
+            "word": "ales",
+            "phones": [
+              "EY1",
+              "L",
+              "Z"
+            ],
+            "distance": 2
+          },
+          {
+            "word": "all's",
+            "phones": [
+              "AO1",
+              "L",
+              "Z"
+            ],
+            "distance": 2
+          },
+          {
+            "word": "alles",
+            "phones": [
+              "EY1",
+              "L",
+              "Z"
+            ],
+            "distance": 2
+          },
+          {
+            "word": "adele's",
+            "phones": [
+              "AH0",
+              "D",
+              "EH1",
+              "L",
+              "Z"
+            ],
+            "distance": 2
+          },
+          {
+            "word": "adell's",
+            "phones": [
+              "AH0",
+              "D",
+              "EH1",
+              "L",
+              "Z"
+            ],
+            "distance": 2
+          },
+          {
+            "word": "aiello",
+            "phones": [
+              "AY2",
+              "EH1",
+              "L",
+              "OW0"
+            ],
+            "distance": 2
+          },
+          {
+            "word": "air's",
+            "phones": [
+              "EH1",
+              "R",
+              "Z"
+            ],
+            "distance": 2
+          },
+          {
+            "word": "aisles",
+            "phones": [
+              "AY1",
+              "L",
+              "Z"
+            ],
+            "distance": 2
+          }
+        ],
+        "pattern_matches": [
+          {
+            "word": "bels",
+            "phones": [
+              "B",
+              "EH1",
+              "L",
+              "Z"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "belshe",
+            "phones": [
+              "B",
+              "EH1",
+              "L",
+              "SH"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "cell's",
+            "phones": [
+              "S",
+              "EH1",
+              "L",
+              "Z"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "celled",
+            "phones": [
+              "S",
+              "EH1",
+              "L",
+              "D"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "cells",
+            "phones": [
+              "S",
+              "EH1",
+              "L",
+              "Z"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "cells'",
+            "phones": [
+              "S",
+              "EH1",
+              "L",
+              "Z"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "celt",
+            "phones": [
+              "S",
+              "EH1",
+              "L",
+              "T"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "ceased",
+            "phones": [
+              "S",
+              "IY1",
+              "S",
+              "T"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "beast",
+            "phones": [
+              "B",
+              "IY1",
+              "S",
+              "T"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "berst",
+            "phones": [
+              "B",
+              "ER1",
+              "S",
+              "T"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "cabs",
+            "phones": [
+              "K",
+              "AE1",
+              "B",
+              "Z"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "cads",
+            "phones": [
+              "K",
+              "AE1",
+              "D",
+              "S"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "cales",
+            "phones": [
+              "K",
+              "EY1",
+              "L",
+              "Z"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "calf's",
+            "phones": [
+              "K",
+              "AE1",
+              "F",
+              "S"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "calfed",
+            "phones": [
+              "K",
+              "AE1",
+              "F",
+              "T"
+            ],
+            "vowel_diff": 1
+          }
+        ],
+        "papers": [
+          {
+            "title": "Linguistic Diffusion in Arnhem Land",
+            "year": 1978,
+            "cited_by": 298
+          },
+          {
+            "title": "Latvian Grammar",
+            "year": 2021,
+            "cited_by": 35
+          },
+          {
+            "title": "Relational adjectives at the syntax/morphology interface in Romanian and Spanish",
+            "year": 2010,
+            "cited_by": 36
+          }
+        ]
+      },
+      "_degr": {
+        "word": "degr",
+        "phones": null,
+        "neighbors": [],
+        "note": "not in CMU dictionary",
+        "papers": []
+      },
+      "_deg": {
+        "word": "deg",
+        "phones": null,
+        "neighbors": [],
+        "note": "not in CMU dictionary",
+        "papers": []
+      },
+      "_cel": {
+        "word": "cel",
+        "phones": [
+          "S",
+          "EH1",
+          "L"
+        ],
+        "neighbors": [
+          {
+            "word": "accel",
+            "phones": [
+              "AH0",
+              "K",
+              "S",
+              "EH1",
+              "L"
+            ],
+            "distance": 2
+          },
+          {
+            "word": "adel",
+            "phones": [
+              "AH0",
+              "D",
+              "EH1",
+              "L"
+            ],
+            "distance": 2
+          },
+          {
+            "word": "aer",
+            "phones": [
+              "EH1",
+              "R"
+            ],
+            "distance": 2
+          },
+          {
+            "word": "ahl",
+            "phones": [
+              "AA1",
+              "L"
+            ],
+            "distance": 2
+          },
+          {
+            "word": "ail",
+            "phones": [
+              "EY1",
+              "L"
+            ],
+            "distance": 2
+          },
+          {
+            "word": "'s",
+            "phones": [
+              "EH1",
+              "S"
+            ],
+            "distance": 2
+          },
+          {
+            "word": "'til",
+            "phones": [
+              "T",
+              "IH1",
+              "L"
+            ],
+            "distance": 2
+          },
+          {
+            "word": "abele",
+            "phones": [
+              "AH0",
+              "B",
+              "EH1",
+              "L"
+            ],
+            "distance": 2
+          },
+          {
+            "word": "adele",
+            "phones": [
+              "AH0",
+              "D",
+              "EH1",
+              "L"
+            ],
+            "distance": 2
+          },
+          {
+            "word": "adell",
+            "phones": [
+              "AH0",
+              "D",
+              "EH1",
+              "L"
+            ],
+            "distance": 2
+          },
+          {
+            "word": "a.m.",
+            "phones": [
+              "EY2",
+              "EH1",
+              "M"
+            ],
+            "distance": 2
+          },
+          {
+            "word": "adelle",
+            "phones": [
+              "AH0",
+              "D",
+              "EH1",
+              "L"
+            ],
+            "distance": 2
+          },
+          {
+            "word": "ahnell",
+            "phones": [
+              "AA0",
+              "N",
+              "EH1",
+              "L"
+            ],
+            "distance": 2
+          },
+          {
+            "word": "aiello",
+            "phones": [
+              "AY2",
+              "EH1",
+              "L",
+              "OW0"
+            ],
+            "distance": 2
+          },
+          {
+            "word": "'gain",
+            "phones": [
+              "G",
+              "EH1",
+              "N"
+            ],
+            "distance": 2
+          }
+        ],
+        "pattern_matches": [
+          {
+            "word": "cell",
+            "phones": [
+              "S",
+              "EH1",
+              "L"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "bel",
+            "phones": [
+              "B",
+              "EH1",
+              "L"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "bell",
+            "phones": [
+              "B",
+              "EH1",
+              "L"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "belle",
+            "phones": [
+              "B",
+              "EH1",
+              "L"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "cech",
+            "phones": [
+              "S",
+              "EH1",
+              "K"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "cep",
+            "phones": [
+              "S",
+              "EH1",
+              "P"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "del",
+            "phones": [
+              "D",
+              "EH1",
+              "L"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "cele",
+            "phones": [
+              "S",
+              "IY1",
+              "L"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "cal",
+            "phones": [
+              "K",
+              "AE1",
+              "L"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "cale",
+            "phones": [
+              "K",
+              "EY1",
+              "L"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "calf",
+            "phones": [
+              "K",
+              "AE1",
+              "F"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "calk",
+            "phones": [
+              "K",
+              "AO1",
+              "K"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "call",
+            "phones": [
+              "K",
+              "AO1",
+              "L"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "calle",
+            "phones": [
+              "K",
+              "EY1",
+              "L"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "calm",
+            "phones": [
+              "K",
+              "AA1",
+              "M"
+            ],
+            "vowel_diff": 1
+          }
+        ],
+        "papers": [
+          {
+            "title": "Linguistic Diffusion in Arnhem Land",
+            "year": 1978,
+            "cited_by": 298
+          },
+          {
+            "title": "Latvian Grammar",
+            "year": 2021,
+            "cited_by": 35
+          },
+          {
+            "title": "Relational adjectives at the syntax/morphology interface in Romanian and Spanish",
+            "year": 2010,
+            "cited_by": 36
+          }
+        ]
+      }
+    },
+    "a03_structural": [
+      {
+        "concept_a": "degrees",
+        "concept_b": "Celsius",
+        "shared_attributes": [
+          "syl:2",
+          "len:7",
+          "class:noun_default"
+        ],
+        "a_only_attributes": [
+          "stress:4",
+          "init:D",
+          "cv:CVCCVC",
+          "final:Z",
+          "phones:6",
+          "degrees"
+        ],
+        "b_only_attributes": [
+          "cv:CVCCVVC",
+          "phones:7",
+          "init:S",
+          "celsius",
+          "stress:1",
+          "final:S"
+        ],
+        "overlap_ratio": 0.2,
+        "probes": {
+          "morphological": {
+            "shared": [
+              "syl:2",
+              "len:7"
+            ],
+            "a_only": [],
+            "b_only": []
+          },
+          "phonetic": {
+            "shared": [],
+            "a_only": [
+              "stress:4",
+              "init:D",
+              "cv:CVCCVC",
+              "final:Z",
+              "phones:6"
+            ],
+            "b_only": [
+              "cv:CVCCVVC",
+              "phones:7",
+              "init:S",
+              "stress:1",
+              "final:S"
+            ]
+          },
+          "semantic_class": {
+            "shared": [
+              "class:noun_default"
+            ],
+            "a_only": [],
+            "b_only": []
+          },
+          "compound": {
+            "shared": [],
+            "a_only": [],
+            "b_only": []
+          }
+        },
+        "external_source": "text_fallback"
+      }
+    ],
+    "a04_blends": [
+      {
+        "source": "A01:degrees",
+        "blend": "deg + rees",
+        "type": "compound_split"
+      },
+      {
+        "source": "A01:degrees",
+        "blend": "degr + ees",
+        "type": "compound_split"
+      },
+      {
+        "source": "A01:Celsius",
+        "blend": "cel + sius",
+        "type": "compound_split"
+      },
+      {
+        "source": "A01:Celsius",
+        "blend": "cels + ius",
+        "type": "compound_split"
+      },
+      {
+        "source": "A02:degrees>agrees",
+        "blend": "degrees ~ agrees (dist=2)",
+        "type": "phonetic_substitution",
+        "substituted_word": "agrees"
+      },
+      {
+        "source": "A02:pattern:degrees>decrees",
+        "blend": "degrees ~ decrees (vowel_diff=0)",
+        "type": "phoneme_pattern_match",
+        "substituted_word": "decrees"
+      },
+      {
+        "source": "A02:pattern:degrees>defrees",
+        "blend": "degrees ~ defrees (vowel_diff=0)",
+        "type": "phoneme_pattern_match",
+        "substituted_word": "defrees"
+      },
+      {
+        "source": "A02:pattern:degrees>degreed",
+        "blend": "degrees ~ degreed (vowel_diff=0)",
+        "type": "phoneme_pattern_match",
+        "substituted_word": "degreed"
+      },
+      {
+        "source": "A03:shared_structure",
+        "blend": "degrees ↔ Celsius via ['syl:2', 'len:7', 'class:noun_default']",
+        "type": "structural_analogy",
+        "shared": [
+          "syl:2",
+          "len:7",
+          "class:noun_default"
+        ]
+      }
+    ],
+    "a05_premises": [],
+    "a06_chain": {
+      "steps": [
+        {
+          "index": 0,
+          "text": "Water boils at 100 degrees Celsius at sea level",
+          "connector_to_next": null,
+          "connector_type": null,
+          "has_quantifier": false,
+          "has_negation": false,
+          "has_comparison": false
+        }
+      ],
+      "chain_length": 1,
+      "connectors_found": [],
+      "has_implicit_gaps": false,
+      "dependency_edges": []
+    },
+    "candidates_generated": 9
+  },
+  "metadata": {}
+}

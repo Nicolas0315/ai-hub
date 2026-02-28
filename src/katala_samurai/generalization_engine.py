@@ -38,7 +38,7 @@ def build_relation_graph(terms, max_edges_per_term=8):
     term_edges = {}
     all_concepts = set(t.lower() for t in terms)
     
-    for term in terms[:4]:
+    for term in terms[:2]:
         cn = _conceptnet_expand(term, max_edges=max_edges_per_term)
         edges = []
         for exp in cn.get("expansions", []):

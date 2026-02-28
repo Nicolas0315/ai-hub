@@ -1,0 +1,10 @@
+{
+  "stage": "ks33b_meta",
+  "timestamp": "2026-02-28T06:55:20.850668+00:00",
+  "data": {
+    "content_bridge_signals": 2,
+    "termination": false,
+    "guardian": "healthy"
+  },
+  "metadata": {}
+}

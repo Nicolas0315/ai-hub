@@ -82,9 +82,7 @@ class KS33a(KS32a):
             claim = Claim(text=claim, evidence=[])
         
         # ── Content Understanding Enhancement ──
-        cu_result = analyze_content(claim.text, store=store)
-        if store:
-            store.write("content_understanding", cu_result)
+        cu_result = analyze_content(claim.text)
 
         # Run KS32a verification (includes KS31e + goals)
         result = super().verify(claim, store=store, skip_s28=skip_s28)

@@ -352,7 +352,10 @@ def generate_goals(text, domain_result=None, verification_result=None, store=Non
     
     # Get domain info if not provided
     if domain_result is None:
-        domain_result = bridge_domain(text)
+        try:
+            domain_result = bridge_domain(text)
+        except Exception:
+            domain_result = {"domain_detected": False, "propositions": []}
     
     contradictions, g2_goals = detect_contradictions(text, domain_result, verification_result)
     expansions, g3_goals = expand_scope(text, domain_result)

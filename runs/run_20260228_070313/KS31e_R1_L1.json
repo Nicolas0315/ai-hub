@@ -1,0 +1,10 @@
+{
+  "stage": "KS31e_R1_L1",
+  "timestamp": "2026-02-28T07:03:36.657550+00:00",
+  "data": {
+    "verdict": "UNVERIFIED",
+    "score": 0.8285,
+    "solvers_passed": "24/28"
+  },
+  "metadata": {}
+}

@@ -1,0 +1,3008 @@
+{
+  "stage": "A_analogy_solvers",
+  "timestamp": "2026-02-28T07:11:16.255816+00:00",
+  "data": {
+    "a01_decomposition": {
+      "Coffee": {
+        "original": "Coffee",
+        "compound_splits": [],
+        "prefix": null,
+        "suffix": null
+      },
+      "always": {
+        "original": "always",
+        "compound_splits": [],
+        "prefix": null,
+        "suffix": null
+      },
+      "prevents": {
+        "original": "prevents",
+        "compound_splits": [
+          "pre+vents",
+          "prev+ents",
+          "preve+nts"
+        ],
+        "prefix": "pre",
+        "suffix": null
+      },
+      "Alzheimer": {
+        "original": "Alzheimer",
+        "compound_splits": [
+          "alz+heimer",
+          "alzh+eimer",
+          "alzhe+imer",
+          "alzhei+mer"
+        ],
+        "prefix": null,
+        "suffix": null
+      },
+      "s": {
+        "original": "s",
+        "compound_splits": [],
+        "prefix": null,
+        "suffix": null
+      },
+      "disease": {
+        "original": "disease",
+        "compound_splits": [
+          "dis+ease",
+          "dise+ase"
+        ],
+        "prefix": "dis",
+        "suffix": null
+      }
+    },
+    "a02_phonetic": {
+      "Alzheimer": {
+        "word": "Alzheimer",
+        "phones": [
+          "AE1",
+          "L",
+          "Z",
+          "HH",
+          "AY2",
+          "M",
+          "ER0"
+        ],
+        "neighbors": [
+          {
+            "word": "alzheimer's",
+            "phones": [
+              "AE1",
+              "L",
+              "Z",
+              "HH",
+              "AY2",
+              "M",
+              "ER0",
+              "Z"
+            ],
+            "distance": 1
+          }
+        ],
+        "pattern_matches": [
+          {
+            "word": "sackrider",
+            "phones": [
+              "S",
+              "AE1",
+              "K",
+              "R",
+              "AY2",
+              "D",
+              "ER0"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "backfired",
+            "phones": [
+              "B",
+              "AE1",
+              "K",
+              "F",
+              "AY2",
+              "ER0",
+              "D"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "backfires",
+            "phones": [
+              "B",
+              "AE1",
+              "K",
+              "F",
+              "AY2",
+              "ER0",
+              "Z"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "campfire",
+            "phones": [
+              "K",
+              "AE1",
+              "M",
+              "P",
+              "F",
+              "AY2",
+              "ER0"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "hameister",
+            "phones": [
+              "HH",
+              "AE1",
+              "M",
+              "AY0",
+              "S",
+              "T",
+              "ER0"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "quagmire",
+            "phones": [
+              "K",
+              "W",
+              "AE1",
+              "G",
+              "M",
+              "AY2",
+              "ER0"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "sandmeyer",
+            "phones": [
+              "S",
+              "AE1",
+              "N",
+              "D",
+              "M",
+              "AY0",
+              "ER0"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "old-timer",
+            "phones": [
+              "OW2",
+              "L",
+              "D",
+              "T",
+              "AY1",
+              "M",
+              "ER0"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "achterberg",
+            "phones": [
+              "AE1",
+              "K",
+              "T",
+              "ER0",
+              "B",
+              "ER0",
+              "G"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "altshuler",
+            "phones": [
+              "AE1",
+              "L",
+              "CH",
+              "Y",
+              "UW0",
+              "L",
+              "ER0"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "begleiter",
+            "phones": [
+              "B",
+              "EH1",
+              "G",
+              "L",
+              "AY2",
+              "T",
+              "ER0"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "budweiser",
+            "phones": [
+              "B",
+              "AH1",
+              "D",
+              "W",
+              "AY0",
+              "Z",
+              "ER0"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "detweiler",
+            "phones": [
+              "D",
+              "EH1",
+              "T",
+              "W",
+              "AY2",
+              "L",
+              "ER0"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "lutweiler",
+            "phones": [
+              "L",
+              "AH1",
+              "T",
+              "W",
+              "AY0",
+              "L",
+              "ER0"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "rinehimer",
+            "phones": [
+              "R",
+              "AY1",
+              "N",
+              "HH",
+              "AY2",
+              "M",
+              "ER0"
+            ],
+            "vowel_diff": 1
+          }
+        ],
+        "papers": [
+          {
+            "title": "Bilingualism: consequences for mind and brain",
+            "year": 2012,
+            "cited_by": 1312
+          },
+          {
+            "title": "The Advantages of Bilingualism Debate",
+            "year": 2018,
+            "cited_by": 339
+          },
+          {
+            "title": "Lenguaje y funciones ejecutivas en la valoración inicial del deterioro cognitivo leve y la demencia ",
+            "year": 2009,
+            "cited_by": 8
+          }
+        ]
+      },
+      "prevents": {
+        "word": "prevents",
+        "phones": [
+          "P",
+          "R",
+          "IH0",
+          "V",
+          "EH1",
+          "N",
+          "T",
+          "S"
+        ],
+        "neighbors": [],
+        "pattern_matches": [
+          {
+            "word": "bequests",
+            "phones": [
+              "B",
+              "IH0",
+              "K",
+              "W",
+              "EH1",
+              "S",
+              "T",
+              "S"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "deflects",
+            "phones": [
+              "D",
+              "IH0",
+              "F",
+              "L",
+              "EH1",
+              "K",
+              "T",
+              "S"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "inspects",
+            "phones": [
+              "IH2",
+              "N",
+              "S",
+              "P",
+              "EH1",
+              "K",
+              "T",
+              "S"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "neglects",
+            "phones": [
+              "N",
+              "IH0",
+              "G",
+              "L",
+              "EH1",
+              "K",
+              "T",
+              "S"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "reflects",
+            "phones": [
+              "R",
+              "IH0",
+              "F",
+              "L",
+              "EH1",
+              "K",
+              "T",
+              "S"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "requests",
+            "phones": [
+              "R",
+              "IH0",
+              "K",
+              "W",
+              "EH1",
+              "S",
+              "T",
+              "S"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "respects",
+            "phones": [
+              "R",
+              "IH0",
+              "S",
+              "P",
+              "EH1",
+              "K",
+              "T",
+              "S"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "precepts",
+            "phones": [
+              "P",
+              "R",
+              "IY1",
+              "S",
+              "EH2",
+              "P",
+              "T",
+              "S"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "pretends",
+            "phones": [
+              "P",
+              "R",
+              "IY0",
+              "T",
+              "EH1",
+              "N",
+              "D",
+              "Z"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "pigments",
+            "phones": [
+              "P",
+              "IH1",
+              "G",
+              "M",
+              "AH0",
+              "N",
+              "T",
+              "S"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "portents",
+            "phones": [
+              "P",
+              "AO1",
+              "R",
+              "T",
+              "EH2",
+              "N",
+              "T",
+              "S"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "predicts",
+            "phones": [
+              "P",
+              "R",
+              "IH0",
+              "D",
+              "IH1",
+              "K",
+              "T",
+              "S"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "preempts",
+            "phones": [
+              "P",
+              "R",
+              "IY1",
+              "EH2",
+              "M",
+              "P",
+              "T",
+              "S"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "pretext",
+            "phones": [
+              "P",
+              "R",
+              "IY1",
+              "T",
+              "EH2",
+              "K",
+              "S",
+              "T"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "projects",
+            "phones": [
+              "P",
+              "R",
+              "AA1",
+              "JH",
+              "EH0",
+              "K",
+              "T",
+              "S"
+            ],
+            "vowel_diff": 1
+          }
+        ],
+        "papers": [
+          {
+            "title": "A theory of lexical access in speech production [target paper]",
+            "year": 1999,
+            "cited_by": 5055
+          },
+          {
+            "title": "Sources of illusion in consonant cluster perception",
+            "year": 2011,
+            "cited_by": 126
+          },
+          {
+            "title": "Action recognition in the premotor cortex",
+            "year": 1996,
+            "cited_by": 4881
+          }
+        ]
+      },
+      "disease": {
+        "word": "disease",
+        "phones": [
+          "D",
+          "IH0",
+          "Z",
+          "IY1",
+          "Z"
+        ],
+        "neighbors": [],
+        "pattern_matches": [
+          {
+            "word": "decease",
+            "phones": [
+              "D",
+              "IH0",
+              "S",
+              "IY1",
+              "S"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "deceive",
+            "phones": [
+              "D",
+              "IH0",
+              "S",
+              "IY1",
+              "V"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "defeat",
+            "phones": [
+              "D",
+              "IH0",
+              "F",
+              "IY1",
+              "T"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "dejean",
+            "phones": [
+              "D",
+              "IH0",
+              "ZH",
+              "IY1",
+              "N"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "demean",
+            "phones": [
+              "D",
+              "IH0",
+              "M",
+              "IY1",
+              "N"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "dineen",
+            "phones": [
+              "D",
+              "IH0",
+              "N",
+              "IY1",
+              "N"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "disney",
+            "phones": [
+              "D",
+              "IH1",
+              "Z",
+              "N",
+              "IY0"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "appeased",
+            "phones": [
+              "AH0",
+              "P",
+              "IY1",
+              "Z",
+              "D"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "deserve",
+            "phones": [
+              "D",
+              "IH0",
+              "Z",
+              "ER1",
+              "V"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "deshaies",
+            "phones": [
+              "D",
+              "IH0",
+              "SH",
+              "EY1",
+              "Z"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "dessauer",
+            "phones": [
+              "D",
+              "IH0",
+              "S",
+              "AW1",
+              "R"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "dishes",
+            "phones": [
+              "D",
+              "IH1",
+              "SH",
+              "AH0",
+              "Z"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "dismay",
+            "phones": [
+              "D",
+              "IH0",
+              "S",
+              "M",
+              "EY1"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "diverge",
+            "phones": [
+              "D",
+              "IH0",
+              "V",
+              "ER1",
+              "JH"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "finesse",
+            "phones": [
+              "F",
+              "IH0",
+              "N",
+              "EH1",
+              "S"
+            ],
+            "vowel_diff": 1
+          }
+        ],
+        "papers": [
+          {
+            "title": "Human adults and human infants show a “perceptual magnet effect” for the prototypes of speech catego",
+            "year": 1991,
+            "cited_by": 1296
+          },
+          {
+            "title": "Exploring the relationship between voice similarity estimates by listeners and by an automatic speak",
+            "year": 2020,
+            "cited_by": 11
+          },
+          {
+            "title": "Towards the creation of reliable voice control system based on a fuzzy approach",
+            "year": 2015,
+            "cited_by": 22
+          }
+        ]
+      },
+      "_vents": {
+        "word": "vents",
+        "phones": [
+          "V",
+          "EH1",
+          "N",
+          "T",
+          "S"
+        ],
+        "neighbors": [
+          {
+            "word": "aerts",
+            "phones": [
+              "EH1",
+              "R",
+              "T",
+              "S"
+            ],
+            "distance": 2
+          },
+          {
+            "word": "ants",
+            "phones": [
+              "AE1",
+              "N",
+              "T",
+              "S"
+            ],
+            "distance": 2
+          }
+        ],
+        "pattern_matches": [
+          {
+            "word": "cents",
+            "phones": [
+              "S",
+              "EH1",
+              "N",
+              "T",
+              "S"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "dents",
+            "phones": [
+              "D",
+              "EH1",
+              "N",
+              "T",
+              "S"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "gents",
+            "phones": [
+              "JH",
+              "EH1",
+              "N",
+              "T",
+              "S"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "lents",
+            "phones": [
+              "L",
+              "EH1",
+              "N",
+              "T",
+              "S"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "rents",
+            "phones": [
+              "R",
+              "EH1",
+              "N",
+              "T",
+              "S"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "tents",
+            "phones": [
+              "T",
+              "EH1",
+              "N",
+              "T",
+              "S"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "vests",
+            "phones": [
+              "V",
+              "EH1",
+              "S",
+              "T",
+              "S"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "fonts",
+            "phones": [
+              "F",
+              "AA1",
+              "N",
+              "T",
+              "S"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "hints",
+            "phones": [
+              "HH",
+              "IH1",
+              "N",
+              "T",
+              "S"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "hunts",
+            "phones": [
+              "HH",
+              "AH1",
+              "N",
+              "T",
+              "S"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "hunts'",
+            "phones": [
+              "HH",
+              "AH1",
+              "N",
+              "T",
+              "S"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "mints",
+            "phones": [
+              "M",
+              "IH1",
+              "N",
+              "T",
+              "S"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "monts",
+            "phones": [
+              "M",
+              "AA1",
+              "N",
+              "T",
+              "S"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "pants",
+            "phones": [
+              "P",
+              "AE1",
+              "N",
+              "T",
+              "S"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "pints",
+            "phones": [
+              "P",
+              "AY1",
+              "N",
+              "T",
+              "S"
+            ],
+            "vowel_diff": 1
+          }
+        ],
+        "papers": [
+          {
+            "title": "Why would Musical Training Benefit the Neural Encoding of Speech? The OPERA Hypothesis",
+            "year": 2011,
+            "cited_by": 641
+          },
+          {
+            "title": "Reading Achievement in Relation to Phonological Coding and Awareness in Deaf Readers: A Meta-analysi",
+            "year": 2010,
+            "cited_by": 390
+          },
+          {
+            "title": "Music Training Increases Phonological Awareness and Reading Skills in Developmental Dyslexia: A Rand",
+            "year": 2015,
+            "cited_by": 319
+          }
+        ]
+      },
+      "_nts": {
+        "word": "nts",
+        "phones": null,
+        "neighbors": [],
+        "note": "not in CMU dictionary",
+        "papers": []
+      },
+      "_alzh": {
+        "word": "alzh",
+        "phones": null,
+        "neighbors": [],
+        "note": "not in CMU dictionary",
+        "papers": []
+      },
+      "_alz": {
+        "word": "alz",
+        "phones": null,
+        "neighbors": [],
+        "note": "not in CMU dictionary",
+        "papers": []
+      },
+      "_ease": {
+        "word": "ease",
+        "phones": [
+          "IY1",
+          "Z"
+        ],
+        "neighbors": [
+          {
+            "word": "a's",
+            "phones": [
+              "EY1",
+              "Z"
+            ],
+            "distance": 1
+          },
+          {
+            "word": "a.s",
+            "phones": [
+              "EY1",
+              "Z"
+            ],
+            "distance": 1
+          },
+          {
+            "word": "a.'s",
+            "phones": [
+              "EY1",
+              "Z"
+            ],
+            "distance": 1
+          },
+          {
+            "word": "aase",
+            "phones": [
+              "AA1",
+              "S"
+            ],
+            "distance": 2
+          },
+          {
+            "word": "'cause",
+            "phones": [
+              "K",
+              "AH0",
+              "Z"
+            ],
+            "distance": 2
+          },
+          {
+            "word": "'s",
+            "phones": [
+              "EH1",
+              "S"
+            ],
+            "distance": 2
+          },
+          {
+            "word": "a",
+            "phones": [
+              "AH0"
+            ],
+            "distance": 2
+          },
+          {
+            "word": "a.",
+            "phones": [
+              "EY1"
+            ],
+            "distance": 2
+          },
+          {
+            "word": "ab",
+            "phones": [
+              "AE1",
+              "B"
+            ],
+            "distance": 2
+          },
+          {
+            "word": "'em",
+            "phones": [
+              "AH0",
+              "M"
+            ],
+            "distance": 2
+          }
+        ],
+        "pattern_matches": [
+          {
+            "word": "eade",
+            "phones": [
+              "IY1",
+              "D"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "eash",
+            "phones": [
+              "IY1",
+              "SH"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "eave",
+            "phones": [
+              "IY1",
+              "V"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "e's",
+            "phones": [
+              "IY1",
+              "Z"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "e.s",
+            "phones": [
+              "IY1",
+              "Z"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "each",
+            "phones": [
+              "IY1",
+              "CH"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "ear",
+            "phones": [
+              "IY1",
+              "R"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "aase",
+            "phones": [
+              "AA1",
+              "S"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "esse",
+            "phones": [
+              "EH1",
+              "S"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "baye",
+            "phones": [
+              "B",
+              "EY1"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "dawe",
+            "phones": [
+              "D",
+              "AO1"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "daye",
+            "phones": [
+              "D",
+              "EY1"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "earl",
+            "phones": [
+              "ER1",
+              "L"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "earle",
+            "phones": [
+              "ER1",
+              "L"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "earll",
+            "phones": [
+              "ER1",
+              "L"
+            ],
+            "vowel_diff": 1
+          }
+        ],
+        "papers": [
+          {
+            "title": "Numerical and Arithmetical Cognition: A Longitudinal Study of Process and Concept Deficits in Childr",
+            "year": 2000,
+            "cited_by": 668
+          },
+          {
+            "title": "Learning Phonology With Substantive Bias: An Experimental and Computational Study of Velar Palataliz",
+            "year": 2006,
+            "cited_by": 386
+          },
+          {
+            "title": "A Population Study of Children’s Acquisition of Hong Kong Cantonese Consonants, Vowels, and Tones",
+            "year": 2012,
+            "cited_by": 82
+          }
+        ]
+      },
+      "_dis": {
+        "word": "dis",
+        "phones": [
+          "D",
+          "IH1",
+          "S"
+        ],
+        "neighbors": [
+          {
+            "word": "addis",
+            "phones": [
+              "AA1",
+              "D",
+              "IH0",
+              "S"
+            ],
+            "distance": 1
+          },
+          {
+            "word": "'s",
+            "phones": [
+              "EH1",
+              "S"
+            ],
+            "distance": 2
+          },
+          {
+            "word": "'tis",
+            "phones": [
+              "T",
+              "IH1",
+              "Z"
+            ],
+            "distance": 2
+          },
+          {
+            "word": "adid",
+            "phones": [
+              "AH0",
+              "D",
+              "IH1",
+              "D"
+            ],
+            "distance": 2
+          },
+          {
+            "word": "adin",
+            "phones": [
+              "AH0",
+              "D",
+              "IH1",
+              "N"
+            ],
+            "distance": 2
+          },
+          {
+            "word": "'til",
+            "phones": [
+              "T",
+              "IH1",
+              "L"
+            ],
+            "distance": 2
+          },
+          {
+            "word": "aase",
+            "phones": [
+              "AA1",
+              "S"
+            ],
+            "distance": 2
+          },
+          {
+            "word": "ace",
+            "phones": [
+              "EY1",
+              "S"
+            ],
+            "distance": 2
+          }
+        ],
+        "pattern_matches": [
+          {
+            "word": "disch",
+            "phones": [
+              "D",
+              "IH1",
+              "SH"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "dish",
+            "phones": [
+              "D",
+              "IH1",
+              "SH"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "diss",
+            "phones": [
+              "D",
+              "IH1",
+              "S"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "bis",
+            "phones": [
+              "B",
+              "IH1",
+              "S"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "bisch",
+            "phones": [
+              "B",
+              "IH1",
+              "SH"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "bish",
+            "phones": [
+              "B",
+              "IH1",
+              "SH"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "biss",
+            "phones": [
+              "B",
+              "IH1",
+              "S"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "dise",
+            "phones": [
+              "D",
+              "AY1",
+              "S"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "aisles",
+            "phones": [
+              "AY1",
+              "L",
+              "Z"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "aist",
+            "phones": [
+              "EY1",
+              "S",
+              "T"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "bise",
+            "phones": [
+              "B",
+              "AY1",
+              "Z"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "d's",
+            "phones": [
+              "D",
+              "IY1",
+              "Z"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "d.s",
+            "phones": [
+              "D",
+              "IY1",
+              "Z"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "das",
+            "phones": [
+              "D",
+              "AE1",
+              "S"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "dasch",
+            "phones": [
+              "D",
+              "AE1",
+              "SH"
+            ],
+            "vowel_diff": 1
+          }
+        ],
+        "papers": [
+          {
+            "title": "Assessing transcription agreement: Methodological aspects",
+            "year": 1996,
+            "cited_by": 101
+          },
+          {
+            "title": "Equality and Equity",
+            "year": 1973,
+            "cited_by": 73
+          },
+          {
+            "title": "Crossmodal correspondences: A tutorial review",
+            "year": 2011,
+            "cited_by": 1513
+          }
+        ]
+      },
+      "_mer": {
+        "word": "mer",
+        "phones": [
+          "M",
+          "EH1",
+          "R"
+        ],
+        "neighbors": [
+          {
+            "word": "aer",
+            "phones": [
+              "EH1",
+              "R"
+            ],
+            "distance": 1
+          },
+          {
+            "word": "air",
+            "phones": [
+              "EH1",
+              "R"
+            ],
+            "distance": 1
+          },
+          {
+            "word": "aero",
+            "phones": [
+              "EH1",
+              "R",
+              "OW0"
+            ],
+            "distance": 2
+          },
+          {
+            "word": "ahr",
+            "phones": [
+              "AA1",
+              "R"
+            ],
+            "distance": 2
+          },
+          {
+            "word": "'s",
+            "phones": [
+              "EH1",
+              "S"
+            ],
+            "distance": 2
+          },
+          {
+            "word": "aerie",
+            "phones": [
+              "EH1",
+              "R",
+              "IY0"
+            ],
+            "distance": 2
+          },
+          {
+            "word": "ahmed",
+            "phones": [
+              "AA1",
+              "M",
+              "EH0",
+              "D"
+            ],
+            "distance": 2
+          },
+          {
+            "word": "a.m.",
+            "phones": [
+              "EY2",
+              "EH1",
+              "M"
+            ],
+            "distance": 2
+          },
+          {
+            "word": "abair",
+            "phones": [
+              "AH0",
+              "B",
+              "EH1",
+              "R"
+            ],
+            "distance": 2
+          }
+        ],
+        "pattern_matches": [
+          {
+            "word": "derr",
+            "phones": [
+              "D",
+              "EH1",
+              "R"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "ferre",
+            "phones": [
+              "F",
+              "EH1",
+              "R"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "herr",
+            "phones": [
+              "HH",
+              "EH1",
+              "R"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "herre",
+            "phones": [
+              "HH",
+              "EH1",
+              "R"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "mare",
+            "phones": [
+              "M",
+              "EH1",
+              "R"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "mech",
+            "phones": [
+              "M",
+              "EH1",
+              "K"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "meche",
+            "phones": [
+              "M",
+              "EH1",
+              "CH"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "merc",
+            "phones": [
+              "M",
+              "ER1",
+              "K"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "merce",
+            "phones": [
+              "M",
+              "ER1",
+              "S"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "merck",
+            "phones": [
+              "M",
+              "ER1",
+              "K"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "mere",
+            "phones": [
+              "M",
+              "IH1",
+              "R"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "merge",
+            "phones": [
+              "M",
+              "ER1",
+              "JH"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "merk",
+            "phones": [
+              "M",
+              "ER1",
+              "K"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "merl",
+            "phones": [
+              "M",
+              "ER1",
+              "L"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "merle",
+            "phones": [
+              "M",
+              "ER1",
+              "L"
+            ],
+            "vowel_diff": 1
+          }
+        ],
+        "papers": [
+          {
+            "title": "A theory of lexical access in speech production [target paper]",
+            "year": 1999,
+            "cited_by": 5055
+          },
+          {
+            "title": "CLEARPOND: Cross-Linguistic Easy-Access Resource for Phonological and Orthographic Neighborhood Dens",
+            "year": 2012,
+            "cited_by": 393
+          },
+          {
+            "title": "Neuroanatomical correlates of phonological processing of Chinese characters and alphabetic words: A ",
+            "year": 2005,
+            "cited_by": 641
+          }
+        ]
+      },
+      "_ase": {
+        "word": "ase",
+        "phones": null,
+        "neighbors": [],
+        "note": "not in CMU dictionary",
+        "papers": []
+      },
+      "_heimer": {
+        "word": "heimer",
+        "phones": [
+          "HH",
+          "AY1",
+          "M",
+          "ER0"
+        ],
+        "neighbors": [
+          {
+            "word": "almer",
+            "phones": [
+              "AO1",
+              "L",
+              "M",
+              "ER0"
+            ],
+            "distance": 2
+          },
+          {
+            "word": "amer",
+            "phones": [
+              "EY1",
+              "M",
+              "ER0"
+            ],
+            "distance": 2
+          },
+          {
+            "word": "aicher",
+            "phones": [
+              "AY1",
+              "K",
+              "ER0"
+            ],
+            "distance": 2
+          },
+          {
+            "word": "amor",
+            "phones": [
+              "AE1",
+              "M",
+              "ER0"
+            ],
+            "distance": 2
+          },
+          {
+            "word": "amr",
+            "phones": [
+              "AA1",
+              "M",
+              "ER0"
+            ],
+            "distance": 2
+          }
+        ],
+        "pattern_matches": [
+          {
+            "word": "geimer",
+            "phones": [
+              "G",
+              "AY1",
+              "M",
+              "ER0"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "heider",
+            "phones": [
+              "HH",
+              "AY1",
+              "D",
+              "ER0"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "heifer",
+            "phones": [
+              "HH",
+              "AY1",
+              "F",
+              "ER0"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "heiler",
+            "phones": [
+              "HH",
+              "AY1",
+              "L",
+              "ER0"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "heiner",
+            "phones": [
+              "HH",
+              "AY1",
+              "N",
+              "ER0"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "heiser",
+            "phones": [
+              "HH",
+              "AY1",
+              "S",
+              "ER0"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "heizer",
+            "phones": [
+              "HH",
+              "AY1",
+              "Z",
+              "ER0"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "hemmer",
+            "phones": [
+              "HH",
+              "EH1",
+              "M",
+              "ER0"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "beamer",
+            "phones": [
+              "B",
+              "IY1",
+              "M",
+              "ER0"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "beemer",
+            "phones": [
+              "B",
+              "IY1",
+              "M",
+              "ER0"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "behmer",
+            "phones": [
+              "B",
+              "EH1",
+              "M",
+              "ER0"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "beymer",
+            "phones": [
+              "B",
+              "EY1",
+              "M",
+              "ER0"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "deamer",
+            "phones": [
+              "D",
+              "IY1",
+              "M",
+              "ER0"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "deemer",
+            "phones": [
+              "D",
+              "IY1",
+              "M",
+              "ER0"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "dehmer",
+            "phones": [
+              "D",
+              "EH1",
+              "M",
+              "ER0"
+            ],
+            "vowel_diff": 1
+          }
+        ],
+        "papers": [
+          {
+            "title": "Emotional Processing following Cortical and Subcortical Brain Damage: Contribution of the Fronto‐Str",
+            "year": 1998,
+            "cited_by": 143
+          },
+          {
+            "title": "Temporal Attention as a Scaffold for Language Development",
+            "year": 2016,
+            "cited_by": 132
+          },
+          {
+            "title": "Auditory color constancy: Calibration to reliable spectral properties across nonspeech context and t",
+            "year": 2010,
+            "cited_by": 62
+          }
+        ]
+      },
+      "_alzhei": {
+        "word": "alzhei",
+        "phones": null,
+        "neighbors": [],
+        "note": "not in CMU dictionary",
+        "papers": []
+      },
+      "_pre": {
+        "word": "pre",
+        "phones": [
+          "P",
+          "R",
+          "IY1"
+        ],
+        "neighbors": [
+          {
+            "word": "ab",
+            "phones": [
+              "EY1",
+              "B",
+              "IY1"
+            ],
+            "distance": 2
+          },
+          {
+            "word": "abbe",
+            "phones": [
+              "AE1",
+              "B",
+              "IY0"
+            ],
+            "distance": 2
+          },
+          {
+            "word": "abee",
+            "phones": [
+              "AH0",
+              "B",
+              "IY1"
+            ],
+            "distance": 2
+          },
+          {
+            "word": "abie",
+            "phones": [
+              "AE1",
+              "B",
+              "IY0"
+            ],
+            "distance": 2
+          },
+          {
+            "word": "ac",
+            "phones": [
+              "EY1",
+              "S",
+              "IY1"
+            ],
+            "distance": 2
+          },
+          {
+            "word": "acey",
+            "phones": [
+              "EY1",
+              "S",
+              "IY0"
+            ],
+            "distance": 2
+          },
+          {
+            "word": "a.d.",
+            "phones": [
+              "EY2",
+              "D",
+              "IY1"
+            ],
+            "distance": 2
+          },
+          {
+            "word": "aargh",
+            "phones": [
+              "AA1",
+              "R",
+              "G"
+            ],
+            "distance": 2
+          },
+          {
+            "word": "aarti",
+            "phones": [
+              "AA1",
+              "R",
+              "T",
+              "IY2"
+            ],
+            "distance": 2
+          },
+          {
+            "word": "abbey",
+            "phones": [
+              "AE1",
+              "B",
+              "IY0"
+            ],
+            "distance": 2
+          },
+          {
+            "word": "abbie",
+            "phones": [
+              "AE1",
+              "B",
+              "IY0"
+            ],
+            "distance": 2
+          },
+          {
+            "word": "abby",
+            "phones": [
+              "AE1",
+              "B",
+              "IY0"
+            ],
+            "distance": 2
+          },
+          {
+            "word": "achee",
+            "phones": [
+              "AH0",
+              "CH",
+              "IY1"
+            ],
+            "distance": 2
+          },
+          {
+            "word": "achey",
+            "phones": [
+              "AE1",
+              "CH",
+              "IY0"
+            ],
+            "distance": 2
+          },
+          {
+            "word": "achy",
+            "phones": [
+              "EY1",
+              "K",
+              "IY0"
+            ],
+            "distance": 2
+          }
+        ],
+        "pattern_matches": [
+          {
+            "word": "pree",
+            "phones": [
+              "P",
+              "R",
+              "IY1"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "brea",
+            "phones": [
+              "B",
+              "R",
+              "IY1"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "bree",
+            "phones": [
+              "B",
+              "R",
+              "IY1"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "crea",
+            "phones": [
+              "K",
+              "R",
+              "IY1"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "cree",
+            "phones": [
+              "K",
+              "R",
+              "IY1"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "free",
+            "phones": [
+              "F",
+              "R",
+              "IY1"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "freeh",
+            "phones": [
+              "F",
+              "R",
+              "IY1"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "prew",
+            "phones": [
+              "P",
+              "R",
+              "UW1"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "prey",
+            "phones": [
+              "P",
+              "R",
+              "EY1"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "ares",
+            "phones": [
+              "AA1",
+              "R",
+              "Z"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "breau",
+            "phones": [
+              "B",
+              "R",
+              "OW1"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "breault",
+            "phones": [
+              "B",
+              "R",
+              "OW1"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "breaux",
+            "phones": [
+              "B",
+              "R",
+              "OW1"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "brew",
+            "phones": [
+              "B",
+              "R",
+              "UW1"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "brey",
+            "phones": [
+              "B",
+              "R",
+              "EY1"
+            ],
+            "vowel_diff": 1
+          }
+        ],
+        "papers": [
+          {
+            "title": "On phonetic convergence during conversational interaction",
+            "year": 2006,
+            "cited_by": 754
+          },
+          {
+            "title": "Perception of auditory equivalence classes for speech in early infancy",
+            "year": 1983,
+            "cited_by": 268
+          },
+          {
+            "title": "A Comparative Study of Pre-Meaningful Vocalizations Produced by Normally Developing and Down's Syndr",
+            "year": 1981,
+            "cited_by": 118
+          }
+        ]
+      },
+      "_imer": {
+        "word": "imer",
+        "phones": null,
+        "neighbors": [],
+        "note": "not in CMU dictionary",
+        "papers": []
+      },
+      "_ents": {
+        "word": "ents",
+        "phones": null,
+        "neighbors": [],
+        "note": "not in CMU dictionary",
+        "papers": []
+      },
+      "_prev": {
+        "word": "prev",
+        "phones": null,
+        "neighbors": [],
+        "note": "not in CMU dictionary",
+        "papers": []
+      },
+      "_alzhe": {
+        "word": "alzhe",
+        "phones": null,
+        "neighbors": [],
+        "note": "not in CMU dictionary",
+        "papers": []
+      },
+      "_preve": {
+        "word": "preve",
+        "phones": null,
+        "neighbors": [],
+        "note": "not in CMU dictionary",
+        "papers": []
+      },
+      "_dise": {
+        "word": "dise",
+        "phones": [
+          "D",
+          "AY1",
+          "S"
+        ],
+        "neighbors": [
+          {
+            "word": "aase",
+            "phones": [
+              "AA1",
+              "S"
+            ],
+            "distance": 2
+          },
+          {
+            "word": "ais",
+            "phones": [
+              "AY1",
+              "Z"
+            ],
+            "distance": 2
+          },
+          {
+            "word": "aisle",
+            "phones": [
+              "AY1",
+              "L"
+            ],
+            "distance": 2
+          },
+          {
+            "word": "anse",
+            "phones": [
+              "AE1",
+              "N",
+              "S"
+            ],
+            "distance": 2
+          },
+          {
+            "word": "'s",
+            "phones": [
+              "EH1",
+              "S"
+            ],
+            "distance": 2
+          },
+          {
+            "word": "ace",
+            "phones": [
+              "EY1",
+              "S"
+            ],
+            "distance": 2
+          },
+          {
+            "word": "addis",
+            "phones": [
+              "AA1",
+              "D",
+              "IH0",
+              "S"
+            ],
+            "distance": 2
+          },
+          {
+            "word": "adss",
+            "phones": [
+              "AE1",
+              "D",
+              "S"
+            ],
+            "distance": 2
+          },
+          {
+            "word": "advice",
+            "phones": [
+              "AE0",
+              "D",
+              "V",
+              "AY1",
+              "S"
+            ],
+            "distance": 2
+          },
+          {
+            "word": "ai",
+            "phones": [
+              "AY1"
+            ],
+            "distance": 2
+          },
+          {
+            "word": "aix",
+            "phones": [
+              "EH1",
+              "K",
+              "S"
+            ],
+            "distance": 2
+          },
+          {
+            "word": "aches",
+            "phones": [
+              "EY1",
+              "K",
+              "S"
+            ],
+            "distance": 2
+          },
+          {
+            "word": "acts",
+            "phones": [
+              "AE1",
+              "K",
+              "S"
+            ],
+            "distance": 2
+          },
+          {
+            "word": "aja",
+            "phones": [
+              "AY1",
+              "AH0"
+            ],
+            "distance": 2
+          },
+          {
+            "word": "apes",
+            "phones": [
+              "EY1",
+              "P",
+              "S"
+            ],
+            "distance": 2
+          }
+        ],
+        "pattern_matches": [
+          {
+            "word": "bise",
+            "phones": [
+              "B",
+              "AY1",
+              "Z"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "dice",
+            "phones": [
+              "D",
+              "AY1",
+              "S"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "dike",
+            "phones": [
+              "D",
+              "AY1",
+              "K"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "dime",
+            "phones": [
+              "D",
+              "AY1",
+              "M"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "dine",
+            "phones": [
+              "D",
+              "AY1",
+              "N"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "dire",
+            "phones": [
+              "D",
+              "AY1",
+              "R"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "dive",
+            "phones": [
+              "D",
+              "AY1",
+              "V"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "dase",
+            "phones": [
+              "D",
+              "EY1",
+              "Z"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "dis",
+            "phones": [
+              "D",
+              "IH1",
+              "S"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "disch",
+            "phones": [
+              "D",
+              "IH1",
+              "SH"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "dish",
+            "phones": [
+              "D",
+              "IH1",
+              "SH"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "diss",
+            "phones": [
+              "D",
+              "IH1",
+              "S"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "dose",
+            "phones": [
+              "D",
+              "OW1",
+              "S"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "aide's",
+            "phones": [
+              "EY1",
+              "D",
+              "Z"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "aides",
+            "phones": [
+              "EY1",
+              "D",
+              "Z"
+            ],
+            "vowel_diff": 1
+          }
+        ],
+        "papers": [
+          {
+            "title": "A Grammar of Kristang (Malacca Creole Portuguese)",
+            "year": 1988,
+            "cited_by": 118
+          },
+          {
+            "title": "The Role of the Listener in the Historical Phonology of Spanish and Portuguese: An Optimality-Theore",
+            "year": 1997,
+            "cited_by": 29
+          },
+          {
+            "title": "Basic processes in reading: A critical review of pseudohomophone effects in reading aloud and a new ",
+            "year": 2005,
+            "cited_by": 48
+          }
+        ]
+      },
+      "_eimer": {
+        "word": "eimer",
+        "phones": [
+          "AY1",
+          "M",
+          "ER0"
+        ],
+        "neighbors": [
+          {
+            "word": "aaker",
+            "phones": [
+              "AA1",
+              "K",
+              "ER0"
+            ],
+            "distance": 2
+          },
+          {
+            "word": "aber",
+            "phones": [
+              "EY1",
+              "B",
+              "ER0"
+            ],
+            "distance": 2
+          },
+          {
+            "word": "acer",
+            "phones": [
+              "EY1",
+              "S",
+              "ER0"
+            ],
+            "distance": 2
+          },
+          {
+            "word": "acker",
+            "phones": [
+              "AE1",
+              "K",
+              "ER0"
+            ],
+            "distance": 2
+          },
+          {
+            "word": "adder",
+            "phones": [
+              "AE1",
+              "D",
+              "ER0"
+            ],
+            "distance": 2
+          },
+          {
+            "word": "ader",
+            "phones": [
+              "EY1",
+              "D",
+              "ER0"
+            ],
+            "distance": 2
+          },
+          {
+            "word": "adger",
+            "phones": [
+              "AE1",
+              "JH",
+              "ER0"
+            ],
+            "distance": 2
+          },
+          {
+            "word": "ager",
+            "phones": [
+              "EY1",
+              "JH",
+              "ER0"
+            ],
+            "distance": 2
+          },
+          {
+            "word": "ahner",
+            "phones": [
+              "AA1",
+              "N",
+              "ER0"
+            ],
+            "distance": 2
+          },
+          {
+            "word": "'em",
+            "phones": [
+              "AH0",
+              "M"
+            ],
+            "distance": 2
+          },
+          {
+            "word": "'m",
+            "phones": [
+              "AH0",
+              "M"
+            ],
+            "distance": 2
+          },
+          {
+            "word": "achor",
+            "phones": [
+              "EY1",
+              "K",
+              "ER0"
+            ],
+            "distance": 2
+          },
+          {
+            "word": "acre",
+            "phones": [
+              "EY1",
+              "K",
+              "ER0"
+            ],
+            "distance": 2
+          },
+          {
+            "word": "agar",
+            "phones": [
+              "EY1",
+              "G",
+              "ER0"
+            ],
+            "distance": 2
+          },
+          {
+            "word": "ai",
+            "phones": [
+              "AY1"
+            ],
+            "distance": 2
+          }
+        ],
+        "pattern_matches": [
+          {
+            "word": "eiler",
+            "phones": [
+              "AY1",
+              "L",
+              "ER0"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "einar",
+            "phones": [
+              "AY1",
+              "N",
+              "ER0"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "beier",
+            "phones": [
+              "B",
+              "AY1",
+              "ER0"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "buyer",
+            "phones": [
+              "B",
+              "AY1",
+              "ER0"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "eicher",
+            "phones": [
+              "AY1",
+              "K",
+              "ER0"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "fire",
+            "phones": [
+              "F",
+              "AY1",
+              "ER0"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "geier",
+            "phones": [
+              "G",
+              "AY1",
+              "ER0"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "eamer",
+            "phones": [
+              "IY1",
+              "M",
+              "ER0"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "emmer",
+            "phones": [
+              "EH1",
+              "M",
+              "ER0"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "ermer",
+            "phones": [
+              "ER1",
+              "M",
+              "ER0"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "eader",
+            "phones": [
+              "IY1",
+              "D",
+              "ER0"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "eager",
+            "phones": [
+              "IY1",
+              "G",
+              "ER0"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "eaker",
+            "phones": [
+              "IY1",
+              "K",
+              "ER0"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "eater",
+            "phones": [
+              "IY1",
+              "T",
+              "ER0"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "ecker",
+            "phones": [
+              "EH1",
+              "K",
+              "ER0"
+            ],
+            "vowel_diff": 1
+          }
+        ],
+        "papers": [
+          {
+            "title": "Rapid Detection of Emotion from Human Vocalizations",
+            "year": 2009,
+            "cited_by": 131
+          },
+          {
+            "title": "Lip-Reading Aids Word Recognition Most in Moderate Noise: A Bayesian Explanation Using High-Dimensio",
+            "year": 2009,
+            "cited_by": 193
+          },
+          {
+            "title": "Neurocognitive mechanisms of statistical-sequential learning: what do event-related potentials tell ",
+            "year": 2014,
+            "cited_by": 97
+          }
+        ]
+      }
+    },
+    "a03_structural": [
+      {
+        "concept_a": "Alzheimer",
+        "concept_b": "prevents",
+        "shared_attributes": [],
+        "a_only_attributes": [
+          "stress:0",
+          "len:9",
+          "cv:VCCCVCV",
+          "sfx:er",
+          "final:ER",
+          "init:AE",
+          "phones:7",
+          "class:agent",
+          "alzheimer",
+          "agent",
+          "syl:3"
+        ],
+        "b_only_attributes": [
+          "phones:8",
+          "class:noun_default",
+          "final:S",
+          "stress:4",
+          "syl:2",
+          "cv:CCVCVCCC",
+          "prevents",
+          "len:8",
+          "compound:pre+vents",
+          "pfx:pre",
+          "init:P"
+        ],
+        "overlap_ratio": 0.0,
+        "probes": {
+          "morphological": {
+            "shared": [],
+            "a_only": [
+              "len:9",
+              "sfx:er",
+              "syl:3"
+            ],
+            "b_only": [
+              "syl:2",
+              "len:8",
+              "pfx:pre"
+            ]
+          },
+          "phonetic": {
+            "shared": [],
+            "a_only": [
+              "stress:0",
+              "cv:VCCCVCV",
+              "final:ER",
+              "init:AE",
+              "phones:7"
+            ],
+            "b_only": [
+              "phones:8",
+              "final:S",
+              "stress:4",
+              "cv:CCVCVCCC",
+              "init:P"
+            ]
+          },
+          "semantic_class": {
+            "shared": [],
+            "a_only": [
+              "class:agent"
+            ],
+            "b_only": [
+              "class:noun_default"
+            ]
+          },
+          "compound": {
+            "shared": [],
+            "a_only": [],
+            "b_only": [
+              "compound:pre+vents"
+            ]
+          }
+        },
+        "external_source": "text_fallback"
+      }
+    ],
+    "a04_blends": [
+      {
+        "source": "A01:prevents",
+        "blend": "pre + vents",
+        "type": "compound_split"
+      },
+      {
+        "source": "A01:prevents",
+        "blend": "prev + ents",
+        "type": "compound_split"
+      },
+      {
+        "source": "A01:prevents",
+        "blend": "preve + nts",
+        "type": "compound_split"
+      },
+      {
+        "source": "A01:Alzheimer",
+        "blend": "alz + heimer",
+        "type": "compound_split"
+      },
+      {
+        "source": "A01:Alzheimer",
+        "blend": "alzh + eimer",
+        "type": "compound_split"
+      },
+      {
+        "source": "A01:Alzheimer",
+        "blend": "alzhe + imer",
+        "type": "compound_split"
+      },
+      {
+        "source": "A01:Alzheimer",
+        "blend": "alzhei + mer",
+        "type": "compound_split"
+      },
+      {
+        "source": "A01:disease",
+        "blend": "dis + ease",
+        "type": "compound_split"
+      },
+      {
+        "source": "A01:disease",
+        "blend": "dise + ase",
+        "type": "compound_split"
+      },
+      {
+        "source": "A02:Alzheimer>alzheimer's",
+        "blend": "Alzheimer ~ alzheimer's (dist=1)",
+        "type": "phonetic_substitution",
+        "substituted_word": "alzheimer's"
+      }
+    ],
+    "a05_premises": [
+      {
+        "type": "universal_claim",
+        "trigger": "always",
+        "context": "Coffee always prevents Alzheimer's disease",
+        "challenge": "Are there counterexamples to this universal claim?"
+      }
+    ],
+    "a06_chain": {
+      "steps": [
+        {
+          "index": 0,
+          "text": "Coffee always prevents Alzheimer's disease",
+          "connector_to_next": null,
+          "connector_type": null,
+          "has_quantifier": false,
+          "has_negation": false,
+          "has_comparison": false
+        }
+      ],
+      "chain_length": 1,
+      "connectors_found": [],
+      "has_implicit_gaps": false,
+      "dependency_edges": []
+    },
+    "candidates_generated": 10
+  },
+  "metadata": {}
+}

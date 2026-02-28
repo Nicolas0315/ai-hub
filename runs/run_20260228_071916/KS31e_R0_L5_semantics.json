@@ -1,0 +1,39 @@
+{
+  "stage": "KS31e_R0_L5_semantics",
+  "timestamp": "2026-02-28T07:19:20.615680+00:00",
+  "data": {
+    "mode": "llm",
+    "propositions": [
+      {
+        "text": "Coffee consumption occurs.",
+        "type": "factual"
+      },
+      {
+        "text": "Alzheimer's disease does not develop.",
+        "type": "factual"
+      },
+      {
+        "text": "Coffee consumption causes the prevention of Alzheimer's disease.",
+        "type": "causal"
+      }
+    ],
+    "implicit_assumptions": [
+      "Alzheimer's disease is a well-defined and diagnosable condition.",
+      "The 'always' implies a 100% effectiveness rate across all individuals and circumstances.",
+      "The type and amount of coffee consumed are irrelevant to the outcome."
+    ],
+    "key_entities": [
+      "Coffee",
+      "Alzheimer's disease"
+    ],
+    "causal_links": [
+      {
+        "cause": "Coffee consumption",
+        "effect": "Prevention of Alzheimer's disease",
+        "strength": "strong"
+      }
+    ],
+    "latency_ms": 1943.0
+  },
+  "metadata": {}
+}

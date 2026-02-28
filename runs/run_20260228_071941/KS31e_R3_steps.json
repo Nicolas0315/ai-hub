@@ -1,0 +1,24 @@
+{
+  "stage": "KS31e_R3_steps",
+  "timestamp": "2026-02-28T07:20:17.655798+00:00",
+  "data": {
+    "count": 2,
+    "results": [
+      {
+        "text": "CRISPR",
+        "verdict": "FAIL",
+        "pass_rate": 0.6296,
+        "causal_links": 1,
+        "has_missing_link": false
+      },
+      {
+        "text": "targeted gene modification, which prevents genetic diseases",
+        "verdict": "PASS",
+        "pass_rate": 0.8148,
+        "causal_links": 2,
+        "has_missing_link": false
+      }
+    ]
+  },
+  "metadata": {}
+}

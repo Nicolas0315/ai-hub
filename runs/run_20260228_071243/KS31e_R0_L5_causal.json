@@ -1,0 +1,45 @@
+{
+  "stage": "KS31e_R0_L5_causal",
+  "timestamp": "2026-02-28T07:12:48.939437+00:00",
+  "data": {
+    "mode": "llm",
+    "causal_chain": [
+      {
+        "from": "Increased kinetic energy of water molecules (due to heating)",
+        "to": "Increased vapor pressure of water",
+        "mechanism": "Heating water increases the average speed of its molecules. Faster molecules have more energy to overcome intermolecular forces and transition into the gaseous phase.",
+        "strength": "strong",
+        "reversible": true
+      },
+      {
+        "from": "Increased vapor pressure of water",
+        "to": "Water boils",
+        "mechanism": "Boiling occurs when the vapor pressure of the water equals the surrounding atmospheric pressure.",
+        "strength": "strong",
+        "reversible": true
+      },
+      {
+        "from": "Atmospheric pressure at sea level",
+        "to": "Boiling point of water",
+        "mechanism": "The boiling point is the temperature at which vapor pressure equals atmospheric pressure. At sea level, atmospheric pressure is standard, leading to a specific boiling point.",
+        "strength": "strong",
+        "reversible": false
+      },
+      {
+        "from": "Water boils",
+        "to": "Temperature of water remains at 100 degrees Celsius",
+        "mechanism": "During boiling, the energy input is used to change the state of the water from liquid to gas, rather than increasing the temperature.",
+        "strength": "strong",
+        "reversible": false
+      }
+    ],
+    "confounders": [
+      "Impurities in water",
+      "Dissolved substances in water"
+    ],
+    "missing_links": [],
+    "overall_causal_validity": "valid",
+    "latency_ms": 3198.0
+  },
+  "metadata": {}
+}

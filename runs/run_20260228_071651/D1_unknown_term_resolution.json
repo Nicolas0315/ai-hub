@@ -1,0 +1,187 @@
+{
+  "stage": "D1_unknown_term_resolution",
+  "timestamp": "2026-02-28T07:16:59.598852+00:00",
+  "data": {
+    "terms_checked": 6,
+    "resolved_internally": 0,
+    "resolved_externally": 6,
+    "unresolved": 0,
+    "resolutions": {
+      "genetic": {
+        "term": "genetic",
+        "internal_found": false,
+        "external_found": true,
+        "internal_source": null,
+        "external_papers": [
+          {
+            "title": "Genetic algorithms in search, optimization, and machine learning",
+            "year": 1989,
+            "cited_by": 49278,
+            "match_type": "title"
+          },
+          {
+            "title": "A fast and elitist multiobjective genetic algorithm: NSGA-II",
+            "year": 2002,
+            "cited_by": 46173,
+            "match_type": "title"
+          },
+          {
+            "title": "A global reference for human genetic variation",
+            "year": 2015,
+            "cited_by": 19209,
+            "match_type": "title"
+          },
+          {
+            "title": "Genetic Algorithms",
+            "year": 2002,
+            "cited_by": 16128,
+            "match_type": "title"
+          },
+          {
+            "title": "Genetic Algorithms in Search, Optimization and Machine Learning",
+            "year": 1988,
+            "cited_by": 17750,
+            "match_type": "title"
+          }
+        ]
+      },
+      "CRISPR": {
+        "term": "CRISPR",
+        "internal_found": false,
+        "external_found": true,
+        "internal_source": null,
+        "external_papers": [
+          {
+            "title": "Multiplex Genome Engineering Using CRISPR/Cas Systems",
+            "year": 2013,
+            "cited_by": 15411,
+            "match_type": "title"
+          },
+          {
+            "title": "Genome engineering using the CRISPR-Cas9 system",
+            "year": 2013,
+            "cited_by": 11434,
+            "match_type": "title"
+          },
+          {
+            "title": "The new frontier of genome engineering with CRISPR-Cas9",
+            "year": 2014,
+            "cited_by": 6695,
+            "match_type": "title"
+          },
+          {
+            "title": "CRISPR Provides Acquired Resistance Against Viruses in Prokaryotes",
+            "year": 2007,
+            "cited_by": 6166,
+            "match_type": "title"
+          },
+          {
+            "title": "Development and Applications of CRISPR-Cas9 for Genome Engineering",
+            "year": 2014,
+            "cited_by": 5728,
+            "match_type": "title"
+          }
+        ]
+      },
+      "prevents": {
+        "term": "prevents",
+        "internal_found": false,
+        "external_found": true,
+        "internal_source": null,
+        "external_papers": [
+          {
+            "title": "Dropout: a simple way to prevent neural networks from overfitting",
+            "year": 2014,
+            "cited_by": 34172,
+            "match_type": "abstract"
+          },
+          {
+            "title": "Improving neural networks by preventing co-adaptation of feature detectors",
+            "year": 2012,
+            "cited_by": 6635,
+            "match_type": "abstract"
+          }
+        ]
+      },
+      "targeted": {
+        "term": "targeted",
+        "internal_found": false,
+        "external_found": true,
+        "internal_source": null,
+        "external_papers": [
+          {
+            "title": "Predicting effective microRNA target sites in mammalian mRNAs",
+            "year": 2015,
+            "cited_by": 7517,
+            "match_type": "abstract"
+          },
+          {
+            "title": "Targeted gene expression as a means of altering cell fates and generating dominant phenotypes",
+            "year": 1993,
+            "cited_by": 9741,
+            "match_type": "title"
+          }
+        ]
+      },
+      "modification": {
+        "term": "modification",
+        "internal_found": false,
+        "external_found": true,
+        "internal_source": null,
+        "external_papers": [
+          {
+            "title": "Chromatin Modifications and Their Function",
+            "year": 2007,
+            "cited_by": 10590,
+            "match_type": "title"
+          },
+          {
+            "title": "The language of covalent histone modifications",
+            "year": 2000,
+            "cited_by": 8508,
+            "match_type": "title"
+          },
+          {
+            "title": "AN EXAMINATION OF THE DEGTJAREFF METHOD FOR DETERMINING SOIL ORGANIC MATTER, AND A PROPOSED MODIFICA",
+            "year": 1934,
+            "cited_by": 20993,
+            "match_type": "title"
+          },
+          {
+            "title": "Titanium Dioxide Nanomaterials:  Synthesis, Properties, Modifications, and Applications",
+            "year": 2007,
+            "cited_by": 10346,
+            "match_type": "title"
+          },
+          {
+            "title": "Regulation of chromatin by histone modifications",
+            "year": 2011,
+            "cited_by": 5825,
+            "match_type": "title"
+          }
+        ]
+      },
+      "diseases": {
+        "term": "diseases",
+        "internal_found": false,
+        "external_found": true,
+        "internal_source": null,
+        "external_papers": [
+          {
+            "title": "Repertoires of Autophagy in the Pathogenesis of Ocular Diseases",
+            "year": 2015,
+            "cited_by": 16332,
+            "match_type": "title"
+          },
+          {
+            "title": "Principles and Practice of Infectious Diseases.",
+            "year": 1991,
+            "cited_by": 12102,
+            "match_type": "title"
+          }
+        ]
+      }
+    }
+  },
+  "metadata": {}
+}

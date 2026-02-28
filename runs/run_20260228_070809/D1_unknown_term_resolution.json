@@ -1,0 +1,34 @@
+{
+  "stage": "D1_unknown_term_resolution",
+  "timestamp": "2026-02-28T07:08:12.704998+00:00",
+  "data": {
+    "terms_checked": 2,
+    "resolved_internally": 1,
+    "resolved_externally": 1,
+    "unresolved": 0,
+    "resolutions": {
+      "revolves": {
+        "term": "revolves",
+        "internal_found": false,
+        "external_found": true,
+        "internal_source": null,
+        "external_papers": [
+          {
+            "title": "Plant development revolves around axes",
+            "year": 2008,
+            "cited_by": 64,
+            "match_type": "title"
+          }
+        ]
+      },
+      "Earth": {
+        "term": "Earth",
+        "internal_found": true,
+        "external_found": false,
+        "internal_source": "EVOLUTION_AND_TRUST.md",
+        "external_papers": []
+      }
+    }
+  },
+  "metadata": {}
+}

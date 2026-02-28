@@ -1,0 +1,41 @@
+{
+  "stage": "KS31e_R0_L5_semantics",
+  "timestamp": "2026-02-28T07:16:55.906004+00:00",
+  "data": {
+    "mode": "llm",
+    "propositions": [
+      {
+        "text": "CRISPR causes targeted gene modification.",
+        "type": "causal"
+      },
+      {
+        "text": "Targeted gene modification prevents genetic diseases.",
+        "type": "causal"
+      }
+    ],
+    "implicit_assumptions": [
+      "The targeted gene modification is effective in preventing the specific genetic disease.",
+      "The targeted gene modification does not have unintended negative consequences.",
+      "The genetic disease is caused by a specific gene that can be targeted by CRISPR."
+    ],
+    "key_entities": [
+      "CRISPR",
+      "targeted gene modification",
+      "genetic diseases"
+    ],
+    "causal_links": [
+      {
+        "cause": "CRISPR",
+        "effect": "targeted gene modification",
+        "strength": "strong"
+      },
+      {
+        "cause": "targeted gene modification",
+        "effect": "prevention of genetic diseases",
+        "strength": "moderate"
+      }
+    ],
+    "latency_ms": 2390.0
+  },
+  "metadata": {}
+}

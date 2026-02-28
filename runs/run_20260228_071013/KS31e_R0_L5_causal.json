@@ -1,0 +1,52 @@
+{
+  "stage": "KS31e_R0_L5_causal",
+  "timestamp": "2026-02-28T07:10:19.491110+00:00",
+  "data": {
+    "mode": "llm",
+    "causal_chain": [
+      {
+        "from": "Increased kinetic energy of water molecules (due to heating)",
+        "to": "Increased vapor pressure of water",
+        "mechanism": "Heating water increases the average speed of its molecules. Faster molecules are more likely to escape the liquid phase and enter the gas phase, thus increasing vapor pressure.",
+        "strength": "strong",
+        "reversible": true
+      },
+      {
+        "from": "Atmospheric pressure at sea level",
+        "to": "External pressure on the water surface",
+        "mechanism": "Atmospheric pressure is the force exerted by the weight of air above a given point. At sea level, this pressure is approximately 1 atmosphere.",
+        "strength": "strong",
+        "reversible": false
+      },
+      {
+        "from": "Vapor pressure of water equals atmospheric pressure at sea level",
+        "to": "Water boils",
+        "mechanism": "Boiling occurs when the vapor pressure of the liquid equals the surrounding atmospheric pressure, allowing bubbles of vapor to form throughout the liquid and rise to the surface.",
+        "strength": "strong",
+        "reversible": false
+      },
+      {
+        "from": "Water boils",
+        "to": "Water temperature remains at 100 degrees Celsius (at sea level)",
+        "mechanism": "During boiling, the energy input is used to overcome the intermolecular forces holding the water molecules together in the liquid phase, rather than increasing the temperature. This maintains a constant temperature until all the water has vaporized.",
+        "strength": "strong",
+        "reversible": false
+      },
+      {
+        "from": "Heating water",
+        "to": "Increased kinetic energy of water molecules (due to heating)",
+        "mechanism": "Heating adds energy to the water molecules, increasing their kinetic energy.",
+        "strength": "strong",
+        "reversible": true
+      }
+    ],
+    "confounders": [
+      "Purity of water",
+      "Presence of dissolved substances"
+    ],
+    "missing_links": [],
+    "overall_causal_validity": "valid",
+    "latency_ms": 3883.0
+  },
+  "metadata": {}
+}

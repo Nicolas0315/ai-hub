@@ -1,0 +1,20 @@
+{
+  "stage": "goal_generator",
+  "timestamp": "2026-02-28T07:16:28.144267+00:00",
+  "data": {
+    "text": "The sun revolves around the Earth",
+    "goal_count": 0,
+    "goals": [],
+    "sources": {
+      "G1_gaps": 0,
+      "G2_contradictions": 0,
+      "G3_expansions": 0
+    },
+    "detail": {
+      "gaps_found": 0,
+      "contradictions_found": 0,
+      "expansions_generated": 0
+    }
+  },
+  "metadata": {}
+}

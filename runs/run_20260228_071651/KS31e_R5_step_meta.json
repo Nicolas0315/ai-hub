@@ -1,0 +1,17 @@
+{
+  "stage": "KS31e_R5_step_meta",
+  "timestamp": "2026-02-28T07:17:41.257538+00:00",
+  "data": [
+    {
+      "step": 0,
+      "meta": "SUBSTANTIVE",
+      "flags": []
+    },
+    {
+      "step": 1,
+      "meta": "SUBSTANTIVE",
+      "flags": []
+    }
+  ],
+  "metadata": {}
+}

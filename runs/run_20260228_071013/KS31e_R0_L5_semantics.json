@@ -1,0 +1,37 @@
+{
+  "stage": "KS31e_R0_L5_semantics",
+  "timestamp": "2026-02-28T07:10:19.489915+00:00",
+  "data": {
+    "mode": "llm",
+    "propositions": [
+      {
+        "text": "Water boils at 100 degrees Celsius.",
+        "type": "factual"
+      },
+      {
+        "text": "The measurement is taken at sea level.",
+        "type": "factual"
+      }
+    ],
+    "implicit_assumptions": [
+      "The water is pure (or of standard purity).",
+      "The measurement is taken under standard atmospheric conditions (other than altitude).",
+      "The temperature is measured using a calibrated instrument."
+    ],
+    "key_entities": [
+      "Water",
+      "Boiling Point",
+      "Temperature",
+      "Sea Level"
+    ],
+    "causal_links": [
+      {
+        "cause": "Sea Level",
+        "effect": "Boiling Point of Water at 100 degrees Celsius",
+        "strength": "strong"
+      }
+    ],
+    "latency_ms": 2079.0
+  },
+  "metadata": {}
+}

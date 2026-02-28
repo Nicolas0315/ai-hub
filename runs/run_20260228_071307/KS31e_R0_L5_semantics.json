@@ -1,0 +1,28 @@
+{
+  "stage": "KS31e_R0_L5_semantics",
+  "timestamp": "2026-02-28T07:13:10.902220+00:00",
+  "data": {
+    "mode": "llm",
+    "propositions": [
+      {
+        "text": "The sun is in orbit.",
+        "type": "factual"
+      },
+      {
+        "text": "The Earth is the center of the sun's orbit.",
+        "type": "factual"
+      }
+    ],
+    "implicit_assumptions": [
+      "The Earth is a stationary reference frame.",
+      "The observed movement of celestial bodies directly reflects their orbital relationships."
+    ],
+    "key_entities": [
+      "sun",
+      "Earth"
+    ],
+    "causal_links": [],
+    "latency_ms": 1537.0
+  },
+  "metadata": {}
+}

@@ -1,0 +1,45 @@
+{
+  "stage": "KS31e_R2_L3",
+  "timestamp": "2026-02-28T07:20:53.592481+00:00",
+  "data": {
+    "steps": [
+      {
+        "index": 0,
+        "text": "Vaccines do not cause autism",
+        "connector_to_next": null,
+        "connector_type": null,
+        "has_quantifier": false,
+        "has_negation": true,
+        "has_comparison": false,
+        "causal_links": [
+          {
+            "from": "Vaccination",
+            "to": "Autism",
+            "mechanism": "Biological processes within the body",
+            "strength": "strong",
+            "reversible": false
+          }
+        ],
+        "has_missing_link": false,
+        "confounders": []
+      }
+    ],
+    "chain_length": 1,
+    "connectors_found": [],
+    "has_implicit_gaps": false,
+    "dependency_edges": [],
+    "causal_analysis": {
+      "causal_chain_length": 1,
+      "missing_links": [
+        "Specific biological mechanism linking vaccines to autism (none has been found)"
+      ],
+      "confounders": [
+        "Genetic predisposition",
+        "Environmental factors",
+        "Advanced parental age"
+      ],
+      "overall_validity": "valid"
+    }
+  },
+  "metadata": {}
+}

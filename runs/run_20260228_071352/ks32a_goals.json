@@ -1,0 +1,53 @@
+{
+  "stage": "ks32a_goals",
+  "timestamp": "2026-02-28T07:15:00.911201+00:00",
+  "data": {
+    "generated": 5,
+    "verified": 5,
+    "supporting": 2,
+    "challenging": 3,
+    "goal_results": [
+      {
+        "goal": "Without CRISPR, targeted gene modification, which prevents genetic diseases shou",
+        "source": "G3_scope_expander",
+        "priority": 0.8,
+        "verdict": "PARTIALLY_VERIFIED",
+        "confidence": 0.8
+      },
+      {
+        "goal": "Verify: Term 'CRISPR' used without definition — 'CRISPR'",
+        "source": "G1_gap_detector",
+        "priority": 0.65,
+        "verdict": "UNVERIFIED",
+        "confidence": 0.3
+      },
+      {
+        "goal": "Similar mechanisms to CRISPR should also produce targeted gene modification, whi",
+        "source": "G3_scope_expander",
+        "priority": 0.65,
+        "verdict": "PARTIALLY_VERIFIED",
+        "confidence": 0.8
+      },
+      {
+        "goal": "More which should increase inhibition of genetic diseases",
+        "source": "G3_scope_expander",
+        "priority": 0.6,
+        "verdict": "UNVERIFIED",
+        "confidence": 0.3
+      },
+      {
+        "goal": "Related: Cause of death: specific disease or injury resulting in a human's death",
+        "source": "G3_scope_expander",
+        "priority": 0.55,
+        "verdict": "UNVERIFIED",
+        "confidence": 0.3
+      }
+    ],
+    "sources": {
+      "G1_gaps": 1,
+      "G2_contradictions": 0,
+      "G3_expansions": 6
+    }
+  },
+  "metadata": {}
+}

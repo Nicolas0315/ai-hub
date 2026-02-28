@@ -1,0 +1,90 @@
+{
+  "stage": "S7_paper_understanding",
+  "timestamp": "2026-02-28T07:18:25.487732+00:00",
+  "data": {
+    "query": "p0 p1 p2 p3 p4",
+    "papers_found": 5,
+    "papers": [
+      {
+        "title": "On the Indifferentiability of Key-Alternating Ciphers",
+        "year": 2013,
+        "cited_by": 81,
+        "doi": "https://doi.org/10.1007/978-3-642-40041-4_29",
+        "paper_concepts": [],
+        "alignment_score": 0.0,
+        "shared_concepts": [],
+        "abstract_excerpt": null
+      },
+      {
+        "title": "A vector projection method for predicting the specificity of GalNAc‐transferase",
+        "year": 1995,
+        "cited_by": 32,
+        "doi": "https://doi.org/10.1002/prot.340210205",
+        "paper_concepts": [
+          "specificity",
+          "udp-galnac:polypeptide",
+          "n-acetylgalactosaminytransferase",
+          "galnac-transferase",
+          "consistent",
+          "existence",
+          "extended",
+          "site",
+          "composed",
+          "nine"
+        ],
+        "alignment_score": 0.0,
+        "shared_concepts": [],
+        "abstract_excerpt": "The specificity of UDP-GalNAc:polypeptide N-acetylgalactosaminytransferase (GalNAc-transferase) is consistent with the existence of an extended site composed of nine subsites, denoted by P4, P3, P2, P..."
+      },
+      {
+        "title": "Development of the hippocampal region in the rat I. Neurogenesis examined with <sup>3</sup>H‐thymidine autoradiography",
+        "year": 1980,
+        "cited_by": 911,
+        "doi": "https://doi.org/10.1002/cne.901900107",
+        "paper_concepts": [
+          "h‐thymidine",
+          "rats",
+          "groups",
+          "days",
+          "series",
+          "abstract",
+          "neurogenesis",
+          "hippocampal",
+          "region",
+          "examined"
+        ],
+        "alignment_score": 0.0,
+        "shared_concepts": [],
+        "abstract_excerpt": "Abstract Neurogenesis in the rat hippocampal region was examined with 3 H‐thymidine autoradiography. The rats in the prenatal groups were the offspring of pregnant females given two injections of 3 H‐..."
+      },
+      {
+        "title": "Dietary values of macroalgae Porphyra haitanensis in Litopenaeus vannamei under normal rearing and WSSV challenge conditions: Effect on growth, immune response and intestinal microbiota",
+        "year": 2018,
+        "cited_by": 47,
+        "doi": "https://doi.org/10.1016/j.fsi.2018.06.010",
+        "paper_concepts": [],
+        "alignment_score": 0.0,
+        "shared_concepts": [],
+        "abstract_excerpt": null
+      },
+      {
+        "title": "Environmental evaluation of plastic waste management scenarios",
+        "year": 2014,
+        "cited_by": 241,
+        "doi": "https://doi.org/10.1016/j.resconrec.2013.12.012",
+        "paper_concepts": [],
+        "alignment_score": 0.0,
+        "shared_concepts": [],
+        "abstract_excerpt": null
+      }
+    ],
+    "claim_concepts_used": [
+      "p0",
+      "p1",
+      "p2",
+      "p3",
+      "p4"
+    ]
+  },
+  "metadata": {}
+}

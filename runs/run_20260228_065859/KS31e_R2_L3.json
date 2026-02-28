@@ -1,0 +1,45 @@
+{
+  "stage": "KS31e_R2_L3",
+  "timestamp": "2026-02-28T06:59:04.380224+00:00",
+  "data": {
+    "steps": [
+      {
+        "index": 0,
+        "text": "Water boils at 100 degrees",
+        "connector_to_next": null,
+        "connector_type": null,
+        "has_quantifier": false,
+        "has_negation": false,
+        "has_comparison": false,
+        "causal_links": [
+          {
+            "from": "Vapor pressure of water equals atmospheric pressure",
+            "to": "Water boils",
+            "mechanism": "Boiling occurs when the vapor pressure of the liquid equals or exceeds the surrounding atmospheric pressure, allowing bubbles of vapor to form within the liquid and rise to the surface.",
+            "strength": "strong",
+            "reversible": false
+          }
+        ],
+        "has_missing_link": false,
+        "confounders": []
+      }
+    ],
+    "chain_length": 1,
+    "connectors_found": [],
+    "has_implicit_gaps": false,
+    "dependency_edges": [],
+    "causal_analysis": {
+      "causal_chain_length": 4,
+      "missing_links": [
+        "Explicit mention of atmospheric pressure as a necessary condition for the 100-degree boiling point"
+      ],
+      "confounders": [
+        "Atmospheric pressure",
+        "Purity of water",
+        "Presence of dissolved substances"
+      ],
+      "overall_validity": "partial"
+    }
+  },
+  "metadata": {}
+}

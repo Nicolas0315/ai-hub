@@ -1,0 +1,51 @@
+{
+  "stage": "goal_generator",
+  "timestamp": "2026-02-28T07:15:00.907805+00:00",
+  "data": {
+    "text": "CRISPR causes targeted gene modification, which prevents genetic diseases",
+    "goal_count": 5,
+    "goals": [
+      {
+        "target": "Without CRISPR, targeted gene modification, which prevents genetic diseases should not occur",
+        "source": "G3_scope_expander",
+        "priority": 0.8,
+        "reason": "causal counterfactual"
+      },
+      {
+        "target": "Verify: Term 'CRISPR' used without definition — 'CRISPR'",
+        "source": "G1_gap_detector",
+        "priority": 0.65,
+        "reason": "Term 'CRISPR' used without definition"
+      },
+      {
+        "target": "Similar mechanisms to CRISPR should also produce targeted gene modification, which prevents genetic diseases",
+        "source": "G3_scope_expander",
+        "priority": 0.65,
+        "reason": "structural analogy"
+      },
+      {
+        "target": "More which should increase inhibition of genetic diseases",
+        "source": "G3_scope_expander",
+        "priority": 0.6,
+        "reason": "dose-response relationship"
+      },
+      {
+        "target": "Related: Cause of death: specific disease or injury resulting in a human's death, which m",
+        "source": "G3_scope_expander",
+        "priority": 0.55,
+        "reason": "domain knowledge (openalex)"
+      }
+    ],
+    "sources": {
+      "G1_gaps": 1,
+      "G2_contradictions": 0,
+      "G3_expansions": 6
+    },
+    "detail": {
+      "gaps_found": 1,
+      "contradictions_found": 0,
+      "expansions_generated": 6
+    }
+  },
+  "metadata": {}
+}

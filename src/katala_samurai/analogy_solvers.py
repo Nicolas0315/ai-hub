@@ -120,12 +120,22 @@ def a02_phonetic_neighbor(word, max_distance=2, max_results=10):
     
     target = target_phones[0]  # use first pronunciation
     
-    # Find neighbors
+    # Find neighbors (limited scan for performance)
     neighbors = []
+    scanned = 0
+    max_scan = 5000  # Cap scanning to prevent timeout on large CMU dict
     for candidate, phone_lists in cmu.items():
         if candidate == word_lower:
             continue
+        scanned += 1
+        if scanned > max_scan:
+            break
+        if len(neighbors) >= max_results:
+            break
         for phones in phone_lists:
+            # Quick length filter: skip if phoneme counts differ by more than max_distance
+            if abs(len(target) - len(phones)) > max_distance:
+                break
             dist = _phonetic_distance(target, phones)
             if dist <= max_distance:
                 neighbors.append({

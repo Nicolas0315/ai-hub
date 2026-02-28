@@ -1,0 +1,9 @@
+{
+  "stage": "S11_InfoGeoV2",
+  "timestamp": "2026-02-28T07:03:16.896963+00:00",
+  "data": {
+    "passed": true,
+    "claim_hash": "The sun revolves around the Earth"
+  },
+  "metadata": {}
+}

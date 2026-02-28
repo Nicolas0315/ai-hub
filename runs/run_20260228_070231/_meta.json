@@ -1,0 +1,250 @@
+{
+  "run_id": "run_20260228_070231",
+  "created_at": "2026-02-28T07:02:31.107670+00:00",
+  "stages": {
+    "KS31e_R0_L5_semantics": {
+      "file": "KS31e_R0_L5_semantics.json",
+      "written_at": "2026-02-28T07:02:36.238831+00:00",
+      "hash": "ec52018200618abb"
+    },
+    "KS31e_R0_L5_causal": {
+      "file": "KS31e_R0_L5_causal.json",
+      "written_at": "2026-02-28T07:02:36.241050+00:00",
+      "hash": "8671bf11fd159ba8"
+    },
+    "S01_Z3_SMT": {
+      "file": "S01_Z3_SMT.json",
+      "written_at": "2026-02-28T07:02:36.253346+00:00",
+      "hash": "15bce70ed302d66a"
+    },
+    "S02_SAT_Glucose3": {
+      "file": "S02_SAT_Glucose3.json",
+      "written_at": "2026-02-28T07:02:36.254624+00:00",
+      "hash": "f0b0e1e70f04bc1b"
+    },
+    "S03_SymPy": {
+      "file": "S03_SymPy.json",
+      "written_at": "2026-02-28T07:02:36.261304+00:00",
+      "hash": "409ebb8764408255"
+    },
+    "S04_Z3_FOL": {
+      "file": "S04_Z3_FOL.json",
+      "written_at": "2026-02-28T07:02:36.263940+00:00",
+      "hash": "9c2054e1f0fc60dd"
+    },
+    "S05_CategoryTheory": {
+      "file": "S05_CategoryTheory.json",
+      "written_at": "2026-02-28T07:02:36.264447+00:00",
+      "hash": "1aada5b329717761"
+    },
+    "S06_EuclideanDist": {
+      "file": "S06_EuclideanDist.json",
+      "written_at": "2026-02-28T07:02:36.264797+00:00",
+      "hash": "3be9c2248e3f929f"
+    },
+    "S07_LinearAlgebra": {
+      "file": "S07_LinearAlgebra.json",
+      "written_at": "2026-02-28T07:02:36.265032+00:00",
+      "hash": "59b91fbf078e27a4"
+    },
+    "S08_ConvexHull": {
+      "file": "S08_ConvexHull.json",
+      "written_at": "2026-02-28T07:02:36.265266+00:00",
+      "hash": "8af6a89ee196ac8c"
+    },
+    "S09_Voronoi": {
+      "file": "S09_Voronoi.json",
+      "written_at": "2026-02-28T07:02:36.265479+00:00",
+      "hash": "de39eac563b1cc79"
+    },
+    "S10_CosineSim": {
+      "file": "S10_CosineSim.json",
+      "written_at": "2026-02-28T07:02:36.265703+00:00",
+      "hash": "3eed32841a6a18ab"
+    },
+    "S11_InfoGeoV2": {
+      "file": "S11_InfoGeoV2.json",
+      "written_at": "2026-02-28T07:02:36.265915+00:00",
+      "hash": "27beb8ad45bd60f9"
+    },
+    "S12_Spherical": {
+      "file": "S12_Spherical.json",
+      "written_at": "2026-02-28T07:02:36.266115+00:00",
+      "hash": "55cfe943dc002778"
+    },
+    "S13_Riemannian": {
+      "file": "S13_Riemannian.json",
+      "written_at": "2026-02-28T07:02:36.266318+00:00",
+      "hash": "677d31af94239040"
+    },
+    "S14_TDA": {
+      "file": "S14_TDA.json",
+      "written_at": "2026-02-28T07:02:36.266502+00:00",
+      "hash": "a4e7983f915f3eaa"
+    },
+    "S15_deSitter": {
+      "file": "S15_deSitter.json",
+      "written_at": "2026-02-28T07:02:36.266678+00:00",
+      "hash": "b99ef1b7219f8b1e"
+    },
+    "S16_Projective": {
+      "file": "S16_Projective.json",
+      "written_at": "2026-02-28T07:02:36.266890+00:00",
+      "hash": "219a395acfc546fb"
+    },
+    "S17_Lorentz": {
+      "file": "S17_Lorentz.json",
+      "written_at": "2026-02-28T07:02:36.267130+00:00",
+      "hash": "d2d2c5e13a3cacb9"
+    },
+    "S18_Symplectic": {
+      "file": "S18_Symplectic.json",
+      "written_at": "2026-02-28T07:02:36.267397+00:00",
+      "hash": "3ce337ab36eaf274"
+    },
+    "S19_Finsler": {
+      "file": "S19_Finsler.json",
+      "written_at": "2026-02-28T07:02:36.267604+00:00",
+      "hash": "1c7989e6b3197702"
+    },
+    "S20_SubRiemannian": {
+      "file": "S20_SubRiemannian.json",
+      "written_at": "2026-02-28T07:02:36.267791+00:00",
+      "hash": "cb178b4127461f84"
+    },
+    "S21_Alexandrov": {
+      "file": "S21_Alexandrov.json",
+      "written_at": "2026-02-28T07:02:36.267973+00:00",
+      "hash": "2c40de3200979e83"
+    },
+    "S22_Kahler": {
+      "file": "S22_Kahler.json",
+      "written_at": "2026-02-28T07:02:36.268173+00:00",
+      "hash": "0a60a078f9617c94"
+    },
+    "S23_Tropical": {
+      "file": "S23_Tropical.json",
+      "written_at": "2026-02-28T07:02:36.273029+00:00",
+      "hash": "5841346af7ea5e82"
+    },
+    "S24_Spectral": {
+      "file": "S24_Spectral.json",
+      "written_at": "2026-02-28T07:02:36.273246+00:00",
+      "hash": "8ece47863f66e0d0"
+    },
+    "S25_FisherKL": {
+      "file": "S25_FisherKL.json",
+      "written_at": "2026-02-28T07:02:36.273382+00:00",
+      "hash": "c3974fe5de349246"
+    },
+    "S26_ZFC": {
+      "file": "S26_ZFC.json",
+      "written_at": "2026-02-28T07:02:36.273502+00:00",
+      "hash": "78acb13cf56328e2"
+    },
+    "S27_KAM": {
+      "file": "S27_KAM.json",
+      "written_at": "2026-02-28T07:02:36.395425+00:00",
+      "hash": "5a419b11ad5deee7"
+    },
+    "D1_unknown_term_resolution": {
+      "file": "D1_unknown_term_resolution.json",
+      "written_at": "2026-02-28T07:02:38.366689+00:00",
+      "hash": "edacf2f988bdb3b4"
+    },
+    "A_analogy_solvers": {
+      "file": "A_analogy_solvers.json",
+      "written_at": "2026-02-28T07:03:08.323680+00:00",
+      "hash": "63ce97039987751c"
+    },
+    "C1_concept_confidence": {
+      "file": "C1_concept_confidence.json",
+      "written_at": "2026-02-28T07:03:08.339001+00:00",
+      "hash": "bdfc6088fc71396d"
+    },
+    "S7_paper_understanding": {
+      "file": "S7_paper_understanding.json",
+      "written_at": "2026-02-28T07:03:08.671065+00:00",
+      "hash": "6e0769738c1c6622"
+    },
+    "C3_dispute_resolution": {
+      "file": "C3_dispute_resolution.json",
+      "written_at": "2026-02-28T07:03:08.671806+00:00",
+      "hash": "4934c5adc57892be"
+    },
+    "S28_Reproducibility": {
+      "file": "S28_Reproducibility.json",
+      "written_at": "2026-02-28T07:03:08.672426+00:00",
+      "hash": "a563193161f81694"
+    },
+    "_verdict": {
+      "file": "_verdict.json",
+      "written_at": "2026-02-28T07:03:08.673377+00:00",
+      "hash": "e2c17e69be70df2e"
+    },
+    "KS31e_R1_L1": {
+      "file": "KS31e_R1_L1.json",
+      "written_at": "2026-02-28T07:03:08.676986+00:00",
+      "hash": "89f0798bf1584a66"
+    },
+    "KS31e_R1b_propositions": {
+      "file": "KS31e_R1b_propositions.json",
+      "written_at": "2026-02-28T07:03:08.942800+00:00",
+      "hash": "ce8fa4ea0b925aa4"
+    },
+    "KS31e_R2_L3": {
+      "file": "KS31e_R2_L3.json",
+      "written_at": "2026-02-28T07:03:08.944115+00:00",
+      "hash": "89321e55c19f447e"
+    },
+    "KS31e_final": {
+      "file": "KS31e_final.json",
+      "written_at": "2026-02-28T07:03:08.944548+00:00",
+      "hash": "427a0910afd9a52e"
+    }
+  },
+  "integrity": {
+    "KS31e_R0_L5_semantics": "ec52018200618abb",
+    "KS31e_R0_L5_causal": "8671bf11fd159ba8",
+    "S01_Z3_SMT": "15bce70ed302d66a",
+    "S02_SAT_Glucose3": "f0b0e1e70f04bc1b",
+    "S03_SymPy": "409ebb8764408255",
+    "S04_Z3_FOL": "9c2054e1f0fc60dd",
+    "S05_CategoryTheory": "1aada5b329717761",
+    "S06_EuclideanDist": "3be9c2248e3f929f",
+    "S07_LinearAlgebra": "59b91fbf078e27a4",
+    "S08_ConvexHull": "8af6a89ee196ac8c",
+    "S09_Voronoi": "de39eac563b1cc79",
+    "S10_CosineSim": "3eed32841a6a18ab",
+    "S11_InfoGeoV2": "27beb8ad45bd60f9",
+    "S12_Spherical": "55cfe943dc002778",
+    "S13_Riemannian": "677d31af94239040",
+    "S14_TDA": "a4e7983f915f3eaa",
+    "S15_deSitter": "b99ef1b7219f8b1e",
+    "S16_Projective": "219a395acfc546fb",
+    "S17_Lorentz": "d2d2c5e13a3cacb9",
+    "S18_Symplectic": "3ce337ab36eaf274",
+    "S19_Finsler": "1c7989e6b3197702",
+    "S20_SubRiemannian": "cb178b4127461f84",
+    "S21_Alexandrov": "2c40de3200979e83",
+    "S22_Kahler": "0a60a078f9617c94",
+    "S23_Tropical": "5841346af7ea5e82",
+    "S24_Spectral": "8ece47863f66e0d0",
+    "S25_FisherKL": "c3974fe5de349246",
+    "S26_ZFC": "78acb13cf56328e2",
+    "S27_KAM": "5a419b11ad5deee7",
+    "D1_unknown_term_resolution": "edacf2f988bdb3b4",
+    "A_analogy_solvers": "63ce97039987751c",
+    "C1_concept_confidence": "bdfc6088fc71396d",
+    "S7_paper_understanding": "6e0769738c1c6622",
+    "C3_dispute_resolution": "4934c5adc57892be",
+    "S28_Reproducibility": "a563193161f81694",
+    "_verdict": "e2c17e69be70df2e",
+    "KS31e_R1_L1": "89f0798bf1584a66",
+    "KS31e_R1b_propositions": "ce8fa4ea0b925aa4",
+    "KS31e_R2_L3": "89321e55c19f447e",
+    "KS31e_final": "427a0910afd9a52e"
+  },
+  "finalized_at": "2026-02-28T07:03:08.944964+00:00",
+  "total_stages": 40
+}

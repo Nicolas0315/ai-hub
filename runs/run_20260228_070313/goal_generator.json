@@ -1,0 +1,39 @@
+{
+  "stage": "goal_generator",
+  "timestamp": "2026-02-28T07:03:40.999264+00:00",
+  "data": {
+    "text": "The sun revolves around the Earth",
+    "goal_count": 3,
+    "goals": [
+      {
+        "target": "Related: Agroforestry: land use management system in which trees or shrubs are grown arou",
+        "source": "G3_scope_expander",
+        "priority": 0.55,
+        "reason": "domain knowledge (openalex)"
+      },
+      {
+        "target": "Related: Vortex: fluid flow revolving around an axis of rotation",
+        "source": "G3_scope_expander",
+        "priority": 0.55,
+        "reason": "domain knowledge (openalex)"
+      },
+      {
+        "target": "Related: Multiple sclerosis: disease that damages the myelin sheaths around nerve axons",
+        "source": "G3_scope_expander",
+        "priority": 0.55,
+        "reason": "domain knowledge (openalex)"
+      }
+    ],
+    "sources": {
+      "G1_gaps": 0,
+      "G2_contradictions": 0,
+      "G3_expansions": 3
+    },
+    "detail": {
+      "gaps_found": 0,
+      "contradictions_found": 0,
+      "expansions_generated": 3
+    }
+  },
+  "metadata": {}
+}

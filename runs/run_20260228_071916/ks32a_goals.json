@@ -1,0 +1,32 @@
+{
+  "stage": "ks32a_goals",
+  "timestamp": "2026-02-28T07:19:41.348445+00:00",
+  "data": {
+    "generated": 2,
+    "verified": 2,
+    "supporting": 0,
+    "challenging": 2,
+    "goal_results": [
+      {
+        "goal": "Verify: Universal quantifier — exceptions not checked — 'always'",
+        "source": "G1_gap_detector",
+        "priority": 0.8,
+        "verdict": "UNVERIFIED",
+        "confidence": 0.3
+      },
+      {
+        "goal": "More Coffee always should increase inhibition of Alzheimer's disease",
+        "source": "G3_scope_expander",
+        "priority": 0.6,
+        "verdict": "UNVERIFIED",
+        "confidence": 0.3
+      }
+    ],
+    "sources": {
+      "G1_gaps": 1,
+      "G2_contradictions": 0,
+      "G3_expansions": 1
+    }
+  },
+  "metadata": {}
+}

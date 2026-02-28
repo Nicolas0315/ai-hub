@@ -1,0 +1,30 @@
+{
+  "stage": "L4_meta_verification",
+  "timestamp": "2026-02-28T07:09:41.873634+00:00",
+  "data": {
+    "m1_counterfactual": {
+      "original": "CRISPR causes targeted gene modification, which prevents genetic diseases",
+      "negated": "CRISPR causes targeted gene modification, which prevents genetic diseases",
+      "negation_failed": true,
+      "content_sensitive": null,
+      "note": "could not generate meaningful negation"
+    },
+    "m2_evidence": {
+      "quality": "STRONG_SUPPORT",
+      "supporting_count": 5,
+      "contradicting_count": 0,
+      "top_paper": "Generation of knock-in primary human T cells using Cas9 ribonucleoproteins",
+      "total_citations": 3499
+    },
+    "m2_multi_source": {
+      "consensus": "STRONG_EVIDENCE",
+      "confidence": 0.95,
+      "sources_with_evidence": 3,
+      "sources_available": 3
+    },
+    "flags": [],
+    "meta_verdict": "SUBSTANTIVE",
+    "confidence_modifier": 1.0
+  },
+  "metadata": {}
+}

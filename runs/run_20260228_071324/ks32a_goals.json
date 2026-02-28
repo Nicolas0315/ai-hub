@@ -1,0 +1,53 @@
+{
+  "stage": "ks32a_goals",
+  "timestamp": "2026-02-28T07:13:52.573956+00:00",
+  "data": {
+    "generated": 5,
+    "verified": 5,
+    "supporting": 1,
+    "challenging": 4,
+    "goal_results": [
+      {
+        "goal": "Verify: Universal quantifier — exceptions not checked — 'always'",
+        "source": "G1_gap_detector",
+        "priority": 0.8,
+        "verdict": "UNVERIFIED",
+        "confidence": 0.3
+      },
+      {
+        "goal": "More Coffee always should increase inhibition of Alzheimer's disease",
+        "source": "G3_scope_expander",
+        "priority": 0.6,
+        "verdict": "UNVERIFIED",
+        "confidence": 0.3
+      },
+      {
+        "goal": "Related: Medicine: field of study for diagnosing, treating and preventing diseas",
+        "source": "G3_scope_expander",
+        "priority": 0.55,
+        "verdict": "UNVERIFIED",
+        "confidence": 0.3
+      },
+      {
+        "goal": "Related: Injury prevention: effort to prevent or reduce the severity of bodily i",
+        "source": "G3_scope_expander",
+        "priority": 0.55,
+        "verdict": "PARTIALLY_VERIFIED",
+        "confidence": 0.8
+      },
+      {
+        "goal": "Related: Public health: science and art of preventing disease, prolonging life a",
+        "source": "G3_scope_expander",
+        "priority": 0.55,
+        "verdict": "UNVERIFIED",
+        "confidence": 0.3
+      }
+    ],
+    "sources": {
+      "G1_gaps": 1,
+      "G2_contradictions": 0,
+      "G3_expansions": 4
+    }
+  },
+  "metadata": {}
+}

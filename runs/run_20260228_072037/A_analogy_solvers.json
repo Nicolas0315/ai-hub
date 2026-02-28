@@ -1,0 +1,1408 @@
+{
+  "stage": "A_analogy_solvers",
+  "timestamp": "2026-02-28T07:20:51.427664+00:00",
+  "data": {
+    "a01_decomposition": {
+      "Vaccines": {
+        "original": "Vaccines",
+        "compound_splits": [
+          "vac+cines",
+          "vacc+ines",
+          "vacci+nes"
+        ],
+        "prefix": null,
+        "suffix": null
+      },
+      "do": {
+        "original": "do",
+        "compound_splits": [],
+        "prefix": null,
+        "suffix": null
+      },
+      "not": {
+        "original": "not",
+        "compound_splits": [],
+        "prefix": null,
+        "suffix": null
+      },
+      "cause": {
+        "original": "cause",
+        "compound_splits": [],
+        "prefix": null,
+        "suffix": null
+      },
+      "autism": {
+        "original": "autism",
+        "compound_splits": [],
+        "prefix": null,
+        "suffix": null
+      }
+    },
+    "a02_phonetic": {
+      "Vaccines": {
+        "word": "Vaccines",
+        "phones": [
+          "V",
+          "AE2",
+          "K",
+          "S",
+          "IY1",
+          "N",
+          "Z"
+        ],
+        "neighbors": [
+          {
+            "word": "accedes",
+            "phones": [
+              "AE0",
+              "K",
+              "S",
+              "IY1",
+              "D",
+              "Z"
+            ],
+            "distance": 2
+          }
+        ],
+        "pattern_matches": [
+          {
+            "word": "vaccine's",
+            "phones": [
+              "V",
+              "AE2",
+              "K",
+              "S",
+              "IY1",
+              "N",
+              "Z"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "vancleef",
+            "phones": [
+              "V",
+              "AE2",
+              "N",
+              "K",
+              "L",
+              "IY1",
+              "F"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "vantreese",
+            "phones": [
+              "V",
+              "AE2",
+              "N",
+              "T",
+              "R",
+              "IY1",
+              "S"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "backfield",
+            "phones": [
+              "B",
+              "AE1",
+              "K",
+              "F",
+              "IY2",
+              "L",
+              "D"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "calgene's",
+            "phones": [
+              "K",
+              "AE1",
+              "L",
+              "JH",
+              "IY2",
+              "N",
+              "Z"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "lacteals",
+            "phones": [
+              "L",
+              "AE1",
+              "K",
+              "T",
+              "IY2",
+              "L",
+              "Z"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "vancleve",
+            "phones": [
+              "V",
+              "AE2",
+              "N",
+              "K",
+              "L",
+              "IY1",
+              "V"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "latrines",
+            "phones": [
+              "L",
+              "AH0",
+              "T",
+              "R",
+              "IY1",
+              "N",
+              "Z"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "martines",
+            "phones": [
+              "M",
+              "AA0",
+              "R",
+              "T",
+              "IY1",
+              "N",
+              "Z"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "sardines",
+            "phones": [
+              "S",
+              "AA0",
+              "R",
+              "D",
+              "IY1",
+              "N",
+              "Z"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "vampires",
+            "phones": [
+              "V",
+              "AE1",
+              "M",
+              "P",
+              "AY0",
+              "R",
+              "Z"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "backends",
+            "phones": [
+              "B",
+              "AE2",
+              "K",
+              "EH1",
+              "N",
+              "D",
+              "Z"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "bagpipes",
+            "phones": [
+              "B",
+              "AE1",
+              "G",
+              "P",
+              "AY2",
+              "P",
+              "S"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "blackness",
+            "phones": [
+              "B",
+              "L",
+              "AE1",
+              "K",
+              "N",
+              "AH0",
+              "S"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "calvin's",
+            "phones": [
+              "K",
+              "AE1",
+              "L",
+              "V",
+              "AH0",
+              "N",
+              "Z"
+            ],
+            "vowel_diff": 1
+          }
+        ],
+        "papers": [
+          {
+            "title": "Capturing the Patient’s Perspective: a Review of Advances in Natural Language Processing of Health-R",
+            "year": 2017,
+            "cited_by": 127
+          },
+          {
+            "title": "Administrative Data Linkage in Brazil: Potentials for Health Technology Assessment",
+            "year": 2019,
+            "cited_by": 82
+          },
+          {
+            "title": "<i>Ebolavirus</i>comparative genomics",
+            "year": 2015,
+            "cited_by": 53
+          }
+        ]
+      },
+      "autism": {
+        "word": "autism",
+        "phones": [
+          "AO1",
+          "T",
+          "IH2",
+          "Z",
+          "AH0",
+          "M"
+        ],
+        "neighbors": [],
+        "pattern_matches": [
+          {
+            "word": "corissa",
+            "phones": [
+              "K",
+              "AO2",
+              "R",
+              "IH1",
+              "S",
+              "AH0"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "orrison",
+            "phones": [
+              "AO1",
+              "R",
+              "IH0",
+              "S",
+              "AH0",
+              "N"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "corinna",
+            "phones": [
+              "K",
+              "AO2",
+              "R",
+              "IH1",
+              "N",
+              "AH0"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "dorena",
+            "phones": [
+              "D",
+              "AO1",
+              "R",
+              "IH0",
+              "N",
+              "AH0"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "orlena",
+            "phones": [
+              "AO1",
+              "R",
+              "L",
+              "IH0",
+              "N",
+              "AH0"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "autospa",
+            "phones": [
+              "AO1",
+              "T",
+              "OW1",
+              "S",
+              "P",
+              "AH0"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "allister",
+            "phones": [
+              "AO1",
+              "L",
+              "IH0",
+              "S",
+              "T",
+              "ER0"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "altima",
+            "phones": [
+              "AA1",
+              "L",
+              "T",
+              "IH2",
+              "M",
+              "AH0"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "antilla",
+            "phones": [
+              "AA0",
+              "N",
+              "T",
+              "IH1",
+              "L",
+              "AH0"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "atticus",
+            "phones": [
+              "AE1",
+              "T",
+              "IH0",
+              "K",
+              "AH0",
+              "S"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "attila's",
+            "phones": [
+              "AH0",
+              "T",
+              "IH1",
+              "L",
+              "AH0",
+              "Z"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "audited",
+            "phones": [
+              "AO1",
+              "D",
+              "IH0",
+              "T",
+              "IH0",
+              "D"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "audition",
+            "phones": [
+              "AA0",
+              "D",
+              "IH1",
+              "SH",
+              "AH0",
+              "N"
+            ],
+            "vowel_diff": 1
+          }
+        ],
+        "papers": [
+          {
+            "title": "Crossmodal correspondences: A tutorial review",
+            "year": 2011,
+            "cited_by": 1513
+          },
+          {
+            "title": "Development of the adolescent brain: implications for executive function and social cognition",
+            "year": 2006,
+            "cited_by": 2266
+          },
+          {
+            "title": "Pre-attentive and Attentive Auditory Event-related Potentials in Children With Attention-Deficit Hyp",
+            "year": 2024,
+            "cited_by": 5
+          }
+        ]
+      },
+      "cause": {
+        "word": "cause",
+        "phones": [
+          "K",
+          "AA1",
+          "Z"
+        ],
+        "neighbors": [
+          {
+            "word": "'cause",
+            "phones": [
+              "K",
+              "AH0",
+              "Z"
+            ],
+            "distance": 1
+          },
+          {
+            "word": "'cuse",
+            "phones": [
+              "K",
+              "Y",
+              "UW1",
+              "Z"
+            ],
+            "distance": 2
+          },
+          {
+            "word": "a's",
+            "phones": [
+              "EY1",
+              "Z"
+            ],
+            "distance": 2
+          },
+          {
+            "word": "'tis",
+            "phones": [
+              "T",
+              "IH1",
+              "Z"
+            ],
+            "distance": 2
+          }
+        ],
+        "pattern_matches": [
+          {
+            "word": "carre",
+            "phones": [
+              "K",
+              "AA1",
+              "R"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "caught",
+            "phones": [
+              "K",
+              "AA1",
+              "T"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "caul",
+            "phones": [
+              "K",
+              "AA1",
+              "L"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "caulk",
+            "phones": [
+              "K",
+              "AA1",
+              "K"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "haase",
+            "phones": [
+              "HH",
+              "AA1",
+              "S"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "hasse",
+            "phones": [
+              "HH",
+              "AA1",
+              "S"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "baade",
+            "phones": [
+              "B",
+              "AA1",
+              "D"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "couse",
+            "phones": [
+              "K",
+              "AW1",
+              "S"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "gause",
+            "phones": [
+              "G",
+              "AO1",
+              "Z"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "hause",
+            "phones": [
+              "HH",
+              "AW1",
+              "S"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "pause",
+            "phones": [
+              "P",
+              "AO1",
+              "Z"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "sause",
+            "phones": [
+              "S",
+              "AO1",
+              "Z"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "vause",
+            "phones": [
+              "V",
+              "AO1",
+              "S"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "baise",
+            "phones": [
+              "B",
+              "EY1",
+              "Z"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "basse",
+            "phones": [
+              "B",
+              "AE1",
+              "S"
+            ],
+            "vowel_diff": 1
+          }
+        ],
+        "papers": [
+          {
+            "title": "The visual tongue-twister effect: Phonological activation in silent reading",
+            "year": 1982,
+            "cited_by": 128
+          },
+          {
+            "title": "A Korean Vowel Merger Caused by the Combined Effects of Phonetic Obscurity and Semantic-Functional S",
+            "year": 2018,
+            "cited_by": 1
+          },
+          {
+            "title": "Stoic linguistics, Plato's<i>Cratylus</i>, and Augustine's<i>De dialectica</i>",
+            "year": 2005,
+            "cited_by": 99
+          }
+        ]
+      },
+      "_cines": {
+        "word": "cines",
+        "phones": null,
+        "neighbors": [],
+        "note": "not in CMU dictionary",
+        "papers": []
+      },
+      "_vac": {
+        "word": "vac",
+        "phones": null,
+        "neighbors": [],
+        "note": "not in CMU dictionary",
+        "papers": []
+      },
+      "_ines": {
+        "word": "ines",
+        "phones": [
+          "IH1",
+          "N",
+          "IH0",
+          "S"
+        ],
+        "neighbors": [
+          {
+            "word": "agnes",
+            "phones": [
+              "AE1",
+              "G",
+              "N",
+              "IH0",
+              "S"
+            ],
+            "distance": 2
+          },
+          {
+            "word": "anas",
+            "phones": [
+              "AE1",
+              "N",
+              "AH0",
+              "S"
+            ],
+            "distance": 2
+          },
+          {
+            "word": "ants",
+            "phones": [
+              "AE1",
+              "N",
+              "T",
+              "S"
+            ],
+            "distance": 2
+          },
+          {
+            "word": "amis",
+            "phones": [
+              "AE1",
+              "M",
+              "IH0",
+              "S"
+            ],
+            "distance": 2
+          },
+          {
+            "word": "andis",
+            "phones": [
+              "AE1",
+              "N",
+              "D",
+              "IH0",
+              "S"
+            ],
+            "distance": 2
+          },
+          {
+            "word": "anise",
+            "phones": [
+              "AE1",
+              "N",
+              "AH0",
+              "S"
+            ],
+            "distance": 2
+          },
+          {
+            "word": "anse",
+            "phones": [
+              "AE1",
+              "N",
+              "S"
+            ],
+            "distance": 2
+          },
+          {
+            "word": "abyss",
+            "phones": [
+              "AH0",
+              "B",
+              "IH1",
+              "S"
+            ],
+            "distance": 2
+          },
+          {
+            "word": "addis",
+            "phones": [
+              "AA1",
+              "D",
+              "IH0",
+              "S"
+            ],
+            "distance": 2
+          },
+          {
+            "word": "alice",
+            "phones": [
+              "AE1",
+              "L",
+              "IH0",
+              "S"
+            ],
+            "distance": 2
+          },
+          {
+            "word": "allis",
+            "phones": [
+              "AE1",
+              "L",
+              "IH0",
+              "S"
+            ],
+            "distance": 2
+          },
+          {
+            "word": "amiss",
+            "phones": [
+              "AH0",
+              "M",
+              "IH1",
+              "S"
+            ],
+            "distance": 2
+          },
+          {
+            "word": "anthis",
+            "phones": [
+              "AE1",
+              "N",
+              "TH",
+              "IH0",
+              "S"
+            ],
+            "distance": 2
+          },
+          {
+            "word": "alyce",
+            "phones": [
+              "AE1",
+              "L",
+              "IH0",
+              "S"
+            ],
+            "distance": 2
+          },
+          {
+            "word": "annick",
+            "phones": [
+              "AE1",
+              "N",
+              "IH0",
+              "K"
+            ],
+            "distance": 2
+          }
+        ],
+        "pattern_matches": [
+          {
+            "word": "iniss",
+            "phones": [
+              "IH1",
+              "N",
+              "IH0",
+              "S"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "inness",
+            "phones": [
+              "IH1",
+              "N",
+              "IH0",
+              "S"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "inning",
+            "phones": [
+              "IH1",
+              "N",
+              "IH0",
+              "NG"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "innis",
+            "phones": [
+              "IH1",
+              "N",
+              "IH0",
+              "S"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "inniss",
+            "phones": [
+              "IH1",
+              "N",
+              "IH0",
+              "S"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "ibid",
+            "phones": [
+              "IH1",
+              "B",
+              "IH0",
+              "D"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "ihrig",
+            "phones": [
+              "IH1",
+              "R",
+              "IH0",
+              "G"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "inert",
+            "phones": [
+              "IH2",
+              "N",
+              "ER1",
+              "T"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "inez",
+            "phones": [
+              "IH2",
+              "N",
+              "EH1",
+              "Z"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "aces",
+            "phones": [
+              "EY1",
+              "S",
+              "IH0",
+              "Z"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "chesshir",
+            "phones": [
+              "SH",
+              "IH0",
+              "SH",
+              "ER1"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "enis",
+            "phones": [
+              "EH1",
+              "N",
+              "IH0",
+              "S"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "igel",
+            "phones": [
+              "IH1",
+              "G",
+              "AH0",
+              "L"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "ikerd",
+            "phones": [
+              "IH1",
+              "K",
+              "ER0",
+              "D"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "ilene",
+            "phones": [
+              "IH1",
+              "L",
+              "IY0",
+              "N"
+            ],
+            "vowel_diff": 1
+          }
+        ],
+        "papers": [
+          {
+            "title": "The Informational Component",
+            "year": 1990,
+            "cited_by": 1067
+          },
+          {
+            "title": "Linguistic Diffusion in Arnhem Land",
+            "year": 1978,
+            "cited_by": 298
+          },
+          {
+            "title": "Subphonemic Teamwork: A Typology and Theory of Cumulative Coarticulatory Effects in Phonology",
+            "year": 2016,
+            "cited_by": 109
+          }
+        ]
+      },
+      "_vacci": {
+        "word": "vacci",
+        "phones": null,
+        "neighbors": [],
+        "note": "not in CMU dictionary",
+        "papers": []
+      },
+      "_nes": {
+        "word": "nes",
+        "phones": [
+          "N",
+          "EH1",
+          "S"
+        ],
+        "neighbors": [
+          {
+            "word": "'s",
+            "phones": [
+              "EH1",
+              "S"
+            ],
+            "distance": 1
+          },
+          {
+            "word": "aer",
+            "phones": [
+              "EH1",
+              "R"
+            ],
+            "distance": 2
+          },
+          {
+            "word": "anas",
+            "phones": [
+              "AE1",
+              "N",
+              "AH0",
+              "S"
+            ],
+            "distance": 2
+          },
+          {
+            "word": "aase",
+            "phones": [
+              "AA1",
+              "S"
+            ],
+            "distance": 2
+          },
+          {
+            "word": "ace",
+            "phones": [
+              "EY1",
+              "S"
+            ],
+            "distance": 2
+          },
+          {
+            "word": "aches",
+            "phones": [
+              "EY1",
+              "K",
+              "S"
+            ],
+            "distance": 2
+          },
+          {
+            "word": "acts",
+            "phones": [
+              "AE1",
+              "K",
+              "S"
+            ],
+            "distance": 2
+          },
+          {
+            "word": "adss",
+            "phones": [
+              "AE1",
+              "D",
+              "S"
+            ],
+            "distance": 2
+          }
+        ],
+        "pattern_matches": [
+          {
+            "word": "ness",
+            "phones": [
+              "N",
+              "EH1",
+              "S"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "besch",
+            "phones": [
+              "B",
+              "EH1",
+              "SH"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "bess",
+            "phones": [
+              "B",
+              "EH1",
+              "S"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "besse",
+            "phones": [
+              "B",
+              "EH1",
+              "S"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "des",
+            "phones": [
+              "D",
+              "EH1",
+              "S"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "desch",
+            "phones": [
+              "D",
+              "EH1",
+              "SH"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "fess",
+            "phones": [
+              "F",
+              "EH1",
+              "S"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "bes",
+            "phones": [
+              "B",
+              "IY1",
+              "Z"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "nase",
+            "phones": [
+              "N",
+              "EY1",
+              "Z"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "nash",
+            "phones": [
+              "N",
+              "AE1",
+              "SH"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "nass",
+            "phones": [
+              "N",
+              "AE1",
+              "S"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "neace",
+            "phones": [
+              "N",
+              "IY1",
+              "S"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "nead",
+            "phones": [
+              "N",
+              "IY1",
+              "D"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "neal",
+            "phones": [
+              "N",
+              "IY1",
+              "L"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "neale",
+            "phones": [
+              "N",
+              "IY1",
+              "L"
+            ],
+            "vowel_diff": 1
+          }
+        ],
+        "papers": [
+          {
+            "title": "Literacy training and speech segmentation",
+            "year": 1986,
+            "cited_by": 520
+          },
+          {
+            "title": "Improving Named Entity Translation Combining Phonetic and Semantic Similarities",
+            "year": 2004,
+            "cited_by": 39
+          },
+          {
+            "title": "A theory of lexical access in speech production [target paper]",
+            "year": 1999,
+            "cited_by": 5055
+          }
+        ]
+      },
+      "_vacc": {
+        "word": "vacc",
+        "phones": null,
+        "neighbors": [],
+        "note": "not in CMU dictionary",
+        "papers": []
+      }
+    },
+    "a03_structural": [
+      {
+        "concept_a": "Vaccines",
+        "concept_b": "autism",
+        "shared_attributes": [
+          "class:noun_default"
+        ],
+        "a_only_attributes": [
+          "phones:7",
+          "syl:3",
+          "stress:4",
+          "len:8",
+          "init:V",
+          "cv:CVCCVCC",
+          "final:Z",
+          "vaccines"
+        ],
+        "b_only_attributes": [
+          "stress:0",
+          "cv:VCVCVC",
+          "autism",
+          "sfx:ism",
+          "len:6",
+          "init:AO",
+          "phones:6",
+          "syl:2",
+          "final:M"
+        ],
+        "overlap_ratio": 0.056,
+        "probes": {
+          "morphological": {
+            "shared": [],
+            "a_only": [
+              "syl:3",
+              "len:8"
+            ],
+            "b_only": [
+              "syl:2",
+              "sfx:ism",
+              "len:6"
+            ]
+          },
+          "phonetic": {
+            "shared": [],
+            "a_only": [
+              "phones:7",
+              "stress:4",
+              "init:V",
+              "cv:CVCCVCC",
+              "final:Z"
+            ],
+            "b_only": [
+              "stress:0",
+              "cv:VCVCVC",
+              "init:AO",
+              "phones:6",
+              "final:M"
+            ]
+          },
+          "semantic_class": {
+            "shared": [
+              "class:noun_default"
+            ],
+            "a_only": [],
+            "b_only": []
+          },
+          "compound": {
+            "shared": [],
+            "a_only": [],
+            "b_only": []
+          }
+        },
+        "external_source": "text_fallback"
+      }
+    ],
+    "a04_blends": [
+      {
+        "source": "A01:Vaccines",
+        "blend": "vac + cines",
+        "type": "compound_split"
+      },
+      {
+        "source": "A01:Vaccines",
+        "blend": "vacc + ines",
+        "type": "compound_split"
+      },
+      {
+        "source": "A01:Vaccines",
+        "blend": "vacci + nes",
+        "type": "compound_split"
+      },
+      {
+        "source": "A02:Vaccines>accedes",
+        "blend": "Vaccines ~ accedes (dist=2)",
+        "type": "phonetic_substitution",
+        "substituted_word": "accedes"
+      },
+      {
+        "source": "A02:pattern:Vaccines>vaccine's",
+        "blend": "Vaccines ~ vaccine's (vowel_diff=0)",
+        "type": "phoneme_pattern_match",
+        "substituted_word": "vaccine's"
+      },
+      {
+        "source": "A02:pattern:Vaccines>vancleef",
+        "blend": "Vaccines ~ vancleef (vowel_diff=0)",
+        "type": "phoneme_pattern_match",
+        "substituted_word": "vancleef"
+      },
+      {
+        "source": "A02:pattern:Vaccines>vantreese",
+        "blend": "Vaccines ~ vantreese (vowel_diff=0)",
+        "type": "phoneme_pattern_match",
+        "substituted_word": "vantreese"
+      },
+      {
+        "source": "A03:shared_structure",
+        "blend": "Vaccines ↔ autism via ['class:noun_default']",
+        "type": "structural_analogy",
+        "shared": [
+          "class:noun_default"
+        ]
+      }
+    ],
+    "a05_premises": [],
+    "a06_chain": {
+      "steps": [
+        {
+          "index": 0,
+          "text": "Vaccines do not cause autism",
+          "connector_to_next": null,
+          "connector_type": null,
+          "has_quantifier": false,
+          "has_negation": true,
+          "has_comparison": false
+        }
+      ],
+      "chain_length": 1,
+      "connectors_found": [],
+      "has_implicit_gaps": false,
+      "dependency_edges": []
+    },
+    "candidates_generated": 8
+  },
+  "metadata": {}
+}

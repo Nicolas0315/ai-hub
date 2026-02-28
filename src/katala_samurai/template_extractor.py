@@ -66,7 +66,7 @@ def discover_templates_from_openalex(domain_terms, max_works=10):
             url = f"https://api.openalex.org/works?filter=title.search:{query}&per_page={max_works}&select=title,abstract_inverted_index"
             req = urllib.request.Request(url, headers={"User-Agent": "KatalaSamurai/1.0"})
             
-            with urllib.request.urlopen(req, timeout=8) as resp:
+            with urllib.request.urlopen(req, timeout=3) as resp:
                 data = _json.loads(resp.read())
             
             for work in data.get("results", []):

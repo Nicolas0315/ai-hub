@@ -1,0 +1,22 @@
+{
+  "stage": "C1_concept_confidence",
+  "timestamp": "2026-02-28T07:10:50.612143+00:00",
+  "data": {
+    "all_concepts": {
+      "p0": 1.0,
+      "p1": 1.0,
+      "p2": 1.0,
+      "p3": 1.0,
+      "p4": 1.0
+    },
+    "high_confidence": [
+      "p0",
+      "p1",
+      "p2",
+      "p3",
+      "p4"
+    ],
+    "threshold": 0.6
+  },
+  "metadata": {}
+}

@@ -1,0 +1,45 @@
+{
+  "stage": "KS31e_R0_L5_causal",
+  "timestamp": "2026-02-28T07:05:22.187677+00:00",
+  "data": {
+    "mode": "llm",
+    "causal_chain": [
+      {
+        "from": "Heat applied to water",
+        "to": "Increased kinetic energy of water molecules",
+        "mechanism": "Heat transfer increases molecular motion",
+        "strength": "strong",
+        "reversible": true
+      },
+      {
+        "from": "Increased kinetic energy of water molecules",
+        "to": "Water temperature rises",
+        "mechanism": "Temperature is a measure of average kinetic energy",
+        "strength": "strong",
+        "reversible": true
+      },
+      {
+        "from": "Water temperature reaches 100 degrees Celsius at sea level",
+        "to": "Vapor pressure of water equals atmospheric pressure at sea level",
+        "mechanism": "Definition of boiling point",
+        "strength": "strong",
+        "reversible": false
+      },
+      {
+        "from": "Vapor pressure of water equals atmospheric pressure at sea level",
+        "to": "Water boils",
+        "mechanism": "Boiling occurs when vapor pressure overcomes atmospheric pressure",
+        "strength": "strong",
+        "reversible": false
+      }
+    ],
+    "confounders": [
+      "Impurities in water",
+      "Altitude (affecting atmospheric pressure)"
+    ],
+    "missing_links": [],
+    "overall_causal_validity": "valid",
+    "latency_ms": 2816.0
+  },
+  "metadata": {}
+}

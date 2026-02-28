@@ -1,0 +1,39 @@
+{
+  "stage": "goal_generator",
+  "timestamp": "2026-02-28T07:03:13.736110+00:00",
+  "data": {
+    "text": "Water boils at 100 degrees Celsius at sea level",
+    "goal_count": 3,
+    "goals": [
+      {
+        "target": "Related: Water content: quantity of water contained in a material",
+        "source": "G3_scope_expander",
+        "priority": 0.55,
+        "reason": "domain knowledge (openalex)"
+      },
+      {
+        "target": "Related: Water quality: chemical, physical, biological, and radiological characteristics ",
+        "source": "G3_scope_expander",
+        "priority": 0.55,
+        "reason": "domain knowledge (openalex)"
+      },
+      {
+        "target": "Related: Water resource management: management of water by humans",
+        "source": "G3_scope_expander",
+        "priority": 0.55,
+        "reason": "domain knowledge (openalex)"
+      }
+    ],
+    "sources": {
+      "G1_gaps": 0,
+      "G2_contradictions": 0,
+      "G3_expansions": 3
+    },
+    "detail": {
+      "gaps_found": 0,
+      "contradictions_found": 0,
+      "expansions_generated": 3
+    }
+  },
+  "metadata": {}
+}

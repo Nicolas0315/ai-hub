@@ -1,0 +1,147 @@
+{
+  "stage": "D1_unknown_term_resolution",
+  "timestamp": "2026-02-28T07:06:30.916755+00:00",
+  "data": {
+    "terms_checked": 4,
+    "resolved_internally": 0,
+    "resolved_externally": 4,
+    "unresolved": 0,
+    "resolutions": {
+      "Coffee": {
+        "term": "Coffee",
+        "internal_found": false,
+        "external_found": true,
+        "internal_source": null,
+        "external_papers": [
+          {
+            "title": "T-coffee: a novel method for fast and accurate multiple sequence alignment 1 1Edited by J. Thornton",
+            "year": 2000,
+            "cited_by": 6976,
+            "match_type": "title"
+          },
+          {
+            "title": "Functional properties of coffee and coffee by-products",
+            "year": 2011,
+            "cited_by": 812,
+            "match_type": "title"
+          },
+          {
+            "title": "Marangoni Effect Reverses Coffee-Ring Depositions",
+            "year": 2006,
+            "cited_by": 1573,
+            "match_type": "title"
+          },
+          {
+            "title": "Suppression of the coffee-ring effect by shape-dependent capillary interactions",
+            "year": 2011,
+            "cited_by": 1557,
+            "match_type": "title"
+          },
+          {
+            "title": "Phenolic compounds in coffee",
+            "year": 2006,
+            "cited_by": 804,
+            "match_type": "title"
+          }
+        ]
+      },
+      "prevents": {
+        "term": "prevents",
+        "internal_found": false,
+        "external_found": true,
+        "internal_source": null,
+        "external_papers": [
+          {
+            "title": "Dropout: a simple way to prevent neural networks from overfitting",
+            "year": 2014,
+            "cited_by": 34172,
+            "match_type": "abstract"
+          },
+          {
+            "title": "Improving neural networks by preventing co-adaptation of feature detectors",
+            "year": 2012,
+            "cited_by": 6635,
+            "match_type": "abstract"
+          }
+        ]
+      },
+      "disease": {
+        "term": "disease",
+        "internal_found": false,
+        "external_found": true,
+        "internal_source": null,
+        "external_papers": [
+          {
+            "title": "Clinical diagnosis of Alzheimer's disease",
+            "year": 1984,
+            "cited_by": 27821,
+            "match_type": "title"
+          },
+          {
+            "title": "Clinical Characteristics of Coronavirus Disease 2019 in China",
+            "year": 2020,
+            "cited_by": 30819,
+            "match_type": "title"
+          },
+          {
+            "title": "Atherosclerosis — An Inflammatory Disease",
+            "year": 1999,
+            "cited_by": 21596,
+            "match_type": "title"
+          },
+          {
+            "title": "Repertoires of Autophagy in the Pathogenesis of Ocular Diseases",
+            "year": 2015,
+            "cited_by": 16332,
+            "match_type": "title"
+          },
+          {
+            "title": "Principles and Practice of Infectious Diseases.",
+            "year": 1991,
+            "cited_by": 12102,
+            "match_type": "title"
+          }
+        ]
+      },
+      "Alzheimer's": {
+        "term": "Alzheimer's",
+        "internal_found": false,
+        "external_found": true,
+        "internal_source": null,
+        "external_papers": [
+          {
+            "title": "Clinical diagnosis of Alzheimer's disease",
+            "year": 1984,
+            "cited_by": 27821,
+            "match_type": "title"
+          },
+          {
+            "title": "The diagnosis of dementia due to Alzheimer's disease: Recommendations from the National Institute on",
+            "year": 2011,
+            "cited_by": 18360,
+            "match_type": "title"
+          },
+          {
+            "title": "The diagnosis of mild cognitive impairment due to Alzheimer's disease: Recommendations from the Nati",
+            "year": 2011,
+            "cited_by": 9879,
+            "match_type": "title"
+          },
+          {
+            "title": "The Amyloid Hypothesis of Alzheimer's Disease: Progress and Problems on the Road to Therapeutics",
+            "year": 2002,
+            "cited_by": 13640,
+            "match_type": "title"
+          },
+          {
+            "title": "Toward defining the preclinical stages of Alzheimer's disease: Recommendations from the National Ins",
+            "year": 2011,
+            "cited_by": 6971,
+            "match_type": "title"
+          }
+        ]
+      }
+    }
+  },
+  "metadata": {}
+}

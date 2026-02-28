@@ -1,0 +1,104 @@
+{
+  "stage": "D1_unknown_term_resolution",
+  "timestamp": "2026-02-28T07:18:49.605889+00:00",
+  "data": {
+    "terms_checked": 4,
+    "resolved_internally": 1,
+    "resolved_externally": 3,
+    "unresolved": 0,
+    "resolutions": {
+      "Water": {
+        "term": "Water",
+        "internal_found": false,
+        "external_found": true,
+        "internal_source": null,
+        "external_papers": [
+          {
+            "title": "Standard methods: For the examination of water and waste water",
+            "year": 1990,
+            "cited_by": 72460,
+            "match_type": "title"
+          },
+          {
+            "title": "Electrochemical Photolysis of Water at a Semiconductor Electrode",
+            "year": 1972,
+            "cited_by": 33083,
+            "match_type": "title"
+          },
+          {
+            "title": "Comparison of simple potential functions for simulating liquid water",
+            "year": 1983,
+            "cited_by": 41127,
+            "match_type": "title"
+          },
+          {
+            "title": "Standard Methods for the Examination of Water and Wastewater",
+            "year": 1982,
+            "cited_by": 30203,
+            "match_type": "title"
+          },
+          {
+            "title": "Crop evapotranspiration : guidelines for computing crop water requirements",
+            "year": 1998,
+            "cited_by": 20473,
+            "match_type": "title"
+          }
+        ]
+      },
+      "100": {
+        "term": "100",
+        "internal_found": true,
+        "external_found": false,
+        "internal_source": "EVOLUTION_AND_TRUST.md",
+        "external_papers": []
+      },
+      "degrees": {
+        "term": "degrees",
+        "internal_found": false,
+        "external_found": true,
+        "internal_source": null,
+        "external_papers": [
+          {
+            "title": "A Platform with Six Degrees of Freedom",
+            "year": 1965,
+            "cited_by": 2589,
+            "match_type": "title"
+          }
+        ]
+      },
+      "Celsius": {
+        "term": "Celsius",
+        "internal_found": false,
+        "external_found": true,
+        "internal_source": null,
+        "external_papers": [
+          {
+            "title": "Impact of a global temperature rise of 1.5 degrees Celsius on Asia’s glaciers",
+            "year": 2017,
+            "cited_by": 857,
+            "match_type": "title"
+          },
+          {
+            "title": "High-Speed and High-Resolution UPLC Separation at Zero Degrees Celsius",
+            "year": 2008,
+            "cited_by": 367,
+            "match_type": "title"
+          },
+          {
+            "title": "The WASA detector facility at CELSIUS",
+            "year": 2008,
+            "cited_by": 105,
+            "match_type": "title"
+          },
+          {
+            "title": "Supercapacitor Operating At 200 Degrees Celsius",
+            "year": 2013,
+            "cited_by": 115,
+            "match_type": "title"
+          }
+        ]
+      }
+    }
+  },
+  "metadata": {}
+}

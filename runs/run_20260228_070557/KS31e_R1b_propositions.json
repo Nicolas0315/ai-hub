@@ -1,0 +1,32 @@
+{
+  "stage": "KS31e_R1b_propositions",
+  "timestamp": "2026-02-28T07:06:20.202522+00:00",
+  "data": {
+    "results": [
+      {
+        "text": "The sun revolves.",
+        "verdict": "PASS",
+        "pass_rate": 0.8889,
+        "type": "factual"
+      },
+      {
+        "text": "The Earth is the center of the sun's revolution.",
+        "verdict": "PASS",
+        "pass_rate": 0.8889,
+        "type": "factual"
+      }
+    ],
+    "enrichment": {
+      "original_rate": 0.8285,
+      "enriched_avg_rate": 0.8889,
+      "enriched_individual_rates": [
+        0.8889,
+        0.8889
+      ],
+      "delta": 0.0604,
+      "semantic_impact": "MODERATE",
+      "proposition_count": 2
+    }
+  },
+  "metadata": {}
+}

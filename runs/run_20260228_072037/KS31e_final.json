@@ -1,0 +1,88 @@
+{
+  "stage": "KS31e_final",
+  "timestamp": "2026-02-28T07:20:53.592939+00:00",
+  "data": {
+    "version": "KS33b",
+    "verdict": "UNVERIFIED",
+    "final_score": 0.8285,
+    "cycle_count": 1,
+    "r1_verdict": "UNVERIFIED",
+    "r1_score": 0.8285,
+    "solvers_passed": "24/28",
+    "elapsed_sec": 15.658,
+    "trace": [
+      {
+        "round": 0,
+        "layer": "L5",
+        "action": "semantic_extraction",
+        "mode": "llm",
+        "propositions": 3,
+        "causal_links": 1,
+        "causal_validity": "valid"
+      },
+      {
+        "round": 1,
+        "layer": "L1",
+        "action": "full_verify",
+        "verdict": "UNVERIFIED",
+        "score": 0.8285
+      },
+      {
+        "round": "1b",
+        "layer": "L5+L1",
+        "action": "proposition_verify",
+        "proposition_count": 3,
+        "semantic_impact": "LOW",
+        "delta": 0.011
+      },
+      {
+        "round": 2,
+        "layer": "L3",
+        "action": "causal_decompose",
+        "chain_length": 1,
+        "has_gaps": false,
+        "causal_validity": "valid"
+      }
+    ],
+    "semantic": {
+      "mode": "llm",
+      "propositions_extracted": 3,
+      "implicit_assumptions": 2,
+      "key_entities": [
+        "Vaccines",
+        "Autism"
+      ]
+    },
+    "causal": {
+      "mode": "llm",
+      "chain_length": 1,
+      "missing_links": [
+        "Specific biological mechanism linking vaccines to autism (none has been found)"
+      ],
+      "confounders": [
+        "Genetic predisposition",
+        "Environmental factors",
+        "Advanced parental age"
+      ],
+      "validity": "valid"
+    },
+    "enrichment": {
+      "original_rate": 0.8285,
+      "enriched_avg_rate": 0.8395,
+      "enriched_individual_rates": [
+        0.8148,
+        0.8148,
+        0.8889
+      ],
+      "delta": 0.011,
+      "semantic_impact": "LOW",
+      "proposition_count": 3
+    },
+    "flags": [
+      "CONTENT_AWARE",
+      "CAUSAL_VALID"
+    ],
+    "note": "single_step_no_decomposition"
+  },
+  "metadata": {}
+}

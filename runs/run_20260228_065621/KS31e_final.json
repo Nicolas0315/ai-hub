@@ -1,0 +1,86 @@
+{
+  "stage": "KS31e_final",
+  "timestamp": "2026-02-28T06:57:02.600683+00:00",
+  "data": {
+    "version": "KS33b",
+    "verdict": "UNVERIFIED",
+    "final_score": 0.7667,
+    "cycle_count": 1,
+    "r1_verdict": "UNVERIFIED",
+    "r1_score": 0.7667,
+    "solvers_passed": "22/28",
+    "elapsed_sec": 40.876,
+    "trace": [
+      {
+        "round": 0,
+        "layer": "L5",
+        "action": "semantic_extraction",
+        "mode": "llm",
+        "propositions": 4,
+        "causal_links": 4,
+        "causal_validity": "valid"
+      },
+      {
+        "round": 1,
+        "layer": "L1",
+        "action": "full_verify",
+        "verdict": "UNVERIFIED",
+        "score": 0.7667
+      },
+      {
+        "round": "1b",
+        "layer": "L5+L1",
+        "action": "proposition_verify",
+        "proposition_count": 4,
+        "semantic_impact": "MODERATE",
+        "delta": 0.0851
+      },
+      {
+        "round": 2,
+        "layer": "L3",
+        "action": "causal_decompose",
+        "chain_length": 1,
+        "has_gaps": false,
+        "causal_validity": "valid"
+      }
+    ],
+    "semantic": {
+      "mode": "llm",
+      "propositions_extracted": 4,
+      "implicit_assumptions": 3,
+      "key_entities": [
+        "Water",
+        "Boiling Point",
+        "Temperature (Celsius)",
+        "Sea Level",
+        "Atmospheric Pressure"
+      ]
+    },
+    "causal": {
+      "mode": "llm",
+      "chain_length": 4,
+      "missing_links": [],
+      "confounders": [],
+      "validity": "valid"
+    },
+    "enrichment": {
+      "original_rate": 0.7667,
+      "enriched_avg_rate": 0.8518,
+      "enriched_individual_rates": [
+        0.8148,
+        0.8148,
+        0.8889,
+        0.8889
+      ],
+      "delta": 0.0851,
+      "semantic_impact": "MODERATE",
+      "proposition_count": 4
+    },
+    "flags": [
+      "CONTENT_AWARE",
+      "CAUSAL_VALID"
+    ],
+    "note": "single_step_no_decomposition"
+  },
+  "metadata": {}
+}

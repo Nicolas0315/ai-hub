@@ -1,0 +1,33 @@
+{
+  "stage": "goal_generator",
+  "timestamp": "2026-02-28T07:16:51.196875+00:00",
+  "data": {
+    "text": "Coffee always prevents Alzheimer's disease",
+    "goal_count": 2,
+    "goals": [
+      {
+        "target": "Verify: Universal quantifier — exceptions not checked — 'always'",
+        "source": "G1_gap_detector",
+        "priority": 0.8,
+        "reason": "Universal quantifier — exceptions not checked"
+      },
+      {
+        "target": "More Coffee always should increase inhibition of Alzheimer's disease",
+        "source": "G3_scope_expander",
+        "priority": 0.6,
+        "reason": "dose-response relationship"
+      }
+    ],
+    "sources": {
+      "G1_gaps": 1,
+      "G2_contradictions": 0,
+      "G3_expansions": 1
+    },
+    "detail": {
+      "gaps_found": 1,
+      "contradictions_found": 0,
+      "expansions_generated": 1
+    }
+  },
+  "metadata": {}
+}

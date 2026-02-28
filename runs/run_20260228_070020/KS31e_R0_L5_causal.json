@@ -1,0 +1,29 @@
+{
+  "stage": "KS31e_R0_L5_causal",
+  "timestamp": "2026-02-28T07:00:23.581371+00:00",
+  "data": {
+    "mode": "llm",
+    "causal_chain": [
+      {
+        "from": "Observation of the sun's movement across the sky",
+        "to": "Belief that the sun revolves around the Earth",
+        "mechanism": "Direct visual interpretation of perceived motion",
+        "strength": "strong",
+        "reversible": false
+      }
+    ],
+    "confounders": [
+      "Lack of understanding of heliocentric model",
+      "Limited astronomical data",
+      "Geocentric philosophical and religious beliefs"
+    ],
+    "missing_links": [
+      "Absence of understanding of inertia and relative motion",
+      "Lack of precise measurements of stellar parallax",
+      "Failure to account for the Earth's rotation"
+    ],
+    "overall_causal_validity": "unfounded",
+    "latency_ms": 1812.0
+  },
+  "metadata": {}
+}

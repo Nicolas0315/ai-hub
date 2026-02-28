@@ -18,15 +18,21 @@ import urllib.request
 import urllib.parse
 import json as _json
 
+import os as _os
+_FAST_MODE = _os.environ.get("KS_FAST_MODE", "0") == "1"
+
+
 
 # ─── ConceptNet Expansion ───────────────────────────────────────────────────
 
 def _conceptnet_expand(term, max_edges=10):
+    if _FAST_MODE:
+        return {"term": term, "expansions": [], "source": "conceptnet", "note": "fast_mode"}
     """Expand a term via ConceptNet relations."""
     try:
         url = f"http://api.conceptnet.io/c/en/{urllib.parse.quote(term.lower())}?limit={max_edges}"
         req = urllib.request.Request(url, headers={"User-Agent": "KS31e-DomainBridge/1.0"})
-        with urllib.request.urlopen(req, timeout=8) as resp:
+        with urllib.request.urlopen(req, timeout=2) as resp:
             data = _json.loads(resp.read().decode())
         
         expansions = []
@@ -67,6 +73,20 @@ def _conceptnet_expand(term, max_edges=10):
 # ─── OpenAlex Concept Expansion ─────────────────────────────────────────────
 
 def _openalex_concepts(term, max_results=5):
+    import signal as _sig
+    def _timeout_handler(signum, frame):
+        raise TimeoutError("OpenAlex timeout")
+    old_handler = _sig.signal(_sig.SIGALRM, _timeout_handler)
+    _sig.alarm(3)  # Hard 3s timeout
+    try:
+        return _openalex_concepts_impl(term, max_results)
+    except (TimeoutError, Exception):
+        return {"concepts": [], "source": "openalex", "error": "timeout"}
+    finally:
+        _sig.alarm(0)
+        _sig.signal(_sig.SIGALRM, old_handler)
+
+def _openalex_concepts_impl(term, max_results=5):
     """Find related academic concepts via OpenAlex."""
     try:
         params = {
@@ -77,7 +97,7 @@ def _openalex_concepts(term, max_results=5):
         }
         url = "https://api.openalex.org/concepts?" + urllib.parse.urlencode(params)
         req = urllib.request.Request(url, headers={"User-Agent": "KS31e-DomainBridge/1.0"})
-        with urllib.request.urlopen(req, timeout=8) as resp:
+        with urllib.request.urlopen(req, timeout=2) as resp:
             data = _json.loads(resp.read().decode())
         
         concepts = []

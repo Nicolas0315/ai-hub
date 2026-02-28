@@ -1,0 +1,38 @@
+{
+  "stage": "KS31e_R0_L5_semantics",
+  "timestamp": "2026-02-28T07:15:04.428342+00:00",
+  "data": {
+    "mode": "llm",
+    "propositions": [
+      {
+        "text": "Vaccines exist.",
+        "type": "factual"
+      },
+      {
+        "text": "Autism exists.",
+        "type": "factual"
+      },
+      {
+        "text": "Vaccines do not cause autism.",
+        "type": "causal"
+      }
+    ],
+    "implicit_assumptions": [
+      "Causation can be determined between vaccines and autism.",
+      "Autism is a condition that can be caused or not caused by external factors."
+    ],
+    "key_entities": [
+      "Vaccines",
+      "Autism"
+    ],
+    "causal_links": [
+      {
+        "cause": "Vaccines",
+        "effect": "Autism",
+        "strength": "weak"
+      }
+    ],
+    "latency_ms": 1902.0
+  },
+  "metadata": {}
+}

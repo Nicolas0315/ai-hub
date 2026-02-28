@@ -1,0 +1,45 @@
+{
+  "stage": "D1_unknown_term_resolution",
+  "timestamp": "2026-02-28T07:15:05.355873+00:00",
+  "data": {
+    "terms_checked": 1,
+    "resolved_internally": 0,
+    "resolved_externally": 1,
+    "unresolved": 0,
+    "resolutions": {
+      "Vaccines": {
+        "term": "Vaccines",
+        "internal_found": false,
+        "external_found": true,
+        "internal_source": null,
+        "external_papers": [
+          {
+            "title": "Safety and Efficacy of the BNT162b2 mRNA Covid-19 Vaccine",
+            "year": 2020,
+            "cited_by": 15138,
+            "match_type": "abstract"
+          },
+          {
+            "title": "Vaccine hesitancy: Definition, scope and determinants",
+            "year": 2015,
+            "cited_by": 5410,
+            "match_type": "abstract"
+          },
+          {
+            "title": "mRNA vaccines — a new era in vaccinology",
+            "year": 2018,
+            "cited_by": 4252,
+            "match_type": "title"
+          },
+          {
+            "title": "Vaccine hesitancy",
+            "year": 2013,
+            "cited_by": 2093,
+            "match_type": "abstract"
+          }
+        ]
+      }
+    }
+  },
+  "metadata": {}
+}

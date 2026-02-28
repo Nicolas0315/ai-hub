@@ -1,0 +1,27 @@
+{
+  "stage": "KS31e_R0_L5_causal",
+  "timestamp": "2026-02-28T07:20:41.440515+00:00",
+  "data": {
+    "mode": "llm",
+    "causal_chain": [
+      {
+        "from": "Vaccination",
+        "to": "Autism",
+        "mechanism": "Biological processes within the body",
+        "strength": "strong",
+        "reversible": false
+      }
+    ],
+    "confounders": [
+      "Genetic predisposition",
+      "Environmental factors",
+      "Advanced parental age"
+    ],
+    "missing_links": [
+      "Specific biological mechanism linking vaccines to autism (none has been found)"
+    ],
+    "overall_causal_validity": "valid",
+    "latency_ms": 1695.0
+  },
+  "metadata": {}
+}

@@ -1,0 +1,9 @@
+{
+  "stage": "S10_CosineSim",
+  "timestamp": "2026-02-28T07:08:29.484346+00:00",
+  "data": {
+    "passed": true,
+    "claim_hash": "Coffee always prevents Alzheimer's disease"
+  },
+  "metadata": {}
+}

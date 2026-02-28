@@ -1,0 +1,32 @@
+{
+  "stage": "KS31e_R1b_propositions",
+  "timestamp": "2026-02-28T07:09:18.178611+00:00",
+  "data": {
+    "results": [
+      {
+        "text": "CRISPR causes targeted gene modification.",
+        "verdict": "PASS",
+        "pass_rate": 0.8148,
+        "type": "causal"
+      },
+      {
+        "text": "Targeted gene modification prevents genetic diseases.",
+        "verdict": "PASS",
+        "pass_rate": 0.8148,
+        "type": "causal"
+      }
+    ],
+    "enrichment": {
+      "original_rate": 0.7667,
+      "enriched_avg_rate": 0.8148,
+      "enriched_individual_rates": [
+        0.8148,
+        0.8148
+      ],
+      "delta": 0.0481,
+      "semantic_impact": "LOW",
+      "proposition_count": 2
+    }
+  },
+  "metadata": {}
+}

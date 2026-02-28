@@ -1,0 +1,48 @@
+{
+  "stage": "KS31e_R0_L5_causal",
+  "timestamp": "2026-02-28T06:59:04.218125+00:00",
+  "data": {
+    "mode": "llm",
+    "causal_chain": [
+      {
+        "from": "Applying heat to water",
+        "to": "Increased kinetic energy of water molecules",
+        "mechanism": "Heat energy is transferred to the water molecules, causing them to move faster.",
+        "strength": "strong",
+        "reversible": true
+      },
+      {
+        "from": "Increased kinetic energy of water molecules",
+        "to": "Increased vapor pressure of water",
+        "mechanism": "Faster moving molecules are more likely to escape the liquid phase and enter the gas phase.",
+        "strength": "strong",
+        "reversible": true
+      },
+      {
+        "from": "Water reaches 100 degrees Celsius at standard atmospheric pressure",
+        "to": "Vapor pressure of water equals atmospheric pressure",
+        "mechanism": "Temperature at which vapor pressure equals atmospheric pressure is the boiling point.",
+        "strength": "strong",
+        "reversible": false
+      },
+      {
+        "from": "Vapor pressure of water equals atmospheric pressure",
+        "to": "Water boils",
+        "mechanism": "Boiling occurs when the vapor pressure of the liquid equals or exceeds the surrounding atmospheric pressure, allowing bubbles of vapor to form within the liquid and rise to the surface.",
+        "strength": "strong",
+        "reversible": false
+      }
+    ],
+    "confounders": [
+      "Atmospheric pressure",
+      "Purity of water",
+      "Presence of dissolved substances"
+    ],
+    "missing_links": [
+      "Explicit mention of atmospheric pressure as a necessary condition for the 100-degree boiling point"
+    ],
+    "overall_causal_validity": "partial",
+    "latency_ms": 2596.0
+  },
+  "metadata": {}
+}

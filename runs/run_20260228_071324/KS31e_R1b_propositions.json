@@ -1,0 +1,32 @@
+{
+  "stage": "KS31e_R1b_propositions",
+  "timestamp": "2026-02-28T07:13:48.411013+00:00",
+  "data": {
+    "results": [
+      {
+        "text": "Coffee consumption prevents Alzheimer's disease.",
+        "verdict": "PASS",
+        "pass_rate": 0.8148,
+        "type": "causal"
+      },
+      {
+        "text": "Alzheimer's disease can be prevented.",
+        "verdict": "PASS",
+        "pass_rate": 0.8148,
+        "type": "factual"
+      }
+    ],
+    "enrichment": {
+      "original_rate": 0.773,
+      "enriched_avg_rate": 0.8148,
+      "enriched_individual_rates": [
+        0.8148,
+        0.8148
+      ],
+      "delta": 0.0418,
+      "semantic_impact": "LOW",
+      "proposition_count": 2
+    }
+  },
+  "metadata": {}
+}

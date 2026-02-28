@@ -1,0 +1,46 @@
+{
+  "stage": "content_bridge",
+  "timestamp": "2026-02-28T06:55:20.850337+00:00",
+  "data": {
+    "signals_generated": 2,
+    "signals": [
+      {
+        "type": "negation_counterfactual",
+        "proposition": "Vaccines do cause autism",
+        "formal_check": "verify_consistency",
+        "confidence_modifier": -0.1
+      },
+      {
+        "type": "semantic_role",
+        "proposition": "Vaccines do not cause autism",
+        "formal_check": "verify_predicate_structure",
+        "confidence_modifier": 0.0
+      }
+    ],
+    "annotations": {
+      "annotations": [
+        {
+          "type": "negation_counterfactual",
+          "proposition": "Vaccines do cause autism",
+          "check": "verify_consistency",
+          "modifier": -0.1
+        },
+        {
+          "type": "semantic_role",
+          "proposition": "Vaccines do not cause autism",
+          "check": "verify_predicate_structure",
+          "modifier": 0.0
+        }
+      ],
+      "annotation_count": 2,
+      "total_confidence_modifier": -0.1,
+      "content_flags": {
+        "has_negation_risk": true,
+        "has_hedging": false,
+        "has_distancing": false,
+        "has_universal": false
+      }
+    }
+  },
+  "metadata": {}
+}

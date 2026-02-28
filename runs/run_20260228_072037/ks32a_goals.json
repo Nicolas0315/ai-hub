@@ -1,0 +1,32 @@
+{
+  "stage": "ks32a_goals",
+  "timestamp": "2026-02-28T07:20:53.856519+00:00",
+  "data": {
+    "generated": 2,
+    "verified": 2,
+    "supporting": 1,
+    "challenging": 1,
+    "goal_results": [
+      {
+        "goal": "Without do not, autism should not occur",
+        "source": "G3_scope_expander",
+        "priority": 0.8,
+        "verdict": "UNVERIFIED",
+        "confidence": 0.3
+      },
+      {
+        "goal": "Similar mechanisms to do not should also produce autism",
+        "source": "G3_scope_expander",
+        "priority": 0.65,
+        "verdict": "PARTIALLY_VERIFIED",
+        "confidence": 0.8
+      }
+    ],
+    "sources": {
+      "G1_gaps": 0,
+      "G2_contradictions": 0,
+      "G3_expansions": 2
+    }
+  },
+  "metadata": {}
+}

@@ -1,0 +1,49 @@
+{
+  "stage": "KS31e_R0_L5_causal",
+  "timestamp": "2026-02-28T07:16:01.060113+00:00",
+  "data": {
+    "mode": "llm",
+    "causal_chain": [
+      {
+        "from": "Atmospheric pressure at sea level",
+        "to": "Water molecules gain kinetic energy when heated",
+        "mechanism": "Increased temperature leads to increased molecular motion.",
+        "strength": "strong",
+        "reversible": false
+      },
+      {
+        "from": "Water molecules gain kinetic energy when heated",
+        "to": "Vapor pressure of water increases",
+        "mechanism": "More energetic molecules are able to overcome intermolecular forces and transition to the gaseous phase.",
+        "strength": "strong",
+        "reversible": false
+      },
+      {
+        "from": "Vapor pressure of water increases",
+        "to": "Vapor pressure of water equals atmospheric pressure at sea level",
+        "mechanism": "Heating continues until the vapor pressure matches the external pressure.",
+        "strength": "strong",
+        "reversible": false
+      },
+      {
+        "from": "Vapor pressure of water equals atmospheric pressure at sea level",
+        "to": "Water boils",
+        "mechanism": "Boiling occurs when the vapor pressure is sufficient to overcome the surrounding atmospheric pressure, allowing bubbles of vapor to form throughout the liquid.",
+        "strength": "strong",
+        "reversible": false
+      },
+      {
+        "from": "Heating water to 100 degrees Celsius at sea level",
+        "to": "Water molecules gain kinetic energy when heated",
+        "mechanism": "Temperature is a measure of average kinetic energy of molecules.",
+        "strength": "strong",
+        "reversible": false
+      }
+    ],
+    "confounders": [],
+    "missing_links": [],
+    "overall_causal_validity": "valid",
+    "latency_ms": 3048.0
+  },
+  "metadata": {}
+}

@@ -1,0 +1,70 @@
+{
+  "stage": "C3_dispute_resolution",
+  "timestamp": "2026-02-28T07:04:39.722192+00:00",
+  "data": {
+    "conflict_type": "leaning",
+    "split": "22T / 5F",
+    "split_ratio": 0.815,
+    "true_solvers": [
+      "S01_Z3_SMT",
+      "S02_SAT_Glucose3",
+      "S03_SymPy",
+      "S04_Z3_FOL",
+      "S05_CategoryTheory",
+      "S06_EuclideanDist",
+      "S07_LinearAlgebra",
+      "S08_ConvexHull",
+      "S09_Voronoi",
+      "S10_CosineSim",
+      "S11_InfoGeoV2",
+      "S12_Spherical",
+      "S13_Riemannian",
+      "S15_deSitter",
+      "S16_Projective",
+      "S19_Finsler",
+      "S20_SubRiemannian",
+      "S21_Alexandrov",
+      "S23_Tropical",
+      "S24_Spectral",
+      "S26_ZFC",
+      "S27_KAM"
+    ],
+    "false_solvers": [
+      "S14_TDA",
+      "S17_Lorentz",
+      "S18_Symplectic",
+      "S22_Kahler",
+      "S25_FisherKL"
+    ],
+    "category_splits": {
+      "formal_logic": {
+        "true": 5,
+        "false": 0,
+        "ratio": 1.0
+      },
+      "geometric": {
+        "true": 8,
+        "false": 0,
+        "ratio": 1.0
+      },
+      "topological": {
+        "true": 4,
+        "false": 3,
+        "ratio": 0.57
+      },
+      "algebraic": {
+        "true": 4,
+        "false": 2,
+        "ratio": 0.67
+      },
+      "meta": {
+        "true": 1,
+        "false": 0,
+        "ratio": 1.0
+      }
+    },
+    "dissenting_categories": [],
+    "note": "Auto-resolution disabled. Dispute data is for inspection only."
+  },
+  "metadata": {}
+}

@@ -1,0 +1,27 @@
+{
+  "stage": "ks33a_ephemeral",
+  "timestamp": "2026-02-28T07:16:51.203489+00:00",
+  "data": {
+    "global_enabled": true,
+    "mechanisms": {
+      "E1_calibration": true,
+      "E2_pattern": true,
+      "E3_chain": true
+    },
+    "active_mechanisms": [
+      "E1_calibration",
+      "E2_pattern",
+      "E3_chain"
+    ],
+    "session_age_seconds": 55.6,
+    "verification_count": 2,
+    "e1_solvers_tracked": 0,
+    "e1_adjustments": 0,
+    "e2_domain_patterns": 0,
+    "e2_structural_patterns": 0,
+    "e2_biases_detected": 0,
+    "e3_goals_tracked": 2,
+    "e3_chain_insights": 0
+  },
+  "metadata": {}
+}

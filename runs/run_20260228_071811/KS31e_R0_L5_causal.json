@@ -1,0 +1,48 @@
+{
+  "stage": "KS31e_R0_L5_causal",
+  "timestamp": "2026-02-28T07:18:15.612387+00:00",
+  "data": {
+    "mode": "llm",
+    "causal_chain": [
+      {
+        "from": "Applying heat to water",
+        "to": "Increased kinetic energy of water molecules",
+        "mechanism": "Heat energy is transferred to the water molecules, causing them to move faster.",
+        "strength": "strong",
+        "reversible": true
+      },
+      {
+        "from": "Increased kinetic energy of water molecules",
+        "to": "Increased vapor pressure of water",
+        "mechanism": "Faster moving molecules are more likely to escape the liquid phase and enter the gas phase.",
+        "strength": "strong",
+        "reversible": true
+      },
+      {
+        "from": "Water reaches 100 degrees Celsius at standard atmospheric pressure",
+        "to": "Vapor pressure of water equals atmospheric pressure",
+        "mechanism": "Temperature at which the vapor pressure equals the surrounding pressure.",
+        "strength": "strong",
+        "reversible": false
+      },
+      {
+        "from": "Vapor pressure of water equals atmospheric pressure",
+        "to": "Water boils",
+        "mechanism": "Boiling occurs when the vapor pressure of the liquid equals or exceeds the surrounding atmospheric pressure, allowing bubbles of vapor to form throughout the liquid.",
+        "strength": "strong",
+        "reversible": false
+      }
+    ],
+    "confounders": [
+      "Atmospheric pressure",
+      "Impurities in the water"
+    ],
+    "missing_links": [
+      "Relationship between temperature and kinetic energy of molecules",
+      "Definition of 'boiling'"
+    ],
+    "overall_causal_validity": "partial",
+    "latency_ms": 2502.0
+  },
+  "metadata": {}
+}

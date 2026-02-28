@@ -1,0 +1,42 @@
+{
+  "stage": "KS31e_R0_L5_causal",
+  "timestamp": "2026-02-28T06:56:27.410679+00:00",
+  "data": {
+    "mode": "llm",
+    "causal_chain": [
+      {
+        "from": "Atmospheric pressure at sea level",
+        "to": "Water molecules gain kinetic energy when heated",
+        "mechanism": "Atmospheric pressure exerts a force on the surface of the water, hindering the escape of water molecules into the gaseous phase. Heating increases the kinetic energy of the water molecules.",
+        "strength": "strong",
+        "reversible": false
+      },
+      {
+        "from": "Heating water",
+        "to": "Water molecules gain kinetic energy",
+        "mechanism": "Heat is a form of energy that is transferred to the water molecules, increasing their motion.",
+        "strength": "strong",
+        "reversible": true
+      },
+      {
+        "from": "Water molecules gain kinetic energy",
+        "to": "Water boils",
+        "mechanism": "When the kinetic energy of the water molecules is sufficient to overcome the intermolecular forces holding them together in the liquid phase and the atmospheric pressure, they transition to the gaseous phase (boiling).",
+        "strength": "strong",
+        "reversible": true
+      },
+      {
+        "from": "Atmospheric pressure at sea level",
+        "to": "Water boils at 100 degrees Celsius",
+        "mechanism": "At standard atmospheric pressure (sea level), the temperature at which the vapor pressure of water equals the atmospheric pressure is 100 degrees Celsius.",
+        "strength": "strong",
+        "reversible": false
+      }
+    ],
+    "confounders": [],
+    "missing_links": [],
+    "overall_causal_validity": "valid",
+    "latency_ms": 2802.0
+  },
+  "metadata": {}
+}

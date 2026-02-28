@@ -1,0 +1,39 @@
+{
+  "stage": "ks32a_goals",
+  "timestamp": "2026-02-28T07:03:41.004161+00:00",
+  "data": {
+    "generated": 3,
+    "verified": 3,
+    "supporting": 0,
+    "challenging": 3,
+    "goal_results": [
+      {
+        "goal": "Related: Agroforestry: land use management system in which trees or shrubs are g",
+        "source": "G3_scope_expander",
+        "priority": 0.55,
+        "verdict": "UNVERIFIED",
+        "confidence": 0.3
+      },
+      {
+        "goal": "Related: Vortex: fluid flow revolving around an axis of rotation",
+        "source": "G3_scope_expander",
+        "priority": 0.55,
+        "verdict": "UNVERIFIED",
+        "confidence": 0.3
+      },
+      {
+        "goal": "Related: Multiple sclerosis: disease that damages the myelin sheaths around nerv",
+        "source": "G3_scope_expander",
+        "priority": 0.55,
+        "verdict": "UNVERIFIED",
+        "confidence": 0.3
+      }
+    ],
+    "sources": {
+      "G1_gaps": 0,
+      "G2_contradictions": 0,
+      "G3_expansions": 3
+    }
+  },
+  "metadata": {}
+}

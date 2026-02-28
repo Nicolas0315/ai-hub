@@ -1,0 +1,45 @@
+{
+  "stage": "content_understanding",
+  "timestamp": "2026-02-28T06:55:20.850147+00:00",
+  "data": {
+    "negation": {
+      "negations": [
+        {
+          "type": "direct",
+          "word": "not",
+          "context": "vaccines do not cause autism",
+          "position": 2
+        }
+      ],
+      "negation_count": 1,
+      "density": 0.2,
+      "has_double_negation": false,
+      "counterfactual": "Vaccines do cause autism",
+      "meaning_change_risk": "high"
+    },
+    "semantic_roles": {
+      "roles": [
+        {
+          "agent": "Vaccines",
+          "action": "do",
+          "patient": "not cause autism",
+          "modifiers": []
+        }
+      ],
+      "role_count": 1,
+      "has_quantifiers": false
+    },
+    "implications": {
+      "implications": [],
+      "count": 0,
+      "types": [],
+      "has_hedging": false,
+      "has_distancing": false,
+      "reliability_signal": "direct"
+    },
+    "content_signals": 2,
+    "content_depth": 0.67,
+    "reliability": "direct"
+  },
+  "metadata": {}
+}

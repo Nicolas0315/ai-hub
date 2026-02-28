@@ -1,0 +1,33 @@
+{
+  "stage": "goal_generator",
+  "timestamp": "2026-02-28T07:20:53.853728+00:00",
+  "data": {
+    "text": "Vaccines do not cause autism",
+    "goal_count": 2,
+    "goals": [
+      {
+        "target": "Without do not, autism should not occur",
+        "source": "G3_scope_expander",
+        "priority": 0.8,
+        "reason": "causal counterfactual"
+      },
+      {
+        "target": "Similar mechanisms to do not should also produce autism",
+        "source": "G3_scope_expander",
+        "priority": 0.65,
+        "reason": "structural analogy"
+      }
+    ],
+    "sources": {
+      "G1_gaps": 0,
+      "G2_contradictions": 0,
+      "G3_expansions": 2
+    },
+    "detail": {
+      "gaps_found": 0,
+      "contradictions_found": 0,
+      "expansions_generated": 2
+    }
+  },
+  "metadata": {}
+}

@@ -1,0 +1,41 @@
+{
+  "stage": "KS31e_R0_L5_semantics",
+  "timestamp": "2026-02-28T06:59:04.217810+00:00",
+  "data": {
+    "mode": "llm",
+    "propositions": [
+      {
+        "text": "Water exists.",
+        "type": "factual"
+      },
+      {
+        "text": "Boiling is a physical process.",
+        "type": "definitional"
+      },
+      {
+        "text": "The boiling point of water is 100 degrees Celsius.",
+        "type": "factual"
+      }
+    ],
+    "implicit_assumptions": [
+      "The claim refers to degrees Celsius.",
+      "The claim is made under standard atmospheric pressure.",
+      "The water is pure (H2O).",
+      "The measurement is accurate."
+    ],
+    "key_entities": [
+      "water",
+      "boiling point",
+      "temperature"
+    ],
+    "causal_links": [
+      {
+        "cause": "Heating water to 100 degrees Celsius",
+        "effect": "Water boils",
+        "strength": "strong"
+      }
+    ],
+    "latency_ms": 2063.0
+  },
+  "metadata": {}
+}

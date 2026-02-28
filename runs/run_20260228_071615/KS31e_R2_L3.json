@@ -1,0 +1,39 @@
+{
+  "stage": "KS31e_R2_L3",
+  "timestamp": "2026-02-28T07:16:27.331418+00:00",
+  "data": {
+    "steps": [
+      {
+        "index": 0,
+        "text": "The sun revolves around the Earth",
+        "connector_to_next": null,
+        "connector_type": null,
+        "has_quantifier": false,
+        "has_negation": false,
+        "has_comparison": false,
+        "causal_links": [],
+        "has_missing_link": false,
+        "confounders": []
+      }
+    ],
+    "chain_length": 1,
+    "connectors_found": [],
+    "has_implicit_gaps": false,
+    "dependency_edges": [],
+    "causal_analysis": {
+      "causal_chain_length": 1,
+      "missing_links": [
+        "Absence of evidence for Earth's movement",
+        "Lack of understanding of gravity and inertia",
+        "Failure to account for parallax"
+      ],
+      "confounders": [
+        "Lack of understanding of relative motion",
+        "Limited astronomical data",
+        "Geocentric worldview"
+      ],
+      "overall_validity": "unfounded"
+    }
+  },
+  "metadata": {}
+}

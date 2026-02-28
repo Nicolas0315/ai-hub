@@ -1,0 +1,1214 @@
+{
+  "stage": "A_analogy_solvers",
+  "timestamp": "2026-02-28T07:06:19.715023+00:00",
+  "data": {
+    "a01_decomposition": {
+      "The": {
+        "original": "The",
+        "compound_splits": [],
+        "prefix": null,
+        "suffix": null
+      },
+      "sun": {
+        "original": "sun",
+        "compound_splits": [],
+        "prefix": null,
+        "suffix": null
+      },
+      "revolves": {
+        "original": "revolves",
+        "compound_splits": [
+          "rev+olves",
+          "revo+lves",
+          "revol+ves"
+        ],
+        "prefix": "re",
+        "suffix": null
+      },
+      "around": {
+        "original": "around",
+        "compound_splits": [],
+        "prefix": null,
+        "suffix": null
+      },
+      "the": {
+        "original": "the",
+        "compound_splits": [],
+        "prefix": null,
+        "suffix": null
+      },
+      "Earth": {
+        "original": "Earth",
+        "compound_splits": [],
+        "prefix": null,
+        "suffix": null
+      }
+    },
+    "a02_phonetic": {
+      "revolves": {
+        "word": "revolves",
+        "phones": [
+          "R",
+          "IY0",
+          "V",
+          "AA1",
+          "L",
+          "V",
+          "Z"
+        ],
+        "neighbors": [
+          {
+            "word": "resolves",
+            "phones": [
+              "R",
+              "IY0",
+              "Z",
+              "AA1",
+              "L",
+              "V",
+              "Z"
+            ],
+            "distance": 1
+          },
+          {
+            "word": "revolve",
+            "phones": [
+              "R",
+              "IY0",
+              "V",
+              "AA1",
+              "L",
+              "V"
+            ],
+            "distance": 1
+          },
+          {
+            "word": "revolved",
+            "phones": [
+              "R",
+              "IY0",
+              "V",
+              "AA1",
+              "L",
+              "V",
+              "D"
+            ],
+            "distance": 1
+          },
+          {
+            "word": "evolves",
+            "phones": [
+              "IH0",
+              "V",
+              "AA1",
+              "L",
+              "V",
+              "Z"
+            ],
+            "distance": 2
+          },
+          {
+            "word": "revolver",
+            "phones": [
+              "R",
+              "IH0",
+              "V",
+              "AA1",
+              "L",
+              "V",
+              "ER0"
+            ],
+            "distance": 2
+          }
+        ],
+        "pattern_matches": [
+          {
+            "word": "resolves",
+            "phones": [
+              "R",
+              "IY0",
+              "Z",
+              "AA1",
+              "L",
+              "V",
+              "Z"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "revolved",
+            "phones": [
+              "R",
+              "IY0",
+              "V",
+              "AA1",
+              "L",
+              "V",
+              "D"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "resolved",
+            "phones": [
+              "R",
+              "IY0",
+              "Z",
+              "AA1",
+              "L",
+              "V",
+              "D"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "feedlots",
+            "phones": [
+              "F",
+              "IY1",
+              "D",
+              "L",
+              "AA2",
+              "T",
+              "S"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "recharged",
+            "phones": [
+              "R",
+              "IY0",
+              "CH",
+              "AA1",
+              "R",
+              "JH",
+              "D"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "restart",
+            "phones": [
+              "R",
+              "IY0",
+              "S",
+              "T",
+              "AA1",
+              "R",
+              "T"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "restocked",
+            "phones": [
+              "R",
+              "IY0",
+              "S",
+              "T",
+              "AA1",
+              "K",
+              "T"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "devolved",
+            "phones": [
+              "D",
+              "IH0",
+              "V",
+              "AA1",
+              "L",
+              "V",
+              "D"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "involves",
+            "phones": [
+              "IH2",
+              "N",
+              "V",
+              "AA1",
+              "L",
+              "V",
+              "Z"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "absolves",
+            "phones": [
+              "AH0",
+              "B",
+              "Z",
+              "AA1",
+              "L",
+              "V",
+              "Z"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "involved",
+            "phones": [
+              "IH2",
+              "N",
+              "V",
+              "AA1",
+              "L",
+              "V",
+              "D"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "revolts",
+            "phones": [
+              "R",
+              "IY0",
+              "V",
+              "OW1",
+              "L",
+              "T",
+              "S"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "absolved",
+            "phones": [
+              "AH0",
+              "B",
+              "Z",
+              "AA1",
+              "L",
+              "V",
+              "D"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "rebounds",
+            "phones": [
+              "R",
+              "IY1",
+              "B",
+              "AW2",
+              "N",
+              "D",
+              "Z"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "recounts",
+            "phones": [
+              "R",
+              "IY2",
+              "K",
+              "AW1",
+              "N",
+              "T",
+              "S"
+            ],
+            "vowel_diff": 1
+          }
+        ],
+        "papers": [
+          {
+            "title": "The myth of language universals: Language diversity and its importance for cognitive science",
+            "year": 2009,
+            "cited_by": 2599
+          },
+          {
+            "title": "Syllable reconstruction in concatenated waveform speech synthesis",
+            "year": 1999,
+            "cited_by": 25
+          },
+          {
+            "title": "Remap, Warp and Attend: Non-Parallel Many-to-Many Accent Conversion with Normalizing Flows",
+            "year": 2023,
+            "cited_by": 2
+          }
+        ]
+      },
+      "around": {
+        "word": "around",
+        "phones": [
+          "ER0",
+          "AW1",
+          "N",
+          "D"
+        ],
+        "neighbors": [
+          {
+            "word": "'round",
+            "phones": [
+              "R",
+              "AW1",
+              "N",
+              "D"
+            ],
+            "distance": 1
+          },
+          {
+            "word": "round",
+            "phones": [
+              "R",
+              "AW1",
+              "N",
+              "D"
+            ],
+            "distance": 1
+          },
+          {
+            "word": "arend",
+            "phones": [
+              "ER0",
+              "EH1",
+              "N",
+              "D"
+            ],
+            "distance": 1
+          },
+          {
+            "word": "abound",
+            "phones": [
+              "AH0",
+              "B",
+              "AW1",
+              "N",
+              "D"
+            ],
+            "distance": 2
+          },
+          {
+            "word": "ground",
+            "phones": [
+              "G",
+              "R",
+              "AW1",
+              "N",
+              "D"
+            ],
+            "distance": 2
+          }
+        ],
+        "pattern_matches": [
+          {
+            "word": "aroused",
+            "phones": [
+              "ER0",
+              "AW1",
+              "Z",
+              "D"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "carouse",
+            "phones": [
+              "K",
+              "ER0",
+              "AW1",
+              "Z"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "fernao",
+            "phones": [
+              "F",
+              "ER0",
+              "N",
+              "AW1"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "fernau",
+            "phones": [
+              "F",
+              "ER1",
+              "N",
+              "AW0"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "about",
+            "phones": [
+              "AH0",
+              "B",
+              "AW1",
+              "T"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "afoul",
+            "phones": [
+              "AH0",
+              "F",
+              "AW1",
+              "L"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "aloud",
+            "phones": [
+              "AH0",
+              "L",
+              "AW1",
+              "D"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "arrange",
+            "phones": [
+              "ER0",
+              "EY1",
+              "N",
+              "JH"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "avowed",
+            "phones": [
+              "AH0",
+              "V",
+              "AW1",
+              "D"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "orourke",
+            "phones": [
+              "ER0",
+              "UH1",
+              "R",
+              "K"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "arend",
+            "phones": [
+              "ER0",
+              "EH1",
+              "N",
+              "D"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "arraigned",
+            "phones": [
+              "ER0",
+              "EY1",
+              "N",
+              "D"
+            ],
+            "vowel_diff": 1
+          }
+        ],
+        "papers": [
+          {
+            "title": "Development of a silent speech interface driven by ultrasound and optical images of the tongue and l",
+            "year": 2009,
+            "cited_by": 181
+          },
+          {
+            "title": "A theory of lexical access in speech production [target paper]",
+            "year": 1999,
+            "cited_by": 5055
+          },
+          {
+            "title": "Action recognition in the premotor cortex",
+            "year": 1996,
+            "cited_by": 4881
+          }
+        ]
+      },
+      "Earth": {
+        "word": "Earth",
+        "phones": [
+          "ER1",
+          "TH"
+        ],
+        "neighbors": [
+          {
+            "word": "dearth",
+            "phones": [
+              "D",
+              "ER1",
+              "TH"
+            ],
+            "distance": 1
+          },
+          {
+            "word": "eartha",
+            "phones": [
+              "ER1",
+              "TH",
+              "AH0"
+            ],
+            "distance": 1
+          },
+          {
+            "word": "earths",
+            "phones": [
+              "ER1",
+              "TH",
+              "S"
+            ],
+            "distance": 1
+          },
+          {
+            "word": "arth",
+            "phones": [
+              "AA1",
+              "R",
+              "TH"
+            ],
+            "distance": 2
+          },
+          {
+            "word": "bath",
+            "phones": [
+              "B",
+              "AE1",
+              "TH"
+            ],
+            "distance": 2
+          }
+        ],
+        "pattern_matches": [
+          {
+            "word": "earl",
+            "phones": [
+              "ER1",
+              "L"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "earle",
+            "phones": [
+              "ER1",
+              "L"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "earll",
+            "phones": [
+              "ER1",
+              "L"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "earn",
+            "phones": [
+              "ER1",
+              "N"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "earp",
+            "phones": [
+              "ER1",
+              "P"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "furrh",
+            "phones": [
+              "F",
+              "ER1"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "myrrh",
+            "phones": [
+              "M",
+              "ER1"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "ear",
+            "phones": [
+              "IY1",
+              "R"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "baugh",
+            "phones": [
+              "B",
+              "AO1"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "each",
+            "phones": [
+              "IY1",
+              "CH"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "eade",
+            "phones": [
+              "IY1",
+              "D"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "ease",
+            "phones": [
+              "IY1",
+              "Z"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "eash",
+            "phones": [
+              "IY1",
+              "SH"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "eat",
+            "phones": [
+              "IY1",
+              "T"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "eave",
+            "phones": [
+              "IY1",
+              "V"
+            ],
+            "vowel_diff": 1
+          }
+        ],
+        "papers": [
+          {
+            "title": "A theory of lexical access in speech production [target paper]",
+            "year": 1999,
+            "cited_by": 5055
+          },
+          {
+            "title": "Genetic versus Contact Relationship: Prosodic Diffusibility in South-East Asian Languages",
+            "year": 2001,
+            "cited_by": 78
+          },
+          {
+            "title": "Ensemble deep learning: A review",
+            "year": 2022,
+            "cited_by": 1876
+          }
+        ]
+      },
+      "_revo": {
+        "word": "revo",
+        "phones": null,
+        "neighbors": [],
+        "note": "not in CMU dictionary",
+        "papers": []
+      },
+      "_lves": {
+        "word": "lves",
+        "phones": null,
+        "neighbors": [],
+        "note": "not in CMU dictionary",
+        "papers": []
+      },
+      "_olves": {
+        "word": "olves",
+        "phones": null,
+        "neighbors": [],
+        "note": "not in CMU dictionary",
+        "papers": []
+      },
+      "_revol": {
+        "word": "revol",
+        "phones": null,
+        "neighbors": [],
+        "note": "not in CMU dictionary",
+        "papers": []
+      },
+      "_rev": {
+        "word": "rev",
+        "phones": [
+          "R",
+          "EH1",
+          "V"
+        ],
+        "neighbors": [
+          {
+            "word": "bev",
+            "phones": [
+              "B",
+              "EH1",
+              "V"
+            ],
+            "distance": 1
+          },
+          {
+            "word": "dev",
+            "phones": [
+              "D",
+              "EH1",
+              "V"
+            ],
+            "distance": 1
+          },
+          {
+            "word": "ev",
+            "phones": [
+              "EH1",
+              "V"
+            ],
+            "distance": 1
+          },
+          {
+            "word": "lev",
+            "phones": [
+              "L",
+              "EH1",
+              "V"
+            ],
+            "distance": 1
+          },
+          {
+            "word": "rec",
+            "phones": [
+              "R",
+              "EH1",
+              "K"
+            ],
+            "distance": 1
+          },
+          {
+            "word": "red",
+            "phones": [
+              "R",
+              "EH1",
+              "D"
+            ],
+            "distance": 1
+          },
+          {
+            "word": "ref",
+            "phones": [
+              "R",
+              "EH1",
+              "F"
+            ],
+            "distance": 1
+          },
+          {
+            "word": "re",
+            "phones": [
+              "R",
+              "EY1"
+            ],
+            "distance": 2
+          },
+          {
+            "word": "rea",
+            "phones": [
+              "R",
+              "EY1"
+            ],
+            "distance": 2
+          },
+          {
+            "word": "ree",
+            "phones": [
+              "R",
+              "IY1"
+            ],
+            "distance": 2
+          },
+          {
+            "word": "reo",
+            "phones": [
+              "R",
+              "IY1",
+              "OW0"
+            ],
+            "distance": 2
+          },
+          {
+            "word": "res",
+            "phones": [
+              "R",
+              "EY1",
+              "Z"
+            ],
+            "distance": 2
+          },
+          {
+            "word": "reva",
+            "phones": [
+              "R",
+              "EY1",
+              "V",
+              "AH0"
+            ],
+            "distance": 2
+          },
+          {
+            "word": "rew",
+            "phones": [
+              "R",
+              "UW1"
+            ],
+            "distance": 2
+          }
+        ],
+        "pattern_matches": [
+          {
+            "word": "bev",
+            "phones": [
+              "B",
+              "EH1",
+              "V"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "dev",
+            "phones": [
+              "D",
+              "EH1",
+              "V"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "lev",
+            "phones": [
+              "L",
+              "EH1",
+              "V"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "read",
+            "phones": [
+              "R",
+              "EH1",
+              "D"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "reade",
+            "phones": [
+              "R",
+              "EH1",
+              "D"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "rec",
+            "phones": [
+              "R",
+              "EH1",
+              "K"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "rech",
+            "phones": [
+              "R",
+              "EH1",
+              "K"
+            ],
+            "vowel_diff": 0
+          },
+          {
+            "word": "leve",
+            "phones": [
+              "L",
+              "IY1",
+              "V"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "neve",
+            "phones": [
+              "N",
+              "IY1",
+              "V"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "rave",
+            "phones": [
+              "R",
+              "EY1",
+              "V"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "re's",
+            "phones": [
+              "R",
+              "EY1",
+              "Z"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "rea's",
+            "phones": [
+              "R",
+              "EY1",
+              "Z"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "reach",
+            "phones": [
+              "R",
+              "IY1",
+              "CH"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "real",
+            "phones": [
+              "R",
+              "IY1",
+              "L"
+            ],
+            "vowel_diff": 1
+          },
+          {
+            "word": "ream",
+            "phones": [
+              "R",
+              "IY1",
+              "M"
+            ],
+            "vowel_diff": 1
+          }
+        ],
+        "papers": [
+          {
+            "title": "Action recognition in the premotor cortex",
+            "year": 1996,
+            "cited_by": 4881
+          },
+          {
+            "title": "Conv-TasNet: Surpassing Ideal Time–Frequency Magnitude Masking for Speech Separation",
+            "year": 2019,
+            "cited_by": 1955
+          },
+          {
+            "title": "Ensemble deep learning: A review",
+            "year": 2022,
+            "cited_by": 1876
+          }
+        ]
+      },
+      "_ves": {
+        "word": "ves",
+        "phones": null,
+        "neighbors": [],
+        "note": "not in CMU dictionary",
+        "papers": []
+      }
+    },
+    "a03_structural": [
+      {
+        "concept_a": "revolves",
+        "concept_b": "around",
+        "shared_attributes": [
+          "class:noun_default"
+        ],
+        "a_only_attributes": [
+          "final:Z",
+          "cv:CVCVCCC",
+          "pfx:re",
+          "revolves",
+          "stress:3",
+          "syl:3",
+          "init:R",
+          "phones:7",
+          "len:8"
+        ],
+        "b_only_attributes": [
+          "around",
+          "final:D",
+          "stress:1",
+          "compound:aro+und",
+          "cv:VVCC",
+          "init:ER",
+          "len:6",
+          "syl:2",
+          "phones:4"
+        ],
+        "overlap_ratio": 0.053,
+        "probes": {
+          "morphological": {
+            "shared": [],
+            "a_only": [
+              "pfx:re",
+              "len:8",
+              "syl:3"
+            ],
+            "b_only": [
+              "len:6",
+              "syl:2"
+            ]
+          },
+          "phonetic": {
+            "shared": [],
+            "a_only": [
+              "cv:CVCVCCC",
+              "init:R",
+              "stress:3",
+              "final:Z",
+              "phones:7"
+            ],
+            "b_only": [
+              "final:D",
+              "stress:1",
+              "cv:VVCC",
+              "init:ER",
+              "phones:4"
+            ]
+          },
+          "semantic_class": {
+            "shared": [
+              "class:noun_default"
+            ],
+            "a_only": [],
+            "b_only": []
+          },
+          "compound": {
+            "shared": [],
+            "a_only": [],
+            "b_only": [
+              "compound:aro+und"
+            ]
+          }
+        },
+        "external_source": "text_fallback"
+      }
+    ],
+    "a04_blends": [
+      {
+        "source": "A01:revolves",
+        "blend": "rev + olves",
+        "type": "compound_split"
+      },
+      {
+        "source": "A01:revolves",
+        "blend": "revo + lves",
+        "type": "compound_split"
+      },
+      {
+        "source": "A01:revolves",
+        "blend": "revol + ves",
+        "type": "compound_split"
+      },
+      {
+        "source": "A02:revolves>resolves",
+        "blend": "revolves ~ resolves (dist=1)",
+        "type": "phonetic_substitution",
+        "substituted_word": "resolves"
+      },
+      {
+        "source": "A02:revolves>revolve",
+        "blend": "revolves ~ revolve (dist=1)",
+        "type": "phonetic_substitution",
+        "substituted_word": "revolve"
+      },
+      {
+        "source": "A02:revolves>revolved",
+        "blend": "revolves ~ revolved (dist=1)",
+        "type": "phonetic_substitution",
+        "substituted_word": "revolved"
+      },
+      {
+        "source": "A02:revolves>evolves",
+        "blend": "revolves ~ evolves (dist=2)",
+        "type": "phonetic_substitution",
+        "substituted_word": "evolves"
+      },
+      {
+        "source": "A02:revolves>revolver",
+        "blend": "revolves ~ revolver (dist=2)",
+        "type": "phonetic_substitution",
+        "substituted_word": "revolver"
+      },
+      {
+        "source": "A02:pattern:revolves>resolves",
+        "blend": "revolves ~ resolves (vowel_diff=0)",
+        "type": "phoneme_pattern_match",
+        "substituted_word": "resolves"
+      },
+      {
+        "source": "A02:pattern:revolves>revolved",
+        "blend": "revolves ~ revolved (vowel_diff=0)",
+        "type": "phoneme_pattern_match",
+        "substituted_word": "revolved"
+      }
+    ],
+    "a05_premises": [],
+    "a06_chain": {
+      "steps": [
+        {
+          "index": 0,
+          "text": "The sun revolves around the Earth",
+          "connector_to_next": null,
+          "connector_type": null,
+          "has_quantifier": false,
+          "has_negation": false,
+          "has_comparison": false
+        }
+      ],
+      "chain_length": 1,
+      "connectors_found": [],
+      "has_implicit_gaps": false,
+      "dependency_edges": []
+    },
+    "candidates_generated": 10
+  },
+  "metadata": {}
+}

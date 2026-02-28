@@ -1,0 +1,39 @@
+{
+  "stage": "KS31e_R1b_propositions",
+  "timestamp": "2026-02-28T07:04:39.907025+00:00",
+  "data": {
+    "results": [
+      {
+        "text": "Coffee consumption occurs.",
+        "verdict": "PASS",
+        "pass_rate": 0.8148,
+        "type": "factual"
+      },
+      {
+        "text": "Alzheimer's disease does not develop.",
+        "verdict": "PASS",
+        "pass_rate": 0.8889,
+        "type": "factual"
+      },
+      {
+        "text": "Coffee consumption causes the prevention of Alzheimer's disease.",
+        "verdict": "PASS",
+        "pass_rate": 0.8889,
+        "type": "causal"
+      }
+    ],
+    "enrichment": {
+      "original_rate": 0.773,
+      "enriched_avg_rate": 0.8642,
+      "enriched_individual_rates": [
+        0.8148,
+        0.8889,
+        0.8889
+      ],
+      "delta": 0.0912,
+      "semantic_impact": "MODERATE",
+      "proposition_count": 3
+    }
+  },
+  "metadata": {}
+}

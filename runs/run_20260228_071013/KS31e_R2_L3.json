@@ -1,0 +1,49 @@
+{
+  "stage": "KS31e_R2_L3",
+  "timestamp": "2026-02-28T07:10:33.841465+00:00",
+  "data": {
+    "steps": [
+      {
+        "index": 0,
+        "text": "Water boils at 100 degrees Celsius at sea level",
+        "connector_to_next": null,
+        "connector_type": null,
+        "has_quantifier": false,
+        "has_negation": false,
+        "has_comparison": false,
+        "causal_links": [
+          {
+            "from": "Vapor pressure of water equals atmospheric pressure at sea level",
+            "to": "Water boils",
+            "mechanism": "Boiling occurs when the vapor pressure of the liquid equals the surrounding atmospheric pressure, allowing bubbles of vapor to form throughout the liquid and rise to the surface.",
+            "strength": "strong",
+            "reversible": false
+          },
+          {
+            "from": "Water boils",
+            "to": "Water temperature remains at 100 degrees Celsius (at sea level)",
+            "mechanism": "During boiling, the energy input is used to overcome the intermolecular forces holding the water molecules together in the liquid phase, rather than increasing the temperature. This maintains a constant temperature until all the water has vaporized.",
+            "strength": "strong",
+            "reversible": false
+          }
+        ],
+        "has_missing_link": false,
+        "confounders": []
+      }
+    ],
+    "chain_length": 1,
+    "connectors_found": [],
+    "has_implicit_gaps": false,
+    "dependency_edges": [],
+    "causal_analysis": {
+      "causal_chain_length": 5,
+      "missing_links": [],
+      "confounders": [
+        "Purity of water",
+        "Presence of dissolved substances"
+      ],
+      "overall_validity": "valid"
+    }
+  },
+  "metadata": {}
+}

@@ -1,0 +1,42 @@
+{
+  "stage": "KS31e_R0_L5_causal",
+  "timestamp": "2026-02-28T07:07:49.295365+00:00",
+  "data": {
+    "mode": "llm",
+    "causal_chain": [
+      {
+        "from": "Atmospheric pressure at sea level",
+        "to": "Water molecules gain kinetic energy when heated",
+        "mechanism": "Increased temperature provides energy for molecular motion",
+        "strength": "strong",
+        "reversible": false
+      },
+      {
+        "from": "Water molecules gain kinetic energy when heated",
+        "to": "Water molecules overcome intermolecular forces",
+        "mechanism": "Sufficient kinetic energy allows molecules to break free from liquid state",
+        "strength": "strong",
+        "reversible": false
+      },
+      {
+        "from": "Water molecules overcome intermolecular forces",
+        "to": "Water transitions from liquid to gaseous state (boiling)",
+        "mechanism": "Phase change occurs when intermolecular forces are overcome",
+        "strength": "strong",
+        "reversible": false
+      },
+      {
+        "from": "Atmospheric pressure at sea level",
+        "to": "Boiling point of water is 100 degrees Celsius",
+        "mechanism": "At standard atmospheric pressure, the temperature at which the vapor pressure of water equals the atmospheric pressure is 100°C",
+        "strength": "strong",
+        "reversible": false
+      }
+    ],
+    "confounders": [],
+    "missing_links": [],
+    "overall_causal_validity": "valid",
+    "latency_ms": 2560.0
+  },
+  "metadata": {}
+}

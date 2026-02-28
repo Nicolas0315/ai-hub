@@ -1,0 +1,36 @@
+{
+  "stage": "KS31e_R0_L5_semantics",
+  "timestamp": "2026-02-28T07:13:28.730280+00:00",
+  "data": {
+    "mode": "llm",
+    "propositions": [
+      {
+        "text": "Coffee consumption prevents Alzheimer's disease.",
+        "type": "causal"
+      },
+      {
+        "text": "Alzheimer's disease can be prevented.",
+        "type": "factual"
+      }
+    ],
+    "implicit_assumptions": [
+      "The definition of 'coffee' is universally understood.",
+      "The method of coffee consumption is irrelevant.",
+      "The amount of coffee consumed is sufficient to have an effect.",
+      "There are no other factors that negate the effect of coffee on Alzheimer's disease."
+    ],
+    "key_entities": [
+      "Coffee",
+      "Alzheimer's disease"
+    ],
+    "causal_links": [
+      {
+        "cause": "Coffee consumption",
+        "effect": "Prevention of Alzheimer's disease",
+        "strength": "strong"
+      }
+    ],
+    "latency_ms": 2125.0
+  },
+  "metadata": {}
+}

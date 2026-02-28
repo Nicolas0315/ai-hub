@@ -1,0 +1,97 @@
+{
+  "stage": "KS31e_final",
+  "timestamp": "2026-02-28T07:11:16.928334+00:00",
+  "data": {
+    "version": "KS33b",
+    "verdict": "UNVERIFIED",
+    "final_score": 0.773,
+    "cycle_count": 1,
+    "r1_verdict": "UNVERIFIED",
+    "r1_score": 0.773,
+    "solvers_passed": "22/28",
+    "elapsed_sec": 21.723,
+    "trace": [
+      {
+        "round": 0,
+        "layer": "L5",
+        "action": "semantic_extraction",
+        "mode": "llm",
+        "propositions": 3,
+        "causal_links": 1,
+        "causal_validity": "unfounded"
+      },
+      {
+        "round": 1,
+        "layer": "L1",
+        "action": "full_verify",
+        "verdict": "UNVERIFIED",
+        "score": 0.773
+      },
+      {
+        "round": "1b",
+        "layer": "L5+L1",
+        "action": "proposition_verify",
+        "proposition_count": 3,
+        "semantic_impact": "MODERATE",
+        "delta": 0.0912
+      },
+      {
+        "round": 2,
+        "layer": "L3",
+        "action": "causal_decompose",
+        "chain_length": 1,
+        "has_gaps": false,
+        "causal_validity": "unfounded"
+      }
+    ],
+    "semantic": {
+      "mode": "llm",
+      "propositions_extracted": 3,
+      "implicit_assumptions": 4,
+      "key_entities": [
+        "Coffee",
+        "Alzheimer's disease"
+      ]
+    },
+    "causal": {
+      "mode": "llm",
+      "chain_length": 1,
+      "missing_links": [
+        "Specific compounds in coffee responsible for the effect",
+        "Dosage of coffee required for the effect",
+        "Duration of coffee consumption required for the effect",
+        "Mechanism by which coffee interacts with the brain to prevent Alzheimer's",
+        "Whether the effect is preventative or simply delays onset",
+        "Whether the effect is consistent across different populations and genetic backgrounds"
+      ],
+      "confounders": [
+        "Genetic predisposition to Alzheimer's",
+        "Diet",
+        "Exercise",
+        "Smoking",
+        "Other lifestyle factors",
+        "Age",
+        "Pre-existing health conditions"
+      ],
+      "validity": "unfounded"
+    },
+    "enrichment": {
+      "original_rate": 0.773,
+      "enriched_avg_rate": 0.8642,
+      "enriched_individual_rates": [
+        0.8148,
+        0.8889,
+        0.8889
+      ],
+      "delta": 0.0912,
+      "semantic_impact": "MODERATE",
+      "proposition_count": 3
+    },
+    "flags": [
+      "CONTENT_AWARE",
+      "CAUSAL_WEAK"
+    ],
+    "note": "single_step_no_decomposition"
+  },
+  "metadata": {}
+}

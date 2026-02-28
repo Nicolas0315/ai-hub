@@ -75,8 +75,8 @@ class KS33b(KS33a):
             pass
         
         # ── Content Understanding + Bridge ──
-        cu_result = analyze_content(claim.text, store=store)
-        cb_result = bridge_content(cu_result, store=store)
+        cu_result = analyze_content(claim.text)
+        cb_result = bridge_content(cu_result)
         
         # Inject content signals as additional evidence
         content_evidence = [

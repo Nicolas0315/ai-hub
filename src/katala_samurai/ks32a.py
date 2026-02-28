@@ -136,18 +136,28 @@ class KS32a(KS31e):
     def _lightweight_verify(self, claim, store=None):
         """Lightweight verification for auto-generated goals.
         
-        Uses only L1 (S01-S28) without L4/L5 for speed.
+        Structural check only — no API calls, no domain bridge.
         Goals are structural probes, not full claims.
         """
-        if store is None:
-            store = StageStore()
-        
-        # Run only L1 base verification
+        # Ultra-lightweight: just check structural templates
         try:
-            from .ks30d import KS30d
+            from .analogical_transfer import match_templates
         except ImportError:
-            from ks30d import KS30d
+            from analogical_transfer import match_templates
         
-        base = KS30d()
-        result = base.verify(claim, store=store, skip_s28=True)
-        return result
+        text = claim.text if hasattr(claim, 'text') else str(claim)
+        matches = match_templates(text)
+        
+        if matches:
+            best = matches[0]
+            confidence = best.confidence
+            verdict = "PARTIALLY_VERIFIED" if confidence > 0.5 else "EXPLORING"
+        else:
+            confidence = 0.3
+            verdict = "UNVERIFIED"
+        
+        return {
+            "verdict": verdict,
+            "confidence": confidence,
+            "method": "lightweight_template_match",
+        }

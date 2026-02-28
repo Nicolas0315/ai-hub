@@ -1,0 +1,39 @@
+{
+  "stage": "KS31e_R1b_propositions",
+  "timestamp": "2026-02-28T07:20:53.591071+00:00",
+  "data": {
+    "results": [
+      {
+        "text": "Vaccines exist.",
+        "verdict": "PASS",
+        "pass_rate": 0.8148,
+        "type": "factual"
+      },
+      {
+        "text": "Autism exists.",
+        "verdict": "PASS",
+        "pass_rate": 0.8148,
+        "type": "factual"
+      },
+      {
+        "text": "Vaccines do not cause autism.",
+        "verdict": "PASS",
+        "pass_rate": 0.8889,
+        "type": "causal"
+      }
+    ],
+    "enrichment": {
+      "original_rate": 0.8285,
+      "enriched_avg_rate": 0.8395,
+      "enriched_individual_rates": [
+        0.8148,
+        0.8148,
+        0.8889
+      ],
+      "delta": 0.011,
+      "semantic_impact": "LOW",
+      "proposition_count": 3
+    }
+  },
+  "metadata": {}
+}

@@ -1,0 +1,46 @@
+{
+  "run_id": "run_20260228_065859",
+  "created_at": "2026-02-28T06:58:59.559593+00:00",
+  "stages": {
+    "KS31e_R0_L5_semantics": {
+      "file": "KS31e_R0_L5_semantics.json",
+      "written_at": "2026-02-28T06:59:04.217810+00:00",
+      "hash": "ab969bbe3aef616c"
+    },
+    "KS31e_R0_L5_causal": {
+      "file": "KS31e_R0_L5_causal.json",
+      "written_at": "2026-02-28T06:59:04.218125+00:00",
+      "hash": "2d4168213589d85c"
+    },
+    "KS31e_R1_L1": {
+      "file": "KS31e_R1_L1.json",
+      "written_at": "2026-02-28T06:59:04.218276+00:00",
+      "hash": "eba1e694fa81141a"
+    },
+    "KS31e_R1b_propositions": {
+      "file": "KS31e_R1b_propositions.json",
+      "written_at": "2026-02-28T06:59:04.377334+00:00",
+      "hash": "0f2e4d793e836871"
+    },
+    "KS31e_R2_L3": {
+      "file": "KS31e_R2_L3.json",
+      "written_at": "2026-02-28T06:59:04.380224+00:00",
+      "hash": "fbeb006dd9b85b17"
+    },
+    "KS31e_final": {
+      "file": "KS31e_final.json",
+      "written_at": "2026-02-28T06:59:04.380813+00:00",
+      "hash": "cdfc34d45d176951"
+    }
+  },
+  "integrity": {
+    "KS31e_R0_L5_semantics": "ab969bbe3aef616c",
+    "KS31e_R0_L5_causal": "2d4168213589d85c",
+    "KS31e_R1_L1": "eba1e694fa81141a",
+    "KS31e_R1b_propositions": "0f2e4d793e836871",
+    "KS31e_R2_L3": "fbeb006dd9b85b17",
+    "KS31e_final": "cdfc34d45d176951"
+  },
+  "finalized_at": "2026-02-28T06:59:04.381161+00:00",
+  "total_stages": 6
+}

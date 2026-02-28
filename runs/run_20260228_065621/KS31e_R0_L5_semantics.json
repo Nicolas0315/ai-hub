@@ -1,0 +1,46 @@
+{
+  "stage": "KS31e_R0_L5_semantics",
+  "timestamp": "2026-02-28T06:56:27.409425+00:00",
+  "data": {
+    "mode": "llm",
+    "propositions": [
+      {
+        "text": "Water boils at 100 degrees Celsius.",
+        "type": "factual"
+      },
+      {
+        "text": "Sea level exists.",
+        "type": "factual"
+      },
+      {
+        "text": "The boiling point of water is dependent on pressure.",
+        "type": "causal"
+      },
+      {
+        "text": "The atmospheric pressure at sea level is a specific, standard value.",
+        "type": "factual"
+      }
+    ],
+    "implicit_assumptions": [
+      "The water is pure (or sufficiently pure).",
+      "The measurement of temperature is accurate.",
+      "The atmospheric pressure is standard atmospheric pressure at sea level."
+    ],
+    "key_entities": [
+      "Water",
+      "Boiling Point",
+      "Temperature (Celsius)",
+      "Sea Level",
+      "Atmospheric Pressure"
+    ],
+    "causal_links": [
+      {
+        "cause": "Atmospheric Pressure",
+        "effect": "Boiling Point of Water",
+        "strength": "strong"
+      }
+    ],
+    "latency_ms": 2883.0
+  },
+  "metadata": {}
+}

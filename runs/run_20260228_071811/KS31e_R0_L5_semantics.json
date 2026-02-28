@@ -1,0 +1,30 @@
+{
+  "stage": "KS31e_R0_L5_semantics",
+  "timestamp": "2026-02-28T07:18:15.611415+00:00",
+  "data": {
+    "mode": "llm",
+    "propositions": [
+      {
+        "text": "Water boils.",
+        "type": "factual"
+      },
+      {
+        "text": "The boiling point of water is 100 degrees Celsius.",
+        "type": "factual"
+      }
+    ],
+    "implicit_assumptions": [
+      "The measurement is taken at standard atmospheric pressure.",
+      "The water is pure (or relatively pure).",
+      "The temperature scale is Celsius."
+    ],
+    "key_entities": [
+      "water",
+      "boiling point",
+      "temperature"
+    ],
+    "causal_links": [],
+    "latency_ms": 1548.0
+  },
+  "metadata": {}
+}

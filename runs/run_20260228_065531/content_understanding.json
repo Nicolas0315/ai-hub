@@ -1,0 +1,45 @@
+{
+  "stage": "content_understanding",
+  "timestamp": "2026-02-28T06:55:31.977845+00:00",
+  "data": {
+    "negation": {
+      "negations": [
+        {
+          "type": "prefix",
+          "word": "degrees",
+          "context": "r boils at 100 degrees Celsius",
+          "position": 19
+        }
+      ],
+      "negation_count": 1,
+      "density": 0.0,
+      "has_double_negation": false,
+      "counterfactual": null,
+      "meaning_change_risk": "low"
+    },
+    "semantic_roles": {
+      "roles": [
+        {
+          "agent": "Water boils at",
+          "action": "100",
+          "patient": "degrees Celsius",
+          "modifiers": []
+        }
+      ],
+      "role_count": 1,
+      "has_quantifiers": false
+    },
+    "implications": {
+      "implications": [],
+      "count": 0,
+      "types": [],
+      "has_hedging": false,
+      "has_distancing": false,
+      "reliability_signal": "direct"
+    },
+    "content_signals": 2,
+    "content_depth": 0.67,
+    "reliability": "direct"
+  },
+  "metadata": {}
+}

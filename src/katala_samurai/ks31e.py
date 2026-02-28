@@ -290,7 +290,7 @@ class KS31e:
         self.l3 = Layer3()
         self.l5 = Layer5()
 
-    def verify(self, claim, store=None):
+    def verify(self, claim, store=None, skip_s28=True):
         """Run semantic-augmented cyclic verification."""
         t0 = time.time()
         trace = []

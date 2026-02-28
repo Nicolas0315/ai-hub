@@ -1,0 +1,39 @@
+{
+  "stage": "KS31e_R1b_propositions",
+  "timestamp": "2026-02-28T07:03:08.942800+00:00",
+  "data": {
+    "results": [
+      {
+        "text": "Water boils at 100 degrees Celsius.",
+        "verdict": "PASS",
+        "pass_rate": 0.8148,
+        "type": "factual"
+      },
+      {
+        "text": "Sea level is a specific atmospheric pressure.",
+        "verdict": "PASS",
+        "pass_rate": 0.8889,
+        "type": "definitional"
+      },
+      {
+        "text": "Water boils at a specific temperature that is dependent on atmospheric pressure.",
+        "verdict": "PASS",
+        "pass_rate": 0.8889,
+        "type": "causal"
+      }
+    ],
+    "enrichment": {
+      "original_rate": 0.7667,
+      "enriched_avg_rate": 0.8642,
+      "enriched_individual_rates": [
+        0.8148,
+        0.8889,
+        0.8889
+      ],
+      "delta": 0.0975,
+      "semantic_impact": "MODERATE",
+      "proposition_count": 3
+    }
+  },
+  "metadata": {}
+}

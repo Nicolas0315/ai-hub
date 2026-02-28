@@ -1,0 +1,17 @@
+{
+  "stage": "ks32a_goals",
+  "timestamp": "2026-02-28T07:16:15.869096+00:00",
+  "data": {
+    "generated": 0,
+    "verified": 0,
+    "supporting": 0,
+    "challenging": 0,
+    "goal_results": [],
+    "sources": {
+      "G1_gaps": 0,
+      "G2_contradictions": 0,
+      "G3_expansions": 0
+    }
+  },
+  "metadata": {}
+}

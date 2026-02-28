@@ -1,0 +1,127 @@
+{
+  "stage": "_verdict",
+  "timestamp": "2026-02-28T07:04:39.723572+00:00",
+  "data": {
+    "verdict": "UNVERIFIED",
+    "final_score": 0.773,
+    "solvers_passed": "22/28",
+    "ks27_pass_rate": 0.8148,
+    "s28_score": 0.6475,
+    "s28_breakdown": {
+      "data_hash_verification": 0.3,
+      "weight_reproducibility": 0.75,
+      "multi_llm_consensus": 1.0,
+      "training_determinism": 0.7,
+      "composite_score": 0.647
+    },
+    "elapsed_sec": 54.521,
+    "solver_results": {
+      "S01_Z3_SMT": true,
+      "S02_SAT_Glucose3": true,
+      "S03_SymPy": true,
+      "S04_Z3_FOL": true,
+      "S05_CategoryTheory": true,
+      "S06_EuclideanDist": true,
+      "S07_LinearAlgebra": true,
+      "S08_ConvexHull": true,
+      "S09_Voronoi": true,
+      "S10_CosineSim": true,
+      "S11_InfoGeoV2": true,
+      "S12_Spherical": true,
+      "S13_Riemannian": true,
+      "S14_TDA": false,
+      "S15_deSitter": true,
+      "S16_Projective": true,
+      "S17_Lorentz": false,
+      "S18_Symplectic": false,
+      "S19_Finsler": true,
+      "S20_SubRiemannian": true,
+      "S21_Alexandrov": true,
+      "S22_Kahler": false,
+      "S23_Tropical": true,
+      "S24_Spectral": true,
+      "S25_FisherKL": false,
+      "S26_ZFC": true,
+      "S27_KAM": true,
+      "S28_Reproducibility": false
+    },
+    "concept_confidences": {
+      "p0": 1.0,
+      "p1": 1.0,
+      "p2": 1.0,
+      "p3": 1.0,
+      "p4": 1.0
+    },
+    "dispute": {
+      "conflict_type": "leaning",
+      "split": "22T / 5F",
+      "split_ratio": 0.815,
+      "true_solvers": [
+        "S01_Z3_SMT",
+        "S02_SAT_Glucose3",
+        "S03_SymPy",
+        "S04_Z3_FOL",
+        "S05_CategoryTheory",
+        "S06_EuclideanDist",
+        "S07_LinearAlgebra",
+        "S08_ConvexHull",
+        "S09_Voronoi",
+        "S10_CosineSim",
+        "S11_InfoGeoV2",
+        "S12_Spherical",
+        "S13_Riemannian",
+        "S15_deSitter",
+        "S16_Projective",
+        "S19_Finsler",
+        "S20_SubRiemannian",
+        "S21_Alexandrov",
+        "S23_Tropical",
+        "S24_Spectral",
+        "S26_ZFC",
+        "S27_KAM"
+      ],
+      "false_solvers": [
+        "S14_TDA",
+        "S17_Lorentz",
+        "S18_Symplectic",
+        "S22_Kahler",
+        "S25_FisherKL"
+      ],
+      "category_splits": {
+        "formal_logic": {
+          "true": 5,
+          "false": 0,
+          "ratio": 1.0
+        },
+        "geometric": {
+          "true": 8,
+          "false": 0,
+          "ratio": 1.0
+        },
+        "topological": {
+          "true": 4,
+          "false": 3,
+          "ratio": 0.57
+        },
+        "algebraic": {
+          "true": 4,
+          "false": 2,
+          "ratio": 0.67
+        },
+        "meta": {
+          "true": 1,
+          "false": 0,
+          "ratio": 1.0
+        }
+      },
+      "dissenting_categories": [],
+      "note": "Auto-resolution disabled. Dispute data is for inspection only."
+    },
+    "papers_aligned": 0,
+    "unknown_terms_resolved": 4,
+    "unknown_terms_unresolved": 0,
+    "analogy_candidates": 10,
+    "top_paper": "On the Indifferentiability of Key-Alternating Ciphers"
+  },
+  "metadata": {}
+}

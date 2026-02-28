@@ -1,0 +1,39 @@
+{
+  "stage": "ks32a_goals",
+  "timestamp": "2026-02-28T07:05:57.229300+00:00",
+  "data": {
+    "generated": 3,
+    "verified": 3,
+    "supporting": 0,
+    "challenging": 3,
+    "goal_results": [
+      {
+        "goal": "Related: Water content: quantity of water contained in a material",
+        "source": "G3_scope_expander",
+        "priority": 0.55,
+        "verdict": "UNVERIFIED",
+        "confidence": 0.3
+      },
+      {
+        "goal": "Related: Water quality: chemical, physical, biological, and radiological charact",
+        "source": "G3_scope_expander",
+        "priority": 0.55,
+        "verdict": "UNVERIFIED",
+        "confidence": 0.3
+      },
+      {
+        "goal": "Related: Water resource management: management of water by humans",
+        "source": "G3_scope_expander",
+        "priority": 0.55,
+        "verdict": "UNVERIFIED",
+        "confidence": 0.3
+      }
+    ],
+    "sources": {
+      "G1_gaps": 0,
+      "G2_contradictions": 0,
+      "G3_expansions": 3
+    }
+  },
+  "metadata": {}
+}

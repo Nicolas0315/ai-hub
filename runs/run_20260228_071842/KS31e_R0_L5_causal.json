@@ -1,0 +1,39 @@
+{
+  "stage": "KS31e_R0_L5_causal",
+  "timestamp": "2026-02-28T07:18:47.750287+00:00",
+  "data": {
+    "mode": "llm",
+    "causal_chain": [
+      {
+        "from": "Increased kinetic energy of water molecules due to heating",
+        "to": "Water molecules overcome intermolecular forces",
+        "mechanism": "Heat increases molecular motion, weakening the bonds holding the water molecules together in a liquid state.",
+        "strength": "strong",
+        "reversible": false
+      },
+      {
+        "from": "Water molecules overcome intermolecular forces",
+        "to": "Vapor pressure of water equals atmospheric pressure",
+        "mechanism": "As more molecules escape into the gaseous phase, the vapor pressure increases until it matches the surrounding atmospheric pressure.",
+        "strength": "strong",
+        "reversible": false
+      },
+      {
+        "from": "Atmospheric pressure is at sea level standard",
+        "to": "Boiling point is 100 degrees Celsius",
+        "mechanism": "By definition, the boiling point is the temperature at which vapor pressure equals atmospheric pressure. At standard sea level pressure, this occurs at 100 degrees Celsius for pure water.",
+        "strength": "strong",
+        "reversible": false
+      }
+    ],
+    "confounders": [
+      "Impurities in water",
+      "Altitude",
+      "Presence of dissolved substances"
+    ],
+    "missing_links": [],
+    "overall_causal_validity": "valid",
+    "latency_ms": 2657.0
+  },
+  "metadata": {}
+}

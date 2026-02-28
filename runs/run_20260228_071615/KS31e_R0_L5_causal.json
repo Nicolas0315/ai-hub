@@ -1,0 +1,29 @@
+{
+  "stage": "KS31e_R0_L5_causal",
+  "timestamp": "2026-02-28T07:16:19.351376+00:00",
+  "data": {
+    "mode": "llm",
+    "causal_chain": [
+      {
+        "from": "Observation of the sun's movement across the sky",
+        "to": "Belief that the sun revolves around the Earth",
+        "mechanism": "Direct visual interpretation of observed motion as orbital path",
+        "strength": "strong",
+        "reversible": false
+      }
+    ],
+    "confounders": [
+      "Lack of understanding of relative motion",
+      "Limited astronomical data",
+      "Geocentric worldview"
+    ],
+    "missing_links": [
+      "Absence of evidence for Earth's movement",
+      "Lack of understanding of gravity and inertia",
+      "Failure to account for parallax"
+    ],
+    "overall_causal_validity": "unfounded",
+    "latency_ms": 1615.0
+  },
+  "metadata": {}
+}

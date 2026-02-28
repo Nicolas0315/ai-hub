@@ -1,0 +1,9 @@
+{
+  "stage": "S01_Z3_SMT",
+  "timestamp": "2026-02-28T07:10:42.538795+00:00",
+  "data": {
+    "passed": true,
+    "claim_hash": "The sun revolves around the Earth"
+  },
+  "metadata": {}
+}

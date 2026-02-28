@@ -1,0 +1,39 @@
+{
+  "stage": "KS31e_R1b_propositions",
+  "timestamp": "2026-02-28T06:59:04.377334+00:00",
+  "data": {
+    "results": [
+      {
+        "text": "Water exists.",
+        "verdict": "PASS",
+        "pass_rate": 0.8148,
+        "type": "factual"
+      },
+      {
+        "text": "Boiling is a physical process.",
+        "verdict": "PASS",
+        "pass_rate": 0.8889,
+        "type": "definitional"
+      },
+      {
+        "text": "The boiling point of water is 100 degrees Celsius.",
+        "verdict": "PASS",
+        "pass_rate": 0.8889,
+        "type": "factual"
+      }
+    ],
+    "enrichment": {
+      "original_rate": 0.0,
+      "enriched_avg_rate": 0.8642,
+      "enriched_individual_rates": [
+        0.8148,
+        0.8889,
+        0.8889
+      ],
+      "delta": 0.8642,
+      "semantic_impact": "HIGH",
+      "proposition_count": 3
+    }
+  },
+  "metadata": {}
+}
