@@ -30,7 +30,7 @@ except ImportError:
 class KS40b(KS40a):
     """KS40a with auto-layer detection and consistency diagnostics."""
 
-    VERSION = "KS40b"
+    VERSION = "KS40c"
 
     _LAYER_PATTERNS: Dict[str, List[str]] = {
         "math": [r"∑", r"∫", r"∀", r"∃", r"\btheorem\b", r"\blemma\b", r"\bproof\b", r"\bn\s*=\s*\d+\b"],
