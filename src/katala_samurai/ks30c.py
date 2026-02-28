@@ -683,19 +683,10 @@ class KS30c(object):
         ]
 
     def verify(self, claim, store=None):
-        # [FIX-3] evidenceゲート: evidence=0なら即UNVERIFIED
-        if not claim.evidence:
-            return {
-                "verdict": "UNVERIFIED",
-                "reason": "evidence_gate: no evidence provided",
-                "final_score": 0.0,
-                "solvers_passed": "0/28",
-                "ks27_pass_rate": 0.0,
-                "s28_score": 0.0,
-                "s28_breakdown": {},
-                "elapsed_sec": 0.0,
-                "solver_results": {},
-            }
+        # [FIX-3 v2] evidenceゲート: evidence=Noneでもソルバーは実行する
+        # 高pass_rate(>=20/28)なら外部エビデンスなしでも判定続行
+        # 元の即UNVERIFIED → 判定を最後まで通す
+        _no_evidence = not claim.evidence
 
         t0 = time.time()
         results = {}
@@ -747,7 +738,15 @@ class KS30c(object):
 
         ks27_pass_rate = sum(v for k, v in results.items() if k != "S28_Reproducibility") / 27
         final_score = ks27_pass_rate * 0.75 + s28_score * 0.25
-        verdict = final_score > 0.80 and passed_count >= 25
+        # [FIX-3 v2] 高pass_rateなら外部エビデンスなしでもVERIFIED可能
+        if _no_evidence and ks27_pass_rate < 0.75:
+            # エビデンスなし＋低pass_rate → UNVERIFIED
+            verdict = False
+        elif _no_evidence and ks27_pass_rate >= 0.75:
+            # エビデンスなし＋高pass_rate → ソルバー合意を信頼（閾値緩和）
+            verdict = final_score > 0.70 and passed_count >= 20
+        else:
+            verdict = final_score > 0.80 and passed_count >= 25
 
         output = {
             "verdict": "VERIFIED" if verdict else "UNVERIFIED",

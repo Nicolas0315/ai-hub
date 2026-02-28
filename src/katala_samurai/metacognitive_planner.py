@@ -35,10 +35,15 @@ _CLAIM_PATTERNS = {
     "definitional": [
         r"\bis\s+(defined|the)\b", r"\bmeans?\s+that\b", r"\brefers?\s+to\b",
         r"\bby\s+definition\b", r"\bis\s+known\s+as\b",
+        r"\bis\s+a\b", r"\bare\s+(a|the|an)\b",
+        r"\bcalled\b", r"\bthe\s+capital\s+of\b",
     ],
     "empirical": [
         r"\bstudy\b", r"\bresearch\b", r"\bexperiment\b", r"\bobserv(e|ed|ation)\b",
         r"\bdata\s+show", r"\bevidence\b", r"\bmeasur(e|ed|ement)\b",
+        r"\borbit", r"\bboil", r"\bfreez", r"\bmelt", r"\brotate",
+        r"\bspeed\s+of\b", r"\btemperature\b", r"\bpressure\b",
+        r"\bdegrees?\b", r"\bkilomet[er]", r"\bmiles?\b",
     ],
     "logical": [
         r"\btherefore\b", r"\bthus\b", r"\bhence\b", r"\bit\s+follows\b",

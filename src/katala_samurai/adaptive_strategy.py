@@ -98,8 +98,13 @@ class AdaptiveStrategy:
         conf = mid_results.get("confidence", 0.5)
         
         # ── Trigger 1: Dead zone → switch to adversarial_first ──
+        # [FIX] r1_score高い場合（ソルバー大多数が合意）はdevil_advocate抑制
+        r1_score = mid_results.get("r1_score", mid_results.get("ks27_pass_rate", 0))
         if 0.4 <= conf <= 0.6 and current_strategy != "adversarial_first" and current_strategy != "devil_advocate":
-            return ("devil_advocate", f"Dead zone (conf={conf:.2f}) — switching to devil's advocate to force resolution")
+            if r1_score >= 0.8:
+                pass  # ソルバー合意率80%+なのにdead zone → 信頼度計算の問題であり反論の問題ではない
+            else:
+                return ("devil_advocate", f"Dead zone (conf={conf:.2f}) — switching to devil's advocate to force resolution")
         
         # ── Trigger 2: Statistical issues found → focus statistical ──
         l6 = mid_results.get("L6_statistical", {})
