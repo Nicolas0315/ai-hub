@@ -546,6 +546,120 @@ def a05_premise_challenger(text):
     return premises[:10]
 
 
+
+
+# ─── A06: Chain Decomposer ──────────────────────────────────────────────────
+
+_CAUSAL_CONNECTORS = [
+    # (pattern, split_type) — ordered by specificity
+    (r'\b(therefore|thus|hence|consequently|accordingly)\b', "conclusion"),
+    (r'\b(because|since|as a result of|due to|owing to)\b', "cause"),
+    (r'\b(so that|in order to|so)\b', "purpose"),
+    (r'\b(if|when|whenever|unless|provided that)\b', "condition"),
+    (r'\b(implies|entails|leads to|results in|causes)\b', "implication"),
+    (r'\b(but|however|although|despite|nevertheless)\b', "contrast"),
+    (r'\b(and|also|moreover|furthermore|additionally)\b', "conjunction"),
+    (r'\b(then)\b', "sequence"),
+]
+
+_STEP_MARKERS = [
+    (r'\b(first|firstly|initially|to begin)\b', 1),
+    (r'\b(second|secondly|next|then)\b', 2),
+    (r'\b(third|thirdly|finally|lastly)\b', 3),
+]
+
+
+def a06_chain_decompose(text):
+    """Decompose a reasoning chain into individual steps.
+    
+    Non-LLM: regex-based detection of explicit logical connectors,
+    sentence boundary splitting, and dependency chain construction.
+    
+    Returns list of steps with connector types and dependency edges.
+    """
+    # Step 1: Split into sentences
+    sentences = re.split(r'(?<=[.!?])\s+', text.strip())
+    if len(sentences) <= 1:
+        # Try splitting on connectors within a single sentence
+        for pattern, stype in _CAUSAL_CONNECTORS:
+            parts = re.split(pattern, text, flags=re.IGNORECASE)
+            if len(parts) > 1:
+                # Filter out the connector matches themselves
+                sentences = [p.strip() for p in parts if p.strip() and not re.match(pattern, p.strip(), re.IGNORECASE)]
+                break
+    
+    if not sentences:
+        return {"steps": [], "chain_length": 0, "connectors_found": [],
+                "has_implicit_gaps": False, "dependency_edges": []}
+    
+    # Step 2: Detect connectors between/within sentences
+    steps = []
+    connectors_found = []
+    
+    for i, sent in enumerate(sentences):
+        step = {
+            "index": i,
+            "text": sent.strip(),
+            "connector_to_next": None,
+            "connector_type": None,
+            "has_quantifier": bool(re.search(r'\b(all|every|any|no|some|most|few|each)\b', sent, re.IGNORECASE)),
+            "has_negation": bool(re.search(r"\b(not|no|never|neither|nor|cannot)\b", sent, re.IGNORECASE)),
+            "has_comparison": bool(re.search(r'\b(more|less|greater|fewer|better|worse|larger|smaller|than|as .+ as)\b', sent, re.IGNORECASE)),
+        }
+        
+        # Check what connector leads INTO this sentence
+        for pattern, stype in _CAUSAL_CONNECTORS:
+            if re.search(pattern, sent, re.IGNORECASE):
+                step["connector_type"] = stype
+                connectors_found.append({"type": stype, "step": i})
+                break
+        
+        # Check for step markers
+        for pattern, order in _STEP_MARKERS:
+            if re.search(pattern, sent, re.IGNORECASE):
+                step["explicit_order"] = order
+                break
+        
+        steps.append(step)
+    
+    # Step 3: Build dependency edges
+    # Each step depends on the previous (linear chain assumption)
+    # Connector types modify the dependency relationship
+    dependency_edges = []
+    for i in range(1, len(steps)):
+        edge = {
+            "from": i - 1,
+            "to": i,
+            "relation": steps[i].get("connector_type", "sequence"),
+        }
+        dependency_edges.append(edge)
+    
+    # Step 4: Detect implicit gaps
+    # Gap indicators: large semantic jumps (subject change between sentences)
+    has_implicit_gaps = False
+    for i in range(1, len(steps)):
+        prev_words = set(re.findall(r'[A-Za-z]+', steps[i-1]["text"].lower()))
+        curr_words = set(re.findall(r'[A-Za-z]+', steps[i]["text"].lower()))
+        # Remove stopwords
+        stops = {"the","a","an","is","are","was","were","be","been","being",
+                 "have","has","had","do","does","did","will","would","shall",
+                 "should","may","might","can","could","and","or","but","in",
+                 "on","at","to","for","of","with","by","from","it","this","that"}
+        prev_content = prev_words - stops
+        curr_content = curr_words - stops
+        overlap = prev_content & curr_content
+        if prev_content and curr_content and not overlap:
+            has_implicit_gaps = True
+            steps[i]["implicit_gap_flag"] = True
+    
+    return {
+        "steps": steps,
+        "chain_length": len(steps),
+        "connectors_found": connectors_found,
+        "has_implicit_gaps": has_implicit_gaps,
+        "dependency_edges": dependency_edges,
+    }
+
 # ─── Analogy Pipeline ───────────────────────────────────────────────────────
 
 def run_analogy_solvers(claim_text, focus_words=None, store=None):
@@ -597,12 +711,16 @@ def run_analogy_solvers(claim_text, focus_words=None, store=None):
     # A05: Challenge premises
     premises = a05_premise_challenger(claim_text)
     
+    # A06: Chain decomposition
+    chain = a06_chain_decompose(claim_text)
+    
     result = {
         "a01_decomposition": decomposition,
         "a02_phonetic": phonetic_results,
         "a03_structural": structural_maps,
         "a04_blends": blends,
         "a05_premises": premises,
+        "a06_chain": chain,
         "candidates_generated": len(blends),
     }
     
