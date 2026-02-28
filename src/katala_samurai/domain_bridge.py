@@ -25,7 +25,7 @@ def _conceptnet_expand(term, max_edges=10):
     """Expand a term via ConceptNet relations."""
     try:
         url = f"http://api.conceptnet.io/c/en/{urllib.parse.quote(term.lower())}?limit={max_edges}"
-        req = urllib.request.Request(url, headers={"User-Agent": "KS31d-DomainBridge/1.0"})
+        req = urllib.request.Request(url, headers={"User-Agent": "KS31e-DomainBridge/1.0"})
         with urllib.request.urlopen(req, timeout=8) as resp:
             data = _json.loads(resp.read().decode())
         
@@ -76,7 +76,7 @@ def _openalex_concepts(term, max_results=5):
             "mailto": "katala@openclaw.ai",
         }
         url = "https://api.openalex.org/concepts?" + urllib.parse.urlencode(params)
-        req = urllib.request.Request(url, headers={"User-Agent": "KS31d-DomainBridge/1.0"})
+        req = urllib.request.Request(url, headers={"User-Agent": "KS31e-DomainBridge/1.0"})
         with urllib.request.urlopen(req, timeout=8) as resp:
             data = _json.loads(resp.read().decode())
         
