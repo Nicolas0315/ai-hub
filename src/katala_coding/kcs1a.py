@@ -24,6 +24,21 @@ import re
 from dataclasses import dataclass, field, asdict
 from typing import Any
 
+# ── Named Constants (extracted from magic numbers) ──
+MAX_RECOMMENDED_NESTING = 4
+MIN_FUNCTION_NAME_LENGTH = 3
+LOW_CONCEPT_COVERAGE_THRESHOLD = 0.3
+OVERENGINEERING_RATIO = 3.0
+LOW_DOCSTRING_THRESHOLD = 0.5
+MAX_LINE_LENGTH = 100
+MAGIC_NUMBER_WARN_THRESHOLD = 5
+LOW_TYPE_HINT_THRESHOLD = 0.3
+HIGH_GLOBAL_STATE_THRESHOLD = 10
+HEAVY_KWARGS_THRESHOLD = 3
+HARDCODED_STRING_WARN_THRESHOLD = 5
+MIN_FUNC_COUNT_FOR_TEST_CHECK = 5
+SCORE_DECIMAL_PLACES = 4
+
 
 @dataclass(slots=True)
 class CodeVerdict:
@@ -152,13 +167,13 @@ def _compute_r_struct(design_text: str, code: str, structure: dict) -> tuple[flo
     else:
         concept_coverage = 0.5
 
-    if concept_coverage < 0.3:
+    if concept_coverage < LOW_CONCEPT_COVERAGE_THRESHOLD:
         issues.append(f"Low design coverage: {concept_coverage:.0%} of concepts found in code")
 
     # 2. Complexity penalty
     depth_penalty = 0.0
-    if structure["max_depth"] > 4:
-        depth_penalty = min(0.3, (structure["max_depth"] - 4) * 0.1)
+    if structure["max_depth"] > MAX_RECOMMENDED_NESTING:
+        depth_penalty = min(0.3, (structure["max_depth"] - MAX_RECOMMENDED_NESTING) * 0.1)
         issues.append(f"Deep nesting: {structure['max_depth']} levels (recommended ≤4)")
 
     # 3. Inheritance chain penalty (Composition > Inheritance)
@@ -255,7 +270,7 @@ def _compute_r_qualia(code: str, structure: dict) -> tuple[float, list[str]]:
 
     # 1. Naming quality
     func_names = structure.get("function_names", [])
-    bad_names = [n for n in func_names if len(n) < 3 or n.startswith('_') and n.count('_') > 2]
+    bad_names = [n for n in func_names if len(n) < MIN_FUNCTION_NAME_LENGTH or n.startswith('_') and n.count('_') > 2]
     if func_names:
         naming_ratio = 1.0 - len(bad_names) / len(func_names)
         score_components.append(naming_ratio)
@@ -271,14 +286,14 @@ def _compute_r_qualia(code: str, structure: dict) -> tuple[float, list[str]]:
         docstrings_found = len(re.findall(docstring_pattern, code))
         doc_ratio = min(1.0, docstrings_found / func_count)
         score_components.append(doc_ratio)
-        if doc_ratio < 0.5:
+        if doc_ratio < LOW_DOCSTRING_THRESHOLD:
             warnings.append(f"Low docstring coverage: {doc_ratio:.0%}")
     else:
         score_components.append(0.5)
 
     # 3. Line length (readability)
     lines = code.splitlines()
-    long_lines = sum(1 for l in lines if len(l) > 100)
+    long_lines = sum(1 for l in lines if len(l) > MAX_LINE_LENGTH)
     if lines:
         length_ratio = 1.0 - min(1.0, long_lines / max(1, len(lines)))
         score_components.append(length_ratio)
@@ -292,7 +307,7 @@ def _compute_r_qualia(code: str, structure: dict) -> tuple[float, list[str]]:
     # Filter out common safe numbers (0, 1, 2, 100, etc.)
     safe = {'0', '1', '2', '0.0', '1.0', '0.5', '100', '1000', '10'}
     magic = [n for n in magic_numbers if n not in safe]
-    if len(magic) > 5:
+    if len(magic) > MAGIC_NUMBER_WARN_THRESHOLD:
         warnings.append(f"Many magic numbers: consider named constants ({len(magic)} found)")
         score_components.append(max(0.3, 1.0 - len(magic) * 0.03))
     else:
@@ -304,7 +319,7 @@ def _compute_r_qualia(code: str, structure: dict) -> tuple[float, list[str]]:
     if func_count > 0:
         hint_ratio = min(1.0, type_hints / func_count)
         score_components.append(hint_ratio)
-        if hint_ratio < 0.3:
+        if hint_ratio < LOW_TYPE_HINT_THRESHOLD:
             warnings.append("Low type hint coverage")
     else:
         score_components.append(0.5)
@@ -397,26 +412,26 @@ def _compute_r_temporal(code: str, structure: dict) -> tuple[float, list[str]]:
     # 2. Global state = hard to refactor
     global_vars = re.findall(r'^[A-Z_]{2,}\s*[=:]', code, re.MULTILINE)
     module_vars = re.findall(r'^_[A-Z_]+\s*=', code, re.MULTILINE)
-    if len(global_vars) + len(module_vars) > 10:
+    if len(global_vars) + len(module_vars) > HIGH_GLOBAL_STATE_THRESHOLD:
         penalty = min(0.2, (len(global_vars) + len(module_vars) - 10) * 0.02)
         score -= penalty
         risks.append(f"High global state: {len(global_vars) + len(module_vars)} module-level variables")
 
     # 3. Hardcoded values = brittle
     hardcoded = re.findall(r'(?:==|!=|>=|<=|>|<)\s*["\'][^"\']{5,}["\']', code)
-    if len(hardcoded) > 5:
+    if len(hardcoded) > HARDCODED_STRING_WARN_THRESHOLD:
         score -= 0.1
         risks.append(f"Hardcoded string comparisons: {len(hardcoded)}")
 
     # 4. kwargs propagation = version coupling
     kwargs_pass = len(re.findall(r'\*\*kwargs', code))
-    if kwargs_pass > 3:
+    if kwargs_pass > HEAVY_KWARGS_THRESHOLD:
         score -= min(0.15, kwargs_pass * 0.03)
         risks.append(f"Heavy **kwargs propagation ({kwargs_pass}x) — tight version coupling")
 
     # 5. Test presence heuristic
     has_tests = bool(re.search(r'def test_|assert |pytest|unittest', code))
-    if not has_tests and structure.get("functions", 0) > 5:
+    if not has_tests and structure.get("functions", 0) > MIN_FUNC_COUNT_FOR_TEST_CHECK:
         score -= 0.1
         risks.append("No test functions detected for non-trivial module")
 
