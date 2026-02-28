@@ -1,4 +1,4 @@
-"""HTLF Phase 1 measurement pipeline package."""
+"""HTLF Phase 2 measurement pipeline package."""
 
 from .pipeline import LossVector, run_pipeline
 

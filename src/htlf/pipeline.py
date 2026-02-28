@@ -1,4 +1,4 @@
-"""Integrated HTLF Phase 1 pipeline with CLI."""
+"""Integrated HTLF Phase 2 pipeline with CLI."""
 
 from __future__ import annotations
 
@@ -14,7 +14,7 @@ from .scorer import compute_scores
 
 @dataclass(slots=True)
 class LossVector:
-    """Main output vector of HTLF Phase 1."""
+    """Main output vector of HTLF Phase 2."""
 
     r_struct: float
     r_context: float
@@ -57,7 +57,7 @@ def _read_text(path: Path) -> str:
 
 def main() -> None:
     """CLI entrypoint: python -m htlf.pipeline --source a.txt --target b.txt"""
-    parser = argparse.ArgumentParser(description="Run HTLF Phase 1 measurement pipeline")
+    parser = argparse.ArgumentParser(description="Run HTLF Phase 2 measurement pipeline")
     parser.add_argument("--source", required=True, help="Path to source text file (paper)")
     parser.add_argument("--target", required=True, help="Path to target text file (news)")
     parser.add_argument("--threshold", type=float, default=0.7, help="Node match threshold")
