@@ -11,17 +11,35 @@ from typing import Literal
 from .matcher import get_similarity_backend_name, match_dags
 from .parser import extract_dag
 from .scorer import compute_scores
+from .cultural_loss import compute_cultural_loss, CulturalLossResult
+from .temporal_loss import compute_temporal_loss, TemporalLossResult
 
 
 @dataclass(slots=True)
 class LossVector:
-    """Main output vector of HTLF."""
+    """Main output vector of HTLF.
+    
+    5-axis model:
+      R_struct, R_context, R_qualia — original 3 axes
+      R_cultural — cultural translation loss (Quine/Duhem-Quine)
+      R_temporal — temporal translation loss (Kuhn/Barthes)
+    
+    R_cultural and R_temporal include indeterminacy measures per Quine's
+    thesis that translation between radically different frameworks is
+    underdetermined by all possible behavioral evidence.
+    """
 
     r_struct: float
     r_context: float
     r_qualia: float | None
+    r_cultural: float | None           # Cultural loss estimate
+    r_cultural_indeterminacy: float | None  # Quinean indeterminacy width
+    r_temporal: float | None           # Temporal loss estimate
+    r_temporal_indeterminacy: float | None  # Paradigmatic indeterminacy
     total_loss: float
     profile_type: str
+    cultural_detail: dict | None = None  # Full CulturalLossResult as dict
+    temporal_detail: dict | None = None  # Full TemporalLossResult as dict
     parser_backend: str = "llm"
     context_backend: str = "heuristic"
     qualia_backend: str = "online_approximation"
@@ -53,12 +71,40 @@ def run_pipeline(
         physio_data=physio_data,
     )
 
+    # Cultural and temporal loss (new axes)
+    cultural = compute_cultural_loss(source_text, target_text)
+    temporal = compute_temporal_loss(source_text, target_text)
+
+    # 5-axis total loss: weighted average including cultural/temporal
+    # Cultural/temporal contribute as loss (not preservation), so they add to loss
+    rq = scores.r_qualia if scores.r_qualia is not None else 0.5
+    base_loss = 1.0 - (0.30 * scores.r_struct + 0.30 * scores.r_context + 0.25 * float(rq))
+    cultural_temporal_loss = 0.075 * cultural.loss_estimate + 0.075 * temporal.loss_estimate
+    total_loss = min(1.0, base_loss + cultural_temporal_loss)
+
     return LossVector(
         r_struct=scores.r_struct,
         r_context=scores.r_context,
         r_qualia=scores.r_qualia,
-        total_loss=scores.total_loss,
+        r_cultural=cultural.loss_estimate,
+        r_cultural_indeterminacy=cultural.indeterminacy,
+        r_temporal=temporal.loss_estimate,
+        r_temporal_indeterminacy=temporal.indeterminacy,
+        total_loss=total_loss,
         profile_type=scores.profile_type,
+        cultural_detail={
+            "cultural_distance": cultural.cultural_distance,
+            "holistic_dependency": cultural.holistic_dependency,
+            "concept_gaps": cultural.concept_gaps,
+        },
+        temporal_detail={
+            "paradigm_distance": temporal.paradigm_distance,
+            "semantic_drift": temporal.semantic_drift,
+            "web_decay": temporal.web_decay,
+            "incommensurable_concepts": temporal.incommensurable_concepts,
+            "era_source": temporal.era_source,
+            "era_target": temporal.era_target,
+        },
         parser_backend="mock" if use_mock_parser else "llm",
         context_backend=scores.context_backend,
         qualia_backend=scores.qualia_backend,

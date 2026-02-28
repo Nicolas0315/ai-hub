@@ -97,7 +97,13 @@ class KS40a(KS39b):
                 "r_struct": lv.r_struct,
                 "r_context": lv.r_context,
                 "r_qualia": lv.r_qualia,
+                "r_cultural": getattr(lv, "r_cultural", None),
+                "r_cultural_indeterminacy": getattr(lv, "r_cultural_indeterminacy", None),
+                "r_temporal": getattr(lv, "r_temporal", None),
+                "r_temporal_indeterminacy": getattr(lv, "r_temporal_indeterminacy", None),
             },
+            "cultural_detail": getattr(lv, "cultural_detail", None),
+            "temporal_detail": getattr(lv, "temporal_detail", None),
             "profile_type": h.profile_type,
             "translation_fidelity": h.translation_fidelity,
             "measurement_reliability": {
