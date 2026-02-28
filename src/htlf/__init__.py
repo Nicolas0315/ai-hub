@@ -1,5 +1,6 @@
-"""HTLF Phase 2 measurement pipeline package."""
+"""HTLF measurement pipeline package."""
 
+from .ks29b_integration import HTLFResult, HTLFScorer
 from .pipeline import LossVector, run_pipeline
 
-__all__ = ["LossVector", "run_pipeline"]
+__all__ = ["LossVector", "HTLFResult", "HTLFScorer", "run_pipeline"]
