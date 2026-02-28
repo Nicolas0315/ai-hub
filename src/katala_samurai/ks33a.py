@@ -32,10 +32,16 @@ try:
     from .ks32a import KS32a, Claim
     from .ephemeral_learning import EphemeralSession
     from .stage_store import StageStore
+    from .content_understanding import analyze_content
+    from .goal_quality import filter_goals_by_quality
+    from .learning_optimizer import LearningOptimizer
 except ImportError:
     from ks32a import KS32a, Claim
     from ephemeral_learning import EphemeralSession
     from stage_store import StageStore
+    from content_understanding import analyze_content
+    from goal_quality import filter_goals_by_quality
+    from learning_optimizer import LearningOptimizer
 
 
 class KS33a(KS32a):
@@ -54,6 +60,7 @@ class KS33a(KS32a):
     def __init__(self, ephemeral=True, **kwargs):
         super().__init__(**kwargs)
         self.session = EphemeralSession(enabled=ephemeral)
+        self.optimizer = LearningOptimizer(self.session)
     
     def verify(self, claim, store=None, skip_s28=True):
         """Full verification with ephemeral learning.
@@ -72,8 +79,33 @@ class KS33a(KS32a):
         if isinstance(claim, str):
             claim = Claim(text=claim, evidence=[])
         
+        # ── Content Understanding Enhancement ──
+        cu_result = analyze_content(claim.text, store=store)
+        if store:
+            store.write("content_understanding", cu_result)
+
         # Run KS32a verification (includes KS31e + goals)
         result = super().verify(claim, store=store, skip_s28=skip_s28)
+        result["content_understanding"] = {
+            "negation_count": cu_result["negation"]["negation_count"],
+            "meaning_change_risk": cu_result["negation"]["meaning_change_risk"],
+            "semantic_roles": cu_result["semantic_roles"]["role_count"],
+            "implications": cu_result["implications"]["count"],
+            "reliability": cu_result["reliability"],
+            "content_depth": cu_result["content_depth"],
+        }
+
+        # ── Goal Quality Filtering ──
+        goals = result.get("autonomous_goals", {})
+        if goals.get("goal_results"):
+            quality_result = filter_goals_by_quality(
+                goals["goal_results"], claim.text
+            )
+            result["autonomous_goals"]["quality_filtered"] = {
+                "before": quality_result["total"],
+                "after": quality_result["filtered"],
+                "avg_quality": quality_result["avg_quality"],
+            }
         
         if not self.session.enabled:
             result["version"] = self.VERSION
