@@ -187,10 +187,44 @@ def a02_phonetic_neighbor(word, max_distance=2, max_results=10):
     except Exception:
         pass
     
+    # Phoneme pattern search: find words with similar vowel structure
+    pattern_matches = []
+    if target:
+        target_stripped = [re.sub(r'\d', '', p) for p in target]
+        vowel_set = {"AA","AE","AH","AO","AW","AY","EH","ER","EY","IH","IY","OW","OY","UH","UW"}
+        target_vowels = [p for p in target_stripped if p in vowel_set]
+        
+        for candidate, phone_lists in cmu.items():
+            if candidate == word_lower:
+                continue
+            for phones in phone_lists:
+                cand_stripped = [re.sub(r'\d', '', p) for p in phones]
+                if len(cand_stripped) == len(target_stripped):
+                    cand_vowels = [p for p in cand_stripped if p in vowel_set]
+                    if len(cand_vowels) == len(target_vowels):
+                        vowel_diff = sum(1 for a, b in zip(target_vowels, cand_vowels) if a != b)
+                        if vowel_diff <= 1:
+                            pattern_matches.append({
+                                "word": candidate,
+                                "phones": phones,
+                                "vowel_diff": vowel_diff,
+                            })
+                break
+        
+        # Guarantee both vowel_diff=0 and vowel_diff=1 appear
+        # Sort by string similarity to target word (most similar first)
+        def _str_sim(w):
+            shared = sum(1 for a, b in zip(w, word_lower) if a == b)
+            return -shared
+        d0 = sorted([p for p in pattern_matches if p["vowel_diff"] == 0], key=lambda x: _str_sim(x["word"]))
+        d1 = sorted([p for p in pattern_matches if p["vowel_diff"] == 1], key=lambda x: _str_sim(x["word"]))
+        pattern_matches = d0[:7] + d1[:8]
+
     return {
         "word": word,
         "phones": target,
         "neighbors": neighbors,
+        "pattern_matches": pattern_matches,
         "papers": papers,
     }
 
@@ -286,6 +320,37 @@ def a03_structural_mapping(concept_a, concept_b):
     }
 
 
+def a03_solver_fingerprint(concept_a, concept_b, solvers):
+    """Compare concepts by their solver pass/fail pattern.
+    Non-LLM: reuses S01-S27 as structural probes.
+    """
+    try:
+        from katala_samurai.ks30d import Claim
+    except ImportError:
+        from ks30d import Claim
+    import hashlib as _hl
+    
+    def _make_claim(c):
+        return Claim(text=f"{c} is a meaningful concept", evidence=[c],
+                     source_llm=None, training_data_hash=_hl.sha256(c.encode()).hexdigest())
+    
+    fp_a, fp_b = {}, {}
+    for name, fn in solvers:
+        try: fp_a[name] = bool(fn(_make_claim(concept_a)))
+        except: fp_a[name] = False
+        try: fp_b[name] = bool(fn(_make_claim(concept_b)))
+        except: fp_b[name] = False
+    
+    shared = {k for k in fp_a if fp_a[k] == fp_b[k]}
+    diff = {k for k in fp_a if fp_a[k] != fp_b[k]}
+    
+    return {
+        "concept_a": concept_a, "concept_b": concept_b,
+        "shared_solvers": list(shared), "different_solvers": list(diff),
+        "structural_similarity": round(len(shared) / max(len(fp_a), 1), 3),
+    }
+
+
 # ─── A04: Conceptual Blending ──────────────────────────────────────────────
 
 def a04_conceptual_blending(decomposition, phonetic_results, structural_map):
@@ -312,10 +377,20 @@ def a04_conceptual_blending(decomposition, phonetic_results, structural_map):
         original = phonetic_results["word"]
         for neighbor in phonetic_results["neighbors"][:5]:
             candidates.append({
-                "source": f"A02:{original}→{neighbor['word']}",
-                "blend": f"{original} ≈ {neighbor['word']} (dist={neighbor['distance']})",
+                "source": f"A02:{original}>{neighbor['word']}",
+                "blend": f"{original} ~ {neighbor['word']} (dist={neighbor['distance']})",
                 "type": "phonetic_substitution",
                 "substituted_word": neighbor["word"],
+            })
+    # From A02 pattern matches
+    if phonetic_results and phonetic_results.get("pattern_matches"):
+        original = phonetic_results["word"]
+        for pm in phonetic_results["pattern_matches"][:3]:
+            candidates.append({
+                "source": f"A02:pattern:{original}>{pm['word']}",
+                "blend": f"{original} ~ {pm['word']} (vowel_diff={pm['vowel_diff']})",
+                "type": "phoneme_pattern_match",
+                "substituted_word": pm["word"],
             })
     
     # From A03: shared attributes suggest mapping paths
@@ -424,11 +499,19 @@ def run_analogy_solvers(claim_text, focus_words=None, store=None):
     # A03: Structural mapping between key concept pairs
     content_words = [w for w in decomposition.keys() if len(w) > 3]
     structural_maps = []
+    solver_fingerprints = []
     if len(content_words) >= 2:
-        # Map first pair as demo (limit to avoid API overload)
         structural_maps.append(
             a03_structural_mapping(content_words[0], content_words[1])
         )
+        try:
+            from katala_samurai.ks30d import KS30d
+            _ks = KS30d()
+            solver_fingerprints.append(
+                a03_solver_fingerprint(content_words[0], content_words[1], _ks.solvers)
+            )
+        except Exception:
+            pass
     
     # A04: Blend candidates from A01-A03
     first_phonetic = phonetic_results.get(focus_words[0]) if focus_words else None
@@ -442,6 +525,7 @@ def run_analogy_solvers(claim_text, focus_words=None, store=None):
         "a01_decomposition": decomposition,
         "a02_phonetic": phonetic_results,
         "a03_structural": structural_maps,
+        "a03_solver_fingerprints": solver_fingerprints,
         "a04_blends": blends,
         "a05_premises": premises,
         "candidates_generated": len(blends),
