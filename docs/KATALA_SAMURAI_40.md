@@ -222,3 +222,32 @@ Python fallback 完備（Rust ビルド不可環境でも動作）。
 | Raga → Western desc | 0.278±0.421 | 0.000±0.000 | raga, shruti, tala |
 | Aristotle → Modern physics | 0.530±0.610 | 0.690±0.810 | space, cause |
 | Phlogiston → Oxygen | 0.136±0.223 | 0.543±0.559 | phlogiston, aether |
+
+---
+
+## 10. KCS — Katala Coding Series (Self-Referential Application)
+
+**Date**: 2026-03-01  
+**Origin**: Youta Hilono's design insight — KS40cを自身のコーディングプロセスに適用する
+
+### 10.1 Core Thesis
+
+「コーディングは翻訳である」— 設計意図（概念空間）→ コード（形式言語空間）の変換における情報損失を、KS40cの5軸モデルで定量化する。
+
+### 10.2 Self-Reference Without Paradox
+
+KSシリーズが無矛盾な公理系をモジュール的に構成しているため、ゲーデル限界を局所的に回避。各測定軸（R_struct, R_context, R_qualia, R_cultural, R_temporal）が独立した公理系として互いを検証する構造により、自己参照が実用的なフィードバックループとして機能する。
+
+### 10.3 Transparency Gain
+
+AI→コード変換のブラックボックスに共通の測定基盤が入ったことで、設計者・AI・コード間の翻訳損失が可視化された。クワイン的に不確定性は消せないが、どの軸でどれだけ損失しているかが数値化され、修正がピンポイントで効くようになった。
+
+### 10.4 Operational Structure
+
+```
+人間(設計) → AI(翻訳) → コード → KCS(監査) → AI(修正) → KCS(再監査)
+```
+
+Full design document: `docs/KCS.md`  
+Implementation: `src/katala_coding/kcs1a.py`  
+GitHub Issue: #92
