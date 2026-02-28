@@ -1,0 +1,35 @@
+{
+  "theory_1": {
+    "r_struct": 0.16666666666666666,
+    "r_context": 0.5425540720720209,
+    "r_qualia": 0.7712770360360104,
+    "total_loss": 0.2287229639639896,
+    "profile_type": "P11_qualia_sum",
+    "parser_backend": "mock",
+    "context_backend": "heuristic",
+    "qualia_backend": "online_approximation",
+    "matcher_backend": "sentence_transformers"
+  },
+  "theory_2": {
+    "r_struct": 0.0,
+    "r_context": 0.5356819815058907,
+    "r_qualia": 0.7678409907529453,
+    "total_loss": 0.23215900924705468,
+    "profile_type": "P11_qualia_sum",
+    "parser_backend": "mock",
+    "context_backend": "heuristic",
+    "qualia_backend": "online_approximation",
+    "matcher_backend": "sentence_transformers"
+  },
+  "theory_3": {
+    "r_struct": 0.0,
+    "r_context": 0.5305738247369167,
+    "r_qualia": 0.7652869123684584,
+    "total_loss": 0.23471308763154164,
+    "profile_type": "P11_qualia_sum",
+    "parser_backend": "mock",
+    "context_backend": "heuristic",
+    "qualia_backend": "online_approximation",
+    "matcher_backend": "sentence_transformers"
+  }
+}
