@@ -1,5 +1,5 @@
 """
-Katala_Samurai_30 (KS30) — 28-Solver Hybrid Verification System
+Katala_Samurai_30d (KS30d) — 28-Solver Hybrid Verification System + Anti-Accumulation + Unknown Term Resolution
 KS29 + 修正: fail-closed化, 恒真ソルバー修正, evidenceゲート, S28実測型layer_c
 
 Changes from KS29 (Gemini analysis, 2026-02-27):
@@ -8,11 +8,36 @@ Changes from KS29 (Gemini analysis, 2026-02-27):
   [FIX-3] KS30.verify()先頭にevidenceゲート追加 (evidence=0 → 即UNVERIFIED)
   [FIX-4] S28 layer_c を実測型に変更 (Gemini API 3回呼び出し, 一致率計算)
   [FIX-5] s27_kam のfail-safe除去 (KS30.verify内のexceptもfail-closed化)
+
+KS30c additions (Design: Youta Hilono, 2026-02-28):
+  [C-1] S2 confidence estimation via multi-solver mini-verification
+  [C-2] S7 paper understanding: abstract → S2 concept extraction → claim alignment
+  [C-3] Dispute resolution: conflict point visualization when solvers split
+  [C-4] Paper Session Cache: 1-run-only, no cross-run accumulation (anti-Tay principle)
+  
+  Design principle: 「蓄積しない検証器」
+  - 蓄積 = 過去のバイアス固定 = 汚染リスク
+  - 毎回ゼロから検証、毎回最新論文参照
+  - StageStoreは再現可能性の記録であり、学習DBではない
+
+KS30d additions (Design: Youta Hilono, 2026-02-28):
+  [A-solvers] Analogy Solvers (A01-A05): non-LLM analogy expansion pipeline
+  [D-1] Unknown Term Resolution: 未知の用語検出 → 内部参照(memory/knowledge) + 外部参照(OpenAlex査読論文) → 応答前に自動解決
 """
 
 import os
 import sys
 import time
+import urllib.request
+import urllib.parse
+import json as _json
+
+try:
+    from .analogy_solvers import run_analogy_solvers
+except ImportError:
+    import sys as _sys
+    _sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    from analogy_solvers import run_analogy_solvers
 
 # Stage externalization for cross-stage reference integrity
 try:
@@ -413,9 +438,341 @@ class ReproducibilitySolver:
         return score > 0.75, score, breakdown
 
 
+
+# ─── [D-1] Unknown Term Resolution ──────────────────────────────────────────
+
+def resolve_unknown_terms(text, known_concepts=None, knowledge_dir=None, store=None):
+    """Detect unknown terms in input and resolve via internal + external references.
+    
+    Design (Youta Hilono, 2026-02-28):
+      When an unknown term appears, do NOT respond with "I don't know".
+      Instead: search internal knowledge → search OpenAlex → respond with findings.
+      If nothing found: "confirmed no information available" (not "unknown").
+    
+    Steps:
+      1. Extract candidate terms from input
+      2. Check against known_concepts (if provided)
+      3. Search internal knowledge files (if knowledge_dir provided)
+      4. Search OpenAlex for peer-reviewed papers (fresh fetch, no cache)
+      5. Return resolution results per term
+    """
+    # Extract candidate terms (words/phrases that might need resolution)
+    stops = {"the", "a", "an", "is", "are", "not", "and", "or", "of", "in",
+             "to", "for", "that", "this", "it", "by", "on", "with", "has",
+             "was", "be", "we", "our", "can", "do", "does", "what", "how",
+             "why", "when", "where", "which", "who", "if", "so", "but",
+             "from", "as", "at", "about", "into", "through", "using"}
+    
+    words = text.split()
+    # Extract potential terms: capitalized words, long words, quoted phrases
+    candidates = set()
+    for w in words:
+        clean = w.strip(",.;:?!()\"\'[]<>@")
+        if not clean or clean.lower() in stops or len(clean) <= 2:
+            continue
+        # Capitalized or long or contains numbers/special patterns
+        if clean[0].isupper() or len(clean) > 6 or any(c.isdigit() for c in clean):
+            candidates.add(clean)
+        # CJK characters
+        if any(ord(c) > 0x3000 for c in clean):
+            candidates.add(clean)
+    
+    if known_concepts:
+        known_lower = {k.lower() for k in known_concepts}
+        candidates = {c for c in candidates if c.lower() not in known_lower}
+    
+    if not candidates:
+        return {"terms_checked": 0, "resolutions": {}}
+    
+    resolutions = {}
+    
+    for term in candidates:
+        resolution = {
+            "term": term,
+            "internal_found": False,
+            "external_found": False,
+            "internal_source": None,
+            "external_papers": [],
+        }
+        
+        # Step 3: Internal knowledge search
+        if knowledge_dir and os.path.isdir(knowledge_dir):
+            for root, dirs, files in os.walk(knowledge_dir):
+                for fname in files:
+                    if fname.endswith(".md"):
+                        fpath = os.path.join(root, fname)
+                        try:
+                            with open(fpath, "r", encoding="utf-8") as f:
+                                file_content = f.read(5000)  # first 5KB only
+                            if term.lower() in file_content.lower():
+                                resolution["internal_found"] = True
+                                resolution["internal_source"] = os.path.relpath(fpath, knowledge_dir)
+                                break
+                        except Exception:
+                            continue
+                if resolution["internal_found"]:
+                    break
+        
+        # Step 4: OpenAlex search (fresh, no cache) — title + abstract match
+        if not resolution["internal_found"]:
+            try:
+                papers = _fetch_openalex_abstracts(term, per_page=5, timeout=8)
+                for paper in papers:
+                    title = paper.get("title", "")
+                    abstract = _reconstruct_abstract(paper.get("abstract_inverted_index"))
+                    # Match against title OR abstract
+                    title_match = term.lower() in title.lower()
+                    abstract_match = abstract and term.lower() in abstract.lower()
+                    if title_match or abstract_match:
+                        resolution["external_found"] = True
+                        resolution["external_papers"].append({
+                            "title": title[:100],
+                            "year": paper.get("publication_year"),
+                            "cited_by": paper.get("cited_by_count", 0),
+                            "match_type": "title" if title_match else "abstract",
+                        })
+            except Exception:
+                pass
+        
+        resolutions[term] = resolution
+    
+    result = {
+        "terms_checked": len(candidates),
+        "resolved_internally": sum(1 for r in resolutions.values() if r["internal_found"]),
+        "resolved_externally": sum(1 for r in resolutions.values() if r["external_found"]),
+        "unresolved": sum(1 for r in resolutions.values() 
+                         if not r["internal_found"] and not r["external_found"]),
+        "resolutions": resolutions,
+    }
+    
+    if store is not None:
+        store.write("D1_unknown_term_resolution", result)
+    
+    return result
+
+
+# ─── [C-1] S2 Confidence Estimator ──────────────────────────────────────────
+
+def estimate_concept_confidence(concept_text, solvers_subset):
+    """Estimate confidence of a key_concept using existing solvers as validators.
+    
+    Each concept is treated as a mini-claim and run through a subset of solvers.
+    Pass rate = confidence score.
+    No new modules needed — reuses existing solver infrastructure.
+    """
+    mini_claim = Claim(
+        text=f"{concept_text} is a relevant concept",
+        evidence=[concept_text],
+        source_llm=None,
+        training_data_hash=None,
+    )
+    passed = 0
+    total = 0
+    for name, fn in solvers_subset:
+        try:
+            result = fn(mini_claim)
+            if result:
+                passed += 1
+            total += 1
+        except Exception:
+            total += 1  # fail-closed: count as attempted
+    
+    return round(passed / max(total, 1), 3)
+
+
+# ─── [C-2] Paper Understanding (abstract → S2 extraction → alignment) ───────
+
+def _fetch_openalex_abstracts(search_query, per_page=5, timeout=10):
+    """Fetch papers with abstracts from OpenAlex. 1-run session cache only."""
+    params = {
+        "search": search_query,
+        "per_page": str(per_page),
+        "select": "id,title,publication_year,cited_by_count,doi,abstract_inverted_index",
+        "sort": "relevance_score:desc",
+        "mailto": "katala@openclaw.ai",
+    }
+    url = "https://api.openalex.org/works?" + urllib.parse.urlencode(params)
+    try:
+        req = urllib.request.Request(url, headers={"User-Agent": "KS30c/1.0"})
+        with urllib.request.urlopen(req, timeout=timeout) as resp:
+            data = _json.loads(resp.read().decode())
+            return data.get("results", [])
+    except Exception:
+        return []
+
+
+def _reconstruct_abstract(inverted_index):
+    """Reconstruct abstract from OpenAlex inverted index."""
+    if not inverted_index:
+        return None
+    word_positions = []
+    for word, positions in inverted_index.items():
+        for pos in positions:
+            word_positions.append((pos, word))
+    word_positions.sort()
+    return " ".join(w for _, w in word_positions)[:500]
+
+
+def _extract_paper_concepts(abstract_text):
+    """Extract key concepts from paper abstract using same logic as S2.
+    
+    No LLM dependency — pure text analysis to avoid contamination.
+    """
+    if not abstract_text:
+        return []
+    stops = {"the", "a", "an", "is", "are", "not", "and", "or", "of", "in",
+             "to", "for", "that", "this", "it", "by", "on", "with", "has",
+             "was", "be", "we", "our", "their", "from", "as", "at", "which",
+             "these", "can", "been", "were", "but", "also", "than", "its",
+             "more", "between", "such", "using", "based", "results", "show",
+             "study", "method", "approach", "paper", "proposed", "used"}
+    words = [w.strip(",.;:?!()[]'\"") for w in abstract_text.lower().split()]
+    content_words = [w for w in words if w not in stops and len(w) > 3]
+    
+    # Frequency-based extraction (top concepts)
+    from collections import Counter
+    freq = Counter(content_words)
+    return [word for word, _ in freq.most_common(10)]
+
+
+def compute_paper_alignment(claim_concepts, paper_concepts):
+    """Compute concept overlap between claim and paper.
+    
+    Returns alignment score (0-1) and shared concepts.
+    """
+    if not claim_concepts or not paper_concepts:
+        return 0.0, []
+    claim_set = set(c.lower() if isinstance(c, str) else c.get("term", "").lower() 
+                    for c in claim_concepts)
+    paper_set = set(paper_concepts)
+    shared = claim_set & paper_set
+    union = claim_set | paper_set
+    score = len(shared) / max(len(union), 1)
+    return round(score, 3), list(shared)
+
+
+def understand_papers(claim_key_concepts, search_query, store=None, per_page=5):
+    """[C-2] Full paper understanding pipeline.
+    
+    1. Fetch papers from OpenAlex (always fresh, no cache reuse)
+    2. Extract concepts from each abstract
+    3. Compute alignment with claim concepts
+    4. Write to store (1-run only) for S7→S2 cross-reference
+    
+    Returns list of understood papers with alignment scores.
+    """
+    raw_papers = _fetch_openalex_abstracts(search_query, per_page=per_page)
+    understood = []
+    
+    for paper in raw_papers:
+        abstract = _reconstruct_abstract(paper.get("abstract_inverted_index"))
+        paper_concepts = _extract_paper_concepts(abstract) if abstract else []
+        alignment, shared = compute_paper_alignment(claim_key_concepts, paper_concepts)
+        
+        entry = {
+            "title": paper.get("title", ""),
+            "year": paper.get("publication_year"),
+            "cited_by": paper.get("cited_by_count", 0),
+            "doi": paper.get("doi"),
+            "paper_concepts": paper_concepts,
+            "alignment_score": alignment,
+            "shared_concepts": shared,
+            "abstract_excerpt": (abstract[:200] + "...") if abstract else None,
+        }
+        understood.append(entry)
+    
+    # Sort by alignment
+    understood.sort(key=lambda x: x["alignment_score"], reverse=True)
+    
+    if store is not None:
+        store.write("S7_paper_understanding", {
+            "query": search_query,
+            "papers_found": len(understood),
+            "papers": understood,
+            "claim_concepts_used": claim_key_concepts,
+        })
+    
+    return understood
+
+
+# ─── [C-3] Dispute Resolution ────────────────────────────────────────────────
+
+def resolve_disputes(solver_results):
+    """Analyze why solvers disagree. Does NOT auto-resolve — only visualizes.
+    
+    Design principle: auto-resolution = majority-wins = wrong answer can win.
+    Instead: show the split, identify conflict patterns, let humans decide.
+    """
+    true_solvers = [name for name, passed in solver_results.items() 
+                    if passed and name != "S28_Reproducibility"]
+    false_solvers = [name for name, passed in solver_results.items() 
+                     if not passed and name != "S28_Reproducibility"]
+    
+    total = len(true_solvers) + len(false_solvers)
+    if total == 0:
+        return None
+    
+    split_ratio = len(true_solvers) / total
+    
+    # Categorize solvers by type
+    formal_logic = {"S01_Z3_SMT", "S02_SAT_Glucose3", "S03_SymPy", "S04_Z3_FOL", "S05_CategoryTheory"}
+    geometric = {"S06_EuclideanDist", "S07_LinearAlgebra", "S08_ConvexHull", "S09_Voronoi", 
+                 "S10_CosineSim", "S11_InfoGeoV2", "S12_Spherical", "S13_Riemannian"}
+    topological = {"S14_TDA", "S15_deSitter", "S16_Projective", "S17_Lorentz",
+                   "S18_Symplectic", "S19_Finsler", "S20_SubRiemannian"}
+    algebraic = {"S21_Alexandrov", "S22_Kahler", "S23_Tropical", "S24_Spectral",
+                 "S25_FisherKL", "S26_ZFC"}
+    meta = {"S27_KAM"}
+    
+    categories = {
+        "formal_logic": formal_logic,
+        "geometric": geometric,
+        "topological": topological,
+        "algebraic": algebraic,
+        "meta": meta,
+    }
+    
+    category_splits = {}
+    for cat_name, cat_solvers in categories.items():
+        cat_true = [s for s in true_solvers if s in cat_solvers]
+        cat_false = [s for s in false_solvers if s in cat_solvers]
+        cat_total = len(cat_true) + len(cat_false)
+        if cat_total > 0:
+            category_splits[cat_name] = {
+                "true": len(cat_true),
+                "false": len(cat_false),
+                "ratio": round(len(cat_true) / cat_total, 2),
+            }
+    
+    # Identify conflict type
+    conflict_type = "unanimous" if split_ratio in (0.0, 1.0) else (
+        "near_unanimous" if split_ratio > 0.85 or split_ratio < 0.15 else (
+        "moderate_split" if 0.35 < split_ratio < 0.65 else "leaning"
+    ))
+    
+    # Find categories that disagree with overall majority
+    overall_majority = "true" if split_ratio > 0.5 else "false"
+    dissenting_categories = []
+    for cat_name, cat_split in category_splits.items():
+        cat_majority = "true" if cat_split["ratio"] > 0.5 else "false"
+        if cat_majority != overall_majority:
+            dissenting_categories.append(cat_name)
+    
+    return {
+        "conflict_type": conflict_type,
+        "split": f"{len(true_solvers)}T / {len(false_solvers)}F",
+        "split_ratio": round(split_ratio, 3),
+        "true_solvers": true_solvers,
+        "false_solvers": false_solvers,
+        "category_splits": category_splits,
+        "dissenting_categories": dissenting_categories,
+        "note": "Auto-resolution disabled. Dispute data is for inspection only.",
+    }
+
+
 # ─── KS30 Orchestrator ──────────────────────────────────────────────────────
 
-class KS30:
+class KS30d(object):
     def __init__(self):
         self.s28 = ReproducibilitySolver()
         self.solvers = [
@@ -475,6 +832,42 @@ class KS30:
             if store is not None:
                 store.write(name, {"passed": bool(results[name]), "claim_hash": claim.text[:100]})
 
+        # [D-1] Unknown term resolution
+        knowledge_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "docs")
+        d1_result = resolve_unknown_terms(
+            claim.text, 
+            known_concepts=list(claim.propositions.keys()),
+            knowledge_dir=knowledge_dir if os.path.isdir(knowledge_dir) else None,
+            store=store,
+        )
+
+        # [A-solvers] Analogy expansion (non-LLM, parallel to S01-S28)
+        analogy_result = run_analogy_solvers(claim.text, store=store)
+
+        # [C-1] S2 concept confidence estimation
+        claim_concepts_raw = list(claim.propositions.keys())
+        concept_confidences = {}
+        confidence_solvers = self.solvers[:5]  # S01-S05 formal logic subset
+        for concept in claim_concepts_raw:
+            conf = estimate_concept_confidence(concept, confidence_solvers)
+            concept_confidences[concept] = conf
+        high_conf_concepts = [c for c, v in concept_confidences.items() if v >= 0.6]
+        if store is not None:
+            store.write("C1_concept_confidence", {
+                "all_concepts": concept_confidences,
+                "high_confidence": high_conf_concepts,
+                "threshold": 0.6,
+            })
+
+        # [C-2] Paper understanding (fresh fetch, no accumulation)
+        search_terms = " ".join(high_conf_concepts[:5]) if high_conf_concepts else claim.text[:80]
+        understood_papers = understand_papers(high_conf_concepts, search_terms, store=store)
+
+        # [C-3] Dispute resolution
+        dispute = resolve_disputes(results)
+        if store is not None and dispute is not None:
+            store.write("C3_dispute_resolution", dispute)
+
         # Run S28
         s28_passed, s28_score, s28_breakdown = self.s28.verify(claim)
         results["S28_Reproducibility"] = s28_passed
@@ -500,6 +893,14 @@ class KS30:
             "s28_breakdown": s28_breakdown,
             "elapsed_sec": round(elapsed, 3),
             "solver_results": results,
+            # KS30c additions
+            "concept_confidences": concept_confidences,
+            "dispute": dispute,
+            "papers_aligned": len([p for p in understood_papers if p["alignment_score"] > 0]),
+            "unknown_terms_resolved": d1_result["resolved_internally"] + d1_result["resolved_externally"],
+            "unknown_terms_unresolved": d1_result["unresolved"],
+            "analogy_candidates": analogy_result["candidates_generated"],
+            "top_paper": understood_papers[0]["title"] if understood_papers else None,
         }
         if store is not None:
             store.write("_verdict", output)
@@ -544,7 +945,7 @@ def run_tests():
     ]
 
     print("=" * 70)
-    print("KS30 — Katala_Samurai_30 (KS29 + Gemini fixes)")
+    print("KS30c — Katala_Samurai_30c (KS29 + Gemini fixes)")
     print("Changes: fail-closed, 恒真ソルバー修正, evidenceゲート, S28実測型")
     print("=" * 70)
 
@@ -566,7 +967,7 @@ def run_tests():
         print(f"  Time:           {result['elapsed_sec']}s")
 
     print("\n" + "=" * 70)
-    print("KS30: fail-closed + evidenceゲート + S28実測型 適用済み")
+    print("KS30c: fail-closed + evidenceゲート + S28実測型 適用済み")
     print("Test4はevidenceゲートでUNVERIFIEDになるはず")
     print("=" * 70)
 
