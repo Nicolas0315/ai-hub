@@ -49,3 +49,5 @@ projects/
 
 # OS
 Thumbs.db
+data/matsuri_logs/
+__pycache__/
