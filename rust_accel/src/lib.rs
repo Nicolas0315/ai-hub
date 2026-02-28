@@ -749,5 +749,150 @@ fn ks_accel(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(wasserstein_1d, m)?)?;
     m.add_function(wrap_pyfunction!(batch_qualia_distances, m)?)?;
     m.add_function(wrap_pyfunction!(classify_profile_batch, m)?)?;
+    m.add_function(wrap_pyfunction!(cultural_frame_distance, m)?)?;
+    m.add_function(wrap_pyfunction!(paradigm_distance, m)?)?;
+    m.add_function(wrap_pyfunction!(compute_cultural_loss, m)?)?;
+    m.add_function(wrap_pyfunction!(compute_temporal_loss, m)?)?;
     Ok(())
+}
+
+// ============================================================
+// Cultural & Temporal Translation Loss (Quine/Kuhn/Barthes)
+// ============================================================
+
+/// Cosine distance between two cultural frame vectors.
+/// frames_a, frames_b: Vec<(frame_name, weight)>
+#[pyfunction]
+fn cultural_frame_distance(
+    frames_a: Vec<(String, f64)>,
+    frames_b: Vec<(String, f64)>,
+) -> f64 {
+    use std::collections::HashSet;
+    let all_frames: HashSet<&str> = frames_a.iter().map(|(k, _)| k.as_str())
+        .chain(frames_b.iter().map(|(k, _)| k.as_str()))
+        .collect();
+    if all_frames.is_empty() {
+        return 0.0;
+    }
+    let mut sorted: Vec<&str> = all_frames.into_iter().collect();
+    sorted.sort();
+
+    let map_a: std::collections::HashMap<&str, f64> =
+        frames_a.iter().map(|(k, v)| (k.as_str(), *v)).collect();
+    let map_b: std::collections::HashMap<&str, f64> =
+        frames_b.iter().map(|(k, v)| (k.as_str(), *v)).collect();
+
+    let (mut dot, mut norm_a, mut norm_b) = (0.0f64, 0.0f64, 0.0f64);
+    for f in &sorted {
+        let a = map_a.get(f).copied().unwrap_or(0.0);
+        let b = map_b.get(f).copied().unwrap_or(0.0);
+        dot += a * b;
+        norm_a += a * a;
+        norm_b += b * b;
+    }
+    let denom = norm_a.sqrt() * norm_b.sqrt();
+    if denom < 1e-10 {
+        return 0.0;
+    }
+    1.0 - (dot / denom).clamp(0.0, 1.0)
+}
+
+/// Kuhnian paradigmatic distance between two eras.
+/// era_source, era_target: era name strings.
+/// Returns (paradigm_distance, n_shifts_crossed).
+#[pyfunction]
+fn paradigm_distance(era_source: &str, era_target: &str) -> (f64, usize) {
+    const ERA_ORDER: &[&str] = &[
+        "ancient", "medieval", "early_modern", "modern_19c",
+        "early_20c", "late_20c", "contemporary",
+    ];
+    // Shift boundaries: (era_a_idx, era_b_idx, amplifier)
+    const SHIFTS: &[(usize, usize, f64)] = &[
+        (0, 2, 0.15),  // ancient → early_modern (scientific revolution)
+        (2, 4, 0.20),  // early_modern → early_20c (relativity/quantum)
+        (3, 4, 0.15),  // modern_19c → early_20c (physics revolution)
+        (5, 6, 0.10),  // late_20c → contemporary (AI/digital)
+        (1, 2, 0.15),  // medieval → early_modern (enlightenment)
+    ];
+
+    let idx_s = ERA_ORDER.iter().position(|&e| e == era_source);
+    let idx_t = ERA_ORDER.iter().position(|&e| e == era_target);
+    let (idx_s, idx_t) = match (idx_s, idx_t) {
+        (Some(a), Some(b)) => (a, b),
+        _ => return (0.3, 0),
+    };
+    if idx_s == idx_t {
+        return (0.0, 0);
+    }
+
+    let chrono = (idx_s as f64 - idx_t as f64).abs() / (ERA_ORDER.len() - 1) as f64;
+    let min_idx = idx_s.min(idx_t);
+    let max_idx = idx_s.max(idx_t);
+
+    let mut shift_amp = 0.0;
+    let mut n_shifts = 0usize;
+    for &(sa, sb, amp) in SHIFTS {
+        let si_min = sa.min(sb);
+        let si_max = sa.max(sb);
+        if min_idx <= si_min && si_max <= max_idx {
+            shift_amp += amp;
+            n_shifts += 1;
+        }
+    }
+
+    ((chrono + shift_amp).min(1.0), n_shifts)
+}
+
+/// Full cultural loss computation in Rust.
+/// cultural_distance, n_concept_gaps, text_len, marker_count → (loss, indeterminacy, holistic_dep)
+#[pyfunction]
+fn compute_cultural_loss(
+    cultural_distance: f64,
+    n_concept_gaps: usize,
+    text_len: usize,
+    marker_count: usize,
+) -> (f64, f64, f64) {
+    // Holistic dependency (Duhem-Quine)
+    let gap_factor = (n_concept_gaps as f64 / 5.0).min(1.0) * 0.4;
+    let dist_factor = cultural_distance * 0.35;
+    let density = (marker_count as f64 / (text_len as f64 / 500.0).max(1.0)).min(1.0) * 0.25;
+    let holistic_dep = (gap_factor + dist_factor + density).min(1.0);
+
+    // Loss estimate
+    let gap_loss = (n_concept_gaps as f64 / 8.0).min(1.0);
+    let loss = (0.35 * cultural_distance + 0.35 * gap_loss + 0.30 * holistic_dep).min(1.0);
+
+    // Quinean indeterminacy
+    let indet = (0.40 * cultural_distance
+        + 0.35 * holistic_dep
+        + 0.25 * (n_concept_gaps as f64 / 3.0).min(1.0)).min(1.0);
+
+    (loss, indet, holistic_dep)
+}
+
+/// Full temporal loss computation in Rust.
+/// paradigm_dist, n_incommensurable, semantic_drift → (loss, indeterminacy, web_decay)
+#[pyfunction]
+fn compute_temporal_loss(
+    paradigm_dist: f64,
+    n_incommensurable: usize,
+    semantic_drift: f64,
+) -> (f64, f64, f64) {
+    // Duhem-Quine web decay
+    let web_decay = (0.40 * paradigm_dist
+        + 0.30 * (n_incommensurable as f64 / 4.0).min(1.0)
+        + 0.30 * semantic_drift).min(1.0);
+
+    // Loss
+    let loss = (0.35 * paradigm_dist
+        + 0.25 * (n_incommensurable as f64 / 5.0).min(1.0)
+        + 0.20 * semantic_drift
+        + 0.20 * web_decay).min(1.0);
+
+    // Indeterminacy
+    let indet = (0.40 * paradigm_dist
+        + 0.30 * (n_incommensurable as f64 / 3.0).min(1.0)
+        + 0.30 * web_decay).min(1.0);
+
+    (loss, indet, web_decay)
 }

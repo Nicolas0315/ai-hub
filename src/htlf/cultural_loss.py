@@ -30,6 +30,8 @@ from typing import Any
 
 from . import rust_bridge as rb
 
+_USE_RUST = rb.RUST_AVAILABLE
+
 
 @dataclass(slots=True)
 class CulturalLossResult:
@@ -75,9 +77,11 @@ _CULTURAL_MARKERS: dict[str, list[str]] = {
 
 # Concept gap indicators: terms that signal culturally-bound meaning
 _GAP_MARKERS = [
-    # Japanese aesthetic/philosophical
+    # Japanese aesthetic/philosophical (romaji + kanji/kana)
     (r"\b(wabi.?sabi|mono no aware|ma|en|musubi)\b", "Japanese aesthetic concept"),
+    (r"(侘び寂び|わびさび|もののあはれ|物の哀れ|間|縁|結び|生き甲斐|いきがい)", "Japanese aesthetic concept"),
     (r"\b(amae|giri|ninjo|honne|tatemae)\b", "Japanese social concept"),
+    (r"(甘え|義理|人情|本音|建前|おもてなし)", "Japanese social concept"),
     # Western philosophical
     (r"\b(Dasein|Gestell|différance|pharmakon|rhizome)\b", "Continental philosophy"),
     (r"\b(qualia|intentionality|supervenience|epiphenomen)\b", "Philosophy of mind"),
@@ -131,21 +135,11 @@ def _cultural_frame_distance(source_frames: dict[str, float],
     
     Duhem-Quine insight: the distance is not between individual concepts
     but between entire webs of belief/cultural context.
+    Uses Rust acceleration when available.
     """
-    all_frames = set(source_frames) | set(target_frames)
-    if not all_frames:
-        return 0.0
-    
-    # Cosine-like distance between frame distributions
-    src_vec = [source_frames.get(f, 0.0) for f in sorted(all_frames)]
-    tgt_vec = [target_frames.get(f, 0.0) for f in sorted(all_frames)]
-    
-    dot = sum(a * b for a, b in zip(src_vec, tgt_vec))
-    norm_s = math.sqrt(sum(a * a for a in src_vec)) or 1e-10
-    norm_t = math.sqrt(sum(b * b for b in tgt_vec)) or 1e-10
-    
-    similarity = dot / (norm_s * norm_t)
-    return 1.0 - max(0.0, min(1.0, similarity))
+    return rb.rust_cultural_frame_distance(
+        list(source_frames.items()), list(target_frames.items())
+    )
 
 
 def _compute_holistic_dependency(source_text: str, concept_gaps: list[str],
@@ -211,20 +205,15 @@ def compute_cultural_loss(source_text: str, target_text: str) -> CulturalLossRes
     
     cultural_distance = _cultural_frame_distance(source_frames, target_frames)
     concept_gaps = _detect_concept_gaps(source_text, target_text)
-    holistic_dependency = _compute_holistic_dependency(
-        source_text, concept_gaps, cultural_distance
-    )
-    
-    # Loss estimate: combination of distance, gaps, and dependency
-    gap_loss = min(1.0, len(concept_gaps) / 8.0)
-    loss_estimate = min(1.0, 
-        0.35 * cultural_distance + 
-        0.35 * gap_loss + 
-        0.30 * holistic_dependency
-    )
-    
-    indeterminacy = _compute_indeterminacy(
-        cultural_distance, holistic_dependency, concept_gaps
+    # Count markers for Rust path
+    marker_count = 0
+    for patterns in _CULTURAL_MARKERS.values():
+        for pat in patterns:
+            marker_count += len(re.findall(pat, source_text, re.IGNORECASE))
+
+    # Compute loss/indeterminacy/holistic via Rust (or Python fallback)
+    loss_estimate, indeterminacy, holistic_dependency = rb.rust_compute_cultural_loss(
+        cultural_distance, len(concept_gaps), len(source_text), marker_count
     )
     
     return CulturalLossResult(
@@ -233,5 +222,5 @@ def compute_cultural_loss(source_text: str, target_text: str) -> CulturalLossRes
         cultural_distance=round(cultural_distance, 4),
         holistic_dependency=round(holistic_dependency, 4),
         concept_gaps=concept_gaps,
-        backend="heuristic",
+        backend="rust" if _USE_RUST else "heuristic",
     )

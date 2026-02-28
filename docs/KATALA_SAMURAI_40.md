@@ -156,3 +156,69 @@ KS40シリーズにより Katala は、
 - 翻訳損失計測（HTLF）
 
 を統合し、**「正しさ」と「伝達品質」を同時に扱う信頼性基盤**へ拡張される。
+
+---
+
+## 9. KS40c — 5-Axis Model (Cultural/Temporal Loss Extension)
+
+**Date**: 2026-03-01  
+**Design**: Youta Hilono  
+**Implementation**: Shirokuma (OpenClaw AI)
+
+### 9.1 New Axes
+
+KS40b の 3 軸モデル（R_struct × R_context × R_qualia）に**2つの翻訳損失次元**を追加:
+
+#### R_cultural（文化間翻訳喪失）
+
+- **クワインの翻訳の不確定性**: 異なる文化的概念体系間の翻訳に「正解」は存在しない
+- **デュエム・クワイン・テーゼ**: 概念は文化的ウェブから孤立してテスト不可能（`holistic_dependency`）
+- 出力: `(loss_estimate, indeterminacy)` — 損失値＋不確定性幅
+- 7つの文化フレーム検出: 日本/西洋学術/中国/アラブ・イスラーム/先住民/科学/音楽
+- 概念ギャップ検出: wabi-sabi, Dasein, raga, phlogiston 等の翻訳不可能概念（日本語CJK対応）
+
+#### R_temporal（時代間翻訳喪失）
+
+- **クーンのパラダイム論**: 通約不可能性 — 概念が時代をまたぐと意味自体が変質
+- **バルトのテクスト論**: テクストの意味は固定されず、時代ごとに再構成される（`semantic_drift`）
+- **デュエム・クワイン（時間的応用）**: 文脈ウェブの崩壊度（`web_decay`）
+- 7つの時代区分: ancient → medieval → early_modern → modern_19c → early_20c → late_20c → contemporary
+- 10のパラダイムシフト対: mass, atom, species, space, cause, information, gene, computation, music, art
+
+### 9.2 5-Axis Total Loss
+
+```
+total_loss = 0.30 × (1 - R_struct)
+           + 0.30 × (1 - R_context)
+           + 0.25 × (1 - R_qualia)
+           + 0.075 × R_cultural
+           + 0.075 × R_temporal
+```
+
+### 9.3 Philosophical Foundation Summary
+
+| 理論 | 反映先 | 設計上の表現 |
+|------|--------|-------------|
+| Quine: Indeterminacy of Translation | R_cultural | `(loss, indeterminacy)` ペア出力 |
+| Duhem-Quine Thesis | R_cultural + R_temporal | `holistic_dependency`, `web_decay` |
+| Kuhn: Paradigm Theory | R_temporal | `paradigm_distance`, `incommensurable_concepts` |
+| Barthes: Death of the Author | R_temporal | `semantic_drift` |
+
+### 9.4 Rust Acceleration
+
+全計算関数を Rust (`ks_accel`) に移植:
+- `cultural_frame_distance`: 文化フレーム間コサイン距離
+- `paradigm_distance`: クーン的パラダイム距離（シフト増幅付き）
+- `compute_cultural_loss`: 損失/不確定性/ホーリスティック依存度
+- `compute_temporal_loss`: 損失/不確定性/ウェブ崩壊度
+
+Python fallback 完備（Rust ビルド不可環境でも動作）。
+
+### 9.5 Validation Results
+
+| Pair | R_cultural | R_temporal | Concept Gaps / Incommensurables |
+|------|-----------|-----------|-------------------------------|
+| 侘び寂び → English | 0.733±0.944 | 0.430±0.520 | wabi-sabi, ma, mono no aware |
+| Raga → Western desc | 0.278±0.421 | 0.000±0.000 | raga, shruti, tala |
+| Aristotle → Modern physics | 0.530±0.610 | 0.690±0.810 | space, cause |
+| Phlogiston → Oxygen | 0.136±0.223 | 0.543±0.559 | phlogiston, aether |

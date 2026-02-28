@@ -181,8 +181,77 @@ def htlf_classify_profile_batch(r_structs: list[float], r_contexts: list[float],
     return out
 
 
+def rust_cultural_frame_distance(
+    frames_a: list[tuple[str, float]], frames_b: list[tuple[str, float]]
+) -> float:
+    if _has("cultural_frame_distance"):
+        return _rust.cultural_frame_distance(frames_a, frames_b)
+    # Python fallback
+    all_f = set(k for k, _ in frames_a) | set(k for k, _ in frames_b)
+    if not all_f:
+        return 0.0
+    ma = dict(frames_a)
+    mb = dict(frames_b)
+    sf = sorted(all_f)
+    dot = sum(ma.get(f, 0.0) * mb.get(f, 0.0) for f in sf)
+    na = math.sqrt(sum(ma.get(f, 0.0) ** 2 for f in sf)) or 1e-10
+    nb = math.sqrt(sum(mb.get(f, 0.0) ** 2 for f in sf)) or 1e-10
+    return 1.0 - max(0.0, min(1.0, dot / (na * nb)))
+
+
+def rust_paradigm_distance(era_source: str, era_target: str) -> tuple[float, int]:
+    if _has("paradigm_distance"):
+        return _rust.paradigm_distance(era_source, era_target)
+    # Python fallback (simplified)
+    ERA_ORDER = ["ancient", "medieval", "early_modern", "modern_19c",
+                 "early_20c", "late_20c", "contemporary"]
+    try:
+        idx_s = ERA_ORDER.index(era_source)
+        idx_t = ERA_ORDER.index(era_target)
+    except ValueError:
+        return (0.3, 0)
+    if idx_s == idx_t:
+        return (0.0, 0)
+    chrono = abs(idx_s - idx_t) / (len(ERA_ORDER) - 1)
+    return (min(1.0, chrono + 0.15), 1)
+
+
+def rust_compute_cultural_loss(
+    cultural_distance: float, n_concept_gaps: int, text_len: int, marker_count: int
+) -> tuple[float, float, float]:
+    if _has("compute_cultural_loss"):
+        return _rust.compute_cultural_loss(cultural_distance, n_concept_gaps, text_len, marker_count)
+    # Python fallback
+    gap_f = min(1.0, n_concept_gaps / 5.0) * 0.4
+    dist_f = cultural_distance * 0.35
+    dens = min(1.0, marker_count / max(1, text_len / 500)) * 0.25
+    hol = min(1.0, gap_f + dist_f + dens)
+    gap_loss = min(1.0, n_concept_gaps / 8.0)
+    loss = min(1.0, 0.35 * cultural_distance + 0.35 * gap_loss + 0.30 * hol)
+    indet = min(1.0, 0.40 * cultural_distance + 0.35 * hol + 0.25 * min(1.0, n_concept_gaps / 3.0))
+    return (loss, indet, hol)
+
+
+def rust_compute_temporal_loss(
+    paradigm_dist: float, n_incommensurable: int, semantic_drift: float
+) -> tuple[float, float, float]:
+    if _has("compute_temporal_loss"):
+        return _rust.compute_temporal_loss(paradigm_dist, n_incommensurable, semantic_drift)
+    # Python fallback
+    web = min(1.0, 0.40 * paradigm_dist + 0.30 * min(1.0, n_incommensurable / 4.0) + 0.30 * semantic_drift)
+    loss = min(1.0, 0.35 * paradigm_dist + 0.25 * min(1.0, n_incommensurable / 5.0) + 0.20 * semantic_drift + 0.20 * web)
+    indet = min(1.0, 0.40 * paradigm_dist + 0.30 * min(1.0, n_incommensurable / 3.0) + 0.30 * web)
+    return (loss, indet, web)
+
+
 def status() -> dict[str, object]:
+    n_funcs = 0
+    if RUST_AVAILABLE and _rust:
+        for name in dir(_rust):
+            if not name.startswith("_"):
+                n_funcs += 1
     return {
         "rust_available": RUST_AVAILABLE,
         "backend": "ks_accel (Rust/PyO3/Rayon)" if RUST_AVAILABLE else "Python fallback",
+        "n_functions": n_funcs,
     }

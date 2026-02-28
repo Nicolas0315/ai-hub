@@ -32,6 +32,8 @@ import re
 from dataclasses import dataclass
 from typing import Any
 
+from . import rust_bridge as rb
+
 
 @dataclass(slots=True)
 class TemporalLossResult:
@@ -318,8 +320,8 @@ def compute_temporal_loss(source_text: str, target_text: str,
     if target_era is None:
         target_era, _ = _detect_era(target_text)
     
-    # Kuhnian paradigmatic distance
-    p_distance = _paradigm_distance(source_era, target_era)
+    # Kuhnian paradigmatic distance (Rust-accelerated)
+    p_distance, n_shifts = rb.rust_paradigm_distance(source_era, target_era)
     
     # Incommensurable concepts
     incomm = _detect_incommensurable_concepts(
@@ -329,24 +331,9 @@ def compute_temporal_loss(source_text: str, target_text: str,
     # Barthesian semantic drift
     drift = _compute_semantic_drift(source_text, target_text)
     
-    # Duhem-Quine web decay
-    web = _compute_web_decay(p_distance, len(incomm), drift)
-    
-    # Loss estimate: weighted combination
-    loss_estimate = min(1.0,
-        0.35 * p_distance +
-        0.25 * min(1.0, len(incomm) / 5.0) +
-        0.20 * drift +
-        0.20 * web
-    )
-    
-    # Indeterminacy: increases with paradigmatic distance and incommensurability
-    # (Quine: the more different the frameworks, the more equally valid
-    #  translation manuals exist, and the more underdetermined the loss)
-    indeterminacy = min(1.0,
-        0.40 * p_distance +
-        0.30 * min(1.0, len(incomm) / 3.0) +
-        0.30 * web
+    # Loss/indeterminacy/web_decay via Rust (or Python fallback)
+    loss_estimate, indeterminacy, web = rb.rust_compute_temporal_loss(
+        p_distance, len(incomm), drift
     )
     
     return TemporalLossResult(
@@ -358,5 +345,5 @@ def compute_temporal_loss(source_text: str, target_text: str,
         incommensurable_concepts=incomm,
         era_source=source_era,
         era_target=target_era,
-        backend="heuristic",
+        backend="rust" if rb.RUST_AVAILABLE else "heuristic",
     )
