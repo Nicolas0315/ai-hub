@@ -272,15 +272,123 @@ def _extract_attributes_text(concept):
     return attrs
 
 
+# ─── A03 Internal Probes ─────────────────────────────────────────────────────
+# Self-contained structural analysis. No dependency on S01-S28.
+
+def _probe_morphological(word):
+    """Morphological structure: prefix, suffix, syllable count estimate."""
+    lower = word.lower()
+    feats = set()
+    _pfx = ["un","re","dis","over","mis","out","pre","non","sub","super","inter","trans","anti","neo"]
+    _sfx = ["tion","sion","ment","ness","ible","able","ful","less","ous","ive","ing","ence","ance","ity","ly","er","or","ist","ism"]
+    for p in _pfx:
+        if lower.startswith(p) and len(lower) > len(p)+2: feats.add(f"pfx:{p}")
+    for s in _sfx:
+        if lower.endswith(s) and len(lower) > len(s)+2: feats.add(f"sfx:{s}")
+    # Rough syllable count (vowel clusters)
+    import re as _re
+    vowels = len(_re.findall(r'[aeiouy]+', lower))
+    feats.add(f"syl:{vowels}")
+    feats.add(f"len:{len(lower)}")
+    return feats
+
+
+def _probe_phonetic(word):
+    """Phonetic features: consonant/vowel pattern, stress position."""
+    cmu = _get_cmu_dict()
+    phones = cmu.get(word.lower())
+    feats = set()
+    if not phones:
+        return feats
+    p = phones[0]
+    vowel_set = {"AA","AE","AH","AO","AW","AY","EH","ER","EY","IH","IY","OW","OY","UH","UW"}
+    stripped = [re.sub(r'\d', '', x) for x in p]
+    pattern = ''.join('V' if x in vowel_set else 'C' for x in stripped)
+    feats.add(f"cv:{pattern}")
+    feats.add(f"phones:{len(p)}")
+    # Stress position
+    for i, ph in enumerate(p):
+        if ph.endswith('1'):
+            feats.add(f"stress:{i}")
+            break
+    # Initial and final phone
+    if stripped:
+        feats.add(f"init:{stripped[0]}")
+        feats.add(f"final:{stripped[-1]}")
+    return feats
+
+
+def _probe_semantic_class(word):
+    """Semantic class from suffix/context patterns (non-LLM heuristic)."""
+    lower = word.lower()
+    feats = set()
+    # Agent/action/state/object heuristics
+    agent_sfx = ["er","or","ist","ant","ent"]
+    action_sfx = ["tion","sion","ment","ing","ure","ance","ence"]
+    state_sfx = ["ness","ity","dom","hood","ship"]
+    quality_sfx = ["ous","ive","ful","less","able","ible","al","ic"]
+    for s in agent_sfx:
+        if lower.endswith(s): feats.add("class:agent")
+    for s in action_sfx:
+        if lower.endswith(s): feats.add("class:action")
+    for s in state_sfx:
+        if lower.endswith(s): feats.add("class:state")
+    for s in quality_sfx:
+        if lower.endswith(s): feats.add("class:quality")
+    if lower[0].isupper() or (len(lower) > 1 and lower == word):
+        pass  # can't tell proper noun from lowercased input
+    if not feats:
+        feats.add("class:noun_default")
+    return feats
+
+
+def _probe_compound(word):
+    """Compound structure: meaningful sub-parts from A01-style decomposition."""
+    feats = set()
+    cmu = _get_cmu_dict()
+    lower = word.lower()
+    # Try splits where both halves are real words
+    for i in range(3, len(lower)-2):
+        left, right = lower[:i], lower[i:]
+        if left in cmu and right in cmu:
+            feats.add(f"compound:{left}+{right}")
+    return feats
+
+
+_A03_PROBES = [
+    ("morphological", _probe_morphological),
+    ("phonetic", _probe_phonetic),
+    ("semantic_class", _probe_semantic_class),
+    ("compound", _probe_compound),
+]
+
+
 def a03_structural_mapping(concept_a, concept_b):
     """Map structural similarities between two concepts.
     
-    Non-LLM: uses ConceptNet API for concept relations, falls back to 
-    text analysis if API unavailable.
+    Non-LLM: uses 4 internal probes (morphological, phonetic, semantic class,
+    compound) + ConceptNet API (with text fallback).
+    Self-contained — no dependency on S01-S28 solvers.
     
-    Returns: shared attributes, A-only attributes, B-only attributes.
+    Returns: shared attributes, A-only attributes, B-only attributes,
+    plus per-probe breakdown.
     """
-    # Try ConceptNet first
+    # Internal probes (self-contained, no external dependency)
+    probe_results = {}
+    all_feats_a = set()
+    all_feats_b = set()
+    for probe_name, probe_fn in _A03_PROBES:
+        fa = probe_fn(concept_a)
+        fb = probe_fn(concept_b)
+        probe_results[probe_name] = {
+            "shared": list(fa & fb),
+            "a_only": list(fa - fb),
+            "b_only": list(fb - fa),
+        }
+        all_feats_a |= fa
+        all_feats_b |= fb
+    
+    # Try ConceptNet as supplementary source
     edges_a = _fetch_conceptnet_edges(concept_a)
     edges_b = _fetch_conceptnet_edges(concept_b)
     
@@ -309,46 +417,24 @@ def a03_structural_mapping(concept_a, concept_b):
         b_only = attrs_b - attrs_a
         source = "text_fallback"
     
+    # Merge probe features with ConceptNet/text features
+    all_feats_a |= attrs_a
+    all_feats_b |= attrs_b
+    total_shared = all_feats_a & all_feats_b
+    total_a_only = all_feats_a - all_feats_b
+    total_b_only = all_feats_b - all_feats_a
+    
     return {
         "concept_a": concept_a,
         "concept_b": concept_b,
-        "shared_attributes": list(shared)[:20],
-        "a_only_attributes": list(a_only)[:20],
-        "b_only_attributes": list(b_only)[:20],
-        "overlap_ratio": round(len(shared) / max(len(attrs_a | attrs_b), 1), 3),
-        "source": source,
+        "shared_attributes": list(total_shared)[:20],
+        "a_only_attributes": list(total_a_only)[:20],
+        "b_only_attributes": list(total_b_only)[:20],
+        "overlap_ratio": round(len(total_shared) / max(len(all_feats_a | all_feats_b), 1), 3),
+        "probes": probe_results,
+        "external_source": source,
     }
 
-
-def a03_solver_fingerprint(concept_a, concept_b, solvers):
-    """Compare concepts by their solver pass/fail pattern.
-    Non-LLM: reuses S01-S27 as structural probes.
-    """
-    try:
-        from katala_samurai.ks30d import Claim
-    except ImportError:
-        from ks30d import Claim
-    import hashlib as _hl
-    
-    def _make_claim(c):
-        return Claim(text=f"{c} is a meaningful concept", evidence=[c],
-                     source_llm=None, training_data_hash=_hl.sha256(c.encode()).hexdigest())
-    
-    fp_a, fp_b = {}, {}
-    for name, fn in solvers:
-        try: fp_a[name] = bool(fn(_make_claim(concept_a)))
-        except: fp_a[name] = False
-        try: fp_b[name] = bool(fn(_make_claim(concept_b)))
-        except: fp_b[name] = False
-    
-    shared = {k for k in fp_a if fp_a[k] == fp_b[k]}
-    diff = {k for k in fp_a if fp_a[k] != fp_b[k]}
-    
-    return {
-        "concept_a": concept_a, "concept_b": concept_b,
-        "shared_solvers": list(shared), "different_solvers": list(diff),
-        "structural_similarity": round(len(shared) / max(len(fp_a), 1), 3),
-    }
 
 
 # ─── A04: Conceptual Blending ──────────────────────────────────────────────
@@ -496,22 +582,12 @@ def run_analogy_solvers(claim_text, focus_words=None, store=None):
     for part in sub_parts:
         phonetic_results[f"_{part}"] = a02_phonetic_neighbor(part, max_distance=2, max_results=15)
     
-    # A03: Structural mapping between key concept pairs
-    content_words = [w for w in decomposition.keys() if len(w) > 3]
+    # A03: Structural mapping between focus word pairs
     structural_maps = []
-    solver_fingerprints = []
-    if len(content_words) >= 2:
+    if len(focus_words) >= 2:
         structural_maps.append(
-            a03_structural_mapping(content_words[0], content_words[1])
+            a03_structural_mapping(focus_words[0], focus_words[1])
         )
-        try:
-            from katala_samurai.ks30d import KS30d
-            _ks = KS30d()
-            solver_fingerprints.append(
-                a03_solver_fingerprint(content_words[0], content_words[1], _ks.solvers)
-            )
-        except Exception:
-            pass
     
     # A04: Blend candidates from A01-A03
     first_phonetic = phonetic_results.get(focus_words[0]) if focus_words else None
@@ -525,7 +601,6 @@ def run_analogy_solvers(claim_text, focus_words=None, store=None):
         "a01_decomposition": decomposition,
         "a02_phonetic": phonetic_results,
         "a03_structural": structural_maps,
-        "a03_solver_fingerprints": solver_fingerprints,
         "a04_blends": blends,
         "a05_premises": premises,
         "candidates_generated": len(blends),
