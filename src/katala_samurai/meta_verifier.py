@@ -32,6 +32,11 @@ import urllib.parse
 import json as _json
 import hashlib
 
+try:
+    from .evidence_sources import multi_source_evidence
+except ImportError:
+    from evidence_sources import multi_source_evidence
+
 
 # ─── M1: Counter-Factual Probe ──────────────────────────────────────────────
 
@@ -300,8 +305,13 @@ def run_meta_verification(claim_text, l1_verify_fn, original_pass_rate,
     # M1: Counter-factual probe
     m1 = m1_counterfactual_probe(claim_text, l1_verify_fn, original_pass_rate)
     
-    # M2: OpenAlex evidence probe
-    m2 = m2_evidence_probe(claim_text, evidence_list)
+    # M2: Multi-source evidence probe (OpenAlex + Gov + GDELT + Firecrawl)
+    m2_openalex = m2_evidence_probe(claim_text, evidence_list)
+    m2_multi = multi_source_evidence(claim_text, openalex_result={
+        "evidence_quality": m2_openalex["evidence_quality"],
+        "papers_found": m2_openalex["papers_found"],
+    })
+    m2 = m2_openalex  # backward compat for flags below
     
     # Meta-assessment: combine M1 and M2
     flags = []
@@ -318,21 +328,32 @@ def run_meta_verification(claim_text, l1_verify_fn, original_pass_rate,
     elif m2["evidence_quality"] == "API_ERROR":
         flags.append("EVIDENCE_CHECK_UNAVAILABLE")
     
-    # Verdict modifier
-    if "FORMAL_ONLY" in flags and "NO_ACADEMIC_SUPPORT" in flags:
-        meta_verdict = "HOLLOW"  # Form passes but no substance
-        confidence_modifier = 0.5
-    elif "FORMAL_ONLY" in flags:
+    # Verdict modifier — combines M1 + multi-source consensus
+    multi_conf = m2_multi["confidence"]
+    
+    if "FORMAL_ONLY" in flags and m2_multi["consensus"] == "NO_EVIDENCE":
+        meta_verdict = "HOLLOW"
+        confidence_modifier = 0.4
+    elif "FORMAL_ONLY" in flags and m2_multi["consensus"] in ("NO_EVIDENCE", "WEAK_EVIDENCE"):
         meta_verdict = "FORM_ONLY"
-        confidence_modifier = 0.6
+        confidence_modifier = 0.5
+    elif "FORMAL_ONLY" in flags and m2_multi["consensus"] in ("MODERATE_EVIDENCE", "STRONG_EVIDENCE"):
+        meta_verdict = "FORM_BUT_EVIDENCED"
+        confidence_modifier = 0.75
     elif "CONTRADICTED" in flags:
         meta_verdict = "CONTESTED"
-        confidence_modifier = 0.7
-    elif "NO_ACADEMIC_SUPPORT" in flags or "NO_RELEVANT_PAPERS" in flags:
+        confidence_modifier = 0.6
+    elif m2_multi["consensus"] == "STRONG_EVIDENCE":
+        meta_verdict = "SUBSTANTIVE"
+        confidence_modifier = 1.0
+    elif m2_multi["consensus"] == "MODERATE_EVIDENCE":
+        meta_verdict = "SUBSTANTIVE"
+        confidence_modifier = 0.9
+    elif m2_multi["consensus"] in ("NO_EVIDENCE", "WEAK_EVIDENCE"):
         meta_verdict = "UNSUPPORTED"
-        confidence_modifier = 0.8
+        confidence_modifier = 0.7
     else:
-        meta_verdict = "SUBSTANTIVE"  # Both form and content pass
+        meta_verdict = "SUBSTANTIVE"
         confidence_modifier = 1.0
     
     result = {
@@ -343,6 +364,12 @@ def run_meta_verification(claim_text, l1_verify_fn, original_pass_rate,
             "contradicting_count": len(m2["contradicting"]),
             "top_paper": m2["supporting"][0]["title"] if m2["supporting"] else None,
             "total_citations": m2.get("total_citations", 0),
+        },
+        "m2_multi_source": {
+            "consensus": m2_multi["consensus"],
+            "confidence": m2_multi["confidence"],
+            "sources_with_evidence": m2_multi["sources_with_evidence"],
+            "sources_available": m2_multi["sources_available"],
         },
         "flags": flags,
         "meta_verdict": meta_verdict,
