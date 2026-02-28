@@ -1,3 +1,3 @@
-"""KS31a → KS31b upgrade. This module re-exports KS31b for backward compatibility."""
-from .ks31b import *  # noqa
-from .ks31b import KS31b as KS31a  # noqa
+"""KS31a → KS31c upgrade. Re-exports for backward compatibility."""
+from .ks31c import *  # noqa
+from .ks31c import KS31c as KS31a  # noqa
