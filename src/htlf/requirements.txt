@@ -1,0 +1,6 @@
+openai>=1.40.0
+sentence-transformers>=3.0.0
+torch>=2.2.0
+numpy>=1.26.0
+requests>=2.31.0
+beautifulsoup4>=4.12.0
