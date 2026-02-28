@@ -36,6 +36,16 @@ Principles:
   - L3 is always consulted: every transition between layers goes via Chain Decomposer
   - No cross-run accumulation: StageStore records what happened, not what to believe
   - Max 2 cycles (bounded rationality)
+  - EXPLORING mode: when signals are mixed, the system stays open rather than
+    forcing a premature verdict. This prevents defensive "already done" behavior
+    and invites further analysis from new angles.
+
+Verdicts:
+  VERIFIED            — high confidence, all steps pass clearly
+  EXPLORING           — mixed signals, borderline steps, or implicit gaps;
+                        further analysis from new angles is recommended
+  PARTIALLY_VERIFIED  — structural issues identified but partial support exists  
+  UNVERIFIED          — clear failure points identified
 """
 
 import os
@@ -137,12 +147,25 @@ class Layer3:
         all_pass = len(failed_steps) == 0
         has_gaps = len(gap_steps) > 0
 
-        if all_pass and not has_gaps:
+        # Exploring detection: mixed signals suggest more analysis needed
+        pass_rates = [s["pass_rate"] for s in step_results]
+        rate_variance = max(pass_rates) - min(pass_rates) if pass_rates else 0
+        avg_rate = sum(pass_rates) / len(pass_rates) if pass_rates else 0
+        has_borderline = any(0.70 <= r <= 0.80 for r in pass_rates)
+
+        if all_pass and not has_gaps and avg_rate >= 0.85:
             composite = "VERIFIED"
             reason = f"all {len(step_results)} steps verified"
+        elif all_pass and not has_gaps and avg_rate < 0.85:
+            composite = "EXPLORING"
+            reason = f"all steps pass but average rate {avg_rate:.2f} suggests deeper analysis needed"
         elif all_pass and has_gaps:
-            composite = "PARTIALLY_VERIFIED"
-            reason = f"all steps pass but {len(gap_steps)} implicit gap(s) detected"
+            composite = "EXPLORING"
+            reason = f"all steps pass but {len(gap_steps)} implicit gap(s) — exploring missing links"
+        elif has_borderline or rate_variance >= 0.15:
+            composite = "EXPLORING"
+            borderline_indices = [i for i, r in enumerate(pass_rates) if 0.70 <= r <= 0.80]
+            reason = f"mixed signals: borderline steps at {borderline_indices}, variance={rate_variance:.2f} — further exploration recommended"
         else:
             composite = "UNVERIFIED"
             failed_indices = [i for i, s in enumerate(step_results) if s["verdict"] == "FAIL"]
@@ -277,11 +300,14 @@ class KS31a:
 
         if comp == "VERIFIED":
             return "VERIFIED", min(r1_score * 1.05, 1.0)
+        elif comp == "EXPLORING":
+            # Mixed signals — don't close the verdict, invite re-analysis
+            return "EXPLORING", round(r1_score, 4)
         elif comp == "PARTIALLY_VERIFIED":
             return "PARTIALLY_VERIFIED", round(r1_score * 0.9, 4)
         else:  # UNVERIFIED
             if r1_result["verdict"] == "VERIFIED":
-                return "PARTIALLY_VERIFIED", round(r1_score * 0.7, 4)
+                return "EXPLORING", round(r1_score * 0.85, 4)
             else:
                 weakest_rate = synthesis["weakest_step"]["pass_rate"] if synthesis["weakest_step"] else 0
                 return "UNVERIFIED", round(max(r1_score, weakest_rate), 4)
