@@ -30,13 +30,38 @@ class HTLFResult:
     target_layer: Layer
 
 
+# Full 20-pair matrix (asymmetric: A→B ≠ B→A).
+# Tuple: (R_struct, R_context, R_qualia)
+# Design note: all layer pairs have direct paths (MP3 = math→music direct).
+# The linear hub model was incorrect; this is a fully-connected graph.
 AXIS_PRIOR: dict[tuple[Layer, Layer], tuple[float, float, float]] = {
-    ("math", "formal_language"): (0.95, 0.80, 0.05),
-    ("math", "natural_language"): (0.70, 0.50, 0.05),
-    ("music", "natural_language"): (0.40, 0.30, 0.10),
-    ("music", "creative"): (0.30, 0.40, 0.50),
-    ("formal_language", "music"): (0.05, 0.05, 0.00),
-    ("creative", "natural_language"): (0.50, 0.40, 0.15),
+    # ── math ↔ others ──
+    ("math", "formal_language"):     (0.95, 0.80, 0.05),  # high struct (isomorphic), low qualia
+    ("formal_language", "math"):     (0.90, 0.75, 0.05),  # slightly lossy (abstraction)
+    ("math", "natural_language"):    (0.70, 0.50, 0.05),  # significant context loss
+    ("natural_language", "math"):    (0.55, 0.40, 0.03),  # ambiguity → formalization loss
+    ("math", "music"):              (0.60, 0.15, 0.35),  # MP3/FFT/algorithmic composition — direct path exists
+    ("music", "math"):              (0.55, 0.10, 0.30),  # spectral analysis, but context stripped
+    ("math", "creative"):           (0.25, 0.10, 0.15),  # fractals/generative art, but heavy loss
+    ("creative", "math"):           (0.20, 0.08, 0.10),  # quantifying aesthetics — lossy
+
+    # ── formal_language ↔ others ──
+    ("formal_language", "natural_language"): (0.75, 0.60, 0.10),  # code→docs
+    ("natural_language", "formal_language"): (0.65, 0.50, 0.08),  # spec→code
+    ("formal_language", "music"):    (0.15, 0.05, 0.10),  # MIDI protocol, but minimal
+    ("music", "formal_language"):    (0.10, 0.05, 0.08),  # MusicXML, but lossy
+    ("formal_language", "creative"): (0.20, 0.10, 0.12),  # generative art code
+    ("creative", "formal_language"): (0.15, 0.08, 0.10),  # describing art in code
+
+    # ── natural_language ↔ others ──
+    ("natural_language", "music"):   (0.35, 0.25, 0.20),  # lyrics, program notes
+    ("music", "natural_language"):   (0.40, 0.30, 0.10),  # music criticism, analysis
+    ("natural_language", "creative"): (0.45, 0.40, 0.30), # ekphrasis, art criticism
+    ("creative", "natural_language"): (0.50, 0.40, 0.15), # art→description
+
+    # ── music ↔ creative ──
+    ("music", "creative"):           (0.30, 0.40, 0.50),  # synesthesia, visual music
+    ("creative", "music"):           (0.25, 0.35, 0.45),  # Kandinsky's compositions
 }
 
 
@@ -229,11 +254,16 @@ class HTLFScorer:
             pair = (source_layer, target_layer)
             if pair in AXIS_PRIOR:
                 r_struct, r_context, r_qualia = AXIS_PRIOR[pair]
-            elif (target_layer, source_layer) in AXIS_PRIOR:
-                a, b, c = AXIS_PRIOR[(target_layer, source_layer)]
-                r_struct, r_context, r_qualia = a * 0.95, b * 0.90, c * 0.85
             else:
-                r_struct, r_context, r_qualia = 0.45, 0.35, 0.20
+                # All 20 pairs should be defined; this is a safety fallback only.
+                # Log a warning if we ever hit this — means AXIS_PRIOR is incomplete.
+                import warnings
+                warnings.warn(
+                    f"AXIS_PRIOR missing pair {pair!r}. "
+                    "Full-graph model requires all 20 directional pairs.",
+                    stacklevel=2,
+                )
+                r_struct, r_context, r_qualia = 0.30, 0.20, 0.10
 
         total = 1.0 - self._clamp01((r_struct + r_context + r_qualia) / 3.0)
         if r_qualia >= max(r_struct, r_context):
