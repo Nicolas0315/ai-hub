@@ -120,8 +120,11 @@ def _cpu_bootstrap(scores, n_samples, ratio):
 
 
 def gpu_batch_similarity(vectors_a: List[List[float]], vectors_b: List[List[float]]) -> List[float]:
-    """Compute cosine similarities in batch on GPU."""
-    if not _TORCH_AVAILABLE or not vectors_a:
+    """Compute cosine similarities in batch on GPU.
+    
+    MPS has high init overhead — only route to GPU for large batches.
+    """
+    if not _TORCH_AVAILABLE or not vectors_a or len(vectors_a) < 50:
         return _cpu_similarity(vectors_a, vectors_b)
     
     import torch
@@ -152,8 +155,11 @@ def _cpu_similarity(va, vb):
 
 
 def gpu_lateral_inhibition(confidences: List[float], contradictions: List[tuple]) -> List[float]:
-    """Apply lateral inhibition on GPU — matrix operation."""
-    if not _TORCH_AVAILABLE or not confidences:
+    """Apply lateral inhibition on GPU — matrix operation.
+    
+    MPS overhead makes GPU slower for small matrices (<100 elements).
+    """
+    if not _TORCH_AVAILABLE or not confidences or len(confidences) < 100:
         return confidences
     
     import torch
