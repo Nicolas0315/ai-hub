@@ -1,0 +1,6 @@
+numpy>=1.24
+pyglet>=2.0
+moderngl>=5.8
+pyrr>=0.10
+trimesh>=4.0
+FbxCommon>=0.0.1
