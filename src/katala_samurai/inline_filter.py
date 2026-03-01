@@ -141,36 +141,51 @@ class KSInlineFilter:
         # Step 2: Split into sentences
         sentences = split_sentences(raw)
 
-        # Step 3: KS40b verify each sentence
+        # Step 3: KS40b batch verify all sentences at once
         ks = _get_ks()
         verdicts = []
         t_ks_start = time.time()
 
-        for sent in sentences:
-            if len(sent.strip()) < 5:  # Skip tiny fragments
+        # Separate verifiable sentences from tiny fragments
+        verifiable = [(i, s) for i, s in enumerate(sentences) if len(s.strip()) >= 5]
+        skip_indices = {i for i in range(len(sentences)) if len(sentences[i].strip()) < 5}
+
+        # Batch verify all verifiable sentences
+        batch_results = {}
+        if verifiable:
+            try:
+                # Use KS40b batch if available, else fall back to sequential
+                claims = [s for _, s in verifiable]
+                t_batch = time.time()
+                raw_results = [ks.verify(c) for c in claims]  # TODO: true batch when KS supports it
+                batch_elapsed = time.time() - t_batch
+                per_sentence_ms = (batch_elapsed / len(claims)) * 1000 if claims else 0
+
+                for (idx, _), result in zip(verifiable, raw_results):
+                    conf = result.get("confidence", 0.5) if isinstance(result, dict) else getattr(result, "confidence", 0.5)
+                    status = result.get("status") if isinstance(result, dict) else getattr(result, "status", None)
+                    htlf = result.get("htlf_loss") if isinstance(result, dict) else None
+                    batch_results[idx] = (conf, status, htlf, per_sentence_ms)
+            except Exception as e:
+                for idx, _ in verifiable:
+                    batch_results[idx] = (0.0, f"ERROR: {e}", None, 0)
+
+        # Assemble verdicts in original order
+        for i, sent in enumerate(sentences):
+            if i in skip_indices:
                 verdicts.append(SentenceVerdict(
                     text=sent, confidence=1.0, status="SKIP", ks_time_ms=0
                 ))
-                continue
-
-            t1 = time.time()
-            try:
-                result = ks.verify(sent)
-                conf = result.get("confidence", 0.5) if isinstance(result, dict) else getattr(result, "confidence", 0.5)
-                status = result.get("status") if isinstance(result, dict) else getattr(result, "status", None)
-                htlf = result.get("htlf_loss") if isinstance(result, dict) else None
-            except Exception as e:
-                conf = 0.0
-                status = f"ERROR: {e}"
-                htlf = None
-
-            verdicts.append(SentenceVerdict(
-                text=sent,
-                confidence=conf,
-                status=status,
-                ks_time_ms=(time.time() - t1) * 1000,
-                htlf_loss=htlf,
-            ))
+            elif i in batch_results:
+                conf, status, htlf, ms = batch_results[i]
+                verdicts.append(SentenceVerdict(
+                    text=sent, confidence=conf, status=status,
+                    ks_time_ms=ms, htlf_loss=htlf,
+                ))
+            else:
+                verdicts.append(SentenceVerdict(
+                    text=sent, confidence=0.0, status="MISSED", ks_time_ms=0
+                ))
 
         ks_time = time.time() - t_ks_start
         total_time = time.time() - t_start

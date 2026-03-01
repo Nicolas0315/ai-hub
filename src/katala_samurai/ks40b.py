@@ -36,8 +36,16 @@ try:
 except ImportError:
     from ks40a import KS40a
 
-# Layer detection thresholds — pattern hit count required to classify
-_LAYER_THRESHOLD = 1
+# ── Configuration Constants ──────────────────────────────────
+# Minimum regex pattern hits to classify a text into a specific layer.
+# A value of 1 means a single pattern match is enough.
+LAYER_DETECTION_THRESHOLD = 1
+
+# Minimum text length for meaningful KS verification (chars).
+MIN_VERIFIABLE_LENGTH = 5
+
+# Default layer when no patterns match above threshold.
+DEFAULT_LAYER = "natural_language"
 
 
 class KS40b(KS40a):
@@ -167,7 +175,7 @@ class KS40b(KS40a):
                     scores[layer] += 1
 
         winner = max(scores, key=lambda k: scores[k])
-        return winner if scores[winner] >= _LAYER_THRESHOLD else "natural_language"
+        return winner if scores[winner] >= LAYER_DETECTION_THRESHOLD else DEFAULT_LAYER
 
     def _check_multilayer_consistency(
         self, claim_text: str, source_text: str | None = None,
