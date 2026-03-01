@@ -1,0 +1,17 @@
+[package]
+name = "ks_engine"
+version = "0.1.0"
+edition = "2021"
+description = "KS Live Engine — Rust-first verification with embedded Python"
+
+[[bin]]
+name = "ks_engine"
+path = "src/main.rs"
+
+[dependencies]
+pyo3 = { version = "0.28", features = ["auto-initialize"] }
+rayon = "1.10"
+regex = "1"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+tiny_http = "0.12"
