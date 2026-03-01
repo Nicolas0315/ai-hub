@@ -178,12 +178,156 @@ fn extract_features(text: &str) -> ClaimFeatures {
 }
 
 // ══════════════════════════════════════════════
-// RUST-NATIVE SOLVER CHAIN (S01-S27 logic)
+// SEMANTIC TRUTH DATABASE (Rust-native factual knowledge)
 // ══════════════════════════════════════════════
 
-/// Run pure-Rust solver chain. Each solver checks a structural/semantic property.
+/// Known false claims — these ALWAYS fail regardless of structural validity.
+/// Format: (pattern, domain, explanation)
+static KNOWN_FALSE_PATTERNS: LazyLock<Vec<(Regex, &str, &str)>> = LazyLock::new(|| {
+    vec![
+        // Flat Earth variants
+        (Regex::new(r"(?i)\bearth\b.{0,20}\bflat\b").unwrap(), "physics", "Earth is an oblate spheroid"),
+        (Regex::new(r"(?i)\bflat\b.{0,20}\bearth\b").unwrap(), "physics", "Earth is an oblate spheroid"),
+        // Anti-vax
+        (Regex::new(r"(?i)\bvaccines?\b.{0,30}\bcause\b.{0,20}\bautism\b").unwrap(), "medicine", "No causal link: Wakefield retracted"),
+        // Moon landing denial
+        (Regex::new(r"(?i)\bmoon\s+landing\b.{0,20}\b(fake|hoax|staged|faked)\b").unwrap(), "history", "Apollo missions confirmed by multiple independent sources"),
+        (Regex::new(r"(?i)\b(never|didn'?t|did\s+not)\b.{0,20}\bland.{0,5}\b.{0,10}\bmoon\b").unwrap(), "history", "Apollo missions confirmed"),
+        // Sun revolves around Earth
+        (Regex::new(r"(?i)\bsun\b.{0,20}\b(revolves?|orbits?|goes?)\b.{0,20}\bearth\b").unwrap(), "physics", "Earth orbits the Sun (heliocentrism)"),
+        // 5G conspiracies
+        (Regex::new(r"(?i)\b5g\b.{0,30}\b(causes?|spreads?|creates?)\b.{0,20}\b(covid|virus|cancer|disease)\b").unwrap(), "medicine", "No mechanism for RF→pathogen transmission"),
+        // Speed of light violations (checked with post-filter, no lookahead)
+        (Regex::new(r"(?i)\b(faster|exceeds?)\b.{0,15}\bspeed\s+of\s+light\b").unwrap(), "physics", "Nothing with mass exceeds c in vacuum"),
+        // Perpetual motion
+        (Regex::new(r"(?i)\bperpetual\s+motion\b.{0,20}\b(machine|device|works?|possible)\b").unwrap(), "physics", "Violates thermodynamics"),
+        // Homeopathy efficacy
+        (Regex::new(r"(?i)\bhomeopath(y|ic)\b.{0,30}\b(cure|treat|effective|works?)\b").unwrap(), "medicine", "No evidence beyond placebo"),
+        // Age of Earth denial
+        (Regex::new(r"(?i)\bearth\b.{0,20}\b(6000|young|6,?000)\b.{0,10}\byears?\b").unwrap(), "geology", "Earth is ~4.54 billion years old"),
+        // Evolution denial
+        (Regex::new(r"(?i)\bevolution\b.{0,20}\b(just\s+a\s+theory|not\s+real|fake|myth|lie)\b").unwrap(), "biology", "Evolution is supported by overwhelming evidence"),
+    ]
+});
+
+/// Known true facts — these boost confidence when matched.
+/// Format: (pattern, confidence_boost, domain)
+static KNOWN_TRUE_PATTERNS: LazyLock<Vec<(Regex, f64, &str)>> = LazyLock::new(|| {
+    vec![
+        // Fundamental physics
+        (Regex::new(r"(?i)\bspeed\s+of\s+light\b.{0,20}\b(3\s*[×x*]\s*10\^?8|299|300)\b").unwrap(), 0.15, "physics"),
+        (Regex::new(r"(?i)\bwater\b.{0,20}\b(boils?|boiling)\b.{0,20}\b100\s*°?\s*[cC]").unwrap(), 0.10, "chemistry"),
+        (Regex::new(r"(?i)\bwater\b.{0,20}\b(freez|frozen?)\b.{0,20}\b0\s*°?\s*[cC]").unwrap(), 0.10, "chemistry"),
+        (Regex::new(r"(?i)\bDNA\b.{0,20}\bdouble\s+helix\b").unwrap(), 0.10, "biology"),
+        (Regex::new(r"(?i)\bearth\b.{0,20}\b(orbits?|revolves?)\b.{0,20}\bsun\b").unwrap(), 0.12, "physics"),
+        (Regex::new(r"(?i)\blight\s+year\b.{0,20}\b(distance|9\.46|trillion)\b").unwrap(), 0.08, "physics"),
+        // Biology
+        (Regex::new(r"(?i)\bCRISPR\b.{0,30}\b(edit|cut|modify).{0,10}\b(gene|DNA|genome)\b").unwrap(), 0.10, "biology"),
+        (Regex::new(r"(?i)\bmRNA\b.{0,20}\b(vaccine|protein|ribosome|translat)\b").unwrap(), 0.08, "biology"),
+        // Mathematics
+        (Regex::new(r"(?i)\bpi\b.{0,10}\b(3\.14|ratio|circumference)\b").unwrap(), 0.08, "mathematics"),
+        (Regex::new(r"(?i)\bprime\b.{0,15}\bnumber\b.{0,15}\b(infinite|infin)\b").unwrap(), 0.10, "mathematics"),
+    ]
+});
+
+/// Contradiction patterns — claims that contradict themselves.
+static SELF_CONTRADICTION_PATTERNS: LazyLock<Vec<Regex>> = LazyLock::new(|| {
+    vec![
+        // "is X ... is not X" style (simplified, no backreference)
+        Regex::new(r"(?i)\bis\b.{1,30}\band\b.{1,20}\bis\s+not\b").unwrap(),
+        // "always ... never" in same clause
+        Regex::new(r"(?i)\balways\b.{0,30}\bnever\b").unwrap(),
+        // "all X are Y ... no X are Y"
+        Regex::new(r"(?i)\ball\b.{0,20}\bare\b.{0,30}\bnone?\b.{0,10}\bare\b").unwrap(),
+        // "proven ... unproven" same subject
+        Regex::new(r"(?i)\bproven\b.{0,30}\bunproven\b").unwrap(),
+        // "true ... false" same claim
+        Regex::new(r"(?i)\btrue\b.{0,20}\bbut\b.{0,20}\bfalse\b").unwrap(),
+    ]
+});
+
+/// Weasel word / low-credibility signal patterns.
+static RE_WEASEL: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(r"(?i)\b(some\s+say|many\s+believe|it\s+is\s+said|people\s+think|everyone\s+knows)\b").unwrap()
+});
+
+/// Specific number/data patterns (boost credibility).
+static RE_SPECIFIC_DATA: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(r"(?:[\d,]+\.?\d*\s*(?:%|percent|mg|kg|km|mi|°C|°F|K|Hz|GHz|eV|mol|J|W|Pa|N|m/s|GeV)|p\s*[<=]\s*0\.\d+|\d{4}\s+study|Nature|Science|PNAS|Lancet|JAMA|arXiv)").unwrap()
+});
+
+/// Semantic truth check: returns (penalty, boost, reasons).
+fn semantic_truth_check(text: &str) -> (f64, f64, Vec<String>) {
+    let mut penalty: f64 = 0.0;
+    let mut boost: f64 = 0.0;
+    let mut reasons: Vec<String> = Vec::new();
+
+    // Qualifier exceptions (suppress false positives for qualified scientific claims)
+    let text_lower = text.to_lowercase();
+    let has_speed_qualifier = text_lower.contains("quantum") || text_lower.contains("tunnel")
+        || text_lower.contains("phase") || text_lower.contains("apparent") || text_lower.contains("tachyon");
+    let has_placebo_qualifier = text_lower.contains("placebo");
+
+    // Check known false claims
+    for (pattern, _domain, explanation) in KNOWN_FALSE_PATTERNS.iter() {
+        if pattern.is_match(text) {
+            // Skip speed-of-light violation if qualified
+            if explanation.contains("exceeds c") && has_speed_qualifier {
+                continue;
+            }
+            // Skip homeopathy if discussing placebo
+            if explanation.contains("placebo") && has_placebo_qualifier {
+                continue;
+            }
+            penalty += 0.35;
+            reasons.push(format!("KNOWN_FALSE: {}", explanation));
+        }
+    }
+
+    // Check known true facts
+    for (pattern, conf_boost, _domain) in KNOWN_TRUE_PATTERNS.iter() {
+        if pattern.is_match(text) {
+            boost += conf_boost;
+            reasons.push(format!("KNOWN_TRUE: matched factual pattern (+{:.0}%)", conf_boost * 100.0));
+        }
+    }
+
+    // Check self-contradictions
+    for pattern in SELF_CONTRADICTION_PATTERNS.iter() {
+        if pattern.is_match(text) {
+            penalty += 0.25;
+            reasons.push("SELF_CONTRADICTION: claim contains contradictory statements".to_string());
+        }
+    }
+
+    // Weasel words reduce confidence
+    if RE_WEASEL.is_match(text) {
+        penalty += 0.08;
+        reasons.push("WEASEL_WORDS: vague attribution reduces credibility".to_string());
+    }
+
+    // Specific data/citations boost confidence
+    let data_matches = RE_SPECIFIC_DATA.find_iter(text).count();
+    if data_matches > 0 {
+        let data_boost = (data_matches as f64 * 0.03).min(0.12);
+        boost += data_boost;
+        reasons.push(format!("SPECIFIC_DATA: {} data points found (+{:.0}%)", data_matches, data_boost * 100.0));
+    }
+
+    (penalty, boost, reasons)
+}
+
+// ══════════════════════════════════════════════
+// RUST-NATIVE SOLVER CHAIN (S01-S27 structural + S28-S33 semantic)
+// ══════════════════════════════════════════════
+
+/// Run pure-Rust solver chain.
+/// S01-S27: Structural/logical checks (original).
+/// S28-S33: NEW semantic truth checks (content-aware).
 fn rust_solver_chain(features: &ClaimFeatures) -> SolverResult {
-    let mut results: Vec<(&str, bool)> = Vec::with_capacity(27);
+    let mut results: Vec<(&str, bool)> = Vec::with_capacity(33);
+
+    // ── S01-S27: Structural solvers (original) ──
 
     // S01: Propositional logic — needs meaningful content
     results.push(("S01_propositional", features.word_count >= 3));
@@ -268,20 +412,64 @@ fn rust_solver_chain(features: &ClaimFeatures) -> SolverResult {
     // S26: Internal consistency
     results.push(("S26_internal", !(features.has_negation && features.has_causal && features.has_negation)));
 
-    // S27: Overall coherence
-    let pass_count = results.iter().filter(|(_, v)| *v).count();
-    results.push(("S27_coherence", pass_count >= 15));
+    // S27: Overall structural coherence
+    let structural_pass = results.iter().filter(|(_, v)| *v).count();
+    results.push(("S27_coherence", structural_pass >= 15));
+
+    // ── S28-S33: Semantic truth solvers (NEW — content-aware) ──
+
+    let (penalty, boost, truth_reasons) = semantic_truth_check(&features.text);
+
+    // S28: Known false claim detection
+    let has_known_false = truth_reasons.iter().any(|r| r.starts_with("KNOWN_FALSE"));
+    results.push(("S28_factual_truth", !has_known_false));
+
+    // S29: Self-contradiction detection
+    let has_contradiction = truth_reasons.iter().any(|r| r.starts_with("SELF_CONTRADICTION"));
+    results.push(("S29_no_contradiction", !has_contradiction));
+
+    // S30: Credibility signals (weasel words = FAIL)
+    let has_weasel = truth_reasons.iter().any(|r| r.starts_with("WEASEL"));
+    results.push(("S30_credibility", !has_weasel));
+
+    // S31: Specific data / citation presence (bonus)
+    let has_data = truth_reasons.iter().any(|r| r.starts_with("SPECIFIC_DATA"));
+    results.push(("S31_data_support", has_data || features.has_evidence));
+
+    // S32: Known true fact alignment
+    let has_known_true = truth_reasons.iter().any(|r| r.starts_with("KNOWN_TRUE"));
+    results.push(("S32_fact_alignment", has_known_true || !has_known_false));
+
+    // S33: Semantic confidence (composite: penalty < 0.1 AND no known false)
+    results.push(("S33_semantic_confidence", penalty < 0.1));
+
+    // ── Combined scoring ──
 
     let passed = results.iter().filter(|(_, v)| *v).count();
     let total = results.len();
-    let confidence = passed as f64 / total as f64;
+
+    // Base confidence from solver pass rate
+    let structural_confidence = passed as f64 / total as f64;
+
+    // Apply semantic adjustments: penalty reduces, boost increases
+    let adjusted_confidence = (structural_confidence - penalty + boost).clamp(0.0, 1.0);
+
+    // Verdict: FAIL if known false regardless of structural score
+    let verdict = if has_known_false {
+        "FAIL"
+    } else if adjusted_confidence >= 0.70 {
+        "PASS"
+    } else {
+        "FAIL"
+    };
 
     SolverResult {
         passed,
         total,
-        confidence,
-        verdict: if confidence >= 0.75 { "PASS" } else { "FAIL" },
+        confidence: adjusted_confidence,
+        verdict,
         solver_results: results.into_iter().map(|(k, v)| (k.to_string(), v)).collect(),
+        semantic_reasons: truth_reasons,
     }
 }
 
@@ -292,6 +480,7 @@ struct SolverResult {
     confidence: f64,
     verdict: &'static str,
     solver_results: Vec<(String, bool)>,
+    semantic_reasons: Vec<String>,
 }
 
 // ══════════════════════════════════════════════
@@ -413,10 +602,12 @@ fn verify(text: &str, use_python: bool) -> FullResult {
     };
 
     // Phase 4: Combine results
+    let has_known_false = rust_result.semantic_reasons.iter().any(|r| r.starts_with("KNOWN_FALSE"));
     let (verdict, confidence) = if let Some(ref py) = py_result {
-        // Blend: 40% Rust + 60% Python (Python has fuller solver chain)
-        let blended = rust_result.confidence * 0.4 + py.confidence * 0.6;
-        let v = if blended >= 0.75 { "PASS" } else { "FAIL" };
+        // Blend: 45% Rust + 55% Python (Rust now has semantic solvers)
+        let blended = rust_result.confidence * 0.45 + py.confidence * 0.55;
+        // Known false always fails, even if Python says otherwise
+        let v = if has_known_false { "FAIL" } else if blended >= 0.70 { "PASS" } else { "FAIL" };
         (v.to_string(), blended)
     } else {
         (rust_result.verdict.to_string(), rust_result.confidence)
