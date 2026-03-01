@@ -112,6 +112,50 @@ except ImportError:
     except ImportError:
         pass
 
+_HAS_CODEGEN = False
+try:
+    from katala_samurai.code_generation import CodeGenerationEngine
+    _HAS_CODEGEN = True
+except ImportError:
+    try:
+        from code_generation import CodeGenerationEngine
+        _HAS_CODEGEN = True
+    except ImportError:
+        pass
+
+_HAS_MULTILINGUAL = False
+try:
+    from katala_samurai.multilingual_engine import MultilingualVerifier, detect_language
+    _HAS_MULTILINGUAL = True
+except ImportError:
+    try:
+        from multilingual_engine import MultilingualVerifier, detect_language
+        _HAS_MULTILINGUAL = True
+    except ImportError:
+        pass
+
+_HAS_LONG_CONTEXT = False
+try:
+    from katala_samurai.long_context import LongContextEngine
+    _HAS_LONG_CONTEXT = True
+except ImportError:
+    try:
+        from long_context import LongContextEngine
+        _HAS_LONG_CONTEXT = True
+    except ImportError:
+        pass
+
+_HAS_MATH_PROOF = False
+try:
+    from katala_samurai.math_proof import MathProofEngine
+    _HAS_MATH_PROOF = True
+except ImportError:
+    try:
+        from math_proof import MathProofEngine
+        _HAS_MATH_PROOF = True
+    except ImportError:
+        pass
+
 
 class KS42c(KS42b):
     """KS42b + Semantic Parse + Rust Acceleration.
@@ -150,6 +194,10 @@ class KS42c(KS42b):
         self._expert = ExpertReasoningEngine() if _HAS_EXPERT else None
         self._cross_domain = CrossDomainTransferEngine() if _HAS_CROSS_DOMAIN else None
         self._axis96 = Axis96Booster() if _HAS_AXIS96 else None
+        self._codegen = CodeGenerationEngine() if _HAS_CODEGEN else None
+        self._multilingual = MultilingualVerifier() if _HAS_MULTILINGUAL else None
+        self._long_context = LongContextEngine() if _HAS_LONG_CONTEXT else None
+        self._math_proof = MathProofEngine() if _HAS_MATH_PROOF else None
 
     def verify(self, claim, store=None, skip_s28=True, **kwargs):
         """Verify claim with semantic enrichment and Rust acceleration.
@@ -360,5 +408,14 @@ class KS42c(KS42b):
         base["axis96_boost"] = {
             "available": self._axis96 is not None,
             "status": self._axis96.get_status() if self._axis96 else None,
+        }
+        base["multimodal_engines"] = {
+            "code_generation": self._codegen is not None,
+            "multilingual": self._multilingual is not None,
+            "long_context": self._long_context is not None,
+            "math_proof": {
+                "available": self._math_proof is not None,
+                "status": self._math_proof.get_status() if self._math_proof else None,
+            },
         }
         return base
