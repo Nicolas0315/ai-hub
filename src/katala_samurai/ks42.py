@@ -193,16 +193,16 @@ def _classify_loss_pattern(lv: LossVector) -> str:
     voids = lv.void_dimensions()
     scores = lv.as_tuple()
 
+    # Temporal decay: R_temporal is the only weak axis (check first — more specific)
+    if lv.r_temporal < LOSS_THRESHOLD and len(voids) == 1 and voids[0] == "r_temporal":
+        return "temporal_decay"
+
     # Single axis drop: one axis is >> SINGLE_AXIS_GAP below mean
     deviations = [(ax, mean - lv.axis_score(ax)) for ax in AXES]
     big_drops = [(ax, d) for ax, d in deviations if d > SINGLE_AXIS_GAP]
 
     if len(big_drops) == 1 and len(voids) <= 1:
         return "single_axis_drop"
-
-    # Temporal decay: R_temporal is the only weak axis
-    if lv.r_temporal < LOSS_THRESHOLD and len(voids) == 1 and voids[0] == "r_temporal":
-        return "temporal_decay"
 
     # Multi-axis void: 2+ axes below threshold
     if len(voids) >= 2:
@@ -851,6 +851,40 @@ class KS42(KS41b):
             timestamp=time.time(),
             version=self.VERSION,
         )
+
+    # ── Convenience API (R_qualia improvement) ─────────────────
+
+    def analyze(self, code: str, design: str = "",
+                corpus: list[dict[str, Any]] | None = None) -> CreativeInferenceReport:
+        """Alias for ``infer()`` with friendlier defaults.
+
+        >>> report = KS42().analyze(my_code, "design intent")
+        """
+        return self.infer(code=code, design=design or None, corpus=corpus)
+
+    def quick_report(self, code: str, design: str = "") -> str:
+        """One-liner: analyze code and return formatted report string.
+
+        >>> print(KS42().quick_report(code, design))
+        """
+        return self.format_report(self.analyze(code, design))
+
+    @property
+    def axes(self) -> tuple[str, ...]:
+        """Available axis names."""
+        return AXES
+
+    @staticmethod
+    def loss_vector(r_struct: float = 0.5, r_context: float = 0.5,
+                    r_qualia: float = 0.5, r_cultural: float = 0.5,
+                    r_temporal: float = 0.5) -> LossVector:
+        """Construct a LossVector from keyword scores.
+
+        >>> lv = KS42.loss_vector(r_struct=0.9, r_qualia=0.4)
+        """
+        return LossVector(r_struct=r_struct, r_context=r_context,
+                          r_qualia=r_qualia, r_cultural=r_cultural,
+                          r_temporal=r_temporal)
 
     # ── Formatting ───────────────────────────────────────────────
 
