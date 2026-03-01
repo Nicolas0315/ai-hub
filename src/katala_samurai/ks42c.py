@@ -43,7 +43,7 @@ except ImportError:
     from ks29 import Claim
     from stage_store import StageStore
 
-VERSION = "KS42c-v2"
+VERSION = "KS42c-v3"
 
 # ── Rust availability check ──
 _HAS_RUST = False
@@ -224,6 +224,51 @@ except ImportError:
     except ImportError:
         pass
 
+# ── PhD-gap engines (v3): peer_review, metacognitive, interdisciplinary, tacit_knowledge ──
+_HAS_PEER_REVIEW = False
+try:
+    from katala_samurai.peer_review import PeerReviewEngine
+    _HAS_PEER_REVIEW = True
+except ImportError:
+    try:
+        from peer_review import PeerReviewEngine
+        _HAS_PEER_REVIEW = True
+    except ImportError:
+        pass
+
+_HAS_METACOGNITIVE = False
+try:
+    from katala_samurai.metacognitive import MetacognitiveEngine
+    _HAS_METACOGNITIVE = True
+except ImportError:
+    try:
+        from metacognitive import MetacognitiveEngine
+        _HAS_METACOGNITIVE = True
+    except ImportError:
+        pass
+
+_HAS_INTERDISCIPLINARY = False
+try:
+    from katala_samurai.interdisciplinary import InterdisciplinaryEngine
+    _HAS_INTERDISCIPLINARY = True
+except ImportError:
+    try:
+        from interdisciplinary import InterdisciplinaryEngine
+        _HAS_INTERDISCIPLINARY = True
+    except ImportError:
+        pass
+
+_HAS_TACIT = False
+try:
+    from katala_samurai.tacit_knowledge import TacitKnowledgeEngine
+    _HAS_TACIT = True
+except ImportError:
+    try:
+        from tacit_knowledge import TacitKnowledgeEngine
+        _HAS_TACIT = True
+    except ImportError:
+        pass
+
 
 class KS42c(KS42b):
     """KS42b + Semantic Parse + Rust Acceleration.
@@ -273,6 +318,12 @@ class KS42c(KS42b):
         self._mm_judge = ModalityJudge() if _HAS_MULTIMODAL_INPUT else None
         self._cross_modal = CrossModalSolverEngine() if _HAS_CROSS_MODAL_SOLVER else None
         self._exceeds = ExceedsEngine() if _HAS_EXCEEDS else None
+
+        # v3: PhD-gap engines
+        self._peer_review = PeerReviewEngine() if _HAS_PEER_REVIEW else None
+        self._metacognitive = MetacognitiveEngine() if _HAS_METACOGNITIVE else None
+        self._interdisciplinary = InterdisciplinaryEngine() if _HAS_INTERDISCIPLINARY else None
+        self._tacit = TacitKnowledgeEngine() if _HAS_TACIT else None
 
     def verify(self, claim, store=None, skip_s28=True, **kwargs):
         """Verify claim with semantic enrichment and Rust acceleration.
@@ -385,6 +436,86 @@ class KS42c(KS42b):
                 else:
                     boost = -0.01  # Adversarial penalty
                 result["final_score"] = round(min(current_score + boost, 1.0), 4)
+
+        # v3: PhD-gap engines ─────────────────────────────────────
+
+        claim_text = claim.text if hasattr(claim, 'text') else str(claim)
+        _evidence = getattr(claim, 'evidence', []) or []
+        _solver_results = result.get("solver_results", [])
+        _semantic = result.get("semantic_enrichment", {})
+        _confidence = result.get("confidence", 0.5)
+        _verdict = result.get("verdict", "UNVERIFIED")
+
+        # Peer Review (査読レベルの批判)
+        if self._peer_review:
+            pr = self._peer_review.review(
+                claim_text=claim_text,
+                solver_results=_solver_results,
+                semantic_data=_semantic,
+                evidence=_evidence,
+                confidence=_confidence,
+                verdict=_verdict,
+            )
+            result["peer_review"] = pr.to_dict()
+
+        # Metacognitive Self-Correction (メタ認知的自己修正)
+        if self._metacognitive:
+            mc = self._metacognitive.analyze(
+                claim_text=claim_text,
+                ks_result=result,
+            )
+            result["metacognitive"] = mc.to_dict()
+            # Apply metacognitive confidence correction
+            if mc.corrections:
+                for corr in mc.corrections:
+                    if (corr.target == "confidence"
+                            and corr.proposed_value is not None
+                            and corr.confidence_in_correction >= 0.5):
+                        result["confidence_pre_metacognitive"] = result.get("confidence", 0.5)
+                        result["confidence"] = corr.proposed_value
+                        break
+
+        # Interdisciplinary Integration + Hypothesis Generation (学際統合+仮説生成)
+        if self._interdisciplinary:
+            # Build solver result list from solvers_passed summary
+            _solver_list = _solver_results
+            if not _solver_list:
+                _sp = result.get("solvers_passed", "0/0")
+                try:
+                    _p, _t = str(_sp).split("/")
+                    _passed_n, _total_n = int(_p), int(_t)
+                except (ValueError, AttributeError):
+                    _passed_n, _total_n = 0, 33
+                _solver_list = [
+                    {
+                        "solver_id": f"S{i+1:02d}",
+                        "passed": i < _passed_n,
+                        "confidence": 0.5 + (0.1 if i < _passed_n else -0.1),
+                    }
+                    for i in range(_total_n)
+                ]
+            if _solver_list:
+                inter = self._interdisciplinary.analyze(
+                    claim_text=claim_text,
+                    solver_results=_solver_list,
+                    semantic_data=_semantic,
+                )
+                result["interdisciplinary"] = inter.to_dict()
+
+        # Tacit Knowledge (暗黙知近似)
+        if self._tacit:
+            domain = "general"
+            if _semantic and isinstance(_semantic, dict):
+                domain = _semantic.get("domain", "general")
+            tk = self._tacit.analyze(
+                claim_text=claim_text,
+                domain=domain,
+                confidence=result.get("confidence", 0.5),
+                verdict=_verdict,
+                solver_results=_solver_results,
+                semantic_data=_semantic,
+            )
+            result["tacit_knowledge"] = tk.to_dict()
 
         result["version"] = self.VERSION
         return result
@@ -520,5 +651,16 @@ class KS42c(KS42b):
                 "available": self._exceeds is not None,
                 "status": self._exceeds.get_status() if self._exceeds else None,
             },
+        }
+        # v3: PhD-gap engines
+        base["peer_review"] = {"available": self._peer_review is not None}
+        base["metacognitive"] = {
+            "available": self._metacognitive is not None,
+            "history_size": len(self._metacognitive._history) if self._metacognitive else 0,
+        }
+        base["interdisciplinary"] = {"available": self._interdisciplinary is not None}
+        base["tacit_knowledge"] = {
+            "available": self._tacit is not None,
+            "domain_profiles": len(self._tacit.profiles) if self._tacit else 0,
         }
         return base
