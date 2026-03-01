@@ -508,7 +508,28 @@ print(f"\nExported OBJ: {obj_path}")
 
 fbx_path = os.path.join(outdir, 'avatar_androgynous.fbx')
 export_fbx_ascii(full_avatar, fbx_path)
-print(f"Exported FBX: {fbx_path}")
+print(f"Exported FBX (no rig): {fbx_path}")
+
+# ── Humanoid Rig ──
+from humanoid_rig import HumanoidRig, export_fbx_with_rig
+
+print("\n=== Building Humanoid Rig ===")
+rig = HumanoidRig(height_cm=TOTAL_HEIGHT)
+print(f"Bones: {rig.bone_count}")
+for bone in rig.get_bone_list():
+    parent_str = f" → {bone.parent}" if bone.parent else " (root)"
+    print(f"  {bone.name:20s} head={bone.head[1]:.3f}m  len={bone.length:.3f}m{parent_str}")
+
+# Compute skin weights
+print("\nComputing skin weights...")
+pos_array = full_avatar.get_positions_array()
+rig.compute_skin_weights(pos_array, max_influences=4)
+print(f"Skinned {len(rig.skin_weights)} vertices")
+
+# Export rigged FBX
+rigged_fbx_path = os.path.join(outdir, 'avatar_androgynous_rigged.fbx')
+export_fbx_with_rig(full_avatar, rig, rigged_fbx_path)
+print(f"Exported Rigged FBX: {rigged_fbx_path}")
 
 print(f"\nKS Quality Score: {full_avatar.ks_quality_score():.3f}")
 print("\n=== Body Proportions ===")
@@ -519,4 +540,9 @@ print(f"  Hips: {HIP_HW * 2}cm")
 print(f"  Inseam: {HIP_Y}cm")
 print(f"  Shoulder/Waist ratio: {SHOULDER_HW / WAIST_HW:.2f}")
 print(f"  Hip/Waist ratio: {HIP_HW / WAIST_HW:.2f}")
+
+print("\n=== Humanoid Bone Mapping (Unity/VRChat) ===")
+for bone in rig.get_bone_list():
+    print(f"  {bone.humanoid_name:20s} → {bone.name}")
+
 print("\nDone!")
