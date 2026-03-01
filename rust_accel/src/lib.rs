@@ -1,5 +1,7 @@
 use pyo3::prelude::*;
+#[allow(unused_imports)]
 use pyo3::types::{PyDict, PyList};
+#[allow(dead_code)]
 type PyObject = Py<PyAny>;
 use rayon::prelude::*;
 use regex::Regex;
