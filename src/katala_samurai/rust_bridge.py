@@ -4,11 +4,34 @@ Rust Bridge — Transparent fallback wrapper for ks_accel.
 If ks_accel (Rust) is available, use it. Otherwise fall back to Python.
 All KS modules should import from here instead of directly.
 
+Architecture:
+  - Each function checks RUST_AVAILABLE at call time
+  - Rust (ks_accel): C-level speed via PyO3/rayon
+  - Python fallback: pure Python implementation for environments without Rust build
+  - Interface is identical — callers should not know which backend is active
+
 Design: Youta Hilono, 2026-02-28
 """
 
 import json
 from typing import Dict, Any, List, Optional
+
+# ── Configuration Constants ──
+BOOTSTRAP_DEFAULT_SAMPLES = 500
+BOOTSTRAP_DEFAULT_RATIO = 0.7
+BOOTSTRAP_CI_LOW_PERCENTILE = 0.025
+BOOTSTRAP_CI_HIGH_PERCENTILE = 0.975
+LATERAL_INHIBIT_THRESHOLD = 0.7
+LATERAL_INHIBIT_HIGH = 0.65
+LATERAL_INHIBIT_LOW = 0.35
+LATERAL_INHIBIT_FACTOR = 0.5
+LATERAL_INHIBIT_FLOOR = 0.1
+COHERENCE_THRESHOLD = 0.5
+COHERENCE_PENALTY_FACTOR = 0.1
+COHERENCE_HIGH = 0.65
+COHERENCE_LOW = 0.35
+COHERENCE_PROXIMITY = 0.2
+PRECISION = 4
 
 try:
     import ks_accel as _rust
@@ -30,8 +53,15 @@ def classify_claim(text: str) -> Dict[str, float]:
 
 # ── Bootstrap Confidence ──
 
-def bootstrap_confidence(scores: list, n_samples: int = 500,
-                         sample_ratio: float = 0.7) -> Dict[str, float]:
+def bootstrap_confidence(
+    scores: list,
+    n_samples: int = BOOTSTRAP_DEFAULT_SAMPLES,
+    sample_ratio: float = BOOTSTRAP_DEFAULT_RATIO,
+) -> Dict[str, float]:
+    """Compute bootstrap confidence interval for solver score distribution.
+
+    Returns dict with mean, std, ci_low (2.5%), ci_high (97.5%).
+    """
     if RUST_AVAILABLE:
         return _rust.bootstrap_confidence(scores, n_samples, sample_ratio)
     import random, math
@@ -43,18 +73,26 @@ def bootstrap_confidence(scores: list, n_samples: int = 500,
     std = math.sqrt(sum((x - mean)**2 for x in means) / len(means))
     means.sort()
     return {
-        "mean": round(mean, 4), "std": round(std, 4),
-        "ci_low": round(means[int(n_samples * 0.025)], 4),
-        "ci_high": round(means[int(n_samples * 0.975)], 4),
+        "mean": round(mean, PRECISION),
+        "std": round(std, PRECISION),
+        "ci_low": round(means[int(n_samples * BOOTSTRAP_CI_LOW_PERCENTILE)], PRECISION),
+        "ci_high": round(means[int(n_samples * BOOTSTRAP_CI_HIGH_PERCENTILE)], PRECISION),
     }
 
 
 # ── Lateral Inhibition ──
 
-def lateral_inhibit(confidences: list, threshold: float = 0.7) -> list:
+def lateral_inhibit(
+    confidences: list,
+    threshold: float = LATERAL_INHIBIT_THRESHOLD,
+) -> list:
+    """Suppress conflicting solver confidences via lateral inhibition.
+
+    When two solvers strongly disagree (one high, one low), the weaker
+    signal gets suppressed proportionally.
+    """
     if RUST_AVAILABLE:
         return _rust.lateral_inhibit(confidences, threshold)
-    # Python fallback
     n = len(confidences)
     if n < 2:
         return confidences
@@ -65,26 +103,38 @@ def lateral_inhibit(confidences: list, threshold: float = 0.7) -> list:
         for j in range(n):
             if j == i:
                 continue
-            if (confidences[i] > 0.65 and confidences[j] < 0.35) or \
-               (confidences[i] < 0.35 and confidences[j] > 0.65):
-                if confidences[j] < confidences[i]:
-                    suppression[j] += (confidences[i] - confidences[j]) * 0.5
-    return [round(max(0.1, c - s), 4) for c, s in zip(confidences, suppression)]
+            high_low_conflict = (
+                (confidences[i] > LATERAL_INHIBIT_HIGH and confidences[j] < LATERAL_INHIBIT_LOW)
+                or (confidences[i] < LATERAL_INHIBIT_LOW and confidences[j] > LATERAL_INHIBIT_HIGH)
+            )
+            if high_low_conflict and confidences[j] < confidences[i]:
+                suppression[j] += (confidences[i] - confidences[j]) * LATERAL_INHIBIT_FACTOR
+    return [round(max(LATERAL_INHIBIT_FLOOR, c - s), PRECISION) for c, s in zip(confidences, suppression)]
 
 
 # ── Feature Extraction ──
 
 def extract_features(text: str) -> Dict[str, Any]:
+    """Extract linguistic features from claim text for solver routing.
+
+    Returns a dict of boolean and numeric features used by the solver
+    router to select appropriate verification strategies.
+    """
     if RUST_AVAILABLE:
         return _rust.extract_features(text)
     words = set(text.lower().split())
+    negation_words = {"not", "never", "no", "neither", "without", "none"}
+    causal_words = {"cause", "causes", "caused", "because", "effect", "leads", "results"}
+    statistical_words = {"significant", "correlation", "sample", "regression"}
+    definition_words = {"defined", "means", "refers", "definition", "known"}
     return {
-        "word_count": len(words), "char_count": len(text),
+        "word_count": len(words),
+        "char_count": len(text),
         "has_numbers": any(c.isdigit() for c in text),
-        "has_negation": bool(words & {"not","never","no","neither","without","none"}),
-        "has_causal": bool(words & {"cause","causes","caused","because","effect","leads","results"}),
-        "has_statistical": bool(words & {"significant","correlation","sample","regression"}),
-        "has_definition": bool(words & {"defined","means","refers","definition","known"}),
+        "has_negation": bool(words & negation_words),
+        "has_causal": bool(words & causal_words),
+        "has_statistical": bool(words & statistical_words),
+        "has_definition": bool(words & definition_words),
         "sentence_count": max(1, text.count('.') + text.count('!') + text.count('?')),
     }
 
@@ -92,6 +142,12 @@ def extract_features(text: str) -> Dict[str, Any]:
 # ── Coherence Check ──
 
 def check_coherence(confidences: list) -> Dict[str, float]:
+    """Check inter-solver coherence via conflict/support counting.
+
+    Coherence measures how consistently solvers agree. High conflict
+    (one solver says 0.8, another says 0.2) reduces coherence.
+    Returns coherence score, conflict count, and confidence modifier.
+    """
     if RUST_AVAILABLE:
         return _rust.check_coherence(confidences)
     n = len(confidences)
@@ -99,22 +155,37 @@ def check_coherence(confidences: list) -> Dict[str, float]:
         return {"coherence": 1.0, "conflicts": 0.0}
     conflicts = support = 0
     for i in range(n):
-        for j in range(i+1, n):
-            if (confidences[i] > 0.65 and confidences[j] < 0.35) or \
-               (confidences[i] < 0.35 and confidences[j] > 0.65):
+        for j in range(i + 1, n):
+            high_low = (
+                (confidences[i] > COHERENCE_HIGH and confidences[j] < COHERENCE_LOW)
+                or (confidences[i] < COHERENCE_LOW and confidences[j] > COHERENCE_HIGH)
+            )
+            if high_low:
                 conflicts += 1
-            elif abs(confidences[i] - confidences[j]) < 0.2:
+            elif abs(confidences[i] - confidences[j]) < COHERENCE_PROXIMITY:
                 support += 1
-    coh = max(0, 1.0 - conflicts / max(n*(n-1)//2, 1) * 2)
-    return {"coherence": round(coh, 4), "conflicts": float(conflicts),
-            "support_pairs": float(support),
-            "modifier": round(-0.1 * (1 - coh), 4) if coh < 0.5 else 0.0}
+    total_pairs = max(n * (n - 1) // 2, 1)
+    coh = max(0.0, 1.0 - conflicts / total_pairs * 2)
+    modifier = round(-COHERENCE_PENALTY_FACTOR * (1 - coh), PRECISION) if coh < COHERENCE_THRESHOLD else 0.0
+    return {
+        "coherence": round(coh, PRECISION),
+        "conflicts": float(conflicts),
+        "support_pairs": float(support),
+        "modifier": modifier,
+    }
 
 
 # ── Reason Space ──
 
-def reason_space_analyze(solvers: list, reasons: list,
-                         confidences: list, verdicts: list) -> Dict[str, Any]:
+def reason_space_analyze(
+    solvers: list, reasons: list,
+    confidences: list, verdicts: list,
+) -> Dict[str, Any]:
+    """Analyze reasoning space across all solvers for coherence and conflicts.
+
+    Maps solver outputs into a reason space, detecting epistemic conflicts,
+    support clusters, and isolated solver positions.
+    """
     if RUST_AVAILABLE:
         raw = _rust.reason_space_analyze(solvers, reasons, confidences, verdicts)
         # Parse JSON strings back to Python objects
@@ -142,8 +213,21 @@ def reason_space_analyze(solvers: list, reasons: list,
 
 # ── Neuromodulation ──
 
-def neuromodulate(claim_type: str, difficulty: str,
-                  prediction_error: float, novelty: float = 0.5) -> Dict[str, Any]:
+NEURO_DEFAULT_NOVELTY = 0.5
+NEURO_CAUTION_FLOOR = 1.0
+NEURO_CAUTION_FACTOR = 0.3
+
+
+def neuromodulate(
+    claim_type: str, difficulty: str,
+    prediction_error: float, novelty: float = NEURO_DEFAULT_NOVELTY,
+) -> Dict[str, Any]:
+    """Compute neuromodulation parameters for adaptive verification.
+
+    Adjusts solver behavior based on claim type (causal vs descriptive),
+    difficulty, prediction error (surprise), and novelty. Returns
+    confidence modifiers and VIGILANT/NORMAL/RELAXED mode.
+    """
     if RUST_AVAILABLE:
         raw = _rust.neuromodulate(claim_type, difficulty, prediction_error, novelty)
         mode_val = raw.pop("mode", 0.0)
@@ -157,19 +241,35 @@ def neuromodulate(claim_type: str, difficulty: str,
 
 
 def neuro_apply_confidence(raw_confidence: float, caution: float) -> float:
+    """Apply neuromodulation caution level to raw solver confidence.
+
+    When caution > 1.0, pulls confidence toward 0.5 (increasing uncertainty).
+    """
     if RUST_AVAILABLE:
         return _rust.neuro_apply_confidence(raw_confidence, caution)
-    if caution > 1.0:
-        return round(max(0, min(1, raw_confidence + (0.5 - raw_confidence) * (caution - 1.0) * 0.3)), 4)
+    neutral = 0.5
+    if caution > NEURO_CAUTION_FLOOR:
+        adjusted = raw_confidence + (neutral - raw_confidence) * (caution - NEURO_CAUTION_FLOOR) * NEURO_CAUTION_FACTOR
+        return round(max(0, min(1, adjusted)), PRECISION)
     return raw_confidence
 
 
 # ── Predictive Coding ──
 
-def predictive_error(predicted_conf: float, actual_conf: float,
-                     predicted_verdict: str, actual_verdict: str,
-                     range_low: float, range_high: float,
-                     precision: float = 1.0, surprise_threshold: float = 0.15) -> Dict[str, Any]:
+SURPRISE_DEFAULT_THRESHOLD = 0.15
+
+
+def predictive_error(
+    predicted_conf: float, actual_conf: float,
+    predicted_verdict: str, actual_verdict: str,
+    range_low: float, range_high: float,
+    precision: float = 1.0, surprise_threshold: float = SURPRISE_DEFAULT_THRESHOLD,
+) -> Dict[str, Any]:
+    """Compute prediction error between expected and actual solver output.
+
+    Used by the predictive coding layer to detect surprising outcomes
+    and trigger deeper metacognitive analysis.
+    """
     if RUST_AVAILABLE:
         raw = _rust.predictive_error(predicted_conf, actual_conf,
                                      predicted_verdict, actual_verdict,
@@ -189,7 +289,12 @@ def predictive_error(predicted_conf: float, actual_conf: float,
 
 # ── Solver Cache ──
 
-def cache_get(namespace: str, query: str, ttl: float = 3600.0) -> Optional[Any]:
+CACHE_DEFAULT_TTL = 3600.0
+CACHE_DEFAULT_MAX_SIZE = 1000
+
+
+def cache_get(namespace: str, query: str, ttl: float = CACHE_DEFAULT_TTL) -> Optional[Any]:
+    """Retrieve cached solver result if TTL hasn't expired."""
     if RUST_AVAILABLE:
         raw = _rust.cache_get(namespace, query, ttl)
         if raw is not None:
@@ -201,25 +306,32 @@ def cache_get(namespace: str, query: str, ttl: float = 3600.0) -> Optional[Any]:
     return None  # No Python fallback for cache (use SolverCache directly)
 
 
-def cache_put(namespace: str, query: str, value: Any, max_size: int = 1000):
+def cache_put(namespace: str, query: str, value: Any, max_size: int = CACHE_DEFAULT_MAX_SIZE):
+    """Store solver result in cache with LRU eviction at max_size."""
     if RUST_AVAILABLE:
         _rust.cache_put(namespace, query, json.dumps(value), max_size)
 
 
+BRIDGE_FUNCTION_COUNT = 14
+
+
 def cache_stats() -> Dict[str, float]:
+    """Return cache hit/miss statistics."""
     if RUST_AVAILABLE:
         return _rust.cache_stats()
     return {"size": 0, "hits": 0, "misses": 0, "hit_rate": 0.0}
 
 
-def cache_clear():
+def cache_clear() -> None:
+    """Clear all cached solver results."""
     if RUST_AVAILABLE:
         _rust.cache_clear()
 
 
 def status() -> Dict[str, Any]:
+    """Return bridge status: which backend is active and how many functions."""
     return {
         "rust_available": RUST_AVAILABLE,
-        "functions": 14 if RUST_AVAILABLE else 0,
+        "functions": BRIDGE_FUNCTION_COUNT if RUST_AVAILABLE else 0,
         "backend": "ks_accel (Rust/PyO3/Rayon)" if RUST_AVAILABLE else "Python fallback",
     }

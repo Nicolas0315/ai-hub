@@ -34,12 +34,62 @@ except ImportError:
     from causal_verifier import build_causal_dag, check_dag_structure
 
 
+# ── Deep Causal Reasoning Constants ──
+TEMPORAL_MAJOR_PENALTY = -0.15
+TEMPORAL_MINOR_PENALTY = -0.05
+TEMPORAL_CONSISTENT_BONUS = 0.05
+REVERSE_CAUSATION_PENALTY = -0.1
+REVERSE_CAUSATION_MAX = 3
+MULTI_STEP_ROBUST_THRESHOLD = 0.8
+MULTI_STEP_FRAGILE_THRESHOLD = 0.2
+MULTI_STEP_ROBUST_BONUS = 0.08
+MULTI_STEP_FRAGILE_PENALTY = -0.08
+HIGH_CONFOUND_PENALTY = -0.15
+MODERATE_CONFOUND_PENALTY = -0.08
+NO_CONFOUND_BONUS = 0.05
+TOTAL_ADJ_FLOOR = -0.3
+TOTAL_ADJ_CEILING = 0.2
+MAX_CHAIN_LENGTH = 2
+MAX_ROOTS = 2
+MAX_LEAVES = 2
+ERROR_TRUNCATE = 80
+DEFAULT_CONFIDENCE = 0.5
+
+
 class KS34a(KS33c):
-    """KS33c + Deep Causal Reasoning."""
-    
+    """KS33c + Deep Causal Reasoning.
+
+    Adds three causal verification capabilities on top of the KS33c
+    33-solver pipeline:
+
+    1. **Temporal Consistency**: Checks that causal claims respect
+       temporal ordering (causes precede effects).
+    2. **Multi-Step Intervention**: Tests robustness of causal chains
+       via do-calculus intervention sequences.
+    3. **Confound Detection**: Identifies potential confounding variables
+       that could invalidate causal claims.
+
+    Design: Youta Hilono
+    """
+
     VERSION = "KS34a"
     
     def verify(self, claim, store=None, skip_s28=True, **kwargs):
+        """Verify a claim with deep causal reasoning enhancement.
+
+        Extends KS33c.verify() with three additional causal checks:
+        temporal consistency, multi-step intervention, and confound detection.
+        Adjusts confidence based on causal analysis results.
+
+        Args:
+            claim: Claim text or Claim object to verify.
+            store: StageStore for intermediate results (created if None).
+            skip_s28: Whether to skip S28 LLM solver.
+            **kwargs: Passed to parent verify().
+
+        Returns:
+            dict with standard verification result plus 'deep_causal' section.
+        """
         if store is None:
             store = StageStore()
         
@@ -124,29 +174,29 @@ class KS34a(KS33c):
                                  "violations": temporal["violation_count"]})
             
             if temporal["temporal_verdict"] == "MAJOR_VIOLATIONS":
-                penalties.append(("temporal_violations", -0.15))
+                penalties.append(("temporal_violations", TEMPORAL_MAJOR_PENALTY))
             elif temporal["temporal_verdict"] == "MINOR_VIOLATIONS":
-                penalties.append(("temporal_minor", -0.05))
+                penalties.append(("temporal_minor", TEMPORAL_MINOR_PENALTY))
             else:
-                bonuses.append(("temporal_consistent", 0.05))
-            
+                bonuses.append(("temporal_consistent", TEMPORAL_CONSISTENT_BONUS))
+
             reverse = detect_reverse_causation(G)
             if reverse:
                 enhancements.append({"type": "reverse_causation", "count": len(reverse)})
-                penalties.append(("reverse_causation", -0.1 * min(len(reverse), 3)))
+                penalties.append(("reverse_causation", REVERSE_CAUSATION_PENALTY * min(len(reverse), REVERSE_CAUSATION_MAX)))
         except Exception as e:
-            enhancements.append({"type": "temporal", "error": str(e)[:80]})
-        
+            enhancements.append({"type": "temporal", "error": str(e)[:ERROR_TRUNCATE]})
+
         # ── 2) Multi-Step Intervention ──
         try:
             structure = check_dag_structure(G)
-            roots = structure.get("roots", [])[:2]
-            leaves = structure.get("leaves", [])[:2]
-            
+            roots = structure.get("roots", [])[:MAX_ROOTS]
+            leaves = structure.get("leaves", [])[:MAX_LEAVES]
+
             for root in roots:
                 for leaf in leaves:
                     if root != leaf:
-                        chains = enumerate_intervention_chains(G, root, leaf, max_chain_length=2)
+                        chains = enumerate_intervention_chains(G, root, leaf, max_chain_length=MAX_CHAIN_LENGTH)
                         if chains:
                             persists = sum(1 for c in chains if c.get("effect_persists"))
                             robustness = persists / max(len(chains), 1)
@@ -154,12 +204,12 @@ class KS34a(KS33c):
                                 "type": "multi_step", "chains": len(chains),
                                 "persists": persists, "robustness": round(robustness, 3),
                             })
-                            if robustness >= 0.8:
-                                bonuses.append(("robust_multi_step", 0.08))
-                            elif robustness <= 0.2:
-                                penalties.append(("fragile_causation", -0.08))
+                            if robustness >= MULTI_STEP_ROBUST_THRESHOLD:
+                                bonuses.append(("robust_multi_step", MULTI_STEP_ROBUST_BONUS))
+                            elif robustness <= MULTI_STEP_FRAGILE_THRESHOLD:
+                                penalties.append(("fragile_causation", MULTI_STEP_FRAGILE_PENALTY))
         except Exception as e:
-            enhancements.append({"type": "multi_step", "error": str(e)[:80]})
+            enhancements.append({"type": "multi_step", "error": str(e)[:ERROR_TRUNCATE]})
         
         # ── 3) Confound Detection ──
         try:
@@ -171,20 +221,20 @@ class KS34a(KS33c):
                         "assessment": conf["assessment"], "risk": conf["confounding_risk"],
                     })
                     if conf["assessment"] == "HIGH_CONFOUNDING_RISK":
-                        penalties.append(("high_confounding", -0.15))
+                        penalties.append(("high_confounding", HIGH_CONFOUND_PENALTY))
                     elif conf["assessment"] == "MODERATE_CONFOUNDING_RISK":
-                        penalties.append(("moderate_confounding", -0.08))
+                        penalties.append(("moderate_confounding", MODERATE_CONFOUND_PENALTY))
                     elif conf["assessment"] == "NO_CONFOUNDERS_DETECTED":
-                        bonuses.append(("no_confounders", 0.05))
+                        bonuses.append(("no_confounders", NO_CONFOUND_BONUS))
                     break  # Primary edge only
         except Exception as e:
-            enhancements.append({"type": "confounders", "error": str(e)[:80]})
-        
+            enhancements.append({"type": "confounders", "error": str(e)[:ERROR_TRUNCATE]})
+
         # ── Apply adjustments ──
         adj = sum(p[1] for p in penalties) + sum(b[1] for b in bonuses)
-        adj = max(-0.3, min(0.2, adj))
-        
-        old_conf = result.get("confidence", 0.5)
+        adj = max(TOTAL_ADJ_FLOOR, min(TOTAL_ADJ_CEILING, adj))
+
+        old_conf = result.get("confidence", DEFAULT_CONFIDENCE)
         new_conf = max(0.0, min(1.0, old_conf + adj))
         
         result["deep_causal"] = {
