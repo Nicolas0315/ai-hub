@@ -513,9 +513,23 @@ class KS31e:
             base_score = min(base_score * 1.05, 1.0)  # causal confirmation bonus
 
         # Semantic impact modifier
-        if enrichment["semantic_impact"] == "HIGH" and base_verdict == "EXPLORING":
-            # High semantic divergence means content matters — good sign
-            base_score *= 1.02
+        # When semantic enrichment reveals significant divergence between
+        # raw text verification and meaning-level verification, the enriched
+        # score should influence the final score proportionally.
+        enrichment_delta = enrichment.get("delta", 0)
+        enriched_avg = enrichment.get("enriched_avg_rate", base_score)
+
+        if enrichment["semantic_impact"] == "HIGH":
+            # HIGH impact: enrichment revealed meaningful content structure.
+            # Blend base_score with enriched_avg (weight toward enriched).
+            base_score = round(base_score * 0.4 + enriched_avg * 0.6, 4)
+            if enriched_avg > 0.8 and base_verdict in ("UNVERIFIED", "EXPLORING"):
+                base_verdict = "PARTIALLY_VERIFIED"
+            elif enriched_avg < 0.3 and base_verdict in ("VERIFIED", "PARTIALLY_VERIFIED"):
+                base_verdict = "EXPLORING"
+        elif enrichment["semantic_impact"] == "MODERATE":
+            # MODERATE: some content signal, gentle blend
+            base_score = round(base_score * 0.7 + enriched_avg * 0.3, 4)
 
         return base_verdict, round(base_score, 4)
 
