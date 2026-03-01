@@ -1,0 +1,25 @@
+[package]
+name = "ks46"
+version = "0.1.0"
+edition = "2021"
+description = "KS46: Unified Rust verification engine — KS42c(v3) + KS43(CUDA) + KS45(FLM)"
+authors = ["Youta Hilono (design)", "Shirokuma/OpenClaw AI (implementation)"]
+
+[lib]
+name = "ks46"
+crate-type = ["rlib"]  # Use maturin for cdylib Python build
+
+[dependencies]
+pyo3 = { version = "0.28", features = ["extension-module"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+regex = "1"
+rayon = "1.10"
+
+[features]
+default = ["pyo3/extension-module"]
+cuda = []  # Enable CUDA-specific optimizations (KS43)
+
+[profile.release]
+opt-level = 3
+lto = true
