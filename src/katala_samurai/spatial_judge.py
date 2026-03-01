@@ -705,6 +705,340 @@ class SpatialJudge:
         }
 
 
+# ═══════════════════════════════════════════════════════════════
+# 出力層 — 空間認知 → テキスト (逆方向翻訳)
+# ═══════════════════════════════════════════════════════════════
+
+class SpatialNarrator:
+    """空間表現 → 自然言語テキスト変換.
+
+    Youta: "空間認知からテクストは？"
+
+    Youtaの認知モデルの逆方向:
+      ⓪知覚層: テキスト → 空間表現 (言語→非言語)
+      出力層:   空間表現 → テキスト (非言語→言語)
+
+    HTLF的に重要:
+      3D空間は連続・多次元 → テキストは離散・1次元
+      この翻訳には必然的な情報損失(R_qualia)が発生する。
+      角度の微妙なニュアンス、テクスチャの質感、空間的な「気配」は
+      言語化すると失われる — これがまさにR_qualiaの本質。
+
+    出力レベル:
+      L1: 幾何記述 (寸法、形状、位置) — R_struct高, R_qualia低
+      L2: 構造記述 (パーツ、関係性) — R_context高
+      L3: 意味記述 (用途、印象) — R_qualia高, R_struct低
+      L4: 詩的記述 (雰囲気、感情) — R_qualia最大, R_struct最小
+    """
+
+    def narrate(self, rep: SpatialRepresentation,
+                level: str = "L2",
+                scene: Optional[SceneNode] = None,
+                analysis: Optional[Dict[str, Any]] = None) -> str:
+        """Generate text from spatial representation.
+
+        Args:
+            rep: SpatialRepresentation to narrate
+            level: L1 (geometric), L2 (structural), L3 (semantic), L4 (poetic)
+            scene: Optional scene for relational context
+            analysis: Optional SpatialJudge analysis result
+        """
+        if level == "L1":
+            return self._narrate_geometric(rep)
+        elif level == "L2":
+            return self._narrate_structural(rep, analysis)
+        elif level == "L3":
+            return self._narrate_semantic(rep, analysis)
+        elif level == "L4":
+            return self._narrate_poetic(rep, scene, analysis)
+        else:
+            return self._narrate_structural(rep, analysis)
+
+    def narrate_scene(self, scene: SceneNode,
+                       analysis: Optional[Dict[str, Any]] = None,
+                       level: str = "L2") -> str:
+        """Generate text description of an entire scene."""
+        nodes = scene.flatten()
+        mesh_nodes = [n for n in nodes if n.mesh is not None]
+
+        lines = []
+
+        # Scene overview
+        stats = scene.stats()
+        lines.append(f"Scene with {stats['meshes']} objects "
+                     f"({stats['vertices']} vertices, {stats['faces']} faces).")
+
+        # Describe each object
+        for node in mesh_nodes:
+            if node.mesh:
+                rep = PerceptionLayer.from_mesh(node.mesh)
+                rep.semantic_label = node.name
+                obj_desc = self._narrate_object_in_scene(node, rep, level)
+                lines.append(obj_desc)
+
+        # Relations
+        if analysis and 'scene_relations' in analysis:
+            rel_lines = []
+            for rel in analysis['scene_relations']:
+                spatial = ', '.join(rel['spatial_relations']) if rel['spatial_relations'] else 'near'
+                rel_lines.append(
+                    f"{rel['object_a']} is {spatial} {rel['object_b']} "
+                    f"({rel['proximity']}, dist={rel['distance']})")
+            if rel_lines:
+                lines.append("Spatial relations: " + "; ".join(rel_lines) + ".")
+
+        # Contradictions
+        if analysis and analysis.get('contradictions'):
+            issues = []
+            for c in analysis['contradictions']:
+                issues.append(f"{c['type']}: {c['description']}")
+            lines.append("⚠️ Issues detected: " + "; ".join(issues))
+
+        return "\n".join(lines)
+
+    def _narrate_geometric(self, rep: SpatialRepresentation) -> str:
+        """L1: Pure geometric description."""
+        parts = []
+
+        if rep.bounding_box:
+            s = rep.extent or rep.bounding_box.size
+            parts.append(f"Bounding box: {s.x:.2f} × {s.y:.2f} × {s.z:.2f}")
+
+        if rep.center:
+            parts.append(f"Center at ({rep.center.x:.2f}, {rep.center.y:.2f}, {rep.center.z:.2f})")
+
+        if rep.volume_estimate > 0:
+            parts.append(f"Volume: {rep.volume_estimate:.3f}")
+
+        if rep.surface_area > 0:
+            parts.append(f"Surface area: {rep.surface_area:.2f}")
+
+        parts.append(f"Topology: {'closed' if rep.is_closed else 'open'} "
+                     f"{'manifold' if rep.is_manifold else 'non-manifold'}, "
+                     f"χ={rep.euler_characteristic}, genus={rep.genus}")
+
+        if rep.symmetry:
+            sym_axes = [axis.replace('reflect_', '')
+                       for axis, val in rep.symmetry.items()
+                       if val > 0.8]
+            if sym_axes:
+                parts.append(f"Symmetric along: {', '.join(sym_axes)}")
+
+        return ". ".join(parts) + "."
+
+    def _narrate_structural(self, rep: SpatialRepresentation,
+                             analysis: Optional[Dict[str, Any]] = None) -> str:
+        """L2: Structural description with parts and relations."""
+        parts = []
+
+        # Shape identification
+        shape = self._identify_shape(rep)
+        if rep.semantic_label:
+            parts.append(f"A {shape} identified as '{rep.semantic_label}'")
+        else:
+            parts.append(f"A {shape}")
+
+        # Size description
+        if rep.extent:
+            size_word = self._size_word(rep.extent.length())
+            parts.append(f"{size_word} in size ({rep.extent.x:.1f} × {rep.extent.y:.1f} × {rep.extent.z:.1f})")
+
+        # Structural parts
+        if rep.parts:
+            part_names = [f"{p.name} ({p.role})" for p in rep.parts[:6]]
+            parts.append(f"Composed of: {', '.join(part_names)}")
+
+        # Topology
+        if rep.is_closed:
+            parts.append("The form is closed and watertight")
+        else:
+            parts.append("The form has openings")
+
+        if rep.genus > 0:
+            parts.append(f"with {rep.genus} hole{'s' if rep.genus > 1 else ''}")
+
+        # Symmetry
+        if rep.symmetry:
+            high_sym = [ax.replace('reflect_', '').upper()
+                       for ax, v in rep.symmetry.items() if v > 0.9]
+            if len(high_sym) == 3:
+                parts.append("Highly symmetric (all three axes)")
+            elif high_sym:
+                parts.append(f"Symmetric along {', '.join(high_sym)}")
+
+        return ". ".join(parts) + "."
+
+    def _narrate_semantic(self, rep: SpatialRepresentation,
+                           analysis: Optional[Dict[str, Any]] = None) -> str:
+        """L3: Semantic/functional description."""
+        parts = []
+
+        if rep.semantic_label:
+            parts.append(f"This is a {rep.semantic_label}")
+        else:
+            shape = self._identify_shape(rep)
+            parts.append(f"This appears to be a {shape}")
+
+        # Functional interpretation from parts
+        roles = {}
+        for p in rep.parts:
+            roles.setdefault(p.role, []).append(p.name)
+
+        if 'support' in roles:
+            parts.append(f"It is supported by: {', '.join(roles['support'])}")
+        if 'surface' in roles:
+            parts.append(f"It has usable surfaces: {', '.join(roles['surface'])}")
+        if 'opening' in roles:
+            parts.append(f"It has openings: {', '.join(roles['opening'])}")
+        if 'enclosure' in roles:
+            parts.append(f"It encloses space via: {', '.join(roles['enclosure'])}")
+
+        # Proportional analysis
+        if rep.extent:
+            ratio_hw = rep.extent.y / max(rep.extent.x, 0.001)
+            if ratio_hw > 3:
+                parts.append("It is tall and slender")
+            elif ratio_hw > 1.5:
+                parts.append("It is upright")
+            elif ratio_hw < 0.3:
+                parts.append("It is flat and spread out")
+            elif ratio_hw < 0.7:
+                parts.append("It is low and wide")
+
+        # Semantic features
+        for feat in rep.semantic_features:
+            if feat.name == 'object_type':
+                object_descriptions = {
+                    'chair': "designed for sitting, combining comfort and support",
+                    'table': "a horizontal surface for placing objects",
+                    'house': "an enclosed dwelling space with rooms",
+                    'car': "a mobile enclosed vehicle",
+                }
+                desc = object_descriptions.get(feat.value, "")
+                if desc:
+                    parts.append(desc)
+
+        return ". ".join(parts) + "."
+
+    def _narrate_poetic(self, rep: SpatialRepresentation,
+                         scene: Optional[SceneNode] = None,
+                         analysis: Optional[Dict[str, Any]] = None) -> str:
+        """L4: Poetic/atmospheric description — maximum R_qualia."""
+        parts = []
+
+        shape = self._identify_shape(rep)
+
+        # Proportional poetry
+        if rep.extent:
+            aspect = rep.extent.y / max(rep.extent.x, 0.001)
+            if aspect > 2:
+                parts.append(f"A {shape} reaching upward, aspiring toward height")
+            elif aspect < 0.5:
+                parts.append(f"A {shape} stretching across the ground, embracing the horizontal")
+            else:
+                parts.append(f"A {shape} in quiet balance, neither reaching nor resting")
+
+        # Symmetry as aesthetic quality
+        if rep.symmetry:
+            high_count = sum(1 for v in rep.symmetry.values() if v > 0.9)
+            if high_count == 3:
+                parts.append("Perfect symmetry in every direction — "
+                           "the form exists equally in all dimensions")
+            elif high_count >= 1:
+                parts.append("An asymmetry gives it character, a deliberate imperfection "
+                           "that makes the eye linger")
+
+        # Topology as metaphor
+        if rep.is_closed:
+            parts.append("The surface is unbroken — a world complete unto itself")
+        else:
+            parts.append("Openings invite the gaze inward, suggesting depth beyond surface")
+
+        if rep.genus > 0:
+            parts.append(f"{'A passage' if rep.genus == 1 else 'Passages'} "
+                        f"through the form — space folded through itself")
+
+        # Parts as narrative
+        if rep.parts:
+            role_groups = {}
+            for p in rep.parts:
+                role_groups.setdefault(p.role, []).append(p.name)
+            if 'support' in role_groups:
+                parts.append("Below, the structure grounds itself — "
+                           "gravity answered with architecture")
+            if 'surface' in role_groups:
+                parts.append("Surfaces await contact, defining the boundary "
+                           "between interior thought and exterior world")
+
+        return ". ".join(parts) + "."
+
+    def _narrate_object_in_scene(self, node: SceneNode,
+                                  rep: SpatialRepresentation,
+                                  level: str) -> str:
+        """Describe a single object in scene context."""
+        pos = node.transform.position
+        name = node.name
+
+        if level == "L1":
+            return (f"'{name}' at ({pos.x:.1f}, {pos.y:.1f}, {pos.z:.1f}), "
+                   f"{'closed' if rep.is_closed else 'open'} "
+                   f"{'manifold' if rep.is_manifold else ''}")
+        elif level == "L3" or level == "L4":
+            shape = self._identify_shape(rep)
+            return f"'{name}' — a {shape} positioned at height {pos.y:.1f}"
+        else:
+            shape = self._identify_shape(rep)
+            bb = rep.bounding_box
+            size_str = ""
+            if bb:
+                s = bb.size
+                size_str = f" ({s.x:.1f}×{s.y:.1f}×{s.z:.1f})"
+            return f"'{name}': {shape}{size_str} at ({pos.x:.1f}, {pos.y:.1f}, {pos.z:.1f})"
+
+    def _identify_shape(self, rep: SpatialRepresentation) -> str:
+        """Identify the basic shape from spatial properties."""
+        if rep.semantic_label:
+            return rep.semantic_label
+
+        # From semantic features
+        for f in rep.semantic_features:
+            if f.name == 'base_shape':
+                return f.value
+
+        # From geometry
+        if rep.extent:
+            x, y, z = rep.extent.x, rep.extent.y, rep.extent.z
+            if x > 0 and y > 0 and z > 0:
+                ratios = sorted([x/max(y, 0.001), y/max(z, 0.001), z/max(x, 0.001)])
+                if all(0.8 < r < 1.2 for r in ratios):
+                    if rep.is_closed and rep.symmetry:
+                        sym_vals = list(rep.symmetry.values())
+                        if all(v > 0.9 for v in sym_vals):
+                            return "sphere-like form"
+                    return "cube-like form"
+                elif ratios[0] < 0.3:
+                    return "flat form"
+                elif ratios[2] > 2.0:
+                    return "elongated form"
+
+        return "form"
+
+    def _size_word(self, extent_length: float) -> str:
+        """Convert absolute size to descriptive word."""
+        if extent_length < 0.1:
+            return "tiny"
+        elif extent_length < 0.5:
+            return "small"
+        elif extent_length < 2.0:
+            return "medium"
+        elif extent_length < 5.0:
+            return "large"
+        elif extent_length < 20.0:
+            return "very large"
+        else:
+            return "massive"
+
+
 def get_status() -> Dict[str, Any]:
     return {
         'version': VERSION,
