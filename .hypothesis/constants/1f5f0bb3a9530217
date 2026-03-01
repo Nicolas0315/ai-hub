@@ -1,0 +1,4 @@
+# file: /Users/nicolas/work/katala/src/katala_samurai/ks38a.py
+# hypothesis_version: 6.151.9
+
+[0.0, 0.01, 0.3, 0.5, 0.7, 1.0, 100.0, 200, 1000, '?', 'KS38a', 'MINIMAL', 'N/A', 'UNKNOWN', '_meta_skipped', 'abs_error', 'actual', 'assessment', 'caution', 'clarity', 'coherence', 'confidence', 'confidence_modifier', 'conflict_count', 'conflicts', 'detail', 'difficulty', 'error', 'inhibited', 'inhibited_count', 'isolated', 'isolated_solvers', 'label', 'lateral_inhibition', 'layer', 'meta_depth', 'neuro_ms', 'neuromodulation', 'pipeline', 'precision', 'predicted', 'predicted_confidence', 'predictive_coding', 'primary_type', 'reason', 'reason_space', 'result', 'results', 'rust_bridge', 'sharpness', 'signal_clarity', 'solver', 'stage', 'surprising', 'text', 'total_ms', 'trace', 'verdict', 'version']

@@ -1,0 +1,4 @@
+# file: /Users/nicolas/work/katala/src/katala_samurai/ks37b.py
+# hypothesis_version: 6.151.9
+
+[0.3, 0.5, 0.7, 200, 1000, ',', 'A01', 'A02', 'A03', 'A04', 'A05', 'A06', 'HIGH', 'KS37b', 'KS_SKIP_SOLVERS', 'L1', 'L1_formal', 'L2', 'L2_domain', 'L3', 'L3_analogy', 'LOW', 'S01', 'S02', 'S03', 'S04', 'S05', 'S06', 'S07', 'S08', 'S09', 'S10', 'S11', 'S12', 'S13', 'S14', 'S15', 'S16', 'S17', 'S18', 'S19', 'S20', 'S21', 'S22', 'S23', 'S24', 'S25', 'S26', 'S27', 'S28', '_cached', 'cache', 'cache_stats', 'difficulty', 'error', 'fast_path', 'full', 'label', 'optimization', 'pipeline', 'primary_type', 'pruned', 'skip_set', 'solvers_skipped', 'stats', 'text', 'total_ms', 'total_verifications', 'verify', 'version']

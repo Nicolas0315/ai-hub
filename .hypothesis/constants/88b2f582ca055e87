@@ -1,0 +1,4 @@
+# file: /Users/nicolas/work/katala/src/katala_samurai/compute_router.py
+# hypothesis_version: 6.151.9
+
+[1e-08, 0.01, 0.025, 0.1, 0.25, 0.5, 0.7, 0.75, 0.975, 100, 500, 5000, 'Apple Silicon (MPS)', 'bootstrap_cpu_ms', 'bootstrap_gpu_ms', 'ci_high', 'ci_low', 'components', 'cpu', 'cpu_count', 'cuda', 'density', 'device', 'error', 'gpu', 'gpu_memory', 'is_dag', 'mean', 'mps', 'networkx_unavailable', 'numpy', 'speedup', 'std', 'torch']

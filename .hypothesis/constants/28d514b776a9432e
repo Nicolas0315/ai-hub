@@ -1,0 +1,4 @@
+# file: /Users/nicolas/work/katala/src/katala_samurai/art_search.py
+# hypothesis_version: 6.151.9
+
+[100, '--dump-json', '--flat-playlist', '0', '1', 'FirstURL', 'KS_FAST_MODE', 'Mozilla/5.0', 'RelatedTopics', 'Text', 'User-Agent', 'direct_search_link', 'duration', 'error', 'fallback', 'note', 'pixiv', 'platform', 'platforms_searched', 'query', 'results', 'search_failed', 'search_url', 'soundcloud', 'spotify', 'title', 'total_results', 'uploader', 'url', 'view_count', 'webpage_url', 'youtube', 'yt-dlp']

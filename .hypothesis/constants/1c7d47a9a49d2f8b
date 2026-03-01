@@ -1,0 +1,4 @@
+# file: /Users/nicolas/work/katala/src/htlf/temporal_loss.py
+# hypothesis_version: 6.151.9
+
+[0.0, 0.1, 0.15, 0.2, 0.3, 0.4, 0.5, 0.6, 0.65, 0.7, 0.8, 0.85, 0.9, 1.0, 3.0, 4.0, 'algorithm', 'ancient', 'art', 'atom', 'awful', 'cause', 'cell', 'computation', 'concept', 'contemporary', 'decimate', 'description', 'early_20c', 'early_modern', 'energy', 'eras', 'gene', 'heuristic', 'information', 'late_20c', 'mass', 'medieval', 'modern_19c', 'music', 'nice', 'paradigm', 'pleasant (modern)', 'revolution', 'rust', 'space', 'species', 'terrible (modern)', 'theory', 'virtual']

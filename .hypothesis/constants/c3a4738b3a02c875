@@ -1,0 +1,4 @@
+# file: /Users/nicolas/work/katala/src/katala_samurai/pev_loop.py
+# hypothesis_version: 6.151.9
+
+[0.0, 0.7, 0.8, 500, 600, 1000, 'SELF', 'Time limit exceeded', 'Try again', 'Verification failed', 'adjust', 'confidence', 'done', 'execute', 'failed', 'feedback', 'iteration', 'last_feedback', 'last_output', 'plan', 'valid', 'verify']

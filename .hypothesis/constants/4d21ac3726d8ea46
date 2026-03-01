@@ -1,0 +1,4 @@
+# file: /Users/nicolas/work/katala/src/katala_samurai/session_guardian.py
+# hypothesis_version: 6.151.9
+
+[0.8, 1.0, 1.5, 3600, 'age_minutes', 'age_seconds', 'dismissed', 'extended_by_minutes', 'healthy', 'new_limits', 'new_time_limit', 'prompt', 'reset_recommended', 'session_age_seconds', 'status', 'time', 'time_ratio', 'verification_count', 'verify', 'verify_ratio', 'warning']

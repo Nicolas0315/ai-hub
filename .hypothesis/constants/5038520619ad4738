@@ -1,0 +1,4 @@
+# file: /Users/nicolas/work/katala/src/katala_samurai/stage_store.py
+# hypothesis_version: 6.151.9
+
+['..', '.json', '?', 'StageStore', '_', '_meta.json', 'created_at', 'data', 'data_a', 'data_b', 'file', 'finalized_at', 'hash', 'hash_a', 'hash_b', 'hash_match', 'integrity', 'metadata', 'r', 'run_%Y%m%d_%H%M%S', 'run_a', 'run_b', 'run_id', 'runs', 'stage', 'stages', 'timestamp', 'total_stages', 'utf-8', 'w', 'written_at']

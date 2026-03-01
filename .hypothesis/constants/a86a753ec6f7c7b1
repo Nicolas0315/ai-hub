@@ -1,0 +1,4 @@
+# file: /Users/nicolas/work/katala/src/katala_samurai/solver_cache.py
+# hypothesis_version: 6.151.9
+
+[1000, 3600, 'hit_rate', 'hits', 'misses', 'size', 'ts', 'value']

@@ -1,0 +1,4 @@
+# file: /Users/nicolas/work/katala/src/katala_samurai/self_corrector.py
+# hypothesis_version: 6.151.9
+
+[-0.2, -0.08, -0.05, -0.03, 0.05, 0.1, 0.25, 0.35, 0.4, 0.5, 0.6, 0.65, 0.7, -200, 200, '?', 'EXPLORING', 'L6', 'L6_statistical', 'L7', 'L7_adversarial', 'MISCALIBRATED', 'UNVERIFIED', 'VERIFIED', 'adjustment', 'applied', 'auto_apply', 'by_severity', 'by_type', 'calibration', 'ci_95', 'confidence', 'corrections', 'dead_zone', 'deep_causal', 'detail', 'details', 'emergent_insights', 'fragile_rejection', 'fragile_verdict', 'high', 'insights', 'low', 'medium', 'metacognition', 'miscalibrated', 'modifier', 'most_common', 'recommendation', 'regulation', 'regulation_modifier', 'second_order', 'self_deception_risk', 'severity', 'suspicious_unanimity', 'total', 'trace', 'trace_modifier', 'type', 'unanimity_skepticism', 'uncertainty', 'verdict', 'verdict_mismatch', 'verdict_override']

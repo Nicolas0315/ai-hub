@@ -1,0 +1,4 @@
+# file: /Users/nicolas/work/katala/src/katala_samurai/self_other_boundary.py
+# hypothesis_version: 6.151.9
+
+[0.0, 0.3, 0.4, 0.5, 0.7, 1.0, 200, 'HIGH', 'LOW', 'NO_DATA', 'PARTIAL', 'ambiguous', 'anti_accumulation', 'assessment', 'attribution', 'bootstrap_ci', 'calibration_check', 'claim_patterns', 'coherence_score', 'conceptnet_lookup', 'dead_zone_range', 'designer', 'designer_dependency', 'detail', 'dominant_origin', 'early_exit_threshold', 'external', 'fragility_test', 'fusion', 'fusion_risk', 'fusion_rules', 'lateral_inhibition', 'llm_api_response', 'neuro_type_mods', 'none', 'note', 'openlex_query', 'origin_distribution', 'pdf_extraction', 'prediction_error', 'self', 'self_sufficient', 'solver_output', 'strategy_repertoire', 'surprise_threshold', 'total_judgments', 'verdict_thresholds', 'web_fetch_result', 'wordnet_lookup', '概ね区別できているが、一部曖昧な領域あり', '設計者判断を除外しても結論は変わらない']

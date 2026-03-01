@@ -1,0 +1,4 @@
+# file: /Users/nicolas/work/katala/src/katala_coding/__init__.py
+# hypothesis_version: 6.151.9
+
+['CodeVerdict', 'KCS1a', 'KCS2a', 'NextGoal', 'ReverseAnalysis']

@@ -1,0 +1,4 @@
+# file: /Users/nicolas/work/katala/src/katala_samurai/ks40b.py
+# hypothesis_version: 6.151.9
+
+['KS40c', '\\bFROM\\b', '\\bSELECT\\b', '\\bWHERE\\b', '\\bclass\\s+', '\\bdef\\s+', '\\bimport\\b', '\\blemma\\b', '\\bn\\s*=\\s*\\d+\\b', '\\bproof\\b', '\\breturn\\b', '\\btheorem\\b', '```', 'auto_detected_layers', 'contradiction_count', 'contradictions', 'creative', 'estimated', 'formal_language', 'math', 'measured', 'mode', 'music', 'natural_language', 'results', 'source', 'source_layer', 'source_text', 'target', 'target_layer', 'text', 'translation_loss', 'version', '∀', '∃', '∑', '∫']

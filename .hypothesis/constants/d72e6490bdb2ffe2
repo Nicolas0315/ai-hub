@@ -1,0 +1,4 @@
+# file: /Users/nicolas/work/katala/src/katala_samurai/predictive_coding.py
+# hypothesis_version: 6.151.9
+
+[0.01, 0.15, 0.3, 0.35, 0.4, 0.6, 0.65, 0.7, 1.0, 'EXPLORING', 'FULL', 'MINIMAL', 'PARTIAL', 'UNVERIFIED', 'VERIFIED', 'abs_error', 'actual', 'based_on_history', 'criteria', 'error', 'expected_range', 'in_range', 'meta_depth', 'precision', 'predicted', 'predicted_confidence', 'predicted_range', 'predicted_verdict', 'surprising', 'verdict_match', 'weighted_error']

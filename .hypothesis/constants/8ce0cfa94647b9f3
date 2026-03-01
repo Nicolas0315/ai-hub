@@ -1,0 +1,4 @@
+# file: /Users/nicolas/work/katala/src/katala_samurai/adaptive_strategy.py
+# hypothesis_version: 6.151.9
+
+[-0.1, 0.4, 0.5, 0.6, 0.8, 0.85, 1.0, 1.2, 1.3, 1.5, 2.0, 2.5, 'HEALTHY', 'HIGH', 'L1_formal', 'L2_domain', 'L3_analogy', 'L4_meta', 'L5_causal', 'L6_stat', 'L6_statistical', 'L7_adv', 'LOW', 'adversarial_first', 'applied', 'avg_confidence', 'avg_corrections', 'backtracks', 'best_for', 'breadth_first', 'causal', 'claim_type', 'confidence', 'confidences', 'consensus_seeking', 'corrections', 'count', 'definitional', 'depth_first', 'description', 'devil_advocate', 'early_stop', 'emergent_insights', 'empirical', 'fragile_verdict', 'health', 'historical', 'ks27_pass_rate', 'layer_weights', 'logical', 'minimal', 'modifier', 'normative', 'performance', 'r1_score', 'runs', 'self_correction', 'self_regulation', 'statistical', 'statistical_focus', 'strategy', 'total', 'total_runs', 'types', 'unknown']

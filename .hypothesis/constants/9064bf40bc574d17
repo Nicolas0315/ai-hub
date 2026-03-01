@@ -1,0 +1,4 @@
+# file: /Users/nicolas/work/katala/src/katala_samurai/content_bridge.py
+# hypothesis_version: 6.151.9
+
+[-0.1, -0.08, -0.05, 0.0, 0.03, 'action', 'agent', 'all', 'always', 'annotation_count', 'annotations', 'check', 'concession', 'concession_detected', 'confidence_modifier', 'content_bridge', 'content_flags', 'counterfactual', 'distancing_detected', 'double_negation', 'every', 'formal_check', 'has_distancing', 'has_double_negation', 'has_hedging', 'has_negation_risk', 'has_universal', 'hedging', 'hedging_detected', 'high', 'implications', 'meaning_change_risk', 'modifier', 'modifiers', 'negation', 'never', 'none', 'patient', 'proposition', 'roles', 'semantic_role', 'semantic_roles', 'signals', 'signals_generated', 'type', 'universal_quantifier', 'verify_both_sides', 'verify_consistency', 'verify_source', 'verify_universal']

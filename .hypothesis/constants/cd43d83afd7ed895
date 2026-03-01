@@ -1,0 +1,4 @@
+# file: /Users/nicolas/work/katala/src/katala_samurai/ks35b.py
+# hypothesis_version: 6.151.9
+
+['.pdf', 'KS35b', '_e1_weights', '_e2_patterns', '_e3_insights', 'auto_purge', 'auto_purged', 'claims_tracked', 'history', 'last_scan', 'max_severity', 'mechanisms_affected', 'purge_executed', 'scan_interval', 'session', 'text', 'toxic', 'toxicity_alert', 'toxicity_scan', 'verifications', 'version']

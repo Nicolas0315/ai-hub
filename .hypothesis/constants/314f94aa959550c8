@@ -1,0 +1,4 @@
+# file: /Users/nicolas/work/katala/src/katala_samurai/ks39b.py
+# hypothesis_version: 6.151.9
+
+[0.15, 0.35, 0.5, 0.65, 0.7, 0.8, 1.0, 'KS39b', 'Rust neuromodulation', 'S', 'UNVERIFIED threshold', 'VERIFIED threshold', '_meta', 'anti_accumulation', 'api', 'available', 'claim_patterns', 'conceptnet', 'confidence', 'final_confidence', 'modulated_confidence', 'openlex', 'pdf', 'physio_data', 'plan', 'planner_matrix', 'planner_strategy', 'prediction', 'qualia_mode', 'responses_data', 'results', 'rust', 'rust_classify', 'rust_neuro', 'score', 'self_other_boundary', 'solver_output', 'source', 'source_layer', 'source_text', 'stages', 'strategy_repertoire', 'surprise_threshold', 'target_layer', 'text', 'threshold_unverified', 'threshold_verified', 'type_scores', 'use_mock_parser', 'verdict_thresholds', 'version', 'web', 'wordnet', '蓄積しない設計原則']

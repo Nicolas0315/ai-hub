@@ -1,0 +1,4 @@
+# file: /Users/nicolas/work/katala/src/katala_samurai/ks40a.py
+# hypothesis_version: 6.151.9
+
+[0.0, 0.01, 0.02, 0.03, 0.3, 0.7, 1.0, 'HTLF', 'KS40a', 'cultural_detail', 'distribution', 'final_confidence', 'htlf_provenance', 'loss_vector', 'module', 'online', 'origin_distribution', 'physio_data', 'profile_type', 'provenance', 'qualia_mode', 'r_context', 'r_cultural', 'r_qualia', 'r_struct', 'r_temporal', 'responses_data', 'results', 'score', 'self_other_boundary', 'source_layer', 'source_text', 'target_layer', 'temporal_detail', 'text', 'total_loss', 'translation_fidelity', 'translation_loss', 'translation_profile', 'use_mock_parser', 'version']

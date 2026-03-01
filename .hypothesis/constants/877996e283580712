@@ -1,0 +1,4 @@
+# file: /Users/nicolas/work/katala/src/katala_samurai/solver_abstraction.py
+# hypothesis_version: 6.151.9
+
+[0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.95, 0.99, 1.0, 1.3, 'No candidates', 'No primitives found', 'abstraction_1', 'analogical', 'ascending', 'axis', 'boundary', 'causal', 'color_swap', 'conditional', 'count', 'creative', 'criterion', 'crop', 'cultural', 'dimensions', 'element_count', 'empirical', 'examples', 'fill', 'filter', 'flood', 'formal_logic', 'grid', 'group', 'has_groups', 'identity', 'input_count', 'input_dim', 'invert', 'linguistic', 'mapping', 'merge', 'order', 'output_count', 'output_dim', 'overlay', 'ratio', 'reflection', 'rotation', 'scalar', 'scaling', 'sequence', 'sequential', 'single', 'sort', 'sorted', 'split', 'statistical', 'symmetric', 'symmetry', 'symmetry_axis', 'temporal', 'text', 'tile', 'translation', 'true', 'type', 'uncertain', 'unique_elements', 'unknown', 'value_equality']

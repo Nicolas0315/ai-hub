@@ -1,0 +1,4 @@
+# file: /Users/nicolas/work/katala/src/katala_samurai/ks38b.py
+# hypothesis_version: 6.151.9
+
+[0.35, 0.5, 0.65, 1000, 'KS38b', 'L6_statistical', 'L7_adversarial', 'N/A', 'adjustment', 'all_gpu', 'calibration', 'ci_95', 'ci_high', 'ci_low', 'compute_device', 'confidence', 'contradictions', 'cpu', 'cpu_ops', 'deep_causal', 'device', 'display', 'gpu', 'gpu_inhibited', 'gpu_ops', 'hardware', 'info', 'lateral_inhibition', 'modifier', 'none', 'pipeline', 'ratio', 'results', 'total_ms', 'trace', 'uncertainty', 'version']

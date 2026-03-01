@@ -1,0 +1,4 @@
+# file: /Users/nicolas/work/katala/src/katala_samurai/pdf_reader.py
+# hypothesis_version: 6.151.9
+
+[100, 200, 300, ' | ', '(?<=[.!?。！？])\\s+', '.pdf', 'ERROR', '\\n\\s*\\n', '\\s+', 'average_confidence', 'claim', 'claim_count', 'claims', 'claims_extracted', 'claims_verified', 'confidence', 'eng+jpn', 'error', 'extraction_mode', 'index', 'metadata', 'ocr', 'ocr_auto', 'pages', 'paragraphs', 'pdf_metadata', 'pdfplumber', 'raw_text_length', 'results', 'sentences', 'source', 'summary', 'verdict', 'verdict_distribution']

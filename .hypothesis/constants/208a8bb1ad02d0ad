@@ -1,0 +1,4 @@
+# file: /Users/nicolas/work/katala/src/katala_samurai/pipeline_resilience.py
+# hypothesis_version: 6.151.9
+
+[100, 300, 'attempts', 'entries', 'error', 'errors', 'fallback', 'fallback_used', 'func', 'max', 'none', 'result', 'source', 'timeout', 'ts', 'value']

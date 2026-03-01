@@ -1,0 +1,4 @@
+# file: /Users/nicolas/work/katala/src/katala_samurai/ks35a.py
+# hypothesis_version: 6.151.9
+
+[-0.25, 0.0, 0.15, 0.5, 0.85, 1.0, 120, 200, '.pdf', 'ERROR', 'KS35a', 'L6', 'L6_statistical', 'L7_adversarial', 'N/A', 'SKIPPED_DECISIVE', 'adversarial_skipped', 'attacks', 'attacks_generated', 'confidence', 'confidence_modifier', 'core', 'deep_causal', 'error', 'falsifiability', 'has_stats', 'hidden_assumptions', 'issue_count', 'issues', 'ks35a_pipeline', 'l6', 'l6_l7_modifier', 'l7', 'mod', 'modifier', 'phase1_parallel', 'phase2_adversarial', 'pipeline', 'premise_attacks', 'preprocess', 'red_flags', 'skipped', 'text', 'time', 'total', 'verdict', 'version']

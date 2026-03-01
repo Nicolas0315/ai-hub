@@ -1,0 +1,4 @@
+# file: /Users/nicolas/work/katala/src/katala_samurai/confound_detector.py
+# hypothesis_version: 6.151.9
+
+[0.1, 0.3, 0.6, 0.7, 0.85, 0.9, 1.0, '/', '0', '1', '@id', 'Accept', 'HasA', 'IsA', 'KS_FAST_MODE', 'LOW_CONFOUNDING_RISK', '_', 'affects_both', 'age', 'application/json', 'assessment', 'both', 'cause', 'cause_label', 'common_ancestor', 'concept', 'conceptnet', 'confidence', 'confounder_count', 'confounder_type', 'confounders', 'confounding_risk', 'dag_structure', 'description', 'detected_in', 'edges', 'effect', 'effect_label', 'end', 'entity', 'environment', 'genetics', 'keywords', 'known_pattern', 'label', 'measurement', 'node', 'object', 'pattern', 'related', 'relation', 'selection_bias', 'socioeconomic', 'something', 'source', 'sources_used', 'start', 'template', 'temporal', 'text', 'thing', 'type', 'weight']

@@ -1,0 +1,4 @@
+# file: /Users/nicolas/work/katala/src/katala_samurai/causal_domain_mapper.py
+# hypothesis_version: 6.151.9
+
+[':', 'academic_definition', 'added_nodes', 'associated', 'association', 'category', 'causal', 'causes', 'dag_ready', 'definition', 'domain_enriched', 'edge_count', 'edges', 'from', 'is_a', 'node_attrs', 'node_count', 'nodes', 'openalex', 'original_nodes', 'source', 'taxonomy', 'text', 'to', 'type', 'unknown']

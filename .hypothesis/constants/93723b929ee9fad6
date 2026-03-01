@@ -1,0 +1,4 @@
+# file: /Users/nicolas/work/katala/src/katala_samurai/ks33a.py
+# hypothesis_version: 6.151.9
+
+[0.0, 0.5, 1.0, 'AnalogicalTransfer', 'DomainBridge', 'E1_calibration', 'E2_pattern', 'E3_chain', 'KS33a', 'L1', 'UNKNOWN', 'after', 'autonomous_goals', 'avg_quality', 'before', 'chain_modifier', 'confidence', 'content_depth', 'count', 'coverage', 'coverage_ratio', 'covered', 'covered_angles', 'enabled', 'ephemeral', 'filtered', 'goal', 'goal_results', 'implications', 'intelligence', 'ks33a_ephemeral', 'layer', 'meaning_change_risk', 'meta_goals_added', 'negation', 'negation_count', 'passed', 'pre_chain_confidence', 'proposition_type', 'quality_filtered', 'ratio', 'reliability', 'role_count', 'semantic_roles', 'solver_results', 'template', 'total', 'total_enhanced', 'total_goals', 'trace', 'types', 'uncovered', 'uncovered_angles', 'verdict', 'version', 'warnings']

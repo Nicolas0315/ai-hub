@@ -1,0 +1,4 @@
+# file: /Users/nicolas/work/katala/src/katala_samurai/ks33b.py
+# hypothesis_version: 6.151.9
+
+[0.0, 0.5, 1.0, 200, 3600, 'DomainBridge', 'ERROR', 'KS33b', 'UNKNOWN', '_meta', '_original_evidence', 'annotations', 'autonomous_goals', 'cache', 'confidence', 'confidence_modifier', 'content_bridge', 'content_flags', 'coverage_ratio', 'dag_ready', 'domain_bridge', 'edge_count', 'edges', 'error', 'flags', 'guardian', 'intelligence', 'ks33b_meta', 'layer', 'node_count', 'nodes', 'prompt', 'proposition', 'propositions', 'reset_recommended', 'round', 'session_guardian', 'session_prompt', 'signals', 'signals_generated', 'stages', 'status', 'terminate', 'termination', 'trace', 'uncovered', 'uncovered_angles', 'verdict', 'version']

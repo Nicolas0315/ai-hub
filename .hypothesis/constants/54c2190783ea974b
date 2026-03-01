@@ -1,0 +1,4 @@
+# file: /Users/nicolas/work/katala/src/katala_samurai/statistical_verifier.py
+# hypothesis_version: 6.151.9
+
+[-0.3, -0.15, -0.08, -0.05, -0.03, 0.0, 1e-10, 0.04, 0.05, 0.1, 0.8, 2.0, 5.0, '(\\d+\\.?\\d*)\\s*%', ',', 'STATISTICALLY_SOUND', 'STATISTICAL_FLAGS', 'ci', 'ci_crosses_zero', 'confidence_intervals', 'confidence_modifier', 'critical', 'd', 'detail', 'effect_sizes', 'extracted', 'implausible', 'implausible_effect', 'implausibly_small', 'impossible_p_value', 'info', 'inverted_ci', 'issue', 'issue_count', 'issues', 'multiple_comparisons', 'n', 'negative_effect_size', 'numbers', 'one.?tailed', 'p', 'p\\s*=\\s*0\\.04[0-9]', 'p_hacking', 'p_values', 'percentages', 'red_flags', 'sample_sizes', 'severity', 'small_sample', 'tiny_sample', 'type', 'underpowered', 'verdict', 'very_large_effect', 'very_wide_ci', 'warning']

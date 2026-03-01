@@ -1,0 +1,4 @@
+# file: /Users/nicolas/work/katala/src/katala_samurai/ks39a.py
+# hypothesis_version: 6.151.9
+
+[0.0, 0.5, 1.0, 'KS39a', 'MEDIUM', 'abs_error', 'available', 'cache', 'cache_hit', 'cache_stats', 'caution', 'core', 'core_ms', 'difficulty', 'features', 'final_confidence', 'has_causal', 'has_numbers', 'has_statistical', 'modulated_confidence', 'neuro', 'pipeline', 'prediction_error', 'primary_type', 'results', 'rust', 'rust_cache', 'rust_cache_ms', 'rust_classify', 'rust_classify_ms', 'rust_features', 'rust_features_ms', 'rust_inhibit', 'rust_inhibit_ms', 'rust_neuro', 'rust_neuro_ms', 'solver_confidences', 'source', 'text', 'total', 'total_ms', 'type_scores', 'unknown', 'verify', 'version', 'word_count']

@@ -1,0 +1,4 @@
+# file: /Users/nicolas/work/katala/src/htlf/pipeline.py
+# hypothesis_version: 6.151.9
+
+[0.075, 0.25, 0.3, 0.5, 0.7, 1.0, '--alpha', '--beta', '--claim', '--ks29b-score', '--ks39b-confidence', '--ks39b-result', '--mock-parser', '--mode', '--physio-file', '--qualia-mode', '--responses-file', '--source', '--source-layer', '--target', '--target-layer', '--threshold', 'Execution mode', 'Node match threshold', '__main__', 'behavioral', 'concept_gaps', 'creative', 'cultural_distance', 'era_source', 'era_target', 'formal_language', 'heuristic', 'holistic_dependency', 'htlf', 'ks', 'ks29b', 'lexical', 'llm', 'math', 'mock', 'music', 'natural_language', 'online', 'online_approximation', 'paradigm_distance', 'physio', 'self_other_boundary', 'semantic_drift', 'store_true', 'utf-8', 'web_decay']

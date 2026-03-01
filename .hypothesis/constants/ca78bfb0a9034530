@@ -1,0 +1,4 @@
+# file: /Users/nicolas/work/katala/src/katala_samurai/uncertainty_quantifier.py
+# hypothesis_version: 6.151.9
+
+[-0.05, 0.025, 0.05, 0.15, 0.2, 0.25, 0.3, 0.5, 0.7, 0.75, 0.975, 100, 'L6_statistical', 'L7_adversarial', 'MISCALIBRATED', 'SLIGHTLY_OFF', 'UNKNOWN', 'WELL_CALIBRATED', 'adjustment', 'agreement', 'assessment', 'bootstrap', 'calibration', 'ci_95', 'confidence', 'confidence_modifier', 'deep_causal', 'display', 'first_order', 'gap', 'mean', 'modifier', 'samples_used', 'second_order', 'stated_confidence', 'std', 'trace', 'uncertainty', 'verdict', 'within_ci']

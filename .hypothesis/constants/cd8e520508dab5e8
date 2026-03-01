@@ -1,0 +1,4 @@
+# file: /Users/nicolas/work/katala/src/katala_samurai/temporal_causal_graph.py
+# hypothesis_version: 6.151.9
+
+[0.8, 'CONSISTENT', 'MAJOR_VIOLATIONS', 'MINOR_VIOLATIONS', 'causal', 'cause', 'cause_label', 'cause_temporal', 'cause_time', 'consistency_ratio', 'consistent_edges', 'edge', 'effect', 'effect_before_cause', 'effect_label', 'effect_temporal', 'effect_time', 'label', 'reverse_causation', 'simultaneous', 'suspicion', 'temporal_order', 'temporal_signal', 'temporal_verdict', 'text', 'total_causal_edges', 'type', 'violation_count', 'violations']

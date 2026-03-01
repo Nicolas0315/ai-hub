@@ -1,0 +1,4 @@
+# file: /Users/nicolas/work/katala/src/htlf/cultural_loss.py
+# hypothesis_version: 6.151.9
+
+[0.25, 0.35, 0.4, 1.0, 3.0, 5.0, 500, 1000, 'Philosophy of mind', 'Speculative physics', '[一-龯]{2,}', '[一-龯ぁ-んァ-ヴー]{2,}', 'arabic_islamic', 'chinese', 'heuristic', 'indigenous', 'japanese', 'musical', 'rust', 'scientific', 'western_academic']

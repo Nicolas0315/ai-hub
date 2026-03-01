@@ -1,0 +1,4 @@
+# file: /Users/nicolas/work/katala/src/htlf/matcher.py
+# hypothesis_version: 6.151.9
+
+[0.0, 0.15, 0.7, 1.0, 'SUPPORTS', 'all-MiniLM-L6-v2', 'edge_type', 'lexical']

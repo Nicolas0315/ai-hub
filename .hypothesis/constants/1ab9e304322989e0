@@ -1,0 +1,4 @@
+# file: /Users/nicolas/work/katala/src/katala_samurai/lateral_inhibition.py
+# hypothesis_version: 6.151.9
+
+[0.0, 0.01, 0.04, 0.1, 0.35, 0.5, 0.65, 0.7, 'CONSISTENT', 'DIFFUSE', 'FAIL', 'FALSE', 'INCONSISTENT', 'MATCH', 'MISMATCH', 'MODERATE', 'PASS', 'SHARP', 'TRUE', 'UNVERIFIED', 'VERIFIED', '_inhibited_by', '_original_confidence', 'confidence', 'inhibited_count', 'result', 'sharpness', 'signal_clarity', 'total_suppression', 'verdict']

@@ -1,0 +1,4 @@
+# file: /Users/nicolas/work/katala/src/katala_samurai/result_visualizer.py
+# hypothesis_version: 6.151.9
+
+[-0.35, 0.02, 0.12, 0.3, 0.5, 0.85, 0.9, 0.94, 0.98, 1.15, 150, 360, '#0d1117', '#21262d', '#333', '#3fb950', '#58a6ff', '#8b949e', '#d29922', '#d2a8ff', '#da3633', '#f0883e', '#f85149', '?', 'Agg', 'Confidence', 'Deep Causal', 'DejaVu Sans', 'ERROR', 'EXPLORING', 'KS', 'L1-L5 Core', 'L6 Statistical', 'L6_statistical', 'L7 Adversarial', 'L7_adversarial', 'Layer Breakdown', 'PARTIALLY_VERIFIED', 'PASS', 'SOUND', 'Score', 'UNKNOWN', 'UNVERIFIED', 'VERIFIED', 'Verification Result', 'adjustment', 'bold', 'bottom', 'center', 'claim', 'confidence', 'deep_causal', 'edgecolor', 'enhanced', 'font.family', 'ks_comparison.png', 'ks_result.png', 'left', 'modifier', 'normal', 'off', 'pipeline', 'right', 'status', 'text', 'tight', 'top', 'verdict', 'version', 'white', 'width', 'width_ratios', 'x', 'y']

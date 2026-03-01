@@ -1,0 +1,4 @@
+# file: /Users/nicolas/work/katala/src/katala_samurai/ks32a.py
+# hypothesis_version: 6.151.9
+
+[0.0, 0.1, 0.15, 0.3, 0.5, 1.0, 'ERROR', 'EXPLORING', 'KS32a', 'PARTIALLY_VERIFIED', 'UNKNOWN', 'UNVERIFIED', 'VERIFIED', 'adjusted_confidence', 'autonomous_goals', 'challenging', 'confidence', 'error', 'generated', 'goal', 'goal_count', 'goal_results', 'goals', 'ks32a_goals', 'method', 'original_confidence', 'priority', 'source', 'sources', 'supporting', 'target', 'text', 'verdict', 'verified', 'version']

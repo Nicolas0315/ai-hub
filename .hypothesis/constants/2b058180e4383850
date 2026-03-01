@@ -1,0 +1,4 @@
+# file: /Users/nicolas/work/katala/src/katala_samurai/reasoning_tracer.py
+# hypothesis_version: 6.151.9
+
+[-0.05, 0.3, 0.5, 0.6, 0.7, 0.8, 1.0, 100, 200, '?', 'L6', 'L6_statistical', 'L7', 'L7_adversarial', 'UNKNOWN', 'baseless_confidence', 'circular', 'circular_reasoning', 'claim', 'conclusion', 'confidence', 'confidence_inflated', 'confidence_jump', 'confidence_modifier', 'edges', 'evidence_gaps', 'final', 'from', 'from_layer', 'high', 'input', 'input claim', 'issue', 'layer', 'layers', 'leaps', 'low', 'medium', 'modifier', 'monitoring_score', 'node', 'nodes', 'result', 'severity', 'stage', 'supports', 'to', 'to_layer', 'total_issues', 'trace', 'unknown', 'unsupported_step', 'verdict']

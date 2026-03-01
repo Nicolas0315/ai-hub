@@ -1,0 +1,4 @@
+# file: /Users/nicolas/work/katala/src/katala_samurai/verification_terminator.py
+# hypothesis_version: 6.151.9
+
+[0.02, 0.9, 'confidence', 'convergence', 'coverage', 'coverage_ratio', 'criteria', 'final_confidence', 'reason', 'rounds_completed', 'terminate', 'uncovered']

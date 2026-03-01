@@ -1,0 +1,4 @@
+# file: /Users/nicolas/work/katala/src/katala_samurai/reason_space.py
+# hypothesis_version: 6.151.9
+
+[-0.1, 0.05, 0.2, 0.3, 0.4, 0.5, 0.7, 1.0, 300, 'COHERENT', 'CONFLICT', 'CONSISTENT', 'FAIL', 'FALSE', 'INCOHERENT', 'INCONSISTENT', 'INDEPENDENT', 'PARTIALLY_COHERENT', 'PASS', 'SUPPORT', 'TRUE', 'UNVERIFIED', 'VERIFIED', '\\b\\w+\\b', 'assessment', 'clusters', 'coherence', 'confidence', 'confidence_modifier', 'conflict_count', 'conflicts', 'evidence_type', 'high', 'isolated_solvers', 'medium', 'no_clear_relation', 'none', 'reason', 'severity', 'solver', 'solvers', 'support_pairs', 'type', 'verdict']

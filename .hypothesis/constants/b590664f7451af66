@@ -1,0 +1,4 @@
+# file: /Users/nicolas/work/katala/src/katala_samurai/learning_optimizer.py
+# hypothesis_version: 6.151.9
+
+[-0.3, -0.15, -0.1, 0.0, 0.08, 0.2, 0.3, 0.5, 0.8, 0.95, 1.0, 2.0, 2.5, 'UNVERIFIED', 'confidence', 'confidence_bonus', 'confidence_collapse', 'confidence_growth', 'confidence_penalty', 'detail', 'early_bias_detected', 'early_failure', 'fast_cal_threshold', 'high_momentum', 'insight', 'momentum', 'momentum_patterns', 'passed', 'pattern', 'recommendation', 'type', 'verdict']

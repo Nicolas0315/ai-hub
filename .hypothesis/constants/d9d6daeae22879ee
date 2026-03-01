@@ -1,0 +1,4 @@
+# file: /Users/nicolas/work/katala/src/katala_samurai/session_state.py
+# hypothesis_version: 6.151.9
+
+[0.0, 0.3, 0.7, 1.0, 500, 1800, 7200, '*', 'SELF', 'action', 'capacity', 'emergency', 'evict', 'expired', 'history_len', 'invalid', 'key', 'mark_toxic', 'purge_all', 'store', 'sweep', 'time', 'total', 'toxic', 'valid']

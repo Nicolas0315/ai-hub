@@ -1,0 +1,4 @@
+# file: /Users/nicolas/work/katala/src/katala_samurai/multi_step_intervention.py
+# hypothesis_version: 6.151.9
+
+['chain', 'chain_labels', 'do', 'edges_removed', 'effect', 'effect_persists', 'error', 'interventions', 'label', 'labels', 'length', 'nodes', 'not_a_dag', 'removed_from', 'target', 'target_label', 'total_edges_after', 'total_nodes_after']

@@ -1,0 +1,4 @@
+# file: /Users/nicolas/work/katala/src/katala_samurai/self_regulation.py
+# hypothesis_version: 6.151.9
+
+[-0.1, 0.1, 0.2, 0.5, 0.7, 0.9, 'ACTIVE', 'CRITICAL', 'DEGRADED', 'HEALTHY', 'LAYER_DIVERGENCE', 'PREMATURE_CERTAINTY', 'PREMATURE_REJECTION', 'STOP', 'STOP_OSCILLATION', 'SUSPECT_AUTOMATION', 'actions', 'confidence', 'confidence_modifier', 'detail', 'health', 'high', 'layers', 'medium', 'observations', 'pattern_health', 'recent_interventions', 'recommendation', 'severity', 'should_stop', 'total_interventions', 'type', 'verdict']

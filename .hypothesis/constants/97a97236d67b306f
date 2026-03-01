@@ -1,0 +1,4 @@
+# file: /Users/nicolas/work/katala/src/htlf/qualia_baselines.py
+# hypothesis_version: 6.151.9
+
+[0.1, 0.12, 0.14, 0.15, 0.16, 0.18, 0.2, 0.22, 0.25, 0.28, 0.3, 0.38, 0.4, 0.42, 0.45, 0.48, 0.5, 0.55, 0.58, 0.6, 0.62, 0.64, 0.65, 0.66, 0.68, 0.7, 0.72, 0.75, 'arousal', 'brain_stem_reflex', 'consonant', 'cool_high_contrast', 'cool_low_contrast', 'dark_chaotic', 'dissonant', 'emotional_contagion', 'episodic_memory', 'legato', 'major_fast', 'major_slow', 'minimalist', 'minor_fast', 'minor_slow', 'musical_expectancy', 'resolution_v7_i', 'rothko_color_field', 'staccato', 'valence', 'visual_imagery', 'warm_high_contrast', 'warm_low_contrast']

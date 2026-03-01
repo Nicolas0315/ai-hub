@@ -1,0 +1,4 @@
+# file: /Users/nicolas/work/katala/src/katala_samurai/emergent_insight.py
+# hypothesis_version: 6.151.9
+
+[-0.15, -0.03, 0.15, 0.5, 0.6, 0.7, 0.8, 1.0, -100, 100, '; ', 'HEALTHY', 'L5_deep', 'L6', 'L6_statistical', 'L7', 'L7_adversarial', 'accuracy', 'claim', 'confidence', 'confidence_modifier', 'core', 'count', 'deep_causal', 'enhanced', 'health', 'high', 'high_novelty', 'id', 'implication', 'insight', 'insights', 'layers', 'leaps', 'low', 'medium', 'modifier', 'monitoring_score', 'no emergent insights', 'novelty', 'plan_evaluation', 'plan_surprise', 'reasoning_trace', 'scope_assumption', 'self_deception_risk', 'self_regulation', 'status', 'summary', 'surprise', 'suspicious_unanimity', 'temporal_assumption', 'trace', 'type']

@@ -1,0 +1,4 @@
+# file: /Users/nicolas/work/katala/src/katala_samurai/failure_learner.py
+# hypothesis_version: 6.151.9
+
+[-0.08, -0.05, 0.15, 0.5, ':', 'ALL', 'L6_stat', 'L7_adv', 'SURPRISED', 'adaptations_applied', 'blind_spots', 'claim_type', 'confidence', 'confidence_bias', 'consensus_seeking', 'correction_type', 'corrections', 'critical', 'devil_advocate', 'failure_rate', 'failures', 'force_layers', 'fragile_verdict', 'high', 'lessons', 'medium', 'miscalibrated', 'occurrences', 'plan_accuracy', 'recommendation', 'severity', 'strategy_override', 'surprise', 'total', 'total_verifications', 'type', 'verdict', 'warnings']

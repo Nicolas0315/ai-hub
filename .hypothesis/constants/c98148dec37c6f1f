@@ -1,0 +1,4 @@
+# file: /Users/nicolas/work/katala/src/htlf/qualia_engine.py
+# hypothesis_version: 6.151.9
+
+[-1.0, 0.0, 1e-12, 1e-06, 0.001, 0.02, 0.08, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.9, 1.0, 1.2, 2.0, 3.0, 60.0, 180.0, '\\b(minor|sad|dark)\\b', 'additional', 'arousal', 'behavioral', 'choice', 'choices', 'confidence', 'cool_low_contrast', 'cosine', 'dissonant', 'gsr', 'mahalanobis', 'major_fast', 'minor_slow', 'online', 'online_approximation', 'physio', 'physiological_proxy', 'reaction_times', 'rothko_color_field', 'rr_intervals', 'source', 'source_arousal', 'source_key', 'source_valence', 'target', 'target_arousal', 'target_key', 'target_valence', 'temperature', 'valence', 'valence_arousal', 'warm_high_contrast', 'wasserstein']
