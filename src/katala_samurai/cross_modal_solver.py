@@ -157,6 +157,68 @@ class CrossModalVerifier:
             "modality_scores": {m: round(s, 3) for m, s in scores},
         }
 
+    def verify_video_specific(
+        self,
+        video_features: Dict[str, Any],
+        text_claim: str = "",
+    ) -> Dict[str, Any]:
+        """v2.0: Video-specific cross-modal verification.
+
+        Integrates generation artifacts, optical flow, deepfake analysis,
+        and AV sync into the cross-modal verification pipeline.
+
+        Design: Youta Hilono / Implementation: Shirokuma
+        """
+        result = {
+            "video_trustworthiness": 0.5,
+            "generation_detected": False,
+            "deepfake_risk": 0.0,
+            "motion_plausible": True,
+            "av_synced": True,
+            "indicators": [],
+        }
+
+        gen = video_features.get("generation_artifacts", {})
+        pixel = video_features.get("pixel_deepfake", {})
+        flow = video_features.get("optical_flow", {})
+        manip = video_features.get("manipulation", {})
+
+        trust = 0.7  # Base trust for video
+
+        # Generation artifact check
+        if gen.get("is_likely_generated"):
+            trust -= gen.get("generation_confidence", 0.5) * 0.3
+            result["generation_detected"] = True
+            result["indicators"].append(
+                f"AI-generated (conf={gen.get('generation_confidence', 0):.2f})")
+
+        # Pixel-level deepfake
+        pixel_risk = pixel.get("risk_score", 0)
+        if pixel_risk > 0.4:
+            trust -= pixel_risk * 0.25
+            result["deepfake_risk"] = pixel_risk
+            result["indicators"].append(f"Pixel deepfake risk={pixel_risk:.2f}")
+
+        # Traditional manipulation
+        if manip.get("suspicious"):
+            trust -= manip.get("confidence", 0.3) * 0.2
+            result["indicators"].append("Manipulation artifacts detected")
+
+        # Optical flow plausibility
+        motion_type = flow.get("motion_type", "unknown")
+        if motion_type == "chaotic":
+            trust -= 0.1
+            result["motion_plausible"] = False
+            result["indicators"].append("Chaotic motion pattern — physics implausible")
+
+        # Cross-check: generated + deepfake = compounding penalty
+        if result["generation_detected"] and pixel_risk > 0.3:
+            trust *= 0.8  # Compounding skepticism
+            result["indicators"].append("Generated + deepfake signals compound")
+
+        result["video_trustworthiness"] = round(max(0.05, min(trust, 1.0)), 3)
+        return result
+
 
 # ═══════════════════════════════════════════════════════════════════════════
 # 3. Adaptive Weight Engine — 動的重み調整

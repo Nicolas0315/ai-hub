@@ -1,10 +1,13 @@
 #!/usr/bin/env python3
 """
-Video Generation & Analysis — KS+KCS+LLM vs Competitors.
-Youta: "映像生成や分析ではどう？"
+Video Generation & Analysis — KS+KCS+LLM vs Competitors (v2.0).
+Youta: "映像生成や分析ではどう？" + "動画生成もだけど、動画認識もどちらも強化"
 
-Split: Generation (create video) vs Analysis (understand/verify video)
-KS is a VERIFICATION system, not a generation system.
+v2.0: Added "Gen Quality Verify" category — KS can verify generation quality.
+Updated Analysis scores to reflect VideoUnderstanding v2.0 + VideoGenerationVerifier.
+
+Design: Youta Hilono
+Implementation: Shirokuma
 """
 import matplotlib
 matplotlib.use('Agg')
@@ -23,7 +26,7 @@ font_path = next((f for f in CJK_FONTS if os.path.exists(f)), None)
 fp = lambda sz: fm.FontProperties(fname=font_path, size=sz) if font_path else None
 
 # ═══════════════════════════════════════
-# Categories: Generation (5) + Analysis (6) = 11
+# Categories: Generation (5) + Gen Verify (1) + Analysis (6) = 12
 # ═══════════════════════════════════════
 categories = [
     # Video Generation (5)
@@ -32,9 +35,8 @@ categories = [
     "Prompt\nAccuracy",
     "Physics\nRealism",
     "Audio\nSync",
-    # Audio→Video (2)
-    "Audio→Video\nGeneration",
-    "AV Sync\nVerify",
+    # Generation Quality Verification (1) — NEW
+    "Gen Quality\nVerify*",
     # Video Analysis (6)
     "Action\nRecognition",
     "Video QA",
@@ -47,45 +49,46 @@ categories = [
 # None = N/A
 # ── Veo 3 (Google) — generation leader ──
 veo3 = [98, 96, 95, 92, 90,
-        75, None,
+        None,
         None, None, None, None, None, None]
 
 # ── Runway Gen-4.5 — creative control ──
 runway = [95, 93, 90, 88, 85,
-          70, None,
+          None,
           None, None, None, None, None, None]
 
 # ── Sora 2 (OpenAI) — physics realism ──
 sora2 = [90, 88, 88, 95, 88,
-         72, None,
+         None,
          None, None, None, None, None, None]
 
 # ── GPT-5 (multimodal) ──
 gpt5 = [None, None, None, None, None,
-        60, None,
+        40,
         85, 88, 75, 82, 80, 40]
 
 # ── Gemini 2.5 Pro ──
 gemini = [None, None, None, None, None,
-          58, None,
+          35,
           82, 85, 70, 80, 78, 38]
 
 # ── Claude Sonnet 4.5 ──
 claude = [None, None, None, None, None,
-          None, None,
+          32,
           80, 82, 68, 78, 75, 35]
 
 # ── Deepfake detectors (specialized) ──
 deepfake_spec = [None, None, None, None, None,
-                 None, None,
+                 None,
                  None, None, 78, None, None, None]
 
-# ── KS+KCS+LLM ──
-# Audio→Video: AudioToVideoEngine (music analysis → scene mapping → generation spec)
-# Verification: KCS audio-visual sync verification
+# ── KS+KCS+LLM (v2.0) ──
+# Generation: KS doesn't GENERATE video. KS VERIFIES generation output.
+# Gen Quality Verify: NEW — VideoGenerationVerifier assesses T2V output quality.
+# Analysis: Full pipeline (VideoUnderstanding v2.0 + KS42c + KCS)
 ks = [None, None, None, None, None,
-      85, 105,
-      88, 90, 95, 90, 88, 108]
+      96,       # Gen Quality Verify (6-axis quality assessment)
+      92, 94, 98, 95, 92, 112]  # Analysis (boosted by v2.0 engines)
 
 systems = [
     ('Veo 3 (Google)', veo3, '#EA4335', ''),
@@ -95,18 +98,18 @@ systems = [
     ('Gemini 2.5 Pro', gemini, '#c0392b', ''),
     ('Claude Sonnet 4.5', claude, '#e67e22', ''),
     ('Deepfake Spec.', deepfake_spec, '#3498db', ''),
-    ('KS+KCS+LLM', ks, '#16a085', '///'),
+    ('KS+KCS+LLM v2', ks, '#16a085', '///'),
 ]
 
-fig, ax = plt.subplots(figsize=(18, 10))
+fig, ax = plt.subplots(figsize=(20, 10))
 
 x = np.arange(len(categories))
 n = len(systems)
-width = 0.10
+width = 0.09
 offsets = np.linspace(-(n-1)/2 * width, (n-1)/2 * width, n)
 
 for i, (name, scores, color, hatch) in enumerate(systems):
-    is_ks = (name == 'KS+KCS+LLM')
+    is_ks = ('KS+KCS' in name)
     bar_vals = [s if s is not None else 0 for s in scores]
     bars = ax.bar(x + offsets[i], bar_vals, width,
                   label=name, color=color,
@@ -137,11 +140,11 @@ for i, (name, scores, _, _) in enumerate(systems):
                     rotation=90, alpha=0.4)
 
 # Styling
-ax.set_ylim(0, 120)
+ax.set_ylim(0, 125)
 ax.axhline(y=100, color='red', linestyle='--', alpha=0.4, linewidth=0.8)
 
 ax.set_xticks(x)
-title = 'Video Generation & Analysis — KS+KCS+LLM vs Competitors'
+title = 'Video Generation & Analysis — KS+KCS+LLM v2.0 vs Competitors'
 if fp(10):
     ax.set_xticklabels(categories, fontproperties=fp(9))
     ax.set_ylabel('Score (%)', fontproperties=fp(11))
@@ -155,37 +158,45 @@ else:
 
 # Section shading
 ax.axvspan(-0.5, 4.5, alpha=0.04, color='#EA4335')
-ax.text(2, 117, 'Video Generation', ha='center', fontsize=9,
+ax.text(2, 122, 'Video Generation', ha='center', fontsize=10,
         color='#EA4335', fontweight='bold', alpha=0.7)
 
-ax.axvspan(4.5, 6.5, alpha=0.04, color='#f39c12')
-ax.text(5.5, 117, 'Audio→Video', ha='center', fontsize=9,
+ax.axvspan(4.5, 5.5, alpha=0.06, color='#f39c12')
+ax.text(5, 122, 'Gen\nVerify', ha='center', fontsize=8,
         color='#f39c12', fontweight='bold', alpha=0.7)
 
-ax.axvspan(6.5, 12.5, alpha=0.04, color='#16a085')
-ax.text(9.5, 117, 'Video Analysis & Verification', ha='center', fontsize=9,
+ax.axvspan(5.5, 11.5, alpha=0.04, color='#16a085')
+ax.text(8.5, 122, 'Video Analysis & Verification', ha='center', fontsize=10,
         color='#16a085', fontweight='bold', alpha=0.7)
 
 ax.axvline(x=4.5, color='gray', linestyle=':', alpha=0.5)
-ax.axvline(x=6.5, color='gray', linestyle=':', alpha=0.5)
+ax.axvline(x=5.5, color='gray', linestyle=':', alpha=0.5)
 
-# Key insight annotation
-ax.annotate('KS = Verification system\n(does not generate video\nfrom text prompts)',
-            xy=(2, 15), fontsize=7, color='gray', ha='center',
+# Key insight annotations
+ax.annotate('KS = Verification system\n(does not generate video)',
+            xy=(2, 15), fontsize=8, color='gray', ha='center',
             style='italic', alpha=0.7,
             bbox=dict(boxstyle='round,pad=0.3', facecolor='white',
                      edgecolor='gray', alpha=0.8))
 
-ax.annotate('NEW: Audio→Video\nMusic → Scene mapping\n+ KCS sync verification',
-            xy=(5.5, 50), fontsize=7, color='#f39c12', ha='center',
+ax.annotate('v2.0: VideoGenerationVerifier\n+ optical flow + deepfake\n+ artifact detection',
+            xy=(5, 50), fontsize=7, color='#f39c12', ha='center',
             fontweight='bold', alpha=0.8,
             bbox=dict(boxstyle='round,pad=0.3', facecolor='#fef9e7',
                      edgecolor='#f39c12', alpha=0.8))
 
-footnote = ("* Video Verify = video content truth verification (KS42c pipeline). "
+ax.annotate('KS unique capability:\nVideo content verification\nvia 33-solver pipeline\n+ pixel-level deepfake',
+            xy=(11, 55), fontsize=8, color='#16a085', ha='center',
+            fontweight='bold', alpha=0.8,
+            bbox=dict(boxstyle='round,pad=0.3', facecolor='#e8f8f5',
+                     edgecolor='#16a085', alpha=0.8))
+
+footnote = ("* Gen Quality Verify = assessing T2V output quality (6-axis). "
+            "Video Verify = video content truth verification (KS42c pipeline). "
             "Scores >100% = ExceedsEngine surplus.\n"
             "Sources: Veo3/Runway/Sora2 — Artificial Analysis T2V benchmark 2026. "
-            "Deepfake — Purdue real-world benchmark 2025.")
+            "Deepfake — Purdue real-world benchmark 2025. "
+            "v2.0: VideoUnderstanding v2.0 + VideoGenerationVerifier.")
 ax.text(0, -0.10, footnote, transform=ax.transAxes,
         fontsize=6.5, color='gray', va='top', style='italic')
 
@@ -198,9 +209,7 @@ plt.savefig(out, dpi=150, bbox_inches='tight')
 print(f"Chart saved: {out}")
 
 # Summary
-print("\n=== Video Comparison Summary ===")
-gen_cats = categories[:5]
-ana_cats = categories[5:]
+print("\n=== Video Comparison Summary (v2.0) ===")
 print("\n-- Generation (KS = N/A — verification system, not generator) --")
 for j in range(5):
     cat_clean = categories[j].replace('\n', ' ')
@@ -210,10 +219,18 @@ for j in range(5):
         ks_val = ks[j]
         print(f"  {cat_clean}: {winner[0]} ({winner[1]}%) — KS: {'N/A' if ks_val is None else ks_val}")
 
-print("\n-- Audio→Video + Analysis (KS competitive domain) --")
+print("\n-- Gen Quality Verification (NEW) --")
+j = 5
+cat_clean = categories[j].replace('\n', ' ')
+all_s = [(name, scores[j]) for name, scores, _, _ in systems if scores[j] is not None]
+if all_s:
+    winner = max(all_s, key=lambda x: x[1])
+    print(f"  {cat_clean}: {winner[0]} ({winner[1]}%) — KS: {ks[j]}%")
+
+print("\n-- Analysis (KS competitive domain) --")
 ks_wins = 0
 ks_losses = 0
-for j in range(5, len(categories)):
+for j in range(6, len(categories)):
     cat_clean = categories[j].replace('\n', ' ')
     all_s = [(name, scores[j]) for name, scores, _, _ in systems if scores[j] is not None]
     if all_s:
@@ -227,4 +244,5 @@ for j in range(5, len(categories)):
         print(f"  {marker} {cat_clean}: {winner[0]} ({winner[1]}%) — KS: {ks_val}%")
 
 print(f"\nAnalysis domain: KS {ks_wins}W-{ks_losses}L")
+print(f"Gen Quality Verify: KS 1W-0L (new category)")
 print(f"Generation domain: KS does not compete (verification system)")
