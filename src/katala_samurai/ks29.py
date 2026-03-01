@@ -17,6 +17,7 @@ import time
 import hashlib
 import random
 import math
+import re
 from z3 import *
 from sympy import symbols, simplify, And as SympyAnd, Or as SympyOr, Not as SympyNot
 from pysat.solvers import Glucose3
