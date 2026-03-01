@@ -134,8 +134,12 @@ def compute_r_struct(source_dag: DAG, target_dag: DAG, match_result: MatchResult
     node_ratio = min(1.0, n_matched / n_source)
     
     # Edge preservation (original logic)
-    if not source_edges or not mapping:
+    if not mapping:
         edge_score = 0.0
+    elif not source_edges:
+        # For edge-less source DAGs, near-perfect concept preservation should not
+        # be penalized as structural loss.
+        edge_score = 1.0 if node_ratio >= 0.99 else 0.0
     else:
         src_node_map = {n.id: i for i, n in enumerate(source_nodes)}
         tgt_node_map = {n.id: i for i, n in enumerate(target_nodes)}

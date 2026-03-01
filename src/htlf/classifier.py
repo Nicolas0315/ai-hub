@@ -160,6 +160,7 @@ def _composition_from_correlation(source_text: str, target_text: str, base: tupl
 
 def _dominant_axes(observed: tuple[float, float, float]) -> tuple[Axis, ...]:
     labels: list[Axis] = ["struct", "context", "qualia"]
+    axis_order: dict[Axis, int] = {"struct": 0, "context": 1, "qualia": 2}
 
     # Pairwise dispersion proxy: largest axis gap pair dominates.
     pair_gaps: list[tuple[float, tuple[Axis, Axis]]] = []
@@ -174,7 +175,8 @@ def _dominant_axes(observed: tuple[float, float, float]) -> tuple[Axis, ...]:
     if ranked[0][1] - ranked[1][1] >= 0.22 or gap < 0.08:
         return (ranked[0][0],)
 
-    return tuple(sorted(pair))  # normalized key for PROFILE_MAP
+    # Normalize pair order to PROFILE_MAP key convention, not lexicographic order.
+    return tuple(sorted(pair, key=lambda a: axis_order[a]))
 
 
 def _agreement_score(prior: tuple[float, float, float], observed: tuple[float, float, float]) -> float:
