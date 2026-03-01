@@ -131,14 +131,19 @@ class KS38a(KS37b):
             })
         
         if solver_results:
-            inhibited = rb.lateral_inhibit(solver_results)
-            sharpness = {'sharpness': len(inhibited), 'inhibited_count': sum(1 for r in inhibited if r.get('inhibited')), 'signal_clarity': 'rust_bridge'}
+            solver_confs = [r.get("confidence", DEFAULT_CONFIDENCE) for r in solver_results]
+            inhibited_confs = rb.lateral_inhibit(solver_confs)
+            inhibited = solver_results  # Keep original dicts
+            sharpness = {
+                'sharpness': sum(abs(a - b) for a, b in zip(solver_confs, inhibited_confs)),
+                'inhibited_count': sum(1 for a, b in zip(solver_confs, inhibited_confs) if abs(a - b) > 0.01),
+                'signal_clarity': 'rust_bridge',
+            }
             
             # Recalculate confidence from inhibited results
-            if inhibited:
-                inhibited_confs = [r.get("confidence", DEFAULT_CONFIDENCE) for r in inhibited]
+            if inhibited_confs:
                 inhibited_mean = sum(inhibited_confs) / len(inhibited_confs)
-                # Blend: 70% original + 30% inhibited
+                # Blend: original + inhibited
                 actual_conf = actual_conf * PREDICTION_BLEND_ORIGINAL + inhibited_mean * PREDICTION_BLEND_INHIBITED
         else:
             sharpness = {"sharpness": 0, "inhibited_count": 0, "signal_clarity": "N/A"}
