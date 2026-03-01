@@ -75,6 +75,10 @@ except ImportError:
         from analogical_transfer import run_analogical_transfer
     from semantic_bridge import extract_semantics, analyze_causality, semantic_enrichment_delta
     from stage_store import StageStore
+try:
+    from .temporal_context import temporal_score_for_ks31, verify_temporal_context
+except ImportError:
+    from temporal_context import temporal_score_for_ks31, verify_temporal_context
 
 
 # ─── Layer Definitions ──────────────────────────────────────────────────────
@@ -310,6 +314,23 @@ class KS31e:
             store.write("KS31e_R0_L5_semantics", semantics)
             store.write("KS31e_R0_L5_causal", causal)
 
+        # ── Round 0b: Temporal Context Verification ──────────────────
+        temporal = temporal_score_for_ks31(
+            claim.text,
+            source_llm=claim.source_llm,
+            evidence=claim.evidence,
+        )
+        trace.append({
+            "round": "0b", "layer": "L5_temporal", "action": "temporal_context",
+            "freshness": temporal["temporal_freshness"],
+            "risk": temporal["temporal_risk"],
+            "domain": temporal["temporal_domain"],
+            "knowledge_year": temporal.get("knowledge_year"),
+        })
+
+        if store:
+            store.write("KS31e_R0b_temporal", temporal)
+
         # ── Round 1: L1 direct verification ──────────────────────────
         r1 = self.l1.verify_full(claim, store=store)
         trace.append({"round": 1, "layer": "L1", "action": "full_verify",
@@ -355,6 +376,7 @@ class KS31e:
                 r1_result=r1, trace=trace, elapsed=elapsed,
                 store=store, cycle_count=1,
                 semantics=semantics, causal=causal, enrichment=enrichment,
+                temporal=temporal,
             )
 
         # ── Round 2: L3 causal-aware decomposition ──────────────────
@@ -374,6 +396,7 @@ class KS31e:
                 r1_result=r1, trace=trace, elapsed=elapsed,
                 store=store, cycle_count=1, note="single_step_no_decomposition",
                 semantics=semantics, causal=causal, enrichment=enrichment,
+                temporal=temporal,
             )
 
         # ── Round 3: L2 analysis + L1 per-step verification ─────────
@@ -469,6 +492,14 @@ class KS31e:
             else:
                 final_verdict = "EXPLORING"
 
+        # ── Temporal modifier ────────────────────────────────────────
+        temporal_freshness = temporal.get("temporal_freshness", 1.0)
+        if temporal_freshness < 0.5:
+            # Outdated knowledge: downgrade confidence
+            final_score = round(final_score * (0.5 + temporal_freshness), 4)
+            if final_verdict == "VERIFIED" and temporal.get("temporal_risk") in ("high", "critical"):
+                final_verdict = "EXPLORING"
+
         elapsed = time.time() - t0
         return self._build_output(
             verdict=final_verdict, final_score=final_score,
@@ -476,6 +507,7 @@ class KS31e:
             elapsed=elapsed, store=store, cycle_count=2,
             meta=meta, step_meta=step_meta,
             semantics=semantics, causal=causal, enrichment=enrichment,
+            temporal=temporal,
         )
 
     def _combine_verdicts(self, r1_result, synthesis, causal, enrichment):
@@ -536,7 +568,8 @@ class KS31e:
     def _build_output(self, verdict, final_score, r1_result, trace, elapsed,
                       store=None, cycle_count=1, synthesis=None, note=None,
                       meta=None, step_meta=None,
-                      semantics=None, causal=None, enrichment=None):
+                      semantics=None, causal=None, enrichment=None,
+                      temporal=None):
         """Build final output dict."""
         output = {
             "version": self.VERSION,
@@ -594,6 +627,17 @@ class KS31e:
                 "causal_assessment": synthesis.get("causal_assessment"),
             }
 
+        # Temporal context
+        if temporal:
+            output["temporal"] = {
+                "freshness": temporal["temporal_freshness"],
+                "risk": temporal["temporal_risk"],
+                "domain": temporal["temporal_domain"],
+                "knowledge_year": temporal.get("knowledge_year"),
+                "recommendation": temporal["recommendation"],
+                "warnings": temporal.get("warnings", []),
+            }
+
         # Flags summary
         flags = []
         if semantics and semantics["mode"] == "llm":
@@ -613,6 +657,12 @@ class KS31e:
                 flags.append("FORM_ONLY_RESCUED_BY_L5")
             else:
                 flags.append("FORMAL_ONLY")
+        if temporal:
+            risk = temporal.get("temporal_risk", "none")
+            if risk in ("high", "critical"):
+                flags.append("TEMPORAL_RISK")
+            elif risk == "medium":
+                flags.append("TEMPORAL_CAUTION")
         output["flags"] = flags
 
         if note:

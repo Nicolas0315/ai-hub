@@ -32,11 +32,67 @@ class Claim:
         self.propositions = self._parse(text)
 
     def _parse(self, text):
-        """Convert claim text into boolean propositions for formal verification."""
-        words = text.lower().split()
+        """Content-sensitive proposition extraction.
+
+        Extracts structural + semantic features from text so different
+        claims produce genuinely different proposition vectors.
+
+        Feature categories:
+        - Lexical: word count, vocabulary richness, avg word length
+        - Structural: sentence count, has_conjunction, has_negation, has_quantifier
+        - Semantic: causal indicators, comparative, temporal, definitional
+        - Complexity: nesting depth, clause count, evidence alignment
+        """
+        text_lower = text.lower()
+        words = text_lower.split()
+        word_count = len(words)
+
+        stops = {"the", "a", "an", "is", "are", "was", "were", "be", "been",
+                 "being", "have", "has", "had", "do", "does", "did", "will",
+                 "would", "could", "should", "may", "might", "shall", "can",
+                 "to", "of", "in", "for", "on", "with", "at", "by", "from",
+                 "as", "into", "through", "during", "before", "after", "it",
+                 "its", "this", "that", "these", "those", "and", "or", "but",
+                 "not", "no", "nor"}
+        content_words = [w.strip(",.;:?!()\"'[]") for w in words
+                         if w.strip(",.;:?!()\"'[]") not in stops
+                         and len(w.strip(",.;:?!()\"'[]")) > 1]
+        unique_content = set(content_words)
+
         props = {}
-        for i, w in enumerate(words[:5]):
-            props[f"p{i}"] = bool(w and w not in ["the","a","an","is","are","not"])
+        # Lexical
+        props["p_has_content"] = len(content_words) > 0
+        props["p_rich_vocab"] = len(unique_content) > max(len(content_words) * 0.5, 3) if content_words else False
+        props["p_long_text"] = word_count > 15
+        props["p_short_text"] = word_count <= 5
+        props["p_complex_words"] = any(len(w) > 10 for w in content_words) if content_words else False
+
+        # Structural
+        sentences = re.split(r'[.!?;]+', text)
+        sentences = [s.strip() for s in sentences if s.strip()]
+        props["p_multi_sentence"] = len(sentences) > 1
+        props["p_has_conjunction"] = any(w in text_lower for w in [" and ", " or ", " but ", " yet ", " however "])
+        props["p_has_negation"] = any(w in words for w in ["not", "no", "never", "neither", "nor", "none", "cannot", "isn't", "aren't", "doesn't", "don't", "won't"])
+        props["p_has_quantifier"] = any(w in words for w in ["all", "every", "each", "some", "many", "most", "few", "several", "any", "none"])
+
+        # Semantic
+        props["p_causal"] = any(w in text_lower for w in ["because", "therefore", "hence", "thus", "consequently", "causes", "leads", "results", "due", "since", "implies", "entails"])
+        props["p_comparative"] = any(w in text_lower for w in ["more", "less", "better", "worse", "greater", "smaller", "higher", "lower", "faster", "slower", "than", "compared"])
+        props["p_temporal"] = any(w in text_lower for w in ["before", "after", "during", "when", "then", "now", "previously", "currently", "recently", "future", "past", "present"])
+        props["p_definitional"] = any(kw in text_lower for kw in ["is a", "is an", "defined as", "refers to", "means", "constitutes", "consists of"])
+        props["p_has_numbers"] = bool(re.search(r'\d+', text))
+        props["p_has_evidence"] = len(self.evidence) > 0
+        props["p_strong_evidence"] = len(self.evidence) >= 3
+
+        # Complexity
+        props["p_nested"] = text.count(",") > 2 or text.count("(") > 0
+        props["p_chain"] = any(w in text_lower for w in ["therefore", "thus", "hence", "consequently", "so that"])
+
+        # Content hash (2 bits for solver diversity)
+        text_hash = hashlib.md5(text.encode()).hexdigest()
+        props["p_hash_even"] = int(text_hash[0], 16) % 2 == 0
+        props["p_hash_quarter"] = int(text_hash[1], 16) % 4 == 0
+
         return props
 
 
