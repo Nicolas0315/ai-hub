@@ -1,5 +1,6 @@
 use pyo3::prelude::*;
 use pyo3::types::{PyDict, PyList};
+type PyObject = Py<PyAny>;
 use rayon::prelude::*;
 use regex::Regex;
 use std::collections::{HashMap, HashSet};
@@ -102,26 +103,25 @@ fn lateral_inhibit(confidences: Vec<f64>, threshold: f64) -> PyResult<Vec<f64>> 
 // ══════════════════════════════════════════════
 
 #[pyfunction]
-fn extract_features(text: &str) -> PyResult<HashMap<String, PyObject>> {
-    Python::with_gil(|py| {
-        let lower = text.to_lowercase();
-        let words: HashSet<&str> = lower.split_whitespace().collect();
-        let neg: HashSet<&str> = ["not","never","no","neither","without","none"].into();
-        let cau: HashSet<&str> = ["cause","causes","caused","because","effect","leads","results"].into();
-        let sta: HashSet<&str> = ["significant","correlation","sample","regression"].into();
-        let def: HashSet<&str> = ["defined","means","refers","definition","known"].into();
-        let mut f: HashMap<String, PyObject> = HashMap::new();
-        f.insert("word_count".into(), words.len().to_object(py));
-        f.insert("char_count".into(), text.len().to_object(py));
-        f.insert("has_numbers".into(), text.chars().any(|c| c.is_ascii_digit()).to_object(py));
-        f.insert("has_negation".into(), words.iter().any(|w| neg.contains(w)).to_object(py));
-        f.insert("has_causal".into(), words.iter().any(|w| cau.contains(w)).to_object(py));
-        f.insert("has_statistical".into(), words.iter().any(|w| sta.contains(w)).to_object(py));
-        f.insert("has_definition".into(), words.iter().any(|w| def.contains(w)).to_object(py));
-        f.insert("sentence_count".into(),
-            text.chars().filter(|c| *c=='.'||*c=='!'||*c=='?').count().max(1).to_object(py));
-        Ok(f)
-    })
+fn extract_features(text: &str) -> PyResult<HashMap<String, String>> {
+    // Legacy compatibility: returns string-encoded values
+    let lower = text.to_lowercase();
+    let words: HashSet<&str> = lower.split_whitespace().collect();
+    let neg: HashSet<&str> = ["not","never","no","neither","without","none"].into();
+    let cau: HashSet<&str> = ["cause","causes","caused","because","effect","leads","results"].into();
+    let sta: HashSet<&str> = ["significant","correlation","sample","regression"].into();
+    let def: HashSet<&str> = ["defined","means","refers","definition","known"].into();
+    let mut f: HashMap<String, String> = HashMap::new();
+    f.insert("word_count".into(), words.len().to_string());
+    f.insert("char_count".into(), text.len().to_string());
+    f.insert("has_numbers".into(), text.chars().any(|c| c.is_ascii_digit()).to_string());
+    f.insert("has_negation".into(), words.iter().any(|w| neg.contains(w)).to_string());
+    f.insert("has_causal".into(), words.iter().any(|w| cau.contains(w)).to_string());
+    f.insert("has_statistical".into(), words.iter().any(|w| sta.contains(w)).to_string());
+    f.insert("has_definition".into(), words.iter().any(|w| def.contains(w)).to_string());
+    f.insert("sentence_count".into(),
+        text.chars().filter(|c| *c=='.'||*c=='!'||*c=='?').count().max(1).to_string());
+    Ok(f)
 }
 
 // ══════════════════════════════════════════════
