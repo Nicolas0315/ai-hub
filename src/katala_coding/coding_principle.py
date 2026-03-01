@@ -14,6 +14,10 @@ HTLF的解釈:
   設計意図 →[翻訳]→ LLM解釈 →[翻訳]→ コード出力
   各「→」で翻訳損失が発生する。KS/KCSはこの損失を測定する。
   測定されない損失は修正できない。
+
+使用バージョン:
+  KS:  KS42c-v3 (33 solvers + 4 PhD-gap engines + HTLF)
+  KCS: KCS-1b (KCS-1a + KCS-2a reverse inference + KS40b cross-check)
 """
 from __future__ import annotations
 
@@ -165,13 +169,29 @@ class CodingGate:
 
     @property
     def kcs(self):
+        """Lazy-load KCS-1b (latest). Falls back to KCS-1a if 1b unavailable."""
         if self._kcs is None:
-            from src.katala_coding.kcs1a import KCS1a
-            self._kcs = KCS1a()
+            try:
+                from src.katala_coding.kcs1b import KCS1b
+                self._kcs = KCS1b()
+                self._kcs_version = "KCS-1b"
+            except (ImportError, Exception):
+                from src.katala_coding.kcs1a import KCS1a
+                self._kcs = KCS1a()
+                self._kcs_version = "KCS-1a"
         return self._kcs
+
+    @property
+    def kcs_version(self) -> str:
+        """Return which KCS version is loaded."""
+        _ = self.kcs  # ensure loaded
+        return getattr(self, "_kcs_version", "unknown")
 
     def check_code(self, code: str, design_spec: str = "") -> GateResult:
         """Run KCS + KS verification on generated code.
+
+        Uses KCS-1b (with reverse inference + KS40b cross-check) when available,
+        falls back to KCS-1a.
 
         Args:
             code: Generated code string
@@ -181,24 +201,52 @@ class CodingGate:
             GateResult with pass/block decision and diagnostics
         """
         t0 = time.time()
-        result = GateResult(passed=True, gate_name="CodingGate")
+        result = GateResult(passed=True, gate_name=f"CodingGate[{self.kcs_version}]")
 
         # ── Step 1: KCS structural analysis ──
         if self.config.include_kcs_in_coding and design_spec:
             kcs_verdict = self.kcs.verify(design_spec, code)
-            result.kcs_grade = kcs_verdict.grade
-            result.kcs_fidelity = kcs_verdict.total_fidelity
-            result.kcs_axes = {
-                "R_struct": kcs_verdict.r_struct,
-                "R_context": kcs_verdict.r_context,
-                "R_qualia": kcs_verdict.r_qualia,
-                "R_cultural": kcs_verdict.r_cultural,
-                "R_temporal": kcs_verdict.r_temporal,
-            }
 
-            if not self.config.grade_passes(kcs_verdict.grade):
+            # KCS-1b returns EnhancedVerdict with .forward (CodeVerdict) + .final_grade
+            # KCS-1a returns CodeVerdict directly
+            if hasattr(kcs_verdict, 'forward'):
+                # KCS-1b path
+                forward = kcs_verdict.forward
+                result.kcs_grade = kcs_verdict.final_grade
+                result.kcs_fidelity = forward.total_fidelity
+                result.kcs_axes = {
+                    "R_struct": forward.r_struct,
+                    "R_context": forward.r_context,
+                    "R_qualia": forward.r_qualia,
+                    "R_cultural": forward.r_cultural,
+                    "R_temporal": forward.r_temporal,
+                }
+                # Add KCS-1b specific data
+                if kcs_verdict.reverse:
+                    result.kcs_axes["reverse_coverage"] = kcs_verdict.reverse.coverage_score
+                    result.kcs_axes["reverse_goal_confidence"] = kcs_verdict.reverse.goal_confidence
+                if kcs_verdict.ks40b_check:
+                    result.kcs_axes["ks40b_agreement"] = kcs_verdict.ks40b_check.agreement
+                    result.kcs_axes["ks40b_reliability"] = kcs_verdict.ks40b_check.measurement_reliability
+                if kcs_verdict.penalty_log:
+                    result.flagged_items.extend(
+                        [{"type": "kcs_penalty", "detail": p} for p in kcs_verdict.penalty_log]
+                    )
+            else:
+                # KCS-1a path
+                result.kcs_grade = kcs_verdict.grade
+                result.kcs_fidelity = kcs_verdict.total_fidelity
+                result.kcs_axes = {
+                    "R_struct": kcs_verdict.r_struct,
+                    "R_context": kcs_verdict.r_context,
+                    "R_qualia": kcs_verdict.r_qualia,
+                    "R_cultural": kcs_verdict.r_cultural,
+                    "R_temporal": kcs_verdict.r_temporal,
+                }
+
+            if not self.config.grade_passes(result.kcs_grade):
                 result.passed = False
-                result.reason = f"KCS grade {kcs_verdict.grade} below minimum {self.config.kcs_min_grade}"
+                result.reason = f"KCS grade {result.kcs_grade} below minimum {self.config.kcs_min_grade}"
 
         # ── Step 2: KS verification of code claims ──
         if self.config.include_ks_in_coding:
