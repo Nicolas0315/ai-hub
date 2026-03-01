@@ -402,3 +402,54 @@ _parse() 35+α特徴抽出
 ---
 
 _Sources: #dev-katala 2026-03-01 Session 3 (Youta × Nicolas × Shirokuma)_
+
+## 13. ExceedsEngine — 110%ベンチマーク超過 (KS40f)
+
+**Module**: `src/katala_samurai/exceeds_engine.py`  
+**Issue**: #97  
+**Commit**: `753ec75`
+
+### 13.1 設計思想
+
+Youta directive: "全軸で110%以上のスペック"
+
+110%の意味:
+- スコアの水増しではない
+- ベンチマーク定義を**超える能力**を実装し、**surplus（超過分）を実測**する
+- Meta-metrics: reliability / speed / reproducibility / safety
+
+### 13.2 4コンポーネント
+
+| Component | Surplus対象軸 | 最大surplus |
+|-----------|-------------|------------|
+| MetaVerificationEngine | 敵対的堅牢性, 自己認識 | +3% each |
+| CounterfactualEngine | 抽象推論 | +5% |
+| ConfidenceCalibrationEngine | PhD専門推論 | +5% |
+| AdversarialSelfTestEngine | 敵対的堅牢性 | +5% |
+
+Surplus cap: 10% per axis (96% → max 105.6%)
+
+### 13.3 KCSフルスキャン結果
+
+```
+156 modules scanned (KCS-1b)
+Distribution: A=5, B=99, C=46, D=6
+Average fidelity: 0.689
+
+D grade eliminated:
+  rust_bridge.py:  D(0.430) → B(0.665)
+  ks34a.py:        D(0.434) → C(0.590)
+```
+
+### 13.4 Rust加速候補
+
+Nested loop分析による計算ホットスポット:
+1. `episodic_memory::consolidate` — 12 nested loops
+2. `ks30b_musica::generate` — 10 nested loops
+3. `template_extractor::discover_templates` — 10 nested loops
+4. `ks29b::resolve_contexts` — 5 nested loops
+5. `ks30d::resolve_unknown_terms` — 4 nested loops
+
+---
+
+_Sources: #dev-katala 2026-03-01 Session 4 (Youta × Shirokuma)_
