@@ -1,17 +1,35 @@
 """
-KS40a — Katala Samurai 40a: Holographic Translation Loss Framework
+KS40a — Katala Samurai 40a: Holographic Translation Loss Framework (HTLF).
 
-KS39b + cross-layer translation loss measurement.
+Extends KS39b with cross-layer translation loss measurement.
 Measures information loss when claims traverse symbolic system boundaries
 (mathematics ↔ formal language ↔ natural language ↔ music ↔ creative arts).
 
-3-axis model:
-  - R_struct: structural preservation
-  - R_context: contextual preservation
-  - R_qualia: experiential quality preservation
+Architecture:
+  KS40a inherits KS39b (Self-Other Boundary with provenance tracking)
+  and adds HTLF pipeline integration via HTLFScorer.
 
-12 loss profiles (6 axis combinations × 2 composition modes).
-Holographic principle analogy: boundary (surface expression) → bulk (deep meaning).
+3-axis model:
+  - R_struct: structural preservation (graph topology)
+  - R_context: contextual preservation (TF-IDF / embedding similarity)
+  - R_qualia: experiential quality preservation (behavioral proxy)
+
+5-axis extension (KS40c):
+  - R_cultural: cultural frame translation loss (Quine indeterminacy)
+  - R_temporal: temporal context drift (domain-specific half-life decay)
+
+12 loss profiles: 6 axis combinations × 2 composition modes
+(weighted sum vs product). Profile auto-classification based on
+source→target layer pair.
+
+Holographic principle analogy:
+  boundary (surface expression) encodes bulk (deep meaning).
+  Translation loss = information that fails to survive the boundary crossing.
+
+Provenance integration:
+  HTLF measurement reliability feeds back into KS39b's self-other
+  boundary origin_distribution, increasing SELF/EXTERNAL/DESIGNER
+  weights based on translation fidelity confidence.
 
 Design: Youta Hilono, 2026-02-28
 Implementation: Shirokuma (OpenClaw AI)
@@ -41,15 +59,62 @@ except ImportError:
 
 
 class KS40a(KS39b):
-    """KS39b + HTLF translation-loss measurement."""
+    """KS39b + HTLF translation-loss measurement.
+
+    Adds cross-layer translation loss to the verification pipeline.
+    When source_text is provided, runs the full HTLF pipeline
+    (parser → matcher → scorer → classifier). Otherwise, estimates
+    loss from inferred source/target layer pair using AXIS_PRIOR.
+
+    Attributes:
+        _htlf: HTLFScorer instance for loss evaluation.
+    """
 
     VERSION = "KS40a"
 
+    # HTLFScorer weights: alpha controls structural vs contextual balance
+    HTLF_ALPHA = 0.7  # R_struct weight in combined score
+    HTLF_BETA = 0.3   # R_context weight in combined score
+
+    # Provenance boost increments for HTLF integration
+    PROVENANCE_SELF_BOOST = 0.03
+    PROVENANCE_EXTERNAL_BOOST = 0.02
+    PROVENANCE_DESIGNER_BOOST = 0.01
+
     def __init__(self, **kwargs):
+        """Initialize KS40a with HTLF scorer.
+
+        Args:
+            **kwargs: Passed to KS39b.__init__().
+        """
         super().__init__(**kwargs)
-        self._htlf = HTLFScorer(alpha=0.7, beta=0.3)
+        self._htlf = HTLFScorer(alpha=self.HTLF_ALPHA, beta=self.HTLF_BETA)
 
     def verify(self, claim, store=None, skip_s28=True, **kwargs):
+        """Verify claim with HTLF translation loss measurement.
+
+        Extends KS39b.verify() by:
+        1. Running the HTLF pipeline (if source_text provided) or
+           estimating loss from layer pair inference
+        2. Computing translation fidelity and profile classification
+        3. Feeding measurement reliability into provenance tracking
+
+        Args:
+            claim: Claim object or text string.
+            store: StageStore for intermediate results (created if None).
+            skip_s28: Skip S28 solver (default True for speed).
+            **kwargs: HTLF-specific params:
+                source_text: Original text before translation.
+                source_layer: Source symbolic layer (e.g. "mathematics").
+                target_layer: Target symbolic layer (e.g. "natural_language").
+                use_mock_parser: Use mock HTLF parser for testing.
+                qualia_mode: "online"|"behavioral"|"physio".
+                responses_data: Behavioral response data for R_qualia.
+                physio_data: Physiological data for R_qualia.
+
+        Returns:
+            dict with KS39b results + 'translation_loss' section.
+        """
         if store is None:
             store = StageStore()
 
@@ -120,9 +185,15 @@ class KS40a(KS39b):
         if isinstance(boundary, dict):
             bd = dict(boundary)
             origin_dist = dict(bd.get("origin_distribution", {}))
-            origin_dist[Origin.SELF.value] = round(origin_dist.get(Origin.SELF.value, 0.0) + 0.03, 3)
-            origin_dist[Origin.EXTERNAL.value] = round(origin_dist.get(Origin.EXTERNAL.value, 0.0) + 0.02, 3)
-            origin_dist[Origin.DESIGNER.value] = round(origin_dist.get(Origin.DESIGNER.value, 0.0) + 0.01, 3)
+            origin_dist[Origin.SELF.value] = round(
+                origin_dist.get(Origin.SELF.value, 0.0) + self.PROVENANCE_SELF_BOOST, 3
+            )
+            origin_dist[Origin.EXTERNAL.value] = round(
+                origin_dist.get(Origin.EXTERNAL.value, 0.0) + self.PROVENANCE_EXTERNAL_BOOST, 3
+            )
+            origin_dist[Origin.DESIGNER.value] = round(
+                origin_dist.get(Origin.DESIGNER.value, 0.0) + self.PROVENANCE_DESIGNER_BOOST, 3
+            )
             total = sum(origin_dist.values()) or 1.0
             bd["origin_distribution"] = {k: round(v / total, 3) for k, v in origin_dist.items()}
 
