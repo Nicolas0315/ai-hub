@@ -176,8 +176,28 @@ def _parse_python(text: str) -> Dict[str, bool]:
     return props
 
 
-def parse_propositions(text: str) -> Dict[str, bool]:
-    """Parse text into proposition features (Rust or Python)."""
+def parse_propositions(text: str, semantic: bool = True) -> Dict[str, bool]:
+    """Parse text into proposition features.
+
+    Priority:
+    1. Semantic (LLM-based: Ollama → Gemini → heuristic) if semantic=True
+    2. Rust (ks_accel.parse_propositions) — fast pattern matching
+    3. Python fallback — same 35 features, slower
+
+    Semantic mode returns richer bools derived from actual meaning,
+    not surface patterns. Falls back to pattern matching if LLM unavailable.
+    """
+    if semantic:
+        try:
+            from katala_samurai.semantic_parse import semantic_parse
+            sem = semantic_parse(text)
+            if sem.source != "heuristic" or sem.prop_count > 0:
+                return sem.to_solver_props()
+        except ImportError:
+            pass
+        except Exception:
+            pass  # LLM failure → fall through to pattern matching
+
     if _HAS_RUST:
         return ks_accel.parse_propositions(text)
     return _parse_python(text)
@@ -190,6 +210,18 @@ def batch_parse_propositions(texts: List[str]) -> List[Dict[str, bool]]:
     return [_parse_python(t) for t in texts]
 
 
+def parse_semantic(text: str) -> "SemanticPropositions":
+    """Get full semantic parse result (not just bools).
+
+    Returns SemanticPropositions with .propositions, .relations,
+    .entities, .domain, etc. for solvers that want rich data.
+    """
+    from katala_samurai.semantic_parse import semantic_parse
+    return semantic_parse(text)
+
+
 # ── Info ──
 def backend() -> str:
-    return "rust" if _HAS_RUST else "python"
+    if _HAS_RUST:
+        return "rust+semantic"
+    return "python+semantic"

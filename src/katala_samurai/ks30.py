@@ -37,15 +37,17 @@ class Claim:
         self.evidence = evidence or []
         self.source_llm = source_llm
         self.training_data_hash = training_data_hash
+        self.semantic = None
         self.propositions = self._parse(text)
 
     def _parse(self, text):
-        """Content-sensitive proposition extraction (35 features).
-
-        Delegates to parse_bridge (Rust-accelerated with Python fallback).
-        """
+        """Semantic proposition extraction via LLM (Ollama/Gemini/heuristic)."""
         try:
-            from katala_samurai.parse_bridge import parse_propositions
+            from katala_samurai.parse_bridge import parse_propositions, parse_semantic
+            try:
+                self.semantic = parse_semantic(text)
+            except Exception:
+                pass
             props = parse_propositions(text)
         except ImportError:
             try:
