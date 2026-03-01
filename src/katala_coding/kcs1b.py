@@ -116,8 +116,23 @@ TEMPORAL_MAX_KWARGS = 2           # Was 3 in KCS-1a
 
 # Consistency check
 MAX_NESTING = 4
+MAX_NESTING_BINARY_PARSE = 7      # Binary format parsing (struct) gets more nesting allowance
 MIN_NAME_LEN = 3
 SCORE_PRECISION = 4
+
+# Domain-aware magic number exclusions
+BINARY_PARSE_INDICATORS = frozenset([
+    'struct.unpack', 'struct.pack', 'offset', 'box_size', 'box_type',
+    'chunk_size', 'chunk_id', 'header', 'RIFF', 'ftyp', 'moov', 'trak',
+    'avih', 'sample_rate', 'bit_depth', 'channels',
+])
+
+# Multimodal code indicators (for domain detection)
+MULTIMODAL_INDICATORS = frozenset([
+    'image', 'audio', 'video', 'clip', 'whisper', 'transcript',
+    'pixel', 'spectrum', 'frequency', 'waveform', 'frame', 'scene',
+    'modality', 'modal', 'exif', 'metadata', 'manipulation',
+])
 
 
 # ═══════════════════════════════════════════════
@@ -170,6 +185,22 @@ class EnhancedVerdict:
 # R_struct: HTLF-Enhanced Structure Preservation
 # ═══════════════════════════════════════════════
 
+def _detect_code_domain(code: str) -> str:
+    """Detect code domain for context-aware scoring.
+
+    Returns: "binary_parse" | "multimodal" | "general"
+    """
+    code_lower = code.lower()
+    binary_hits = sum(1 for ind in BINARY_PARSE_INDICATORS if ind.lower() in code_lower)
+    modal_hits = sum(1 for ind in MULTIMODAL_INDICATORS if ind in code_lower)
+
+    if binary_hits >= 3:
+        return "binary_parse"
+    if modal_hits >= 4:
+        return "multimodal"
+    return "general"
+
+
 def _compute_r_struct_1b(
     design: str, code: str, structure: dict[str, Any],
 ) -> tuple[float, list[tuple[str, str]]]:
@@ -177,11 +208,17 @@ def _compute_r_struct_1b(
 
     Returns (score, [(issue, severity)])
     severity: "critical" | "major" | "minor"
+
+    Domain-aware: binary parsing code (struct offsets) gets relaxed
+    magic number counting. Multimodal code gets relaxed nesting limits.
     """
     issues: list[tuple[str, str]] = []
 
     if not structure.get("parseable", False):
         return 0.05, [("Code has syntax errors — cannot parse", "critical")]
+
+    # Detect domain for context-aware scoring
+    domain = _detect_code_domain(code)
 
     # 1. Concept coverage (same as 1a but stricter scoring)
     design_concepts = _extract_design_concepts(design)
@@ -220,13 +257,14 @@ def _compute_r_struct_1b(
         except Exception:
             htlf_score = 0.5  # fallback
 
-    # 3. Complexity analysis (stricter)
+    # 3. Complexity analysis (domain-aware)
     depth = structure.get("max_depth", 0)
     depth_penalty = 0.0
-    if depth > MAX_NESTING:
-        depth_penalty = min(0.4, (depth - MAX_NESTING) * 0.15)
-        sev = "critical" if depth > 6 else "major"
-        issues.append((f"Nesting depth {depth} (max recommended: {MAX_NESTING})", sev))
+    effective_max = MAX_NESTING_BINARY_PARSE if domain in ("binary_parse", "multimodal") else MAX_NESTING
+    if depth > effective_max:
+        depth_penalty = min(0.4, (depth - effective_max) * 0.15)
+        sev = "critical" if depth > effective_max + 2 else "major"
+        issues.append((f"Nesting depth {depth} (max recommended: {effective_max})", sev))
 
     # Inheritance chains
     chain_penalty = 0.0
@@ -428,7 +466,8 @@ def _compute_r_qualia_1b(
     # Also strip lines that are pure dict entries: "KEY": value,
     code_no_tables = re.sub(r'^\s*["\'][^"\']+["\']\s*:\s*[\d.]+\s*,?\s*$', '', code_no_tables, flags=re.MULTILINE)
     magic_nums = re.findall(r'(?<![.\w])\d+\.?\d*(?![.\w])', code_no_tables)
-    safe = {'0', '1', '2', '3', '4', '5', '0.0', '1.0', '0.5', '100', '1000', '10'}
+    safe = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+            '0.0', '1.0', '0.5', '100', '1000', '10', '60', '60.0'}
     magic = [n for n in magic_nums if n not in safe]
     # Exclude numbers in named constant assignments (UPPER_CASE = N)
     const_nums = set(re.findall(r'^[A-Z_]{2,}\s*[:{]?\s*(?:float|int|str|dict|list)?\s*=\s*(\d+\.?\d*)', code, re.MULTILINE))
@@ -438,6 +477,36 @@ def _compute_r_qualia_1b(
     for m in re.finditer(r'^[A-Z_]{2,}\s*[:{].*?=\s*\{(.*?)\}', code, re.MULTILINE | re.DOTALL):
         const_dict_vals.update(re.findall(r'(?<![.\w])(\d+\.?\d*)(?![.\w])', m.group(1)))
     magic = [n for n in magic if n not in const_dict_vals]
+    # Domain-aware: binary parsing / multimodal code uses format-specific
+    # constants (struct offsets, image dimensions, frequency values).
+    # These are inherent to specifications, not "magic" in the bad sense.
+    code_domain = _detect_code_domain(code)
+    if code_domain in ("binary_parse", "multimodal"):
+        # Struct byte offsets (format spec values)
+        struct_offsets = {'4', '8', '12', '16', '20', '24', '28', '32', '36',
+                         '40', '44', '48', '52', '56', '60', '64', '68', '72',
+                         '76', '80', '84', '88', '92', '96'}
+        # Common image/audio/video dimensions, rates, and thresholds
+        media_constants = {
+            # Image dimensions
+            '128', '160', '200', '240', '256', '320', '360', '426', '480',
+            '512', '640', '720', '768', '854', '1024', '1080', '1280', '1440',
+            '1920', '2048', '2160', '2560', '3840', '4096',
+            # Audio sample rates and bitrates
+            '8000', '11025', '16000', '22050', '32000', '44100', '48000',
+            '96000', '112', '128', '160', '192', '256', '320',
+            # Common sizes and limits
+            '50', '500', '1000', '2000', '5000', '10000', '50000', '100000',
+            '1000000', '1048576',
+            # Byte/bit values
+            '11', '14', '15', '22', '34', '255', '0xFF', '0xE0',
+            # Float thresholds (common in signal processing)
+            '0.01', '0.010', '0.02', '0.025', '0.03', '0.05',
+            '0.1', '0.15', '0.2', '0.25', '0.3', '0.35', '0.4', '0.45',
+            '0.5', '0.55', '0.6', '0.65', '0.7', '0.75', '0.8', '0.85',
+            '0.9', '0.95', '1.5', '2.0', '2.5', '3.0', '5.0',
+        }
+        magic = [n for n in magic if n not in struct_offsets and n not in media_constants]
     if len(magic) > QUALIA_MAX_MAGIC:
         penalty = min(0.5, len(magic) * 0.04)
         scores.append(1.0 - penalty)

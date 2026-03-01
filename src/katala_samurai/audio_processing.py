@@ -32,7 +32,31 @@ from collections import Counter
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional, Tuple
 
-VERSION = "1.0.0"
+VERSION = "1.1.0"
+
+# ── Thresholds and configuration ──
+DEFAULT_SAMPLE_RATE = 44100
+DEFAULT_BIT_DEPTH = 16
+FFT_DEFAULT_SIZE = 2048
+VAD_ENERGY_THRESHOLD = 0.01
+VAD_MIN_SPEECH_FRAMES = 3
+SPLICE_ENERGY_RATIO_THRESHOLD = 3.0
+NOISE_FLOOR_MAX_RATIO = 0.1
+NORMAL_WPM_MIN = 100
+NORMAL_WPM_MAX = 200
+MANIPULATION_SPLICE_PENALTY = 0.2
+MANIPULATION_NOISE_PENALTY = 0.15
+# Spectral analysis
+SPECTRAL_MIN_SAMPLES = 50
+SPECTRAL_BANDWIDTH_DIVISOR = 6.0
+# Format detection
+MP3_FRAME_SYNC = 0xFF
+MP3_FRAME_MASK = 0xE0
+WAV_HEADER_SIZE = 44
+WAV_FMT_OFFSET = 20
+# Transcript
+TRANSCRIPT_TRUNCATE = 200
+WORD_OVERLAP_THRESHOLD = 0.5
 
 try:
     import numpy as np
