@@ -33,6 +33,11 @@ except ImportError:
 from typing import Dict, Any, Optional
 from metacognitive_planner import plan_verification
 
+try:
+    from . import rust_bridge as rb
+except ImportError:
+    import rust_bridge as rb
+
 # ══ Named Constants (KCS R_qualia upgrade) ══
 PREDICTION_BLEND_ORIGINAL: float = 0.7      # Weight for original confidence
 PREDICTION_BLEND_INHIBITED: float = 0.3     # Weight for laterally-inhibited confidence
@@ -126,8 +131,8 @@ class KS38a(KS37b):
             })
         
         if solver_results:
-            inhibited = inhibit(solver_results)
-            sharpness = compute_sharpness(inhibited)
+            inhibited = rb.lateral_inhibit(solver_results)
+            sharpness = {'sharpness': len(inhibited), 'inhibited_count': sum(1 for r in inhibited if r.get('inhibited')), 'signal_clarity': 'rust_bridge'}
             
             # Recalculate confidence from inhibited results
             if inhibited:
@@ -150,7 +155,11 @@ class KS38a(KS37b):
         coherence = reason_space.analyze_coherence()
         
         # ═══ ③ NEUROMODULATION: apply to final confidence ═══
-        actual_conf = self.neuromod.apply_to_confidence(actual_conf)
+        # Apply via rust_bridge (with Python fallback)
+        try:
+            actual_conf = rb.neuro_apply_confidence(actual_conf, self.neuromod.caution if hasattr(self.neuromod, 'caution') else DEFAULT_CONFIDENCE)
+        except Exception:
+            actual_conf = self.neuromod.apply_to_confidence(actual_conf)
         
         # Apply coherence modifier
         actual_conf = max(0, min(1, actual_conf + coherence.get("confidence_modifier", 0)))

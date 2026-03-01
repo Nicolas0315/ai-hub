@@ -83,6 +83,15 @@ class KS39b(KS39a):
             result["version"] = self.VERSION
             return result
 
+        # ── Rust classification (with Python fallback) ──
+        try:
+            rust_classification = rb.classify_claim(claim_text)
+            boundary.register("rust_classify", Origin.SELF,
+                              max(rust_classification.values(), default=DEFAULT_CONF),
+                              "Rust regex claim classification (via rust_bridge)")
+        except Exception:
+            pass  # Rust not available, skip
+
         # ── Track provenance from result ──
 
         # 1) Solver outputs (SELF)
