@@ -54,6 +54,7 @@ class ModalSolverBridge:
         "video": {
             "S29_fact_check": 0.7,      # Visual + audio fact check
             "S30_contradiction": 0.9,   # Multi-stream contradiction
+            "S31_reliability": 0.75,    # v2.0: Video generation quality → reliability
             "S33_fact_coherence": 0.8,  # Temporal coherence
             "S32_data_support": 0.6,    # Video metadata
         },

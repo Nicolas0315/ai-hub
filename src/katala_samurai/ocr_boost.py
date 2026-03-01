@@ -36,13 +36,54 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Dict, List, Optional, Set, Tuple
 
-VERSION = "1.0.0"
+VERSION = "1.2.0"
 
 # ── OCR-specific constants ──
 MIN_CONFIDENCE_THRESHOLD = 0.65
 HIGH_CONFIDENCE_THRESHOLD = 0.92
 FUSION_MIN_ENGINES = 2
 MAX_CORRECTION_ITERATIONS = 3
+
+# ── Handwriting enhancement constants (KS40e) ──
+STROKE_PRESSURE_LOW_THRESHOLD = 0.30       # Below this = light stroke (possible hesitation)
+STROKE_PRESSURE_HIGH_THRESHOLD = 0.80      # Above this = heavy/confident stroke
+STROKE_CONTINUITY_MIN_OVERLAP = 0.15       # Min spatial overlap for connected strokes
+HESITATION_VELOCITY_RATIO = 0.40           # Velocity ratio below this = hesitation
+HESITATION_DIRECTION_CHANGE_MAX = 3        # Max direction changes before "hesitation"
+CONNECTION_GAP_THRESHOLD_PX = 8            # Pixel gap for inter-character connection check
+STROKE_CURVATURE_SMOOTH_WINDOW = 5         # Window for curvature smoothing
+
+# ── Media OCR enhancement constants (KS40e) ──
+LOW_RES_DPI_THRESHOLD = 150                # Below this = low-resolution
+UPSCALE_DPI_TARGET = 300                   # Target DPI after upscaling
+EXIF_ORIENTATION_TAG = 274                 # EXIF Orientation tag ID
+ADAPTIVE_CONTRAST_TILE_SIZE = 8            # CLAHE tile grid size
+ADAPTIVE_CONTRAST_CLIP_LIMIT = 2.0        # CLAHE clip limit
+SATURATION_LOW_THRESHOLD = 0.10            # Below this = near-grayscale
+NOISE_SIGMA_ESTIMATE_PATCH = 16            # Patch size for noise estimation
+GAMMA_CORRECTION_DEFAULT = 1.0             # Default gamma (no correction)
+BRIGHTNESS_TARGET_MEAN = 0.5               # Target normalised brightness
+
+# ── CJK enhancement constants (KS40e) ──
+CJK_VARIANT_CONFIDENCE_BOOST = 0.06        # Boost when variant resolved
+CJK_STROKE_COUNT_TOLERANCE = 2             # Allowed stroke count diff for variant match
+CJK_RADICAL_SIMILARITY_THRESHOLD = 0.70   # Min cosine similarity for radical match
+
+# ── Table extraction constants (KS40e) ──
+TABLE_CELL_MIN_WIDTH_PX = 20               # Minimum cell width in pixels
+TABLE_CELL_MIN_HEIGHT_PX = 10              # Minimum cell height in pixels
+TABLE_RULELESS_ALIGNMENT_THRESHOLD = 0.85  # Column text alignment uniformity threshold
+TABLE_WHITESPACE_GAP_RATIO = 3.0           # Gap/char-width ratio signalling column break
+TABLE_BORDER_HOUGH_THRESHOLD = 50          # Hough line vote threshold for border detection
+TABLE_MERGE_OVERLAP_RATIO = 0.70           # Cell overlap ratio to trigger merge
+
+# ── Document parsing constants (KS40e) ──
+HIERARCHY_HEADER_FONT_RATIO = 1.20         # Font size ratio (header vs body)
+HIERARCHY_MAX_DEPTH = 6                    # Maximum heading depth (h1…h6)
+SECTION_INDENT_STEP_PX = 20               # Expected indent per hierarchy level (px)
+LAYOUT_COLUMN_GAP_MIN_PX = 15             # Minimum gap between columns
+READING_ORDER_SCORE_WEIGHT_X = 0.40       # Weight of horizontal position in reading order
+READING_ORDER_SCORE_WEIGHT_Y = 0.60       # Weight of vertical position in reading order
 
 # Layout structure tokens
 LAYOUT_TOKENS = {

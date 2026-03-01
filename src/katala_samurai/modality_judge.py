@@ -205,16 +205,44 @@ class ModalityJudge:
                     reason="No transcript available — spectral features only"
                 )
 
-        # Video-specific: deepfake risk
+        # Video-specific: deepfake risk + generation artifacts (v2.0)
         if name == "video":
             manip = mr.features.get("manipulation", {})
             deepfake = manip.get("deepfake_risk", 0)
+            gen_artifacts = mr.features.get("generation_artifacts", {})
+            is_generated = gen_artifacts.get("is_likely_generated", False)
+            gen_confidence = gen_artifacts.get("generation_confidence", 0.0)
+            has_rich_metadata = (
+                mr.features.get("metadata", {}).get("duration", 0) > 0
+                and mr.features.get("metadata", {}).get("width", 0) > 0
+                and mr.features.get("metadata", {}).get("fps", 0) > 0
+            )
+
+            # AI-generated video → lower reliability
+            if is_generated and gen_confidence > 0.5:
+                reliability *= max(0.3, 1.0 - gen_confidence * 0.6)
+                return ModalityJudgment(
+                    modality=name, effective=True,
+                    reliability=round(reliability, 3),
+                    reason=f"AI-generated video (confidence={gen_confidence:.2f}) — reduced reliability"
+                )
+
+            # Deepfake risk
             if deepfake > 0.5:
                 reliability *= 0.4
                 return ModalityJudgment(
                     modality=name, effective=True,
-                    reliability=reliability,
+                    reliability=round(reliability, 3),
                     reason=f"Deepfake risk {deepfake:.2f} — heavily discounted"
+                )
+
+            # Rich metadata → reliability boost
+            if has_rich_metadata:
+                reliability = min(reliability * 1.15, 0.85)
+                return ModalityJudgment(
+                    modality=name, effective=True,
+                    reliability=round(reliability, 3),
+                    reason="Rich metadata available — reliability boosted"
                 )
 
         effective = reliability > 0.2
@@ -333,9 +361,18 @@ class ModalityJudge:
         if "video" in judgments:
             vid_features = mm_output.modality_results.get("video", ModalityResult(Modality.VIDEO))
             deepfake = vid_features.features.get("manipulation", {}).get("deepfake_risk", 0)
+            gen_artifacts = vid_features.features.get("generation_artifacts", {})
+            is_generated = gen_artifacts.get("is_likely_generated", False)
+
             if deepfake > 0.3:
                 hints["S29_fact_check"] = WEIGHT_BOOST     # Need strong fact checking
                 hints["S33_fact_coherence"] = WEIGHT_BOOST  # Check coherence
+
+            # v2.0: AI-generated video → boost reliability analysis
+            if is_generated:
+                hints["S31_reliability"] = WEIGHT_REDUCE   # Generated content = lower reliability
+                hints["S30_contradiction"] = WEIGHT_BOOST  # Check for contradictions
+                hints["overall_skepticism"] = hints.get("overall_skepticism", 1.0) * 1.15
 
         # Cross-modal contradiction → boost contradiction detector
         if has_contradiction:
@@ -401,6 +438,15 @@ class ModalityJudge:
                 "manipulation", {}).get("deepfake_risk", 0)
             features["mm_scene_count"] = vid.features.get(
                 "scenes", {}).get("count", 0)
+            # v2.0: generation artifact features
+            gen = vid.features.get("generation_artifacts", {})
+            features["mm_video_is_generated"] = gen.get("is_likely_generated", False)
+            features["mm_video_generation_confidence"] = gen.get("generation_confidence", 0.0)
+            features["mm_video_flicker"] = gen.get("flicker_score", 0.0)
+            # v2.0: optical flow
+            flow = vid.features.get("optical_flow", {})
+            features["mm_video_motion_type"] = flow.get("motion_type", "unknown")
+            features["mm_video_motion_consistency"] = flow.get("motion_consistency", 0.0)
 
         # Cross-modal features
         features["mm_has_contradiction"] = any(

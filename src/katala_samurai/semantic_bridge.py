@@ -67,52 +67,84 @@ Respond in EXACTLY this JSON format (no markdown):
 }}"""
 
 
-def _call_llm(prompt, timeout=15):
+# ── LLM connection cache ──
+_ollama_alive: bool | None = None  # None = untested, True/False = cached
+_ollama_alive_ts: float = 0.0
+_OLLAMA_CACHE_TTL = 300.0  # cache Ollama liveness for 5 minutes
+
+
+def _check_ollama_alive(host: str, port: int) -> bool:
+    """Cached Ollama liveness probe. Avoids 2s socket timeout on every call."""
+    global _ollama_alive, _ollama_alive_ts
+    now = time.time()
+    if _ollama_alive is not None and (now - _ollama_alive_ts) < _OLLAMA_CACHE_TTL:
+        return _ollama_alive
+    try:
+        import socket
+        sock = socket.create_connection((host, port), timeout=1)
+        sock.close()
+        _ollama_alive = True
+    except Exception:
+        _ollama_alive = False
+    _ollama_alive_ts = now
+    return _ollama_alive
+
+
+def _parse_llm_json(text: str):
+    """Extract JSON from LLM response, stripping markdown fences."""
+    text = re.sub(r'^```json\s*', '', text.strip())
+    text = re.sub(r'\s*```$', '', text.strip())
+    json_match = re.search(r'\{[\s\S]*\}', text)
+    if json_match:
+        return json.loads(json_match.group())
+    return None
+
+
+def _call_llm(prompt, timeout=12):
     """Call available LLM for semantic extraction. Non-judging use only.
 
-    Priority: Ollama (local, fast probe) → Gemini → OpenAI.
-    Ollama is preferred because it's free, fast, and local.
+    Priority: Ollama (local, cached probe) → Gemini (flash) → OpenAI.
+    Optimizations:
+    - Ollama liveness is cached for 5 minutes (no repeated socket probes)
+    - Gemini uses gemini-2.0-flash-lite for speed
+    - Timeout reduced from 15s to 12s
+    - JSON parsing centralized
     """
-    # --- Ollama (local LLM) — quick probe first ---
+    # --- Ollama (local LLM) — cached liveness check ---
     ollama_url = os.environ.get("OLLAMA_URL", "http://localhost:11434")
     ollama_model = os.environ.get("OLLAMA_MODEL", "qwen3:8b")
-    try:
-        # Fast liveness check (2s) before committing to full request
-        import socket
-        from urllib.parse import urlparse
-        parsed = urlparse(ollama_url)
-        host = parsed.hostname or "localhost"
-        port = parsed.port or 11434
-        sock = socket.create_connection((host, port), timeout=2)
-        sock.close()
+    from urllib.parse import urlparse
+    parsed = urlparse(ollama_url)
+    host = parsed.hostname or "localhost"
+    port = parsed.port or 11434
 
-        payload = json.dumps({
-            "model": ollama_model,
-            "prompt": prompt + "\n/no_think",
-            "stream": False,
-            "options": {"temperature": 0.1, "num_predict": 1024},
-        }).encode()
-        req = urllib.request.Request(
-            f"{ollama_url}/api/generate", data=payload,
-            headers={"Content-Type": "application/json"},
-        )
-        with urllib.request.urlopen(req, timeout=timeout) as resp:
-            data = json.loads(resp.read().decode())
-            text = data.get("response", "")
-            text = re.sub(r'^```json\s*', '', text.strip())
-            text = re.sub(r'\s*```$', '', text.strip())
-            # Try to extract JSON from response
-            json_match = re.search(r'\{[\s\S]*\}', text)
-            if json_match:
-                return json.loads(json_match.group())
-    except Exception:
-        pass
+    if _check_ollama_alive(host, port):
+        try:
+            payload = json.dumps({
+                "model": ollama_model,
+                "prompt": prompt + "\n/no_think",
+                "stream": False,
+                "options": {"temperature": 0.1, "num_predict": 1024},
+            }).encode()
+            req = urllib.request.Request(
+                f"{ollama_url}/api/generate", data=payload,
+                headers={"Content-Type": "application/json"},
+            )
+            with urllib.request.urlopen(req, timeout=timeout) as resp:
+                data = json.loads(resp.read().decode())
+                result = _parse_llm_json(data.get("response", ""))
+                if result:
+                    return result
+        except Exception:
+            pass
 
-    # --- Gemini API ---
+    # --- Gemini API (flash-lite for speed) ---
     api_key = os.environ.get("GEMINI_API_KEY", "")
     if api_key:
         try:
-            url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={api_key}"
+            # Use flash-lite: faster, cheaper, sufficient for extraction
+            model = os.environ.get("KS_GEMINI_MODEL", "gemini-2.0-flash-lite")
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={api_key}"
             payload = json.dumps({
                 "contents": [{"parts": [{"text": prompt}]}],
                 "generationConfig": {"temperature": 0.1, "maxOutputTokens": 1024},
@@ -122,12 +154,13 @@ def _call_llm(prompt, timeout=15):
             with urllib.request.urlopen(req, timeout=timeout) as resp:
                 data = json.loads(resp.read().decode())
                 text = data["candidates"][0]["content"]["parts"][0]["text"]
-                text = re.sub(r'^```json\s*', '', text.strip())
-                text = re.sub(r'\s*```$', '', text.strip())
-                return json.loads(text)
+                result = _parse_llm_json(text)
+                if result:
+                    return result
         except Exception:
             pass
 
+    # --- OpenAI (fallback) ---
     api_key = os.environ.get("OPENAI_API_KEY", "")
     if api_key:
         try:
@@ -143,9 +176,9 @@ def _call_llm(prompt, timeout=15):
             with urllib.request.urlopen(req, timeout=timeout) as resp:
                 data = json.loads(resp.read().decode())
                 text = data["choices"][0]["message"]["content"]
-                text = re.sub(r'^```json\s*', '', text.strip())
-                text = re.sub(r'\s*```$', '', text.strip())
-                return json.loads(text)
+                result = _parse_llm_json(text)
+                if result:
+                    return result
         except Exception:
             pass
 

@@ -1,5 +1,5 @@
 """
-KS30 Video Analysis Engine
+KS30 Video Analysis Engine — KS40e enhanced
 Extracts behavioral patterns, person detection, and suspicious activity from video.
 
 Capabilities:
@@ -8,12 +8,16 @@ Capabilities:
 - Suspicious behavior detection (loitering, sudden movements, concealment)
 - Scene understanding and temporal analysis
 - Integration with audio analysis for multimodal threat assessment
+- Optical Flow feature extraction for action recognition (KS40e)
+- Edge-case handling: camera shake, low-light, fast motion (KS40e)
+- Temporal resolution enhancement via TOKENS_PER_VIDEO_SEC (KS40e)
 
 Design: Youta Hilono
 Implementation: Shirokuma
 """
 
 import json
+import math
 import urllib.request
 import os
 import hashlib
@@ -23,6 +27,116 @@ import base64
 import time
 from dataclasses import dataclass, field
 from pathlib import Path
+
+try:
+    import numpy as np
+    _HAS_NUMPY = True
+except ImportError:
+    _HAS_NUMPY = False
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# KS40e: Temporal resolution & keyframe constants
+# ═══════════════════════════════════════════════════════════════════════════
+
+# Tokens (frames) sampled per second of video — higher = better temporal resolution
+TOKENS_PER_VIDEO_SEC = 4
+
+# Maximum frames to analyse via Gemini Vision (API cost guard)
+MAX_GEMINI_FRAMES = 16
+
+# Minimum interval between sampled frames (seconds)
+MIN_FRAME_INTERVAL_SEC = 0.25
+
+# Optical flow block size (pixels) for block-matching motion estimation
+OPTICAL_FLOW_BLOCK_SIZE = 8
+
+# Search range (pixels) for block matching
+OPTICAL_FLOW_SEARCH_RANGE = 4
+
+# Threshold below which a block is considered "static"
+OPTICAL_FLOW_STATIC_THRESHOLD = 0.5
+
+# Frames used for optical flow computation (cap to limit compute)
+OPTICAL_FLOW_MAX_FRAME_PAIRS = 30
+
+# Low-light threshold: mean pixel brightness below this is "dark"
+LOW_LIGHT_BRIGHTNESS_THRESHOLD = 40.0
+
+# Camera shake threshold: inter-frame mean-shift above this suggests shake
+CAMERA_SHAKE_SHIFT_THRESHOLD = 3.0
+
+# Fast-motion threshold: mean optical flow magnitude above this = fast action
+FAST_MOTION_MAGNITUDE_THRESHOLD = 8.0
+
+# Minimum frames required for temporal pattern analysis
+MIN_FRAMES_FOR_TEMPORAL = 3
+
+# Action recognition minimum confidence to emit a label
+ACTION_CONFIDENCE_THRESHOLD = 0.3
+
+
+@dataclass(slots=True)
+class OpticalFlowFeatures:
+    """Optical flow features computed from a pair of video frames.
+
+    Used by ActionRecognitionEngine to classify human actions from
+    inter-frame motion vector patterns.
+
+    Attributes:
+        available: False when numpy is unavailable or frames insufficient.
+        avg_magnitude: Mean motion vector length across all blocks.
+        max_magnitude: Peak motion vector length.
+        motion_consistency: 0=chaotic, 1=uniform direction (pan/zoom).
+        dominant_direction_rad: Mean direction in radians (−π … π).
+        static_ratio: Fraction of blocks with near-zero motion.
+        motion_type: Coarse label: "static", "pan", "zoom", "chaotic", "mixed".
+        shake_detected: True when inter-frame global shift exceeds threshold.
+        low_light: True when mean frame brightness is below threshold.
+        fast_motion: True when avg_magnitude exceeds fast-motion threshold.
+
+    >>> f = OpticalFlowFeatures()
+    >>> f.available
+    False
+    >>> f.motion_type
+    'unknown'
+    """
+    available: bool = False
+    avg_magnitude: float = 0.0
+    max_magnitude: float = 0.0
+    motion_consistency: float = 0.0
+    dominant_direction_rad: float = 0.0
+    static_ratio: float = 0.0
+    motion_type: str = "unknown"
+    shake_detected: bool = False
+    low_light: bool = False
+    fast_motion: bool = False
+
+
+@dataclass(slots=True)
+class ActionRecognitionResult:
+    """Result of temporal action recognition from optical flow + frame analysis.
+
+    Attributes:
+        action_label: Primary detected action (e.g. "running", "fighting").
+        confidence: 0-1 confidence for the primary label.
+        secondary_labels: Additional possible actions with scores.
+        flow_features: The optical flow feature set used for recognition.
+        edge_case_flags: Active edge-case flags (shake/low_light/fast_motion).
+
+    >>> r = ActionRecognitionResult()
+    >>> r.action_label
+    ''
+    >>> r.confidence
+    0.0
+    >>> len(r.secondary_labels)
+    0
+    """
+    action_label: str = ""
+    confidence: float = 0.0
+    secondary_labels: list = field(default_factory=list)  # [(label, score), ...]
+    flow_features: OpticalFlowFeatures = field(default_factory=OpticalFlowFeatures)
+    edge_case_flags: list = field(default_factory=list)   # ["shake", "low_light", ...]
 
 
 @dataclass
@@ -111,19 +225,44 @@ def _get_video_info(video_path):
                 "resolution": "unknown", "has_audio": False, "frame_count": 0}
 
 
-def _extract_key_frames(video_path, max_frames=8, output_dir=None):
-    """Extract key frames from video at regular intervals."""
+def _extract_key_frames(video_path, max_frames=None, output_dir=None):
+    """Extract key frames from video using TOKENS_PER_VIDEO_SEC resolution.
+
+    KS40e improvement: frame count is now derived from
+    ``TOKENS_PER_VIDEO_SEC × duration`` (capped at ``MAX_GEMINI_FRAMES``)
+    instead of a fixed number, giving better temporal coverage for short
+    clips and avoiding excessive API calls for long videos.
+
+    ``MIN_FRAME_INTERVAL_SEC`` prevents over-sampling for very long videos
+    with a high TOKENS_PER_VIDEO_SEC setting.
+
+    Args:
+        video_path: Path to the video file.
+        max_frames: Hard cap on frames. Defaults to ``MAX_GEMINI_FRAMES``.
+        output_dir: Directory for extracted JPEG frames (temp dir if None).
+
+    Returns:
+        Tuple of (frames_list, video_info_dict).
+        Each frame dict: {"path": str, "timestamp": float, "index": int}.
+    """
+    max_frames = max_frames if max_frames is not None else MAX_GEMINI_FRAMES
     output_dir = output_dir or tempfile.mkdtemp(prefix="ks30_frames_")
     info = _get_video_info(video_path)
     duration = info["duration"]
-    
+
     if duration <= 0:
         return [], info
-    
-    # Calculate intervals
-    n_frames = min(max_frames, max(1, int(duration)))
+
+    # KS40e: derive n_frames from temporal token rate
+    token_based = int(duration * TOKENS_PER_VIDEO_SEC)
+    n_frames = max(1, min(token_based, max_frames))
+
+    # Enforce minimum interval to avoid near-duplicate frames
     interval = duration / n_frames
-    
+    if interval < MIN_FRAME_INTERVAL_SEC:
+        n_frames = max(1, int(duration / MIN_FRAME_INTERVAL_SEC))
+        interval = duration / n_frames
+
     frames = []
     for i in range(n_frames):
         ts = i * interval
@@ -137,7 +276,7 @@ def _extract_key_frames(video_path, max_frames=8, output_dir=None):
                 frames.append({"path": out_path, "timestamp": ts, "index": i})
         except Exception:
             pass
-    
+
     return frames, info
 
 

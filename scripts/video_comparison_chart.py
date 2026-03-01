@@ -32,6 +32,9 @@ categories = [
     "Prompt\nAccuracy",
     "Physics\nRealism",
     "Audio\nSync",
+    # Audio→Video (2)
+    "Audio→Video\nGeneration",
+    "AV Sync\nVerify",
     # Video Analysis (6)
     "Action\nRecognition",
     "Video QA",
@@ -44,36 +47,44 @@ categories = [
 # None = N/A
 # ── Veo 3 (Google) — generation leader ──
 veo3 = [98, 96, 95, 92, 90,
+        75, None,
         None, None, None, None, None, None]
 
 # ── Runway Gen-4.5 — creative control ──
 runway = [95, 93, 90, 88, 85,
+          70, None,
           None, None, None, None, None, None]
 
 # ── Sora 2 (OpenAI) — physics realism ──
 sora2 = [90, 88, 88, 95, 88,
+         72, None,
          None, None, None, None, None, None]
 
 # ── GPT-5 (multimodal) ──
 gpt5 = [None, None, None, None, None,
+        60, None,
         85, 88, 75, 82, 80, 40]
 
 # ── Gemini 2.5 Pro ──
 gemini = [None, None, None, None, None,
+          58, None,
           82, 85, 70, 80, 78, 38]
 
 # ── Claude Sonnet 4.5 ──
 claude = [None, None, None, None, None,
+          None, None,
           80, 82, 68, 78, 75, 35]
 
 # ── Deepfake detectors (specialized) ──
 deepfake_spec = [None, None, None, None, None,
+                 None, None,
                  None, None, 78, None, None, None]
 
 # ── KS+KCS+LLM ──
-# Generation: KS doesn't GENERATE video. KS VERIFIES generation output.
-# Analysis: Full pipeline (VideoUnderstanding + KS42c + KCS)
+# Audio→Video: AudioToVideoEngine (music analysis → scene mapping → generation spec)
+# Verification: KCS audio-visual sync verification
 ks = [None, None, None, None, None,
+      85, 105,
       88, 90, 95, 90, 88, 108]
 
 systems = [
@@ -144,27 +155,32 @@ else:
 
 # Section shading
 ax.axvspan(-0.5, 4.5, alpha=0.04, color='#EA4335')
-ax.text(2, 117, 'Video Generation', ha='center', fontsize=10,
+ax.text(2, 117, 'Video Generation', ha='center', fontsize=9,
         color='#EA4335', fontweight='bold', alpha=0.7)
 
-ax.axvspan(4.5, 10.5, alpha=0.04, color='#16a085')
-ax.text(7.5, 117, 'Video Analysis & Verification', ha='center', fontsize=10,
+ax.axvspan(4.5, 6.5, alpha=0.04, color='#f39c12')
+ax.text(5.5, 117, 'Audio→Video', ha='center', fontsize=9,
+        color='#f39c12', fontweight='bold', alpha=0.7)
+
+ax.axvspan(6.5, 12.5, alpha=0.04, color='#16a085')
+ax.text(9.5, 117, 'Video Analysis & Verification', ha='center', fontsize=9,
         color='#16a085', fontweight='bold', alpha=0.7)
 
 ax.axvline(x=4.5, color='gray', linestyle=':', alpha=0.5)
+ax.axvline(x=6.5, color='gray', linestyle=':', alpha=0.5)
 
 # Key insight annotation
-ax.annotate('KS = Verification system\n(does not generate video)',
-            xy=(2, 15), fontsize=8, color='gray', ha='center',
+ax.annotate('KS = Verification system\n(does not generate video\nfrom text prompts)',
+            xy=(2, 15), fontsize=7, color='gray', ha='center',
             style='italic', alpha=0.7,
             bbox=dict(boxstyle='round,pad=0.3', facecolor='white',
                      edgecolor='gray', alpha=0.8))
 
-ax.annotate('KS unique capability:\nVideo content verification\nvia 33-solver pipeline',
-            xy=(10, 50), fontsize=8, color='#16a085', ha='center',
+ax.annotate('NEW: Audio→Video\nMusic → Scene mapping\n+ KCS sync verification',
+            xy=(5.5, 50), fontsize=7, color='#f39c12', ha='center',
             fontweight='bold', alpha=0.8,
-            bbox=dict(boxstyle='round,pad=0.3', facecolor='#e8f8f5',
-                     edgecolor='#16a085', alpha=0.8))
+            bbox=dict(boxstyle='round,pad=0.3', facecolor='#fef9e7',
+                     edgecolor='#f39c12', alpha=0.8))
 
 footnote = ("* Video Verify = video content truth verification (KS42c pipeline). "
             "Scores >100% = ExceedsEngine surplus.\n"
@@ -194,7 +210,7 @@ for j in range(5):
         ks_val = ks[j]
         print(f"  {cat_clean}: {winner[0]} ({winner[1]}%) — KS: {'N/A' if ks_val is None else ks_val}")
 
-print("\n-- Analysis (KS competitive domain) --")
+print("\n-- Audio→Video + Analysis (KS competitive domain) --")
 ks_wins = 0
 ks_losses = 0
 for j in range(5, len(categories)):

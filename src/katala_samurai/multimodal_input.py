@@ -309,7 +309,12 @@ class AudioProcessor:
 # ═══════════════════════════════════════════════════════════════════════════
 
 class VideoProcessor:
-    """Process video input → text representation via Image+Audio engines."""
+    """Process video input → text representation via Image+Audio engines.
+
+    v2.0: Integrates generation artifact detection with [GENERATED]/[NATURAL] tags.
+
+    Design: Youta Hilono / Implementation: Shirokuma
+    """
 
     def __init__(self):
         self._engine = None
@@ -350,6 +355,7 @@ class VideoProcessor:
             features["scenes"] = {
                 "count": verification.scenes.scene_count,
                 "avg_duration": verification.scenes.avg_scene_duration,
+                "detection_method": verification.scenes.detection_method,
             }
             features["manipulation"] = {
                 "suspicious": verification.manipulation.suspicious,
@@ -357,10 +363,43 @@ class VideoProcessor:
                 "indicators": verification.manipulation.indicators,
             }
 
+            # v2.0: Generation artifact features
+            gen = verification.generation_artifacts
+            features["generation_artifacts"] = {
+                "is_likely_generated": gen.is_likely_generated,
+                "generation_confidence": gen.generation_confidence,
+                "flicker_score": gen.flicker_score,
+                "background_drift": gen.background_drift,
+                "hand_anomaly_risk": gen.hand_anomaly_risk,
+                "texture_uniformity": gen.texture_uniformity,
+                "motion_smoothness": gen.motion_smoothness,
+            }
+
+            # v2.0: Pixel deepfake features
+            features["pixel_deepfake"] = {
+                "risk_score": verification.pixel_deepfake.risk_score,
+                "noise_inconsistency": verification.pixel_deepfake.noise_inconsistency,
+            }
+
+            # v2.0: Optical flow features
+            if verification.optical_flow.available:
+                features["optical_flow"] = {
+                    "avg_magnitude": verification.optical_flow.avg_magnitude,
+                    "motion_type": verification.optical_flow.motion_type,
+                    "motion_consistency": verification.optical_flow.motion_consistency,
+                }
+
             text_parts.append(f"[VIDEO: {verification.metadata.format} "
                             f"{verification.metadata.width}x{verification.metadata.height} "
                             f"{verification.metadata.duration_seconds:.1f}s "
                             f"{verification.metadata.fps:.1f}fps]")
+
+            # v2.0: [GENERATED] / [NATURAL] tag
+            if gen.is_likely_generated:
+                text_parts.append(f"[GENERATED: confidence={gen.generation_confidence:.2f}]")
+                warnings.append("AI-generated video detected")
+            else:
+                text_parts.append("[NATURAL]")
 
             if verification.manipulation.suspicious:
                 text_parts.append(f"[VIDEO MANIPULATION: {', '.join(verification.manipulation.indicators[:2])}]")
@@ -370,7 +409,12 @@ class VideoProcessor:
                 text_parts.append(f"[DEEPFAKE RISK: {verification.manipulation.deepfake_risk:.2f}]")
                 warnings.append("Deepfake risk elevated")
 
-            text_parts.append(f"[SCENES: {verification.scenes.scene_count}]")
+            if verification.pixel_deepfake.risk_score > 0.5:
+                text_parts.append(f"[PIXEL DEEPFAKE: {verification.pixel_deepfake.risk_score:.2f}]")
+                warnings.append("Pixel-level deepfake indicators")
+
+            text_parts.append(f"[SCENES: {verification.scenes.scene_count} "
+                            f"({verification.scenes.detection_method})]")
             confidence = verification.overall_score
         else:
             text_parts.append(f"[VIDEO: {len(video_data)} bytes, no analysis engine]")
