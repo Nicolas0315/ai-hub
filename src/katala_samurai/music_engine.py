@@ -5,16 +5,33 @@ Stage 1: Cope-style signature extraction from Bach corpus
 Stage 2: Markov chain generation from extracted patterns
 Stage 3: Music theory solver for KS30 pipeline
 
+KS40e: Harmonic Separation Engine, FFT精度向上, ピッチ連続性検証
+
 Design: Youta Hilono
 Implementation: Shirokuma
 """
 
+import math
 import random
 import json
 import os
 from collections import defaultdict, Counter
 from dataclasses import dataclass, field
-from typing import List, Tuple, Optional
+from typing import List, Tuple, Optional, Dict, Any
+
+# ── KS40e: 音楽エンジン定数 ──
+# FFT精度向上のためのゼロパディング係数 (マジックナンバー禁止)
+FFT_ZERO_PAD_FACTOR = 4
+# ハーモニック分離の最大倍音数
+MAX_HARMONICS = 8
+# 自然倍音列の相対振幅 (倍音1〜8、実測値ベース)
+HARMONIC_AMPLITUDES = [1.0, 0.60, 0.45, 0.30, 0.22, 0.15, 0.10, 0.07]
+# ピッチ連続性の最大許容ジャンプ (半音)
+PITCH_CONTINUITY_MAX_JUMP = 12
+# バッハ的ステップ進行の閾値 (半音以下 = ステップ)
+BACH_STEP_THRESHOLD = 2
+# 和声進行の解析ウィンドウ (小節数)
+HARMONIC_ANALYSIS_WINDOW = 4
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -752,3 +769,313 @@ def generate_hybrid_fugue(tonic=62, seed=None, num_voices=3):
         "signatures_count": len(signatures),
         "improvement": post_analysis.theory_score - pre_analysis.theory_score,
     }
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# KS40e Stage 5: Harmonic Separation Engine
+# ════════════════════════════════════════════════════════════════════════════
+
+def midi_to_hz(midi_note: float) -> float:
+    """MIDIノート番号を周波数(Hz)に変換する。
+
+    Examples
+    --------
+    >>> abs(midi_to_hz(69) - 440.0) < 0.01
+    True
+    >>> abs(midi_to_hz(60) - 261.63) < 0.1
+    True
+    >>> abs(midi_to_hz(57) - 220.0) < 0.01
+    True
+    """
+    return 440.0 * (2.0 ** ((midi_note - 69.0) / 12.0))
+
+
+def hz_to_midi(freq_hz: float) -> float:
+    """周波数(Hz)をMIDIノート番号に変換する。
+
+    Examples
+    --------
+    >>> abs(hz_to_midi(440.0) - 69.0) < 0.01
+    True
+    >>> abs(hz_to_midi(261.63) - 60.0) < 0.1
+    True
+    """
+    if freq_hz <= 0:
+        return 0.0
+    return 69.0 + 12.0 * math.log2(freq_hz / 440.0)
+
+
+def compute_harmonic_series(
+    fundamental_hz: float,
+    n_harmonics: int = MAX_HARMONICS,
+) -> List[Tuple[float, float]]:
+    """基音から自然倍音列を計算する。
+
+    KS40e: ハーモニック分離エンジンの核心。倍音周波数と理論振幅を返す。
+
+    Parameters
+    ----------
+    fundamental_hz : float
+        基音周波数 (Hz)。
+    n_harmonics : int
+        計算する倍音の数 (デフォルト MAX_HARMONICS=8)。
+
+    Returns
+    -------
+    List[Tuple[float, float]]
+        [(倍音k周波数Hz, 理論振幅), ...] (k=1〜n_harmonics)
+
+    Examples
+    --------
+    >>> series = compute_harmonic_series(440.0, 4)
+    >>> len(series)
+    4
+    >>> abs(series[0][0] - 440.0) < 0.01
+    True
+    >>> abs(series[1][0] - 880.0) < 0.01
+    True
+    >>> abs(series[2][0] - 1320.0) < 0.01
+    True
+    >>> 0.55 < series[1][1] < 0.65
+    True
+    """
+    harmonics = []
+    for k in range(1, n_harmonics + 1):
+        freq = fundamental_hz * k
+        amp = HARMONIC_AMPLITUDES[k - 1] if k <= len(HARMONIC_AMPLITUDES) else 1.0 / k
+        harmonics.append((freq, amp))
+    return harmonics
+
+
+@dataclass(slots=True)
+class HarmonicSeparationResult:
+    """ハーモニック分離結果。
+
+    KS40e: slots=True で軽量化。基音、倍音列、分離スコアを保持。
+    """
+    fundamental_hz: float       # 推定基音周波数 (Hz)
+    fundamental_midi: float     # 推定基音 MIDI ノート番号
+    harmonics: List[Tuple[float, float]]  # [(倍音Hz, 振幅), ...]
+    separation_score: float     # 0-1: 倍音構造の純粋さ
+    inharmonicity: float        # 0-1: 非調波性 (弦楽器の硬さ = 高い)
+    noise_floor: float          # 推定ノイズフロア振幅
+
+
+def separate_harmonics(
+    pitch_hz: float,
+    spectrum: Optional[List[Tuple[float, float]]] = None,
+    sr: int = 22050,
+    n_fft: int = 2048,
+    inharmonicity_factor: float = 0.0,
+) -> HarmonicSeparationResult:
+    """基音と倍音を分離・解析する。
+
+    KS40e: ゼロパディング(FFT_ZERO_PAD_FACTOR=4)を考慮した
+    高精度FFTビンマッチング。ピアノ等の非調波性(inharmonicity)にも対応。
+
+    Parameters
+    ----------
+    pitch_hz : float
+        推定基音周波数 (Hz)。
+    spectrum : Optional[List[Tuple[float, float]]]
+        [(周波数Hz, 振幅), ...] 形式のスペクトル。None の場合は理論値のみ。
+    sr : int
+        サンプルレート (default 22050)。
+    n_fft : int
+        FFT サイズ (default 2048)。
+    inharmonicity_factor : float
+        非調波性係数 B (ピアノ高音域: ~0.0001, デフォルト 0=純粋倍音)。
+
+    Returns
+    -------
+    HarmonicSeparationResult
+
+    Examples
+    --------
+    >>> result = separate_harmonics(440.0)
+    >>> abs(result.fundamental_hz - 440.0) < 0.01
+    True
+    >>> result.fundamental_midi == hz_to_midi(440.0)
+    True
+    >>> len(result.harmonics) == MAX_HARMONICS
+    True
+    >>> 0.0 <= result.separation_score <= 1.0
+    True
+    """
+    # 非調波性補正: fk = f0 * k * sqrt(1 + B * k^2)
+    harmonics = []
+    for k in range(1, MAX_HARMONICS + 1):
+        inharmonic_freq = pitch_hz * k * math.sqrt(1.0 + inharmonicity_factor * k * k)
+        amp = HARMONIC_AMPLITUDES[k - 1] if k <= len(HARMONIC_AMPLITUDES) else 1.0 / k
+        harmonics.append((inharmonic_freq, amp))
+
+    if spectrum is None:
+        # スペクトルなし: 理論値のみで返す
+        return HarmonicSeparationResult(
+            fundamental_hz=pitch_hz,
+            fundamental_midi=hz_to_midi(pitch_hz),
+            harmonics=harmonics,
+            separation_score=0.75,  # デフォルト
+            inharmonicity=inharmonicity_factor,
+            noise_floor=0.0,
+        )
+
+    # ゼロパディング考慮の周波数分解能
+    freq_resolution = sr / (n_fft * FFT_ZERO_PAD_FACTOR)
+
+    matched_energy = 0.0
+    total_expected = sum(amp for _, amp in harmonics)
+    noise_samples = []
+
+    for h_idx, (h_freq, h_amp) in enumerate(harmonics):
+        best_match = 0.0
+        for s_freq, s_amp in spectrum:
+            dist = abs(s_freq - h_freq)
+            if dist <= freq_resolution * 2:
+                dist_weight = max(0.0, 1.0 - dist / (freq_resolution * 2))
+                best_match = max(best_match, min(s_amp, h_amp) * dist_weight)
+        matched_energy += best_match
+
+        # ハーモニック間のノイズ推定
+        if h_idx < len(harmonics) - 1:
+            next_h_freq = harmonics[h_idx + 1][0]
+            mid_freq = (h_freq + next_h_freq) / 2
+            for s_freq, s_amp in spectrum:
+                if abs(s_freq - mid_freq) < freq_resolution:
+                    noise_samples.append(s_amp)
+
+    separation_score = min(1.0, matched_energy / max(total_expected, 1e-8))
+    noise_floor = sum(noise_samples) / len(noise_samples) if noise_samples else 0.0
+
+    return HarmonicSeparationResult(
+        fundamental_hz=pitch_hz,
+        fundamental_midi=hz_to_midi(pitch_hz),
+        harmonics=harmonics,
+        separation_score=separation_score,
+        inharmonicity=inharmonicity_factor,
+        noise_floor=noise_floor,
+    )
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# KS40e Stage 6: Pitch Continuity Temporal Verification
+# ═══════════════════════════════════════════════════════════════════════════
+
+@dataclass(slots=True)
+class PitchContinuityAnalysis:
+    """ピッチ連続性解析結果。
+
+    KS40e: slots=True で軽量化。時系列ピッチの連続性を多段階で検証。
+    """
+    continuity_score: float         # 0-1: 高いほど連続
+    discontinuity_indices: List[int]  # 不連続点のインデックス
+    jump_magnitudes: List[float]    # 各不連続点のジャンプ量 (半音)
+    octave_errors: List[int]        # オクターブエラーの可能性がある位置
+    trend_direction: str            # "ascending", "descending", "neutral"
+    range_semitones: float          # 音域 (半音数)
+
+
+def analyze_pitch_continuity(
+    pitches: List[float],
+    times: Optional[List[float]] = None,
+) -> PitchContinuityAnalysis:
+    """ピッチ列の時系列連続性を詳細解析する。
+
+    KS40e新機能: 単純なジャンプ検出を超えて、オクターブエラー、
+    トレンド方向、音域等の多面的な連続性解析を行う。
+
+    Parameters
+    ----------
+    pitches : List[float]
+        MIDIノート番号のシーケンス。
+    times : Optional[List[float]]
+        対応する時刻 (秒)。None の場合は均等間隔と仮定。
+
+    Returns
+    -------
+    PitchContinuityAnalysis
+
+    Examples
+    --------
+    >>> # 滑らかなスケール上行
+    >>> pitches = [60.0, 62.0, 64.0, 65.0, 67.0, 69.0, 71.0, 72.0]
+    >>> result = analyze_pitch_continuity(pitches)
+    >>> result.continuity_score > 0.9
+    True
+    >>> result.trend_direction
+    'ascending'
+    >>> len(result.discontinuity_indices) == 0
+    True
+    >>> # オクターブジャンプあり
+    >>> pitches2 = [60.0, 62.0, 74.0, 62.0, 60.0]
+    >>> result2 = analyze_pitch_continuity(pitches2)
+    >>> result2.continuity_score < result.continuity_score
+    True
+    >>> len(result2.octave_errors) > 0
+    True
+    """
+    if not pitches:
+        return PitchContinuityAnalysis(
+            continuity_score=0.0,
+            discontinuity_indices=[],
+            jump_magnitudes=[],
+            octave_errors=[],
+            trend_direction="neutral",
+            range_semitones=0.0,
+        )
+
+    n = len(pitches)
+    discontinuity_indices: List[int] = []
+    jump_magnitudes: List[float] = []
+    octave_errors: List[int] = []
+    weighted_penalty = 0.0
+
+    # 1. 各連続ペアのジャンプを検証
+    for i in range(n - 1):
+        jump = pitches[i + 1] - pitches[i]
+        abs_jump = abs(jump)
+        jump_magnitudes.append(abs_jump)
+
+        if abs_jump > PITCH_CONTINUITY_MAX_JUMP:
+            # 大ジャンプ
+            penalty = min(1.0, (abs_jump - PITCH_CONTINUITY_MAX_JUMP) / 12.0)
+            weighted_penalty += penalty
+            discontinuity_indices.append(i)
+
+            # オクターブエラー検出: ちょうど12, 24半音ジャンプ
+            if abs(abs_jump - 12.0) < 0.5 or abs(abs_jump - 24.0) < 0.5:
+                octave_errors.append(i)
+        elif abs_jump == 12.0:
+            # ちょうどオクターブ: 弱い不連続
+            weighted_penalty += 0.25
+            octave_errors.append(i)
+
+    # 2. 連続性スコア
+    n_intervals = max(n - 1, 1)
+    continuity_score = max(0.0, 1.0 - weighted_penalty / n_intervals)
+
+    # 3. トレンド方向
+    if n >= 2:
+        net_motion = pitches[-1] - pitches[0]
+        up_steps = sum(1 for j in range(n - 1) if pitches[j + 1] > pitches[j])
+        down_steps = sum(1 for j in range(n - 1) if pitches[j + 1] < pitches[j])
+        if up_steps > down_steps * 1.5 and net_motion > 2:
+            trend = "ascending"
+        elif down_steps > up_steps * 1.5 and net_motion < -2:
+            trend = "descending"
+        else:
+            trend = "neutral"
+    else:
+        trend = "neutral"
+
+    # 4. 音域
+    range_semitones = max(pitches) - min(pitches) if n > 0 else 0.0
+
+    return PitchContinuityAnalysis(
+        continuity_score=continuity_score,
+        discontinuity_indices=discontinuity_indices,
+        jump_magnitudes=jump_magnitudes,
+        octave_errors=octave_errors,
+        trend_direction=trend,
+        range_semitones=range_semitones,
+    )

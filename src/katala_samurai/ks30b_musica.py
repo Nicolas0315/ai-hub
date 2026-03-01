@@ -96,6 +96,8 @@ def _detect_chords(chroma, min_conf=0.3):
     against major/minor/7th chord templates. Returns chord labels
     with beat positions and confidence scores.
 
+    KS40e: テンションコード (9th, sus, dim7, half-dim, add9) のテンプレートを追加。
+
     Parameters
     ----------
     chroma : np.ndarray
@@ -104,13 +106,30 @@ def _detect_chords(chroma, min_conf=0.3):
         Minimum cosine similarity to accept a chord (default 0.3).
     """
     if chroma is None: return []
+    # KS40e: テンションコードテンプレート拡張
+    # 各リストは12音クラス (C=0, C#=1, ..., B=11) の有無
     TEMPLATES = {
+        # トライアド
         'C':[1,0,0,0,1,0,0,1,0,0,0,0], 'Cm':[1,0,0,1,0,0,0,1,0,0,0,0],
         'D':[0,0,1,0,0,0,1,0,0,1,0,0], 'Dm':[0,0,1,0,0,1,0,0,0,1,0,0],
         'E':[0,0,0,0,1,0,0,0,1,0,0,1], 'Em':[0,0,0,0,1,0,0,1,0,0,0,1],
         'F':[1,0,0,0,0,1,0,0,0,1,0,0], 'G':[0,0,1,0,0,0,0,1,0,0,0,1],
         'Am':[1,0,0,0,1,0,0,0,0,1,0,0], 'Bm':[0,0,0,1,0,0,1,0,0,0,1,0],
+        # 7th コード
         'Cmaj7':[1,0,0,0,1,0,0,1,0,0,0,1], 'Am7':[1,0,0,0,1,0,0,1,0,1,0,0],
+        # KS40e追加: 9th コード (7th + 9th)
+        'C9':[1,0,1,0,1,0,0,1,0,0,1,0],    # C dominant 9th (C+E+G+Bb+D)
+        'Cmaj9':[1,0,1,0,1,0,0,1,0,0,0,1], # C major 9th (C+E+G+B+D)
+        'Am9':[1,0,1,0,1,0,0,1,0,1,0,0],   # A minor 9th (A+C+E+G+B)
+        # KS40e追加: sus コード
+        'Csus2':[1,0,1,0,0,0,0,1,0,0,0,0], # C sus2 (C+D+G)
+        'Csus4':[1,0,0,0,0,1,0,1,0,0,0,0], # C sus4 (C+F+G)
+        'Gsus4':[0,0,1,0,0,0,0,1,0,0,1,0], # G sus4 (G+C+D)
+        # KS40e追加: dim7 / half-dim
+        'Bdim7':[0,0,0,1,0,0,1,0,0,1,0,1], # B dim7 (B+D+F+Ab)
+        'Bm7b5':[0,0,0,1,0,0,1,0,0,1,1,0], # B half-dim (B+D+F+A)
+        # KS40e追加: add9
+        'Cadd9':[1,0,1,0,1,0,0,1,0,0,0,0], # C add9 (C+D+E+G, no 7th)
     }
     chords = []
     n_frames = chroma.shape[1]
