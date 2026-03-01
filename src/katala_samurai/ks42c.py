@@ -189,6 +189,17 @@ except ImportError:
     except ImportError:
         pass
 
+_HAS_CROSS_MODAL_SOLVER = False
+try:
+    from katala_samurai.cross_modal_solver import CrossModalSolverEngine
+    _HAS_CROSS_MODAL_SOLVER = True
+except ImportError:
+    try:
+        from cross_modal_solver import CrossModalSolverEngine
+        _HAS_CROSS_MODAL_SOLVER = True
+    except ImportError:
+        pass
+
 _HAS_MULTIMODAL_INPUT = False
 try:
     from katala_samurai.multimodal_input import MultimodalInputLayer, MultimodalInput
@@ -249,6 +260,7 @@ class KS42c(KS42b):
         self._video = VideoUnderstandingEngine() if _HAS_VIDEO_UNDERSTANDING else None
         self._mm_input = MultimodalInputLayer() if _HAS_MULTIMODAL_INPUT else None
         self._mm_judge = ModalityJudge() if _HAS_MULTIMODAL_INPUT else None
+        self._cross_modal = CrossModalSolverEngine() if _HAS_CROSS_MODAL_SOLVER else None
 
     def verify(self, claim, store=None, skip_s28=True, **kwargs):
         """Verify claim with semantic enrichment and Rust acceleration.
@@ -487,6 +499,10 @@ class KS42c(KS42b):
             "modality_judge": {
                 "available": self._mm_judge is not None,
                 "status": self._mm_judge.get_status() if self._mm_judge else None,
+            },
+            "cross_modal_solver": {
+                "available": self._cross_modal is not None,
+                "status": self._cross_modal.get_status() if self._cross_modal else None,
             },
         }
         return base
