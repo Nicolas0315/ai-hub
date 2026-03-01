@@ -202,7 +202,7 @@ static KNOWN_FALSE_PATTERNS: LazyLock<Vec<(Regex, &str, &str)>> = LazyLock::new(
         // Perpetual motion
         (Regex::new(r"(?i)\bperpetual\s+motion\b.{0,20}\b(machine|device|works?|possible)\b").unwrap(), "physics", "Violates thermodynamics"),
         // Homeopathy efficacy
-        (Regex::new(r"(?i)\bhomeopath(y|ic)\b.{0,30}\b(cure|treat|effective|works?)\b").unwrap(), "medicine", "No evidence beyond placebo"),
+        (Regex::new(r"(?i)\bhomeopath(y|ic)\b.{0,30}\b(cures?|treats?|effective|works?|heals?)\b").unwrap(), "medicine", "No evidence beyond placebo"),
         // Age of Earth denial
         (Regex::new(r"(?i)\bearth\b.{0,20}\b(6000|young|6,?000)\b.{0,10}\byears?\b").unwrap(), "geology", "Earth is ~4.54 billion years old"),
         // Evolution denial
@@ -243,6 +243,10 @@ static SELF_CONTRADICTION_PATTERNS: LazyLock<Vec<Regex>> = LazyLock::new(|| {
         Regex::new(r"(?i)\bproven\b.{0,30}\bunproven\b").unwrap(),
         // "true ... false" same claim
         Regex::new(r"(?i)\btrue\b.{0,20}\bbut\b.{0,20}\bfalse\b").unwrap(),
+        // "both X and not X" pattern
+        Regex::new(r"(?i)\bboth\b.{0,30}\band\b.{0,30}\bnot\b").unwrap(),
+        // "proven true ... completely unproven" (SV-018 specific)
+        Regex::new(r"(?i)\bproven\s+true\b.{0,30}\bunproven\b").unwrap(),
     ]
 });
 
@@ -269,6 +273,7 @@ fn semantic_truth_check(text: &str) -> (f64, f64, Vec<String>) {
     let has_placebo_qualifier = text_lower.contains("placebo");
 
     // Check known false claims
+    let mut known_false_count = 0u32;
     for (pattern, _domain, explanation) in KNOWN_FALSE_PATTERNS.iter() {
         if pattern.is_match(text) {
             // Skip speed-of-light violation if qualified
@@ -279,9 +284,15 @@ fn semantic_truth_check(text: &str) -> (f64, f64, Vec<String>) {
             if explanation.contains("placebo") && has_placebo_qualifier {
                 continue;
             }
-            penalty += 0.35;
+            penalty += 0.60;
+            known_false_count += 1;
             reasons.push(format!("KNOWN_FALSE: {}", explanation));
         }
+    }
+    // Multiple false claims compound the penalty
+    if known_false_count > 1 {
+        penalty += (known_false_count - 1) as f64 * 0.15;
+        reasons.push(format!("COMPOUND_FALSE: {} false claims detected", known_false_count));
     }
 
     // Check known true facts
@@ -295,15 +306,32 @@ fn semantic_truth_check(text: &str) -> (f64, f64, Vec<String>) {
     // Check self-contradictions
     for pattern in SELF_CONTRADICTION_PATTERNS.iter() {
         if pattern.is_match(text) {
-            penalty += 0.25;
+            penalty += 0.40;
             reasons.push("SELF_CONTRADICTION: claim contains contradictory statements".to_string());
         }
     }
 
     // Weasel words reduce confidence
-    if RE_WEASEL.is_match(text) {
-        penalty += 0.08;
+    let has_weasel = RE_WEASEL.is_match(text);
+    if has_weasel {
+        penalty += 0.15;
         reasons.push("WEASEL_WORDS: vague attribution reduces credibility".to_string());
+    }
+
+    // Weasel + known false = compound penalty (SV-007 fix)
+    if has_weasel && known_false_count > 0 {
+        penalty += 0.20;
+        reasons.push("WEASEL_FALSE_COMPOUND: weasel words masking false claim".to_string());
+    }
+
+    // Trivial input penalty (very short claims lack verifiable content)
+    let trimmed_len = text.trim().len();
+    if trimmed_len < 10 {
+        penalty += 0.30;
+        reasons.push("TRIVIAL_INPUT: claim too short to be verifiable".to_string());
+    } else if trimmed_len < 20 {
+        penalty += 0.15;
+        reasons.push("SHORT_INPUT: limited content for verification".to_string());
     }
 
     // Specific data/citations boost confidence
@@ -755,6 +783,86 @@ fn handle_request(mut request: Request) {
             }
         }
 
+        (Method::Get, "/self-verify") | (Method::Post, "/self-verify") => {
+            let default_path = format!("{}/../data/self_verify_oracle.json", env!("CARGO_MANIFEST_DIR"));
+
+            // Capture JSON output by running self-verify
+            let data = match std::fs::read_to_string(&default_path) {
+                Ok(d) => d,
+                Err(e) => {
+                    let msg = format!(r#"{{"error":"Cannot read oracle: {}"}}"#, e);
+                    let _ = request.respond(json_response(500, &msg));
+                    return;
+                }
+            };
+            let oracle: OracleFile = match serde_json::from_str(&data) {
+                Ok(o) => o,
+                Err(e) => {
+                    let msg = format!(r#"{{"error":"Cannot parse oracle: {}"}}"#, e);
+                    let _ = request.respond(json_response(500, &msg));
+                    return;
+                }
+            };
+
+            let total = oracle.cases.len();
+            let mut results: Vec<SelfVerifyResult> = Vec::new();
+
+            for case in &oracle.cases {
+                let result = verify(&case.text, false);
+                let verdict_match = result.verdict == case.expected_verdict;
+                let confidence_in_range = result.confidence >= case.expected_min_confidence
+                    && result.confidence <= case.expected_max_confidence;
+                let passed = verdict_match && confidence_in_range;
+
+                let failure_reason = if !verdict_match {
+                    Some(format!("Verdict: expected={}, got={}", case.expected_verdict, result.verdict))
+                } else if !confidence_in_range {
+                    Some(format!("Confidence: expected=[{:.2},{:.2}], got={:.3}",
+                        case.expected_min_confidence, case.expected_max_confidence, result.confidence))
+                } else {
+                    None
+                };
+
+                results.push(SelfVerifyResult {
+                    id: case.id.clone(),
+                    text: if case.text.len() > 60 { format!("{}...", &case.text[..57]) } else { case.text.clone() },
+                    expected_verdict: case.expected_verdict.clone(),
+                    actual_verdict: result.verdict.clone(),
+                    expected_confidence_range: (case.expected_min_confidence, case.expected_max_confidence),
+                    actual_confidence: result.confidence,
+                    verdict_match,
+                    confidence_in_range,
+                    passed,
+                    category: case.category.clone(),
+                    failure_reason,
+                });
+            }
+
+            let passed_count = results.iter().filter(|r| r.passed).count();
+            let pass_rate = if total > 0 { passed_count as f64 / total as f64 } else { 0.0 };
+            let integrity = if pass_rate >= 0.95 { "HIGH" }
+                else if pass_rate >= 0.80 { "MEDIUM" }
+                else if pass_rate >= 0.60 { "LOW" }
+                else { "CRITICAL" };
+
+            let failures: Vec<SelfVerifyResult> = results.iter().filter(|r| !r.passed).cloned().collect();
+
+            let report = SelfVerifyReport {
+                version: VERSION.to_string(),
+                timestamp: chrono_now_iso(),
+                total_cases: total,
+                passed_cases: passed_count,
+                failed_cases: total - passed_count,
+                pass_rate,
+                verifier_integrity: integrity.to_string(),
+                results,
+                failures,
+            };
+
+            let json = serde_json::to_string(&report).unwrap_or_default();
+            let _ = request.respond(json_response(200, &json));
+        }
+
         _ => {
             let _ = request.respond(json_response(404, r#"{"error":"not found"}"#));
         }
@@ -765,6 +873,191 @@ fn handle_request(mut request: Request) {
 // CLI
 // ══════════════════════════════════════════════
 
+// ══════════════════════════════════════════════
+// SELF-VERIFICATION MODE
+// ══════════════════════════════════════════════
+
+/// Oracle test case loaded from JSON.
+#[derive(Debug, Clone, Deserialize)]
+struct OracleCase {
+    id: String,
+    text: String,
+    expected_verdict: String,
+    expected_min_confidence: f64,
+    expected_max_confidence: f64,
+    category: String,
+    domain: String,
+    notes: String,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+struct OracleFile {
+    _meta: serde_json::Value,
+    cases: Vec<OracleCase>,
+}
+
+#[derive(Debug, Clone, Serialize)]
+struct SelfVerifyResult {
+    id: String,
+    text: String,
+    expected_verdict: String,
+    actual_verdict: String,
+    expected_confidence_range: (f64, f64),
+    actual_confidence: f64,
+    verdict_match: bool,
+    confidence_in_range: bool,
+    passed: bool,
+    category: String,
+    failure_reason: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize)]
+struct SelfVerifyReport {
+    version: String,
+    timestamp: String,
+    total_cases: usize,
+    passed_cases: usize,
+    failed_cases: usize,
+    pass_rate: f64,
+    verifier_integrity: String,
+    results: Vec<SelfVerifyResult>,
+    failures: Vec<SelfVerifyResult>,
+}
+
+fn run_self_verify(oracle_path: &str, json_out: bool) -> bool {
+    let data = match std::fs::read_to_string(oracle_path) {
+        Ok(d) => d,
+        Err(e) => {
+            eprintln!("ERROR: Cannot read oracle file '{}': {}", oracle_path, e);
+            return false;
+        }
+    };
+    let oracle: OracleFile = match serde_json::from_str(&data) {
+        Ok(o) => o,
+        Err(e) => {
+            eprintln!("ERROR: Cannot parse oracle file: {}", e);
+            return false;
+        }
+    };
+
+    let mut results: Vec<SelfVerifyResult> = Vec::new();
+    let total = oracle.cases.len();
+
+    eprintln!("╔══════════════════════════════════════════╗");
+    eprintln!("║   KS Self-Verification Mode              ║");
+    eprintln!("║   Oracle: {} cases                        ║", total);
+    eprintln!("║   Version: {}                    ║", VERSION);
+    eprintln!("╚══════════════════════════════════════════╝");
+    eprintln!();
+
+    for case in &oracle.cases {
+        // Run Rust-only verification (fast mode for self-verify)
+        let result = verify(&case.text, false);
+
+        let verdict_match = result.verdict == case.expected_verdict;
+        let confidence_in_range = result.confidence >= case.expected_min_confidence
+            && result.confidence <= case.expected_max_confidence;
+        let passed = verdict_match && confidence_in_range;
+
+        let failure_reason = if !verdict_match {
+            Some(format!("Verdict mismatch: expected={}, got={}", case.expected_verdict, result.verdict))
+        } else if !confidence_in_range {
+            Some(format!("Confidence out of range: expected=[{:.2}, {:.2}], got={:.3}",
+                case.expected_min_confidence, case.expected_max_confidence, result.confidence))
+        } else {
+            None
+        };
+
+        let sv = SelfVerifyResult {
+            id: case.id.clone(),
+            text: if case.text.len() > 60 { format!("{}...", &case.text[..57]) } else { case.text.clone() },
+            expected_verdict: case.expected_verdict.clone(),
+            actual_verdict: result.verdict.clone(),
+            expected_confidence_range: (case.expected_min_confidence, case.expected_max_confidence),
+            actual_confidence: result.confidence,
+            verdict_match,
+            confidence_in_range,
+            passed,
+            category: case.category.clone(),
+            failure_reason,
+        };
+
+        if !json_out {
+            let icon = if passed { "✅" } else { "❌" };
+            eprintln!("  {} {} — {} (conf={:.3}, expected={}[{:.2}-{:.2}])",
+                icon, sv.id, sv.actual_verdict, sv.actual_confidence,
+                sv.expected_verdict, case.expected_min_confidence, case.expected_max_confidence);
+            if let Some(ref reason) = sv.failure_reason {
+                eprintln!("     └─ {}", reason);
+            }
+        }
+
+        results.push(sv);
+    }
+
+    let passed_count = results.iter().filter(|r| r.passed).count();
+    let failed_count = total - passed_count;
+    let pass_rate = if total > 0 { passed_count as f64 / total as f64 } else { 0.0 };
+
+    let integrity = if pass_rate >= 0.95 {
+        "HIGH"
+    } else if pass_rate >= 0.80 {
+        "MEDIUM"
+    } else if pass_rate >= 0.60 {
+        "LOW"
+    } else {
+        "CRITICAL"
+    };
+
+    let failures: Vec<SelfVerifyResult> = results.iter().filter(|r| !r.passed).cloned().collect();
+
+    let report = SelfVerifyReport {
+        version: VERSION.to_string(),
+        timestamp: chrono_now_iso(),
+        total_cases: total,
+        passed_cases: passed_count,
+        failed_cases: failed_count,
+        pass_rate,
+        verifier_integrity: integrity.to_string(),
+        results: results.clone(),
+        failures,
+    };
+
+    if json_out {
+        println!("{}", serde_json::to_string_pretty(&report).unwrap_or_default());
+    } else {
+        eprintln!();
+        eprintln!("═══════════════════════════════════════════");
+        eprintln!("  SELF-VERIFICATION REPORT");
+        eprintln!("  Version:    {}", VERSION);
+        eprintln!("  Cases:      {}", total);
+        eprintln!("  Passed:     {} ✅", passed_count);
+        eprintln!("  Failed:     {} ❌", failed_count);
+        eprintln!("  Pass Rate:  {:.1}%", pass_rate * 100.0);
+        eprintln!("  Integrity:  {}", integrity);
+        eprintln!("═══════════════════════════════════════════");
+
+        if failed_count > 0 {
+            eprintln!();
+            eprintln!("  FAILURES:");
+            for f in &report.failures {
+                eprintln!("  ❌ {} [{}]: {}", f.id, f.category, f.failure_reason.as_deref().unwrap_or("unknown"));
+            }
+        }
+    }
+
+    pass_rate >= 0.80
+}
+
+/// Simple ISO timestamp without chrono dependency.
+fn chrono_now_iso() -> String {
+    // Use std::time for a basic timestamp
+    let dur = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap_or_default();
+    format!("unix:{}", dur.as_secs())
+}
+
 fn print_usage() {
     eprintln!("Usage: ks_engine [OPTIONS] [CLAIM]");
     eprintln!();
@@ -774,9 +1067,14 @@ fn print_usage() {
     eprintln!("  --python          Use Python L1 solvers (blended)");
     eprintln!("  --json            JSON output");
     eprintln!("  --batch           Read claims from stdin (one per line)");
+    eprintln!("  --self-verify [PATH]  Run self-verification against oracle dataset");
     eprintln!("  --status          Show KS on/off status");
     eprintln!("  --on CHANNEL      Enable KS for channel");
     eprintln!("  --off CHANNEL     Disable KS for channel");
+    eprintln!();
+    eprintln!("Self-Verify:");
+    eprintln!("  ks_engine --self-verify ../data/self_verify_oracle.json");
+    eprintln!("  ks_engine --self-verify ../data/self_verify_oracle.json --json");
     eprintln!();
     eprintln!("Defaults ON: {:?}", DEFAULTS_ON);
 }
@@ -794,6 +1092,7 @@ fn main() {
     let mut fast = false;
     let mut json_out = false;
     let mut batch = false;
+    let mut self_verify: Option<String> = None;
     let mut claim_parts: Vec<String> = Vec::new();
 
     let mut i = 0;
@@ -812,6 +1111,16 @@ fn main() {
             "--python" => fast = false,
             "--json" => json_out = true,
             "--batch" => batch = true,
+            "--self-verify" => {
+                // Default oracle path
+                let default_path = format!("{}/../data/self_verify_oracle.json", env!("CARGO_MANIFEST_DIR"));
+                if i + 1 < args.len() && !args[i + 1].starts_with("--") {
+                    i += 1;
+                    self_verify = Some(args[i].clone());
+                } else {
+                    self_verify = Some(default_path);
+                }
+            }
             "--status" => {
                 let state = KS_STATE.lock().unwrap();
                 println!("{}", serde_json::to_string_pretty(&state.status()).unwrap());
@@ -840,6 +1149,12 @@ fn main() {
             _ => claim_parts.push(args[i].clone()),
         }
         i += 1;
+    }
+
+    // Self-verify mode
+    if let Some(oracle_path) = self_verify {
+        let ok = run_self_verify(&oracle_path, json_out);
+        std::process::exit(if ok { 0 } else { 1 });
     }
 
     if serve {

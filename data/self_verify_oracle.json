@@ -1,0 +1,211 @@
+{
+  "_meta": {
+    "description": "KS Self-Verification Oracle — known ground-truth pairs for verifier regression testing",
+    "version": "1.0.0",
+    "created": "2026-03-01",
+    "author": "shirokuma",
+    "purpose": "Quis custodiet ipsos custodes? — This file IS the answer."
+  },
+  "cases": [
+    {
+      "id": "SV-001",
+      "text": "The Earth is flat and space is a hoax.",
+      "expected_verdict": "FAIL",
+      "expected_min_confidence": 0.0,
+      "expected_max_confidence": 0.3,
+      "category": "known_false",
+      "domain": "physics",
+      "notes": "Classic conspiracy claim — must always FAIL"
+    },
+    {
+      "id": "SV-002",
+      "text": "Water boils at 100°C at standard atmospheric pressure.",
+      "expected_verdict": "PASS",
+      "expected_min_confidence": 0.7,
+      "expected_max_confidence": 1.0,
+      "category": "known_true",
+      "domain": "chemistry",
+      "notes": "Basic scientific fact"
+    },
+    {
+      "id": "SV-003",
+      "text": "Vaccines cause autism according to multiple retracted studies.",
+      "expected_verdict": "FAIL",
+      "expected_min_confidence": 0.0,
+      "expected_max_confidence": 0.35,
+      "category": "known_false",
+      "domain": "medicine",
+      "notes": "Anti-vax disinformation — must always FAIL"
+    },
+    {
+      "id": "SV-004",
+      "text": "DNA has a double helix structure, discovered by Watson and Crick with X-ray crystallography data from Franklin.",
+      "expected_verdict": "PASS",
+      "expected_min_confidence": 0.65,
+      "expected_max_confidence": 1.0,
+      "category": "known_true",
+      "domain": "biology",
+      "notes": "Well-established scientific fact with attribution"
+    },
+    {
+      "id": "SV-005",
+      "text": "5G towers spread COVID-19 through electromagnetic radiation.",
+      "expected_verdict": "FAIL",
+      "expected_min_confidence": 0.0,
+      "expected_max_confidence": 0.3,
+      "category": "known_false",
+      "domain": "medicine",
+      "notes": "Conspiracy theory — no mechanism for RF→pathogen"
+    },
+    {
+      "id": "SV-006",
+      "text": "The speed of light in a vacuum is approximately 3×10^8 meters per second.",
+      "expected_verdict": "PASS",
+      "expected_min_confidence": 0.7,
+      "expected_max_confidence": 1.0,
+      "category": "known_true",
+      "domain": "physics",
+      "notes": "Fundamental physics constant"
+    },
+    {
+      "id": "SV-007",
+      "text": "Some say that homeopathy cures cancer effectively.",
+      "expected_verdict": "FAIL",
+      "expected_min_confidence": 0.0,
+      "expected_max_confidence": 0.4,
+      "category": "known_false_with_weasel",
+      "domain": "medicine",
+      "notes": "Weasel words + unproven medical claim"
+    },
+    {
+      "id": "SV-008",
+      "text": "CRISPR-Cas9 can edit specific gene sequences in living organisms.",
+      "expected_verdict": "PASS",
+      "expected_min_confidence": 0.6,
+      "expected_max_confidence": 1.0,
+      "category": "known_true",
+      "domain": "biology",
+      "notes": "Established biotech capability"
+    },
+    {
+      "id": "SV-009",
+      "text": "Perpetual motion machines work and produce infinite energy.",
+      "expected_verdict": "FAIL",
+      "expected_min_confidence": 0.0,
+      "expected_max_confidence": 0.3,
+      "category": "known_false",
+      "domain": "physics",
+      "notes": "Violates thermodynamics"
+    },
+    {
+      "id": "SV-010",
+      "text": "Evolution is just a theory and is not real science.",
+      "expected_verdict": "FAIL",
+      "expected_min_confidence": 0.0,
+      "expected_max_confidence": 0.35,
+      "category": "known_false",
+      "domain": "biology",
+      "notes": "Evolution denial — overwhelming evidence supports it"
+    },
+    {
+      "id": "SV-011",
+      "text": "The moon landing was faked by NASA in a Hollywood studio.",
+      "expected_verdict": "FAIL",
+      "expected_min_confidence": 0.0,
+      "expected_max_confidence": 0.3,
+      "category": "known_false",
+      "domain": "history",
+      "notes": "Conspiracy theory — multiple independent confirmations exist"
+    },
+    {
+      "id": "SV-012",
+      "text": "Quantum entanglement allows particles to be correlated over long distances, but does not enable faster-than-light communication.",
+      "expected_verdict": "PASS",
+      "expected_min_confidence": 0.6,
+      "expected_max_confidence": 1.0,
+      "category": "known_true_nuanced",
+      "domain": "physics",
+      "notes": "Nuanced scientific claim — tests understanding of qualifiers"
+    },
+    {
+      "id": "SV-013",
+      "text": "The Earth is always flat and never round.",
+      "expected_verdict": "FAIL",
+      "expected_min_confidence": 0.0,
+      "expected_max_confidence": 0.25,
+      "category": "self_contradiction_false",
+      "domain": "physics",
+      "notes": "Self-contradiction pattern + known false"
+    },
+    {
+      "id": "SV-014",
+      "text": "A 2024 study published in Nature found that mRNA vaccines reduce hospitalization by 85% compared to placebo.",
+      "expected_verdict": "PASS",
+      "expected_min_confidence": 0.65,
+      "expected_max_confidence": 1.0,
+      "category": "evidence_rich",
+      "domain": "medicine",
+      "notes": "Specific data, journal citation, quantified result"
+    },
+    {
+      "id": "SV-015",
+      "text": "cat",
+      "expected_verdict": "FAIL",
+      "expected_min_confidence": 0.0,
+      "expected_max_confidence": 0.5,
+      "category": "trivial_input",
+      "domain": "general",
+      "notes": "Too short/trivial to be a meaningful claim"
+    },
+    {
+      "id": "SV-016",
+      "text": "The sun revolves around the Earth and the Earth is the center of the universe.",
+      "expected_verdict": "FAIL",
+      "expected_min_confidence": 0.0,
+      "expected_max_confidence": 0.3,
+      "category": "known_false",
+      "domain": "physics",
+      "notes": "Geocentric model — disproven"
+    },
+    {
+      "id": "SV-017",
+      "text": "Prime numbers are infinite, as proven by Euclid's theorem.",
+      "expected_verdict": "PASS",
+      "expected_min_confidence": 0.65,
+      "expected_max_confidence": 1.0,
+      "category": "known_true",
+      "domain": "mathematics",
+      "notes": "Well-established mathematical theorem with attribution"
+    },
+    {
+      "id": "SV-018",
+      "text": "This claim is both proven true and completely unproven at the same time.",
+      "expected_verdict": "FAIL",
+      "expected_min_confidence": 0.0,
+      "expected_max_confidence": 0.4,
+      "category": "self_contradiction",
+      "domain": "general",
+      "notes": "Explicit self-contradiction"
+    },
+    {
+      "id": "SV-019",
+      "text": "According to research published in PNAS, CRISPR gene editing achieved 94% accuracy in targeting specific DNA sequences in human cells.",
+      "expected_verdict": "PASS",
+      "expected_min_confidence": 0.7,
+      "expected_max_confidence": 1.0,
+      "category": "evidence_rich_true",
+      "domain": "biology",
+      "notes": "Specific data + journal + quantified + known true domain"
+    },
+    {
+      "id": "SV-020",
+      "text": "Everyone knows that the Earth is 6000 years old because many believe it.",
+      "expected_verdict": "FAIL",
+      "expected_min_confidence": 0.0,
+      "expected_max_confidence": 0.3,
+      "category": "weasel_false",
+      "domain": "geology",
+      "notes": "Weasel words + Young Earth creationism — must FAIL"
+    }
+  ]
+}
