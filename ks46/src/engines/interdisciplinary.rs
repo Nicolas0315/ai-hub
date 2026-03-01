@@ -46,7 +46,12 @@ impl InterdisciplinaryEngine {
 
                 // Disagreement → hypothesis
                 if diff > 0.3 {
-                    let short_claim = if claim.len() > 50 { &claim[..50] } else { claim };
+                    // Safe UTF-8 truncation
+                    let short_claim = if claim.len() > 50 {
+                        let mut end = 50;
+                        while end > 0 && !claim.is_char_boundary(end) { end -= 1; }
+                        &claim[..end]
+                    } else { claim };
                     hypotheses.push(Hypothesis {
                         text: format!("「{}」に対して{}と{}が対立する原因は、前提条件のドメイン依存性にある",
                             short_claim, cl_a, cl_b),

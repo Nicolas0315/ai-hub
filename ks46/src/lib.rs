@@ -23,9 +23,9 @@
 //! Design: Youta Hilono & Nicolas Ogoshi
 //! Implementation: Shirokuma (OpenClaw AI), 2026-03-01
 
-mod solvers;
-mod htlf;
-mod engines;
+pub mod solvers;
+pub mod htlf;
+pub mod engines;
 
 use pyo3::prelude::*;
 use rayon::prelude::*;
