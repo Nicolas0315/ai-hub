@@ -43,7 +43,7 @@ except ImportError:
     from ks29 import Claim
     from stage_store import StageStore
 
-VERSION = "KS42c"
+VERSION = "KS42c-v2"
 
 # ── Rust availability check ──
 _HAS_RUST = False
@@ -64,6 +64,40 @@ except ImportError:
     try:
         from semantic_parse import semantic_parse, SemanticPropositions
         _HAS_SEMANTIC = True
+    except ImportError:
+        pass
+
+# ── New engines for remaining 3-axis gap (v2) ──
+_HAS_EPISODIC = False
+try:
+    from katala_samurai.episodic_memory import EpisodicMemoryEngine
+    _HAS_EPISODIC = True
+except ImportError:
+    try:
+        from episodic_memory import EpisodicMemoryEngine
+        _HAS_EPISODIC = True
+    except ImportError:
+        pass
+
+_HAS_EXPERT = False
+try:
+    from katala_samurai.expert_reasoning import ExpertReasoningEngine
+    _HAS_EXPERT = True
+except ImportError:
+    try:
+        from expert_reasoning import ExpertReasoningEngine
+        _HAS_EXPERT = True
+    except ImportError:
+        pass
+
+_HAS_CROSS_DOMAIN = False
+try:
+    from katala_samurai.cross_domain_transfer import CrossDomainTransferEngine
+    _HAS_CROSS_DOMAIN = True
+except ImportError:
+    try:
+        from cross_domain_transfer import CrossDomainTransferEngine
+        _HAS_CROSS_DOMAIN = True
     except ImportError:
         pass
 
@@ -99,6 +133,11 @@ class KS42c(KS42b):
         self._rust_available = _HAS_RUST
         self._semantic_available = _HAS_SEMANTIC
         self._rust_function_count = _RUST_FUNCTION_COUNT
+
+        # v2: New engines for remaining 3-axis gap
+        self._episodic = EpisodicMemoryEngine() if _HAS_EPISODIC else None
+        self._expert = ExpertReasoningEngine() if _HAS_EXPERT else None
+        self._cross_domain = CrossDomainTransferEngine() if _HAS_CROSS_DOMAIN else None
 
     def verify(self, claim, store=None, skip_s28=True, **kwargs):
         """Verify claim with semantic enrichment and Rust acceleration.
@@ -139,6 +178,59 @@ class KS42c(KS42b):
             "semantic_source": semantic_info.get("source", "none"),
             "semantic_propositions": semantic_info.get("prop_count", 0),
         }
+
+        # v2: Expert reasoning assessment (PhD専門推論 +3%)
+        if self._expert:
+            claim_text = claim.text if hasattr(claim, 'text') else str(claim)
+            evidence = claim.evidence if hasattr(claim, 'evidence') else []
+            expert_result = self._expert.verify(claim_text, evidence=evidence)
+            result["expert_reasoning"] = expert_result
+
+            # Boost final score if expert reasoning finds strong argument structure
+            if expert_result["overall_score"] >= 0.60:
+                current_score = result.get("final_score", 0)
+                if isinstance(current_score, (int, float)):
+                    # Expert reasoning boost: up to +5% for strong arguments
+                    boost = (expert_result["overall_score"] - 0.5) * 0.10
+                    result["final_score"] = round(min(current_score + boost, 1.0), 4)
+
+        # v2: Cross-domain transfer assessment (ドメイン横断 +1%)
+        if self._cross_domain:
+            claim_text = claim.text if hasattr(claim, 'text') else str(claim)
+            cross_result = self._cross_domain.score(claim_text)
+            result["cross_domain"] = cross_result
+
+            # Boost if genuine cross-domain content detected
+            if cross_result.get("cross_domain") and cross_result["overall_score"] >= 0.50:
+                current_score = result.get("final_score", 0)
+                if isinstance(current_score, (int, float)):
+                    boost = (cross_result["overall_score"] - 0.4) * 0.05
+                    result["final_score"] = round(min(current_score + boost, 1.0), 4)
+
+        # v2: Record episode for episodic memory (長期Agent +3%)
+        if self._episodic:
+            claim_text = claim.text if hasattr(claim, 'text') else str(claim)
+            verdict = result.get("verdict", "UNVERIFIED")
+            score = result.get("final_score", 0.5)
+            domain = result.get("expert_reasoning", {}).get("domain", "general")
+
+            self._episodic.record_episode(
+                context={
+                    "claim_text_hash": claim_text[:50],
+                    "domain": domain,
+                    "has_evidence": bool(getattr(claim, 'evidence', [])),
+                },
+                action=f"verify_{verdict.lower()}",
+                action_type="verify",
+                outcome="success" if verdict == "VERIFIED" else "failure",
+                outcome_score=score if isinstance(score, float) else 0.5,
+                domain=domain,
+                strategy_used="ks42c_full",
+            )
+            result["episodic_memory"] = {
+                "total_episodes": len(self._episodic.episodes),
+                "total_schemas": len(self._episodic.schemas),
+            }
 
         result["version"] = self.VERSION
         return result
@@ -222,5 +314,16 @@ class KS42c(KS42b):
         base["semantic_parse"] = {
             "available": self._semantic_available,
             "tiers": ["ollama (local)", "gemini (api)", "heuristic (rust/python)"],
+        }
+        # v2: New engines
+        base["episodic_memory"] = {
+            "available": self._episodic is not None,
+            "episodes": len(self._episodic.episodes) if self._episodic else 0,
+            "schemas": len(self._episodic.schemas) if self._episodic else 0,
+        }
+        base["expert_reasoning"] = {"available": self._expert is not None}
+        base["cross_domain_transfer"] = {
+            "available": self._cross_domain is not None,
+            "known_bridges": len(self._cross_domain.bridges) if self._cross_domain else 0,
         }
         return base
