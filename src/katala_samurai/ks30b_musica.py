@@ -25,19 +25,20 @@ from typing import List, Dict, Tuple, Optional
 
 @dataclass
 class MusicaConfig:
-    sr: int = 22050
-    n_fft: int = 2048
-    hop_length: int = 512
-    target_bpm: int = 78
-    target_key: str = "F#m"
-    patch_size: Tuple[int, int] = (128, 32)
-    gl_iterations: int = 200
-    chord_sim_threshold: float = 0.45
-    avoid_suppress_db: float = -18.0
-    beat_grid_amplitude: float = 2.0
-    intro_max_seconds: float = 4.0
+    """Configuration for the KS30b Musica pipeline."""
+    sr: int = 22050                          # Sample rate (22050 = librosa default, sufficient for lofi)
+    n_fft: int = 2048                        # FFT window size (~93ms at 22050Hz, good freq resolution)
+    hop_length: int = 512                    # STFT hop (~23ms, ~43 fps — standard for music analysis)
+    target_bpm: int = 78                     # Target tempo (78 BPM = relaxed lofi/chill range)
+    target_key: str = "F#m"                  # Target key (F#m = common in lofi/ambient)
+    patch_size: Tuple[int, int] = (128, 32)  # Spectral patch: 128 freq bins x 32 time frames
+    gl_iterations: int = 200                 # Griffin-Lim iterations (200 = quality/speed tradeoff)
+    chord_sim_threshold: float = 0.45        # Min cosine similarity to accept chord match
+    avoid_suppress_db: float = -18.0         # Attenuation for avoid-notes (-18dB ≈ barely audible)
+    beat_grid_amplitude: float = 2.0         # Beat overlay strength (2x = prominent but not dominant)
+    intro_max_seconds: float = 4.0           # Max intro duration before first verse
     stereo_channels: List[str] = field(default_factory=lambda: ["L", "R", "C", "S"])
-    cnn_latent_dim: int = 64
+    cnn_latent_dim: int = 64                 # Autoencoder latent space (64 = compact but expressive)
 
 # ═══ S2: Harmonic Structure (KS30b semantic) ═══
 
@@ -139,6 +140,9 @@ def _estimate_key(chroma):
         12 x T chroma matrix.
     """
     if chroma is None: return "unknown"
+    # Krumhansl-Kessler key profiles (1990) — empirical pitch-class weights
+    # for major and minor keys, used in key-finding algorithms.
+    # Source: Krumhansl, C.L. "Cognitive Foundations of Musical Pitch" (1990)
     maj = [6.35,2.23,3.48,2.33,4.38,4.09,2.52,5.19,2.39,3.66,2.29,2.88]
     minor = [6.33,2.68,3.52,5.38,2.60,3.53,2.54,4.75,3.98,2.69,3.34,3.17]
     mc = np.mean(chroma, axis=1)
@@ -327,6 +331,8 @@ def select_patches(patches, chord, energy, config=None, avoid_notes=None):
             for n in avoid_notes:
                 idx = nm.get(n,-1)
                 if idx >= 0 and p.chroma[idx] > 0.3: ap += p.chroma[idx]
+        # Weighted score: chord match (0.4) > energy match (0.3) > avoid penalty (0.3)
+        # Chord gets highest weight because wrong harmony is more jarring than wrong loudness
         score = cs*0.4 + es*0.3 - ap*0.3
         cands.append((score, p))
     cands.sort(key=lambda x: x[0], reverse=True)
@@ -468,6 +474,10 @@ def search_papers(harmonic, max_papers=3):
 
 # ═══ Song Structure ═══
 
+# Default song structure — energy values model a typical pop/lofi dynamic arc:
+#   intro(0.3) → verse(0.5) → chorus(0.8) → verse(0.5) → chorus(0.85)
+#   → bridge(0.4, tension drop) → final chorus(0.9, peak) → outro(0.2, fade)
+# Energy 0.0-1.0 is relative to the mean patch energy of source material.
 SONG_STRUCTURE = [
     {"section":"intro","beats":4,"energy":0.3,"chord":"I"},
     {"section":"verse1","beats":16,"energy":0.5,"chord":"I-vi-ii-IV"},
@@ -492,12 +502,18 @@ def position_stereo(S_mono, sr=22050):
     fb = S_mono.shape[0]; freqs = np.linspace(0, sr/2, fb)
     L,R,C,Sd = (np.zeros_like(S_mono) for _ in range(4))
     for i,f in enumerate(freqs):
-        if f < 200: C[i,:] = S_mono[i,:]
+        if f < 200:
+            # Sub-200Hz: mono center (bass mono compatibility for club/speaker systems)
+            C[i,:] = S_mono[i,:]
         elif f < 2000:
+            # 200-2000Hz mid range: alternate L/R with 70/30 split for width,
+            # plus 30% center bleed to maintain phantom center image
             if i%2==0: L[i,:]=S_mono[i,:]*0.7; R[i,:]=S_mono[i,:]*0.3
             else: L[i,:]=S_mono[i,:]*0.3; R[i,:]=S_mono[i,:]*0.7
             C[i,:] = S_mono[i,:]*0.3
         else:
+            # >2000Hz highs: sinusoidal L/R spread (0.1 rad/bin) for airy width,
+            # 40% surround channel for ambient depth
             L[i,:]=S_mono[i,:]*(0.5+0.3*np.sin(i*0.1))
             R[i,:]=S_mono[i,:]*(0.5-0.3*np.sin(i*0.1))
             Sd[i,:]=S_mono[i,:]*0.4
@@ -591,6 +607,7 @@ def generate(audio_paths, output_path="ks30b_musica.wav", config=None):
     yL = ach.get('L', np.zeros(1)); yR = ach.get('R', np.zeros(1)); yC = ach.get('C', np.zeros(1))
     ml = min(len(yL), len(yR), len(yC))
     ys = np.column_stack([yL[:ml]*0.5+yC[:ml]*0.5, yR[:ml]*0.5+yC[:ml]*0.5])
+    # Normalize to 0.9 peak (-0.9dBFS) to leave headroom for DAC reconstruction
     ys = ys / (np.max(np.abs(ys))+1e-8) * 0.9
     sf.write(output_path, ys, config.sr)
     dur = len(ys)/config.sr
