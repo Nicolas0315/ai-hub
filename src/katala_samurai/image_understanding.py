@@ -48,6 +48,34 @@ try:
 except ImportError:
     _HAS_NUMPY = False
 
+try:
+    import open_clip
+    import torch
+    _HAS_CLIP = True
+except ImportError:
+    _HAS_CLIP = False
+
+# Singleton CLIP model cache
+_CLIP_MODEL = None
+_CLIP_PREPROCESS = None
+_CLIP_TOKENIZER = None
+
+def _get_clip():
+    """Lazy-load CLIP model (singleton)."""
+    global _CLIP_MODEL, _CLIP_PREPROCESS, _CLIP_TOKENIZER
+    if _CLIP_MODEL is None and _HAS_CLIP:
+        try:
+            model, _, preprocess = open_clip.create_model_and_transforms(
+                'ViT-B-32', pretrained='laion2b_s34b_b79k'
+            )
+            model.eval()
+            _CLIP_MODEL = model
+            _CLIP_PREPROCESS = preprocess
+            _CLIP_TOKENIZER = open_clip.get_tokenizer('ViT-B-32')
+        except Exception:
+            pass
+    return _CLIP_MODEL, _CLIP_PREPROCESS, _CLIP_TOKENIZER
+
 
 # ═══════════════════════════════════════════════════════════════════════════
 # Constants
@@ -587,18 +615,79 @@ class ImageUnderstandingEngine:
             "verdict": verdict,
         }
 
+    def clip_verify_caption(
+        self,
+        image_data: bytes,
+        caption: str,
+        negative_captions: Optional[List[str]] = None,
+    ) -> Dict[str, Any]:
+        """Verify caption against image using CLIP embedding similarity.
+
+        Args:
+            image_data: Raw image bytes.
+            caption: Caption to verify.
+            negative_captions: Alternative captions to compare against.
+
+        Returns:
+            Dict with similarity score and ranking.
+        """
+        model, preprocess, tokenizer = _get_clip()
+        if model is None or not _HAS_PIL:
+            return {"available": False, "reason": "CLIP not loaded"}
+
+        try:
+            import io
+            img = PILImage.open(io.BytesIO(image_data)).convert('RGB')
+            img_tensor = preprocess(img).unsqueeze(0)
+
+            all_captions = [caption]
+            if negative_captions:
+                all_captions.extend(negative_captions)
+
+            text_tokens = tokenizer(all_captions)
+
+            with torch.no_grad():
+                image_features = model.encode_image(img_tensor)
+                text_features = model.encode_text(text_tokens)
+
+                image_features /= image_features.norm(dim=-1, keepdim=True)
+                text_features /= text_features.norm(dim=-1, keepdim=True)
+
+                similarities = (image_features @ text_features.T).squeeze(0)
+
+            sim_values = similarities.tolist()
+            if isinstance(sim_values, float):
+                sim_values = [sim_values]
+
+            # Softmax for ranking
+            exp_sims = [math.exp(s * 100) for s in sim_values]  # Temperature scaling
+            total = sum(exp_sims)
+            probs = [e / total for e in exp_sims]
+
+            return {
+                "available": True,
+                "caption_similarity": round(sim_values[0], 4),
+                "caption_probability": round(probs[0], 4),
+                "rank": 1 + sum(1 for s in sim_values[1:] if s > sim_values[0]),
+                "all_similarities": {c: round(s, 4) for c, s in zip(all_captions, sim_values)},
+            }
+        except Exception as e:
+            return {"available": True, "error": str(e)}
+
     def get_status(self) -> Dict[str, Any]:
         return {
             "version": VERSION,
             "pil_available": _HAS_PIL,
             "numpy_available": _HAS_NUMPY,
-            "clip_available": False,  # Placeholder for future
+            "clip_available": _HAS_CLIP,
+            "clip_loaded": _CLIP_MODEL is not None,
             "capabilities": [
                 "metadata_extraction",
                 "color_analysis" if _HAS_PIL and _HAS_NUMPY else None,
                 "manipulation_detection",
                 "caption_verification",
                 "visual_claim_extraction",
+                "clip_similarity" if _HAS_CLIP else None,
             ],
         }
 

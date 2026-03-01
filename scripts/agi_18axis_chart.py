@@ -40,12 +40,13 @@ previous = [
 # After full multimodal engine implementation:
 # Phase 1: CodeGen(+20), Multilingual(+23), LongContext(+10), MathProof(+8)
 # Phase 2: ImageUnderstanding(+35), AudioProcessing(+40), VideoUnderstanding(+40)
-# Image: metadata extraction, color analysis, manipulation detection, caption verification
-# Audio: WAV/MP3 parsing, spectral analysis, VAD, splice detection, transcript verification
-# Video: MP4/AVI parsing, scene detection, temporal consistency, deepfake risk assessment
+# Phase 3: CLIP integration (image +27), Whisper integration (audio +25, video +15)
+# Image: + CLIP caption verification (ViT-B-32 embedding similarity)
+# Audio: + Whisper transcription + transcript verification
+# Video: + Whisper(audio) + CLIP(keyframes) combined
 current = [
     96, 96, 96, 96, 96, 96, 96, 96, 96, 96,
-    65, 55, 50, 85, 88, 78, 85, 85,
+    92, 80, 65, 92, 88, 80, 88, 88,
 ]
 
 # Calculate
@@ -105,7 +106,8 @@ summary = (
     f"新規8軸:  {sum(multi_8)}/{sum(iags[10:])} (平均{sum(multi_8)/8:.0f}%) | vs Q*: {sum(1 for m,q in zip(multi_8,q_star[10:]) if m>=q)}勝{sum(1 for m,q in zip(multi_8,q_star[10:]) if m<q)}敗\n"
     f"全18軸:   {curr_total}/{iags_total} (平均{curr_total/18:.0f}%) | vs Q*: {curr_wins}勝{18-curr_wins}敗\n"
     f"\n前回比: +{curr_total-prev_total}点\n"
-    f"Python: 181モジュール | Rust: 2,584行"
+    f"Python: 181モジュール | Rust: 2,584行\n"
+    f"CLIP: ViT-B-32 | Whisper: base"
 )
 ax1.text(0.02, 0.98, summary, transform=ax1.transAxes,
          fontsize=9, verticalalignment='top',

@@ -40,6 +40,25 @@ try:
 except ImportError:
     _HAS_NUMPY = False
 
+try:
+    import whisper as openai_whisper
+    _HAS_WHISPER = True
+except ImportError:
+    _HAS_WHISPER = False
+
+# Singleton Whisper model cache
+_WHISPER_MODEL = None
+
+def _get_whisper(model_size: str = "base"):
+    """Lazy-load Whisper model (singleton)."""
+    global _WHISPER_MODEL
+    if _WHISPER_MODEL is None and _HAS_WHISPER:
+        try:
+            _WHISPER_MODEL = openai_whisper.load_model(model_size)
+        except Exception:
+            pass
+    return _WHISPER_MODEL
+
 
 # ═══════════════════════════════════════════════════════════════════════════
 # Constants
@@ -565,17 +584,101 @@ class AudioProcessingEngine:
             "duration": audio_meta.duration_seconds,
         }
 
+    def transcribe(
+        self,
+        audio_path: str,
+        language: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """Transcribe audio to text using Whisper.
+
+        Args:
+            audio_path: Path to audio file.
+            language: Optional language code (e.g., 'en', 'ja').
+
+        Returns:
+            Dict with text, language, segments.
+        """
+        model = _get_whisper()
+        if model is None:
+            return {"available": False, "reason": "Whisper not loaded"}
+
+        try:
+            options = {}
+            if language:
+                options["language"] = language
+
+            result = model.transcribe(audio_path, **options)
+
+            segments = []
+            for seg in result.get("segments", []):
+                segments.append({
+                    "start": round(seg["start"], 2),
+                    "end": round(seg["end"], 2),
+                    "text": seg["text"].strip(),
+                })
+
+            return {
+                "available": True,
+                "text": result["text"].strip(),
+                "language": result.get("language", "unknown"),
+                "segments": segments,
+                "segment_count": len(segments),
+            }
+        except Exception as e:
+            return {"available": True, "error": str(e)}
+
+    def verify_with_transcript(
+        self,
+        audio_path: str,
+        claimed_text: str,
+        language: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """Verify a claimed transcript against actual audio content.
+
+        Transcribes the audio with Whisper and compares to the claimed text.
+        """
+        transcript = self.transcribe(audio_path, language)
+        if not transcript.get("available") or "error" in transcript:
+            return {"verified": False, "reason": transcript.get("reason", transcript.get("error", "unknown"))}
+
+        actual_text = transcript["text"].lower()
+        claimed_lower = claimed_text.lower()
+
+        # Word overlap
+        actual_words = set(actual_text.split())
+        claimed_words = set(claimed_lower.split())
+        if actual_words or claimed_words:
+            overlap = len(actual_words & claimed_words)
+            total = len(actual_words | claimed_words)
+            similarity = overlap / max(total, 1)
+        else:
+            similarity = 0.0
+
+        verified = similarity >= 0.5
+
+        return {
+            "verified": verified,
+            "similarity": round(similarity, 4),
+            "actual_text": transcript["text"][:200],
+            "claimed_text": claimed_text[:200],
+            "language": transcript["language"],
+            "word_overlap": overlap if (actual_words or claimed_words) else 0,
+        }
+
     def get_status(self) -> Dict[str, Any]:
         return {
             "version": VERSION,
             "numpy_available": _HAS_NUMPY,
-            "whisper_available": False,
+            "whisper_available": _HAS_WHISPER,
+            "whisper_loaded": _WHISPER_MODEL is not None,
             "capabilities": [
                 "wav_mp3_parsing",
                 "spectral_analysis" if _HAS_NUMPY else None,
                 "voice_activity_detection" if _HAS_NUMPY else None,
                 "manipulation_detection" if _HAS_NUMPY else None,
                 "transcript_plausibility",
+                "whisper_transcription" if _HAS_WHISPER else None,
+                "transcript_verification" if _HAS_WHISPER else None,
             ],
         }
 
