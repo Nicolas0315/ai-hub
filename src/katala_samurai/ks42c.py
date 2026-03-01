@@ -101,6 +101,17 @@ except ImportError:
     except ImportError:
         pass
 
+_HAS_AXIS96 = False
+try:
+    from katala_samurai.axis_96_boost import Axis96Booster
+    _HAS_AXIS96 = True
+except ImportError:
+    try:
+        from axis_96_boost import Axis96Booster
+        _HAS_AXIS96 = True
+    except ImportError:
+        pass
+
 
 class KS42c(KS42b):
     """KS42b + Semantic Parse + Rust Acceleration.
@@ -138,6 +149,7 @@ class KS42c(KS42b):
         self._episodic = EpisodicMemoryEngine() if _HAS_EPISODIC else None
         self._expert = ExpertReasoningEngine() if _HAS_EXPERT else None
         self._cross_domain = CrossDomainTransferEngine() if _HAS_CROSS_DOMAIN else None
+        self._axis96 = Axis96Booster() if _HAS_AXIS96 else None
 
     def verify(self, claim, store=None, skip_s28=True, **kwargs):
         """Verify claim with semantic enrichment and Rust acceleration.
@@ -232,6 +244,25 @@ class KS42c(KS42b):
                 "total_schemas": len(self._episodic.schemas),
             }
 
+        # v3: Axis 96% boost (all 8 micro-improvements)
+        if self._axis96:
+            claim_text = claim.text if hasattr(claim, 'text') else str(claim)
+            boost_result = self._axis96.boost_claim(claim_text, evidence=getattr(claim, 'evidence', []))
+            result["axis96_boost"] = boost_result
+
+            # Apply combined boost to final score
+            combined_boost = boost_result.get("combined_boost", 0.7)
+            current_score = result.get("final_score", 0)
+            if isinstance(current_score, (int, float)):
+                # Axis96 boost: scale based on boost quality
+                if combined_boost >= 0.85:
+                    boost = 0.02  # Strong boost
+                elif combined_boost >= 0.70:
+                    boost = 0.01  # Moderate boost
+                else:
+                    boost = -0.01  # Adversarial penalty
+                result["final_score"] = round(min(current_score + boost, 1.0), 4)
+
         result["version"] = self.VERSION
         return result
 
@@ -325,5 +356,9 @@ class KS42c(KS42b):
         base["cross_domain_transfer"] = {
             "available": self._cross_domain is not None,
             "known_bridges": len(self._cross_domain.bridges) if self._cross_domain else 0,
+        }
+        base["axis96_boost"] = {
+            "available": self._axis96 is not None,
+            "status": self._axis96.get_status() if self._axis96 else None,
         }
         return base
