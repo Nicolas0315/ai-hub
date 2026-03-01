@@ -50,6 +50,12 @@ try:
 except ImportError:
     _HAS_ROUTER = False
 
+try:
+    from katala_samurai.ks40b import KS40b
+    _HAS_KS40B = True
+except ImportError:
+    _HAS_KS40B = False
+
 # ═══════════════════════════════════════════════
 # Constants — Discriminative grading
 # ═══════════════════════════════════════════════
@@ -119,8 +125,22 @@ SCORE_PRECISION = 4
 # ═══════════════════════════════════════════════
 
 @dataclass(slots=True)
+class KS40bCrossCheck:
+    """KS40b cross-verification results."""
+    translation_fidelity: float       # KS40b's independent fidelity score
+    ks_r_struct: float
+    ks_r_context: float
+    ks_r_qualia: float
+    designer_dependency: float        # How much KCS relies on designer judgment
+    fusion_risk: float                # Self-other boundary confusion risk
+    fusion_assessment: str            # "CLEAR" | "PARTIAL" | "FUSED"
+    measurement_reliability: float    # KS40b's confidence in KCS's measurements
+    agreement: float                  # KCS-1b vs KS40b score agreement (0=disagree, 1=agree)
+
+
+@dataclass(slots=True)
 class EnhancedVerdict:
-    """KCS-1b enhanced verdict with reverse inference and routing."""
+    """KCS-1b enhanced verdict with reverse inference, routing, and KS40b cross-check."""
     # Forward verification (KCS-1a style)
     forward: CodeVerdict
 
@@ -130,6 +150,9 @@ class EnhancedVerdict:
     # Router efficiency (if enabled)
     router_activated: int
     router_savings: float
+
+    # KS40b cross-verification (independent check)
+    ks40b_check: KS40bCrossCheck | None
 
     # Combined grade (may differ from forward.grade due to penalties)
     final_grade: str
@@ -788,6 +811,47 @@ class KCS1b:
             except Exception:
                 pass
 
+        # ── KS40b cross-verification ──
+        ks40b_check = None
+        if _HAS_KS40B:
+            try:
+                ks = KS40b()
+                ks_result = ks.verify(claim=design, evidence=[code[:3000]])
+                tl = ks_result.get("translation_loss", {})
+                lv = tl.get("loss_vector", {})
+                sob = ks_result.get("self_other_boundary", {})
+                mr = tl.get("measurement_reliability", {})
+
+                ks_fidelity = tl.get("translation_fidelity", 0.5)
+                # Agreement: how close KCS-1b and KS40b scores are
+                agreement = 1.0 - abs(total - ks_fidelity)
+
+                ks40b_check = KS40bCrossCheck(
+                    translation_fidelity=round(ks_fidelity, SCORE_PRECISION),
+                    ks_r_struct=round(lv.get("r_struct", 0.5), SCORE_PRECISION),
+                    ks_r_context=round(lv.get("r_context", 0.5), SCORE_PRECISION),
+                    ks_r_qualia=round(lv.get("r_qualia", 0.5), SCORE_PRECISION),
+                    designer_dependency=round(
+                        sob.get("attribution", {}).get("designer_dependency", 0.5),
+                        SCORE_PRECISION),
+                    fusion_risk=round(
+                        sob.get("fusion", {}).get("fusion_risk", 0.5),
+                        SCORE_PRECISION),
+                    fusion_assessment=sob.get("fusion", {}).get("assessment", "UNKNOWN"),
+                    measurement_reliability=round(
+                        mr.get("score", 0.5), SCORE_PRECISION),
+                    agreement=round(agreement, SCORE_PRECISION),
+                )
+
+                # If KS40b disagrees strongly, add penalty
+                if agreement < 0.7:
+                    penalty_log.append(
+                        f"KS40b disagreement: KCS={total:.0%} vs KS40b={ks_fidelity:.0%} "
+                        f"(agreement={agreement:.0%})"
+                    )
+            except Exception:
+                pass
+
         # ── Bidirectional gaps ──
         fwd_gaps, rev_gaps = _bidirectional_gaps(design, code, reverse)
 
@@ -805,6 +869,7 @@ class KCS1b:
             reverse=reverse,
             router_activated=router_activated,
             router_savings=router_savings,
+            ks40b_check=ks40b_check,
             final_grade=grade,
             penalty_log=penalty_log,
             design_to_code_gaps=fwd_gaps,
@@ -838,6 +903,16 @@ class KCS1b:
         if v.router_activated:
             lines.append(f"║")
             lines.append(f"║ 🔀 Router: {v.router_activated} solvers, {v.router_savings:.0%} savings")
+
+        if v.ks40b_check:
+            k = v.ks40b_check
+            lines.append(f"║")
+            lines.append(f"║ 🔍 KS40b Cross-Check:")
+            lines.append(f"║   Fidelity: {k.translation_fidelity:.0%} (agreement: {k.agreement:.0%})")
+            lines.append(f"║   Rs={k.ks_r_struct:.2f} Rc={k.ks_r_context:.2f} Rq={k.ks_r_qualia:.2f}")
+            lines.append(f"║   Designer dependency: {k.designer_dependency:.0%}")
+            lines.append(f"║   Self-Other: {k.fusion_assessment} (risk={k.fusion_risk:.1f})")
+            lines.append(f"║   Measurement reliability: {k.measurement_reliability:.0%}")
 
         all_issues = (
             [(i, "struct") for i in f.structural_issues] +
