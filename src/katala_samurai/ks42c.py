@@ -213,6 +213,17 @@ except ImportError:
     except ImportError:
         pass
 
+_HAS_EXCEEDS = False
+try:
+    from katala_samurai.exceeds_engine import ExceedsEngine
+    _HAS_EXCEEDS = True
+except ImportError:
+    try:
+        from exceeds_engine import ExceedsEngine
+        _HAS_EXCEEDS = True
+    except ImportError:
+        pass
+
 
 class KS42c(KS42b):
     """KS42b + Semantic Parse + Rust Acceleration.
@@ -261,6 +272,7 @@ class KS42c(KS42b):
         self._mm_input = MultimodalInputLayer() if _HAS_MULTIMODAL_INPUT else None
         self._mm_judge = ModalityJudge() if _HAS_MULTIMODAL_INPUT else None
         self._cross_modal = CrossModalSolverEngine() if _HAS_CROSS_MODAL_SOLVER else None
+        self._exceeds = ExceedsEngine() if _HAS_EXCEEDS else None
 
     def verify(self, claim, store=None, skip_s28=True, **kwargs):
         """Verify claim with semantic enrichment and Rust acceleration.
@@ -503,6 +515,10 @@ class KS42c(KS42b):
             "cross_modal_solver": {
                 "available": self._cross_modal is not None,
                 "status": self._cross_modal.get_status() if self._cross_modal else None,
+            },
+            "exceeds_engine": {
+                "available": self._exceeds is not None,
+                "status": self._exceeds.get_status() if self._exceeds else None,
             },
         }
         return base
