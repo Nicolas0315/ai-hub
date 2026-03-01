@@ -31,16 +31,41 @@ except ImportError:
 
 from typing import Dict, Any
 
+# ══ Named Constants (KCS R_qualia/R_cultural upgrade) ══
+VERIFIED_THRESHOLD: float = 0.65       # Confidence threshold for VERIFIED verdict
+UNVERIFIED_THRESHOLD: float = 0.35     # Confidence threshold for UNVERIFIED verdict
+PLANNER_MATRIX_CONF: float = 0.8       # Confidence for designer planner matrix
+PLANNER_STRATEGY_CONF: float = 0.7     # Confidence for designer strategy selection
+SURPRISE_CUTOFF: float = 0.15          # Friston surprise threshold
+ANTI_ACCUMULATION_CONF: float = 1.0    # Anti-accumulation principle confidence (axiomatic)
+DEFAULT_CONF: float = 0.5              # Default confidence
+
 
 class KS39b(KS39a):
     """KS39a + Self-Other Boundary tracking."""
 
     VERSION = "KS39b"
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
 
     def verify(self, claim, store=None, skip_s28=True, **kwargs):
+        """Verify claim with Self-Other Boundary provenance tracking.
+
+        Tracks the origin of each judgment component:
+            SELF: KS solver computations
+            DESIGNER: Youta's hardcoded thresholds/matrices
+            EXTERNAL: LLM APIs, knowledge bases
+            AMBIGUOUS: Mixed-origin components
+
+        Args:
+            claim: Claim object or text string.
+            store: Optional StageStore for intermediate results.
+            skip_s28: Skip S28 solver (default True).
+
+        Returns:
+            dict with verification result + self_other_boundary analysis.
+        """
         if store is None:
             store = StageStore()
 
@@ -82,26 +107,26 @@ class KS39b(KS39a):
 
         # 3) Designer-embedded decisions (DESIGNER)
         # These are Youta's choices hardcoded into the system
-        boundary.register("threshold_0.65", Origin.DESIGNER, 0.65,
+        boundary.register("threshold_verified", Origin.DESIGNER, VERIFIED_THRESHOLD,
                           "VERIFIED threshold", "verdict_thresholds")
-        boundary.register("threshold_0.35", Origin.DESIGNER, 0.35,
+        boundary.register("threshold_unverified", Origin.DESIGNER, UNVERIFIED_THRESHOLD,
                           "UNVERIFIED threshold", "verdict_thresholds")
 
         plan = result.get("plan", {})
         if plan:
-            boundary.register("planner_matrix", Origin.DESIGNER, 0.8,
+            boundary.register("planner_matrix", Origin.DESIGNER, PLANNER_MATRIX_CONF,
                               "7x7 effectiveness matrix", "type_effectiveness_matrix")
-            boundary.register("planner_strategy", Origin.DESIGNER, 0.7,
+            boundary.register("planner_strategy", Origin.DESIGNER, PLANNER_STRATEGY_CONF,
                               "strategy selection rules", "strategy_repertoire")
 
         # Predictive coding thresholds
         pred = result.get("prediction", {})
         if pred:
-            boundary.register("surprise_threshold", Origin.DESIGNER, 0.15,
+            boundary.register("surprise_threshold", Origin.DESIGNER, SURPRISE_CUTOFF,
                               "Friston surprise cutoff", "surprise_threshold")
 
         # Anti-accumulation principle
-        boundary.register("anti_accumulation", Origin.DESIGNER, 1.0,
+        boundary.register("anti_accumulation", Origin.DESIGNER, ANTI_ACCUMULATION_CONF,
                           "蓄積しない設計原則", "anti_accumulation")
 
         # 4) Claim-type patterns (DESIGNER — Youta chose the regex patterns)

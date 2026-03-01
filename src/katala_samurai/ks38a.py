@@ -33,18 +33,44 @@ except ImportError:
 from typing import Dict, Any, Optional
 from metacognitive_planner import plan_verification
 
+# ══ Named Constants (KCS R_qualia upgrade) ══
+PREDICTION_BLEND_ORIGINAL: float = 0.7      # Weight for original confidence
+PREDICTION_BLEND_INHIBITED: float = 0.3     # Weight for laterally-inhibited confidence
+NOVELTY_PRECISION_DIVISOR: float = 100.0    # Prediction precision normalization
+DEFAULT_CONFIDENCE: float = 0.5             # Default confidence when unset
+PREDICTION_ERROR_INIT: float = 0.0          # Pre-verification prediction error
+REASON_SNIPPET_MAX: int = 200               # Max chars for reason text snippets
+
 
 class KS38a(KS37b):
     """KS37b + Neuroscience-Inspired Architecture."""
     
     VERSION = "KS38a"
     
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
         self.predictor = PredictiveEngine()
         self.neuromod = Neuromodulator()
     
     def verify(self, claim, store=None, skip_s28=True, **kwargs):
+        """Verify claim with neuroscience-inspired processing pipeline.
+
+        Pipeline:
+            1. Plan verification strategy
+            2. Predictive coding: predict outcome before verification
+            3. Core verification (KS37b)
+            4. Lateral inhibition: sharpen solver signals
+            5. Space of reasons: check inter-solver coherence
+            6. Neuromodulation: adjust confidence based on novelty/surprise
+
+        Args:
+            claim: Claim object or text string.
+            store: Optional StageStore for intermediate results.
+            skip_s28: Skip S28 solver (default True).
+
+        Returns:
+            dict with verification result + neuroscience layer annotations.
+        """
         if store is None:
             store = StageStore()
         
@@ -61,10 +87,10 @@ class KS38a(KS37b):
         
         # ═══ ③ NEUROMODULATION: set global sensitivity ═══
         # Novelty = inverse of prediction precision (less precise = more novel)
-        novelty = max(0, min(1, 1.0 - prediction["precision"] / 100))
+        novelty = max(0, min(1, 1.0 - prediction["precision"] / NOVELTY_PRECISION_DIVISOR))
         modulation = self.neuromod.modulate(
             claim_type, difficulty,
-            prediction_error=0,  # Pre-verify, use 0
+            prediction_error=PREDICTION_ERROR_INIT,  # Pre-verify, use 0
             novelty=novelty,
         )
         
@@ -79,7 +105,7 @@ class KS38a(KS37b):
         
         t_core = time.time()
         
-        actual_conf = result.get("confidence", 0.5)
+        actual_conf = result.get("confidence", DEFAULT_CONFIDENCE)
         actual_verdict = result.get("verdict", "UNKNOWN")
         
         # ═══ ① PREDICTION ERROR: how surprised are we? ═══
@@ -94,7 +120,7 @@ class KS38a(KS37b):
         for step in result.get("trace", []):
             solver_results.append({
                 "solver": step.get("stage", step.get("layer", "?")),
-                "confidence": step.get("confidence", 0.5),
+                "confidence": step.get("confidence", DEFAULT_CONFIDENCE),
                 "verdict": str(step.get("result", step.get("verdict", ""))),
                 "reason": str(step.get("detail", step.get("reason", "")))[:200],
             })
@@ -105,10 +131,10 @@ class KS38a(KS37b):
             
             # Recalculate confidence from inhibited results
             if inhibited:
-                inhibited_confs = [r.get("confidence", 0.5) for r in inhibited]
+                inhibited_confs = [r.get("confidence", DEFAULT_CONFIDENCE) for r in inhibited]
                 inhibited_mean = sum(inhibited_confs) / len(inhibited_confs)
                 # Blend: 70% original + 30% inhibited
-                actual_conf = actual_conf * 0.7 + inhibited_mean * 0.3
+                actual_conf = actual_conf * PREDICTION_BLEND_ORIGINAL + inhibited_mean * PREDICTION_BLEND_INHIBITED
         else:
             sharpness = {"sharpness": 0, "inhibited_count": 0, "signal_clarity": "N/A"}
         
@@ -118,7 +144,7 @@ class KS38a(KS37b):
             reason_space.register(
                 solver_id=step.get("stage", step.get("layer", "?")),
                 reason=str(step.get("detail", step.get("reason", "")))[:200],
-                confidence=step.get("confidence", 0.5),
+                confidence=step.get("confidence", DEFAULT_CONFIDENCE),
                 verdict=str(step.get("result", step.get("verdict", ""))),
             )
         coherence = reason_space.analyze_coherence()

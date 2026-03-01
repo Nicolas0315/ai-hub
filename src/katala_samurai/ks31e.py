@@ -83,6 +83,23 @@ except ImportError:
 
 # ─── Layer Definitions ──────────────────────────────────────────────────────
 
+
+# ══ Named Constants (KCS R_qualia upgrade) ══
+MAX_CYCLES: int = 2                          # Bounded rationality: max verification cycles
+MAX_SOLVER_COUNT: int = 28                   # S01-S28 solver count
+VERIFIED_THRESHOLD: float = 0.65             # Confidence threshold for VERIFIED
+EXPLORING_THRESHOLD: float = 0.35            # Confidence threshold for EXPLORING
+ANTI_ACCUMULATION_DECAY: float = 0.95        # Per-cycle confidence decay factor
+CAUSAL_WEIGHT: float = 0.15                  # Weight of causal analysis in final score
+TEMPORAL_WEIGHT: float = 0.10                # Weight of temporal context in final score
+SEMANTIC_ENRICHMENT_WEIGHT: float = 0.20     # Weight of semantic enrichment in score
+BASE_VERIFICATION_WEIGHT: float = 0.55       # Weight of base L1 verification
+MINIMUM_CONFIDENCE: float = 0.0              # Floor for confidence clipping
+MAXIMUM_CONFIDENCE: float = 1.0              # Ceiling for confidence clipping
+ENRICHMENT_BOOST_THRESHOLD: float = 0.1      # Minimum enrichment delta for boosting
+CYCLE_IMPROVEMENT_THRESHOLD: float = 0.02    # Minimum improvement to continue cycling
+
+
 class Layer1:
     """S01-S28 verification engine. The axis of KS31e."""
 
@@ -288,14 +305,32 @@ class KS31e:
 
     VERSION = "KS31e"
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.l1 = Layer1()
         self.l2 = Layer2()
         self.l3 = Layer3()
         self.l5 = Layer5()
 
     def verify(self, claim, store=None, skip_s28=True):
-        """Run semantic-augmented cyclic verification."""
+        """Run semantic-augmented cyclic verification.
+
+        Pipeline (max MAX_CYCLES rounds):
+            R0: L5 semantic extraction + temporal context
+            R1: L1 (S01-S28) → L3 decompose → L2 analyze → L3 synthesize
+            R2: Re-verify if improvement above CYCLE_IMPROVEMENT_THRESHOLD
+            Final: Combine verdicts with anti-accumulation decay
+
+        Anti-accumulation principle: confidence must not increase unboundedly
+        through cycles. ANTI_ACCUMULATION_DECAY ensures monotonic decrease.
+
+        Args:
+            claim: Claim object with .text and .evidence attributes.
+            store: Optional StageStore for intermediate results.
+            skip_s28: Skip S28 solver (default True).
+
+        Returns:
+            dict with verdict, confidence, trace, and layer analyses.
+        """
         t0 = time.time()
         trace = []
 
