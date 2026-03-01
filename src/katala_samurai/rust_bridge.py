@@ -24,8 +24,8 @@ def classify_claim(text: str) -> Dict[str, float]:
     if RUST_AVAILABLE:
         return _rust.classify_claim(text)
     # Python fallback (import lazily)
-    from metacognitive_planner import _classify_type
-    return _classify_type(text)
+    from metacognitive_planner import classify_claim as _classify
+    return _classify(text)
 
 
 # ── Bootstrap Confidence ──
