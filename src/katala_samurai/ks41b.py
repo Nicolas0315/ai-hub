@@ -60,6 +60,15 @@ PROJECT_PHASES = [
     "release",      # Stabilization, docs
 ]
 
+# Music production phases (parallel to PROJECT_PHASES for audio domain)
+MUSIC_PHASES = [
+    "compose",      # Melody, harmony, song structure ideation
+    "arrange",      # Orchestration, instrumentation, layering
+    "produce",      # Sound design, synthesis, recording
+    "mix",          # Balance, EQ, compression, spatial positioning
+    "master",       # Final loudness, stereo width, format delivery
+]
+
 # Impact multipliers per project phase
 _PHASE_PRIORITY_BOOST: dict[str, dict[str, float]] = {
     "design":    {"R_struct": 1.5, "R_context": 1.8, "R_temporal": 1.2, "R_qualia": 0.8, "R_cultural": 1.0},
@@ -67,6 +76,13 @@ _PHASE_PRIORITY_BOOST: dict[str, dict[str, float]] = {
     "test":      {"R_struct": 0.8, "R_context": 0.8, "R_qualia": 1.0, "R_cultural": 1.2, "R_temporal": 1.8},
     "refactor":  {"R_struct": 1.5, "R_context": 1.0, "R_qualia": 1.5, "R_cultural": 1.3, "R_temporal": 1.5},
     "release":   {"R_struct": 0.8, "R_context": 1.5, "R_qualia": 1.2, "R_cultural": 1.0, "R_temporal": 1.3},
+    # Music phases — R_qualia maps to timbral/perceptual quality,
+    # R_cultural maps to genre/style adherence
+    "compose":   {"R_struct": 1.8, "R_context": 1.5, "R_temporal": 1.0, "R_qualia": 0.8, "R_cultural": 1.3},
+    "arrange":   {"R_struct": 1.3, "R_context": 1.2, "R_temporal": 0.8, "R_qualia": 1.5, "R_cultural": 1.8},
+    "produce":   {"R_struct": 0.8, "R_context": 0.8, "R_temporal": 1.0, "R_qualia": 1.8, "R_cultural": 1.5},
+    "mix":       {"R_struct": 0.8, "R_context": 0.8, "R_temporal": 1.5, "R_qualia": 1.8, "R_cultural": 1.0},
+    "master":    {"R_struct": 0.5, "R_context": 1.0, "R_temporal": 1.8, "R_qualia": 1.5, "R_cultural": 1.0},
 }
 
 DECOMPOSITION_THRESHOLD = 50  # Characters in goal description → decompose if longer
