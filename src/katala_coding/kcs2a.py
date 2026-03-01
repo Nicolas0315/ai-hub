@@ -105,6 +105,37 @@ _FRAMEWORK_SIGNATURES: dict[str, list[str]] = {
         "entropy", "mutual information", "channel capacity", "shannon",
         "bits", "compression",
     ],
+    # ── Music Domain Frameworks (KS30b+) ──
+    "harmonic_analysis": [
+        "chroma", "chord", "key_estimate", "harmony", "tonal",
+        "major", "minor", "detected_chords", "chroma_profile",
+        "key_concepts", "dominant", "seventh", "progression",
+    ],
+    "spectral_processing": [
+        "spectrogram", "fft", "stft", "griffin", "phase",
+        "spectral_centroid", "n_fft", "hop_length", "magnitude",
+        "frequency", "librosa", "mel", "mfcc",
+    ],
+    "spatial_audio": [
+        "stereo", "panning", "surround", "positioning",
+        "channel", "mono", "binaural", "spatial",
+        "left", "right", "center",
+    ],
+    "rhythmic_structure": [
+        "bpm", "tempo", "beat", "grid", "onset",
+        "beat_track", "onset_strength", "rhythm",
+        "syncopation", "meter", "time_signature",
+    ],
+    "music_generation": [
+        "patch", "song_structure", "verse", "chorus", "bridge",
+        "intro", "outro", "loop", "arrangement", "orchestration",
+        "synthesis", "waveform", "audio_path",
+    ],
+    "psychoacoustics": [
+        "loudness", "masking", "critical band", "perception",
+        "timbre", "roughness", "dissonance", "consonance",
+        "auditory", "hearing", "fletcher",
+    ],
 }
 
 
@@ -376,6 +407,13 @@ def _generate_goals(
         "kuhn_paradigm": "temporal_loss",
         "behaviorism": "qualia_engine",
         "holographic": "htlf",
+        # Music domain: framework → expected module/concept
+        "harmonic_analysis": "harmonic_structure",
+        "spectral_processing": "spectrogram",
+        "spatial_audio": "stereo",
+        "rhythmic_structure": "beat_grid",
+        "music_generation": "song_structure",
+        "psychoacoustics": "perceptual_model",
     }
     for fw in intent.theoretical_frameworks:
         expected_module = known_framework_modules.get(fw)
