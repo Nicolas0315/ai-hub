@@ -70,13 +70,22 @@ Respond in EXACTLY this JSON format (no markdown):
 def _call_llm(prompt, timeout=15):
     """Call available LLM for semantic extraction. Non-judging use only.
 
-    Priority: Ollama (local) → Gemini → OpenAI.
+    Priority: Ollama (local, fast probe) → Gemini → OpenAI.
     Ollama is preferred because it's free, fast, and local.
     """
-    # --- Ollama (local LLM) ---
+    # --- Ollama (local LLM) — quick probe first ---
     ollama_url = os.environ.get("OLLAMA_URL", "http://localhost:11434")
     ollama_model = os.environ.get("OLLAMA_MODEL", "qwen3:8b")
     try:
+        # Fast liveness check (2s) before committing to full request
+        import socket
+        from urllib.parse import urlparse
+        parsed = urlparse(ollama_url)
+        host = parsed.hostname or "localhost"
+        port = parsed.port or 11434
+        sock = socket.create_connection((host, port), timeout=2)
+        sock.close()
+
         payload = json.dumps({
             "model": ollama_model,
             "prompt": prompt + "\n/no_think",
