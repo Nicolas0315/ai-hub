@@ -132,8 +132,34 @@ Youta Hilono の認知モデル（本人による記述）:
 - 知識基盤: 認知心理学、分析哲学、パラダイム論、数理哲学、数学基礎論、論理学、非ユークリッド幾何学、物理学（ホログラフィック原理〜M理論）、作曲（専門領域）、3Dモデル、抽象絵画、彫刻、SF映画
 - このベン図ネットワーク構造がKS29Bの21ソルバー設計に反映されている
 
+## R_context Interpretation Selector（2026-03-01追加）
+
+**Origin**: #dev-katala-law（Youta Hilono の洞察）
+
+同一テキストに対するR_contextが時代・解釈体系によって異なる値を取る問題への対応。法律テキストで顕著だが、聖書解釈・憲法解釈・古典文学の再読など自然言語レイヤー全般に適用可能。
+
+### メカニズム
+
+```
+テキスト T（不変）
+  × 解釈体系 I_α（R_context = x_α）
+  × 解釈体系 I_β（R_context = x_β）
+  → current_context_selector: I_β（外部注入）
+```
+
+- R_contextの定義自体は不変
+- 「どの解釈体系が現在有効か」を外部から選択する機構を追加
+- 複数の解釈体系が並存する状態を自然にモデル化
+- current_context_selectorのソース: 最新判例、法改正、学術的コンセンサス更新等
+
+### レイヤー間翻訳マトリクスへの影響
+
+法律テキストの翻訳では、R_contextが翻訳段階ごとに**増減する**（判例蓄積で文脈が事後充填される）。これは音楽・コードでは発生しないパターン。Interpretation Selectorにより、この現象を「異なる解釈体系のR_context比較」として統一的に扱える。
+
 ## 関連ドキュメント
 
 - `docs/PHILOSOPHY.md` — Katala全体の思想と哲学
 - `docs/KATALA_SAMURAI_29.md` — KS29B設計詳細
 - `docs/EVOLUTION_AND_TRUST.md` — 信頼性進化の設計思想
+- `docs/KATALA_SAMURAI_40.md` Section 11 — 法律ドメイン拡張（Interpretation Selector詳細設計）
+- `docs/KCS.md` Section 8 — KCSへの法律ドメイン適用

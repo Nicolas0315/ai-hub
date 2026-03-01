@@ -84,15 +84,65 @@ KCS → Grade改善確認
 | 著者の死 | Barthes | コードの「意図」は書き手が決めるのではなく読み手（実行環境・保守者）が再構成する |
 | 無矛盾公理系のモジュール構成 | Hilbert/Gödel | 各測定軸を独立公理系として構成→自己参照パラドックス回避 |
 
-## 8. Version History
+## 8. Legal Domain Extensibility
+
+**Date**: 2026-03-01  
+**Origin**: #dev-katala-law（Nicolas × Youta × Shirokuma）
+
+### 8.1 KCSと法律の翻訳構造
+
+KCSは「設計意図→コード」の翻訳損失を測るが、法律には構造的に類似した翻訳チェーンが存在する:
+
+```
+立法意図 → 条文テキスト → 学説・判例 → 具体的事案適用
+```
+
+KCSの5軸は法律テキストの翻訳損失測定にそのまま再解釈可能:
+
+| Axis | KCS (Code) | Legal Reinterpretation |
+|------|-----------|----------------------|
+| R_struct | 設計意図→コード構造対応度 | 立法意図→条文の論理構造保存度 |
+| R_context | 哲学的背景のdocstring保存度 | 立法経緯・議事録の参照可能性 |
+| R_qualia | API使い心地・命名・可読性 | 条文の「正義感」「保護したかったもの」の保存度 |
+| R_cultural | チーム規約・プロジェクト慣習準拠 | 法体系の慣習（大陸法/英米法）への準拠度 |
+| R_temporal | 将来の進化に対する生存性 | 条文の将来事案への適用可能性 + **Interpretation Selector**（後述） |
+
+### 8.2 R_context Interpretation Selector
+
+Youta の洞察により、法律で特有の「遡及的文脈充填」（判例が条文の意味を事後的に書き換える現象）は、R_contextにタイムスタンプ付き解釈体系セレクタを追加することで吸収できる:
+
+```
+条文テキスト T（不変）
+  × 解釈体系 I_1950（R_context = 0.70）
+  × 解釈体系 I_2026（R_context = 0.85）
+  → current_context_selector: I_2026
+```
+
+これはKCSにも適用可能: **同一コードベースの「設計意図」が、チームの入れ替わりや技術パラダイムの変化で事後的に再解釈される**問題と同構造。レガシーコード理解にもInterpretation Selectorが使える。
+
+### 8.3 法律固有の未解決問題
+
+以下2点が5軸で処理できない場合、HTLF ⑥法・制度レイヤーの独立化が必要になる:
+
+1. **強制力（Binding Force）**: 同じテキストでも「法律」と「学術論文」と「コード」では社会的効力が全く違う。5軸のどこにも「この記号列は人を拘束する」情報が乗らない
+2. **制度的矛盾管理**: 学説対立が「バグ」ではなく「機能」。スマートコントラクトにおけるR_qualiaの致命的損失（「正義」「公平」の質感を失ったコードが機械的に人を害する問題）もここに接続する
+
+### 8.4 KCSへの実装含意
+
+法律ドメインへの拡張はBアプローチ（③サブレイヤー）で開始。KCSの `kcs.self_verify()` に Interpretation Selector を追加することで、「同一コードの設計意図が時代ごとに再解釈される」問題にも対応可能になる。
+
+詳細設計: `docs/KATALA_SAMURAI_40.md` Section 11
+
+## 9. Version History
 
 | Version | Date | Changes |
 |---------|------|---------|
 | KCS-1a | 2026-03-01 | Initial: 5-axis code verification, self_verify(), Katala conventions |
+| KCS-2a | 2026-03-01 | Legal domain extensibility: Interpretation Selector, binding force / institutional contradiction as open problems |
 
-## 9. Related
+## 10. Related
 
-- **KS40c**: Parent framework (5-axis HTLF) → `docs/KATALA_SAMURAI_40.md`
+- **KS40c/d**: Parent framework (5-axis HTLF + Legal extension) → `docs/KATALA_SAMURAI_40.md`
 - **HTLF**: Holographic Translation Loss Framework → `docs/HTLF.md`
 - **Implementation**: `src/katala_coding/kcs1a.py`
 - **GitHub Issue**: #92
