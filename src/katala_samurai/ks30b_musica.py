@@ -186,6 +186,24 @@ class SpectralPatch:
     cnn_features: np.ndarray = None
 
 def extract_patches(audio_path, config=None):
+    """S3: Extract spectral patches from an audio file.
+
+    Loads audio, computes STFT, and slices the magnitude spectrogram
+    into fixed-size patches with chroma, energy, and chord labels.
+    Returns patches + the raw STFT for downstream use.
+
+    Parameters
+    ----------
+    audio_path : str
+        Path to audio file (wav/flac/mp3 via soundfile).
+    config : MusicaConfig, optional
+        Pipeline configuration.
+
+    Returns
+    -------
+    tuple[list[SpectralPatch], np.ndarray, int]
+        (patches, complex_stft, sample_rate)
+    """
     import librosa, soundfile as sf
     if config is None: config = MusicaConfig()
     y, sr = sf.read(audio_path)
@@ -220,6 +238,26 @@ def extract_patches(audio_path, config=None):
 # ═══ S3b: CNN Learned Features ═══
 
 def train_patch_autoencoder(patches, latent_dim=64, epochs=30):
+    """S3b: Train a CNN autoencoder on spectral patches.
+
+    Learns a latent representation (default 64-dim) for patch similarity.
+    Uses a contrastive loss term: patches with the same chord label are
+    pulled together, different labels are pushed apart.
+
+    Parameters
+    ----------
+    patches : list[SpectralPatch]
+        Extracted spectral patches with .data and .chord_label.
+    latent_dim : int
+        Latent space dimensionality (default 64).
+    epochs : int
+        Training epochs (default 30).
+
+    Returns
+    -------
+    nn.Module or None
+        Trained autoencoder, or None if torch unavailable.
+    """
     try:
         import torch, torch.nn as nn
     except ImportError:
@@ -260,6 +298,23 @@ def train_patch_autoencoder(patches, latent_dim=64, epochs=30):
 # ═══ S4: Patch Selection ═══
 
 def select_patches(patches, chord, energy, config=None, avoid_notes=None):
+    """S4: Select best-matching patches for a target chord and energy.
+
+    Scores patches by chord similarity (0.4), energy match (0.3),
+    and avoid-note penalty (0.3). Returns top 8 candidates.
+
+    Parameters
+    ----------
+    patches : list[SpectralPatch]
+        Candidate patches.
+    chord : str
+        Target chord label (e.g. 'Am', 'F').
+    energy : float
+        Target energy level.
+    config : MusicaConfig, optional
+    avoid_notes : list[str], optional
+        Notes to penalize (e.g. ['F'] for key of F#m).
+    """
     if config is None: config = MusicaConfig()
     cands = []
     for p in patches:
@@ -280,6 +335,28 @@ def select_patches(patches, chord, energy, config=None, avoid_notes=None):
 # ═══ S5: Griffin-Lim (shared-phase stereo) ═══
 
 def griffin_lim_shared(S_C, S_L=None, S_R=None, S_S=None, n_iter=200, hop=512):
+    """S5: Reconstruct audio from magnitude spectrograms using shared-phase Griffin-Lim.
+
+    Estimates phase from the center channel, then applies it to L/R/S
+    channels for stereo coherence. This avoids independent phase
+    estimation artifacts across channels.
+
+    Parameters
+    ----------
+    S_C : np.ndarray
+        Center channel magnitude spectrogram.
+    S_L, S_R, S_S : np.ndarray, optional
+        Left, Right, Surround magnitude spectrograms.
+    n_iter : int
+        Griffin-Lim iterations (default 200).
+    hop : int
+        Hop length (default 512).
+
+    Returns
+    -------
+    dict[str, np.ndarray]
+        Channel label → time-domain audio signal.
+    """
     import librosa
     y_c = librosa.griffinlim(S_C, n_iter=n_iter, hop_length=hop)
     phase = np.angle(librosa.stft(y_c, hop_length=hop))
@@ -293,6 +370,21 @@ def griffin_lim_shared(S_C, S_L=None, S_R=None, S_S=None, n_iter=200, hop=512):
 # ═══ S5b: Beat Grid Synthesis ═══
 
 def synth_beat_grid(n_frames, sr=22050, hop=512, bpm=78, n_fft=2048, amp=2.0):
+    """S5b: Synthesize a beat grid as a magnitude spectrogram overlay.
+
+    Creates kick-like energy at 80Hz on downbeats, snare-like energy
+    at 1600Hz on upbeats, and hi-hat shimmer at 6000Hz on all beats.
+    Added to the output spectrogram before Griffin-Lim reconstruction.
+
+    Parameters
+    ----------
+    n_frames : int
+        Number of STFT time frames.
+    sr, hop, bpm, n_fft : int
+        Audio parameters.
+    amp : float
+        Beat grid amplitude multiplier (default 2.0).
+    """
     fb = n_fft//2+1; grid = np.zeros((fb, n_frames))
     freqs = np.linspace(0, sr/2, fb)
     fpb = (60.0/bpm) * (sr/hop)
@@ -307,6 +399,20 @@ def synth_beat_grid(n_frames, sr=22050, hop=512, bpm=78, n_fft=2048, amp=2.0):
 # ═══ S6: Post-generation Analysis ═══
 
 def analyze_output(S_lrcs, config=None):
+    """S6: Post-generation quality analysis.
+
+    Evaluates the generated output on:
+    - Loop integrity: how well chord progression matches I-vi-ii-IV target
+    - Stereo correlation: L/R channel coherence (0-1)
+    - BPM accuracy: detected vs target tempo
+    - Spectral centroid: tonal brightness in Hz
+
+    Parameters
+    ----------
+    S_lrcs : dict[str, np.ndarray]
+        Channel label → complex STFT or time-domain audio.
+    config : MusicaConfig, optional
+    """
     import librosa
     if config is None: config = MusicaConfig()
     r = {}
@@ -337,6 +443,11 @@ def analyze_output(S_lrcs, config=None):
 # ═══ S7: Theory Reference (KS30b semantic) ═══
 
 def search_papers(harmonic, max_papers=3):
+    """S7: Search academic papers related to the harmonic structure.
+
+    Uses key_concepts from S2 to query OpenAlex for relevant
+    music theory / signal processing papers.
+    """
     from katala_samurai.paper_reference import _build_search_query_semantic, _query_openalex, _reconstruct_abstract, PaperReference
     from katala_samurai.ks29b import LogicalStructure
     ls = LogicalStructure()
@@ -371,6 +482,13 @@ SONG_STRUCTURE = [
 # ═══ Stereo Positioning ═══
 
 def position_stereo(S_mono, sr=22050):
+    """Position a mono spectrogram into L/R/C/S stereo channels.
+
+    Frequency-based panning:
+    - <200Hz → Center only (bass mono compatibility)
+    - 200-2000Hz → alternating L/R with center bleed (mid separation)
+    - >2000Hz → sinusoidal L/R spread + surround (air/width)
+    """
     fb = S_mono.shape[0]; freqs = np.linspace(0, sr/2, fb)
     L,R,C,Sd = (np.zeros_like(S_mono) for _ in range(4))
     for i,f in enumerate(freqs):
