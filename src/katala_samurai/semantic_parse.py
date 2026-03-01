@@ -243,7 +243,26 @@ def _call_gemini(prompt: str) -> Optional[Dict]:
 
 
 def _heuristic_extract(text: str) -> Dict:
-    """Heuristic fallback: split into sentences, detect basic relations."""
+    """Heuristic fallback: split into sentences, detect basic relations.
+
+    Rust-accelerated when available (ks_accel.heuristic_extract).
+    """
+    try:
+        import ks_accel
+        raw = ks_accel.heuristic_extract(text)
+        # Parse JSON strings back to Python objects
+        import json
+        return {
+            "propositions": json.loads(raw.get("propositions", "[]")),
+            "relations": json.loads(raw.get("relations", "[]")),
+            "entities": json.loads(raw.get("entities", "[]")),
+            "domain": raw.get("domain", "general"),
+            "negations": json.loads(raw.get("negations", "[]")),
+            "quantifiers": json.loads(raw.get("quantifiers", "{}")),
+            "confidence": float(raw.get("confidence", "0.5")),
+        }
+    except (ImportError, AttributeError):
+        pass
     sentences = re.split(r'(?<=[.!?])\s+', text.strip())
     sentences = [s.strip() for s in sentences if s.strip()]
 

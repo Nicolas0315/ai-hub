@@ -727,19 +727,20 @@ fn ks_accel(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(extract_features, m)?)?;
     m.add_function(wrap_pyfunction!(bootstrap_confidence, m)?)?;
     m.add_function(wrap_pyfunction!(check_coherence, m)?)?;
-    // New: reason_space
+    // reason_space
     m.add_function(wrap_pyfunction!(reason_space_analyze, m)?)?;
-    // New: neuromodulation
+    // neuromodulation
     m.add_function(wrap_pyfunction!(neuromodulate, m)?)?;
     m.add_function(wrap_pyfunction!(neuro_apply_confidence, m)?)?;
-    // New: predictive_coding
+    // predictive_coding
     m.add_function(wrap_pyfunction!(predictive_error, m)?)?;
     m.add_function(wrap_pyfunction!(predictive_update_precision, m)?)?;
-    // New: solver_cache
+    // solver_cache
     m.add_function(wrap_pyfunction!(cache_get, m)?)?;
     m.add_function(wrap_pyfunction!(cache_put, m)?)?;
     m.add_function(wrap_pyfunction!(cache_stats, m)?)?;
     m.add_function(wrap_pyfunction!(cache_clear, m)?)?;
+    // HTLF
     m.add_function(wrap_pyfunction!(compute_similarity_matrix, m)?)?;
     m.add_function(wrap_pyfunction!(greedy_bipartite_match, m)?)?;
     m.add_function(wrap_pyfunction!(compute_r_struct_typed, m)?)?;
@@ -749,12 +750,28 @@ fn ks_accel(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(wasserstein_1d, m)?)?;
     m.add_function(wrap_pyfunction!(batch_qualia_distances, m)?)?;
     m.add_function(wrap_pyfunction!(classify_profile_batch, m)?)?;
+    // Cultural/Temporal
     m.add_function(wrap_pyfunction!(cultural_frame_distance, m)?)?;
     m.add_function(wrap_pyfunction!(paradigm_distance, m)?)?;
     m.add_function(wrap_pyfunction!(compute_cultural_loss, m)?)?;
     m.add_function(wrap_pyfunction!(compute_temporal_loss, m)?)?;
+    // Parse
     m.add_function(wrap_pyfunction!(parse_propositions, m)?)?;
     m.add_function(wrap_pyfunction!(batch_parse_propositions, m)?)?;
+    // ── NEW: Batch acceleration ──
+    m.add_function(wrap_pyfunction!(semantic_fingerprint, m)?)?;
+    m.add_function(wrap_pyfunction!(char_ngrams_jaccard, m)?)?;
+    m.add_function(wrap_pyfunction!(batch_jaccard, m)?)?;
+    m.add_function(wrap_pyfunction!(gram_schmidt, m)?)?;
+    m.add_function(wrap_pyfunction!(orthogonality_matrix, m)?)?;
+    m.add_function(wrap_pyfunction!(heuristic_extract, m)?)?;
+    m.add_function(wrap_pyfunction!(batch_heuristic_extract, m)?)?;
+    m.add_function(wrap_pyfunction!(temporal_decay, m)?)?;
+    m.add_function(wrap_pyfunction!(batch_temporal_decay, m)?)?;
+    m.add_function(wrap_pyfunction!(text_structural_diff, m)?)?;
+    m.add_function(wrap_pyfunction!(extract_numbers, m)?)?;
+    m.add_function(wrap_pyfunction!(concept_bridge_similarity, m)?)?;
+    m.add_function(wrap_pyfunction!(batch_concept_bridge, m)?)?;
     Ok(())
 }
 
@@ -1180,4 +1197,492 @@ fn batch_parse_propositions(texts: Vec<String>) -> PyResult<Vec<HashMap<String, 
         })
         .collect();
     Ok(results)
+}
+
+// ════════════════════════════════════════════════════════════
+// NEW: Semantic Cache Acceleration
+// ════════════════════════════════════════════════════════════
+
+const STOP_WORDS_CACHE: &[&str] = &[
+    "the", "a", "an", "is", "are", "was", "were", "be", "been",
+    "have", "has", "had", "do", "does", "did", "will", "would",
+    "to", "of", "in", "for", "on", "with", "at", "by", "from",
+    "it", "its", "this", "that", "and", "or", "but", "not",
+];
+
+/// Compute semantic fingerprint: lowercase → strip punctuation → remove stops → sort → join.
+#[pyfunction]
+fn semantic_fingerprint(text: &str) -> String {
+    let lower = text.to_lowercase();
+    let cleaned: String = lower.chars()
+        .map(|c| if c.is_alphanumeric() || c.is_whitespace() { c } else { ' ' })
+        .collect();
+    let mut words: Vec<&str> = cleaned.split_whitespace()
+        .filter(|w| w.len() > 1 && !STOP_WORDS_CACHE.contains(w))
+        .collect();
+    words.sort_unstable();
+    words.dedup();
+    words.join(" ")
+}
+
+/// Compute character n-gram Jaccard similarity between two texts.
+#[pyfunction]
+fn char_ngrams_jaccard(text_a: &str, text_b: &str, n: usize) -> f64 {
+    use std::collections::HashSet;
+    let ngrams_a: HashSet<&str> = (0..text_a.len().saturating_sub(n - 1))
+        .filter_map(|i| text_a.get(i..i + n))
+        .collect();
+    let ngrams_b: HashSet<&str> = (0..text_b.len().saturating_sub(n - 1))
+        .filter_map(|i| text_b.get(i..i + n))
+        .collect();
+    if ngrams_a.is_empty() && ngrams_b.is_empty() {
+        return 1.0;
+    }
+    if ngrams_a.is_empty() || ngrams_b.is_empty() {
+        return 0.0;
+    }
+    let intersection = ngrams_a.intersection(&ngrams_b).count() as f64;
+    let union = ngrams_a.union(&ngrams_b).count() as f64;
+    intersection / union
+}
+
+/// Batch Jaccard: compute pairwise Jaccard for query against N cached fingerprints.
+/// Returns Vec<(index, similarity)> sorted by similarity desc.
+#[pyfunction]
+fn batch_jaccard(query_fp: &str, cached_fps: Vec<String>, ngram_size: usize, threshold: f64) -> Vec<(usize, f64)> {
+    use std::collections::HashSet;
+    let q_ngrams: HashSet<&str> = (0..query_fp.len().saturating_sub(ngram_size - 1))
+        .filter_map(|i| query_fp.get(i..i + ngram_size))
+        .collect();
+
+    let mut results: Vec<(usize, f64)> = cached_fps.par_iter()
+        .enumerate()
+        .filter_map(|(idx, fp)| {
+            let c_ngrams: HashSet<&str> = (0..fp.len().saturating_sub(ngram_size - 1))
+                .filter_map(|i| fp.get(i..i + ngram_size))
+                .collect();
+            if q_ngrams.is_empty() && c_ngrams.is_empty() {
+                return Some((idx, 1.0));
+            }
+            if q_ngrams.is_empty() || c_ngrams.is_empty() {
+                return None;
+            }
+            let intersection = q_ngrams.intersection(&c_ngrams).count() as f64;
+            let union = q_ngrams.union(&c_ngrams).count() as f64;
+            let sim = intersection / union;
+            if sim >= threshold { Some((idx, sim)) } else { None }
+        })
+        .collect();
+    results.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal));
+    results
+}
+
+// ════════════════════════════════════════════════════════════
+// NEW: Solver Orthogonality — Gram-Schmidt & Cosine Matrix
+// ════════════════════════════════════════════════════════════
+
+/// Gram-Schmidt orthogonalization on a set of weight vectors.
+/// Input: Vec of Vec<f64> (each is a solver weight vector).
+/// Output: orthogonalized vectors + retention blend factors.
+#[pyfunction]
+fn gram_schmidt(vectors: Vec<Vec<f64>>, retention: f64) -> PyResult<Vec<Vec<f64>>> {
+    let n = vectors.len();
+    if n == 0 {
+        return Ok(vec![]);
+    }
+    let dim = vectors[0].len();
+    let mut ortho: Vec<Vec<f64>> = Vec::with_capacity(n);
+
+    for i in 0..n {
+        let mut v = vectors[i].clone();
+        // Subtract projections onto previous orthogonal vectors
+        for j in 0..ortho.len() {
+            let dot_vu: f64 = v.iter().zip(ortho[j].iter()).map(|(a, b)| a * b).sum();
+            let dot_uu: f64 = ortho[j].iter().map(|x| x * x).sum();
+            if dot_uu > 1e-12 {
+                let proj = dot_vu / dot_uu;
+                for k in 0..dim {
+                    v[k] -= proj * ortho[j][k];
+                }
+            }
+        }
+        // Normalize
+        let norm: f64 = v.iter().map(|x| x * x).sum::<f64>().sqrt();
+        if norm > 1e-12 {
+            for x in v.iter_mut() {
+                *x /= norm;
+            }
+        }
+        // Blend with retention (keep some original direction)
+        let blended: Vec<f64> = v.iter().zip(vectors[i].iter())
+            .map(|(orth, orig)| {
+                let o_norm: f64 = vectors[i].iter().map(|x| x * x).sum::<f64>().sqrt();
+                let orig_n = if o_norm > 1e-12 { orig / o_norm } else { 0.0 };
+                (1.0 - retention) * orth + retention * orig_n
+            })
+            .collect();
+        // Re-normalize blended
+        let b_norm: f64 = blended.iter().map(|x| x * x).sum::<f64>().sqrt();
+        if b_norm > 1e-12 {
+            ortho.push(blended.iter().map(|x| x / b_norm).collect());
+        } else {
+            ortho.push(blended);
+        }
+    }
+    Ok(ortho)
+}
+
+/// Compute pairwise cosine similarity matrix for a set of vectors.
+/// Returns NxN matrix.
+#[pyfunction]
+fn orthogonality_matrix(vectors: Vec<Vec<f64>>) -> PyResult<Vec<Vec<f64>>> {
+    let n = vectors.len();
+    let norms: Vec<f64> = vectors.iter()
+        .map(|v| v.iter().map(|x| x * x).sum::<f64>().sqrt())
+        .collect();
+
+    let matrix: Vec<Vec<f64>> = (0..n).map(|i| {
+        (0..n).map(|j| {
+            if norms[i] < 1e-12 || norms[j] < 1e-12 {
+                return 0.0;
+            }
+            let dot: f64 = vectors[i].iter().zip(vectors[j].iter())
+                .map(|(a, b)| a * b).sum();
+            (dot / (norms[i] * norms[j])).clamp(-1.0, 1.0)
+        }).collect()
+    }).collect();
+    Ok(matrix)
+}
+
+// ════════════════════════════════════════════════════════════
+// NEW: Heuristic Proposition Extraction (semantic_parse fallback)
+// ════════════════════════════════════════════════════════════
+
+/// Fast heuristic proposition extraction from text.
+/// Returns JSON-compatible HashMap with propositions, relations, entities, etc.
+#[pyfunction]
+fn heuristic_extract(text: &str) -> PyResult<HashMap<String, String>> {
+    let mut result = HashMap::new();
+
+    // Split into sentences (no lookbehind in Rust regex — use char split)
+    let sentences: Vec<&str> = text.split(|c: char| c == '.' || c == '!' || c == '?')
+        .map(|s| s.trim())
+        .filter(|s| !s.is_empty())
+        .take(10)
+        .collect();
+
+    // Build propositions JSON array
+    let lower = text.to_lowercase();
+    let mut props_json = Vec::new();
+    for (i, sent) in sentences.iter().enumerate() {
+        let s_lower = sent.to_lowercase();
+        let ptype = if ["because", "causes", "leads to", "results in", "due to"]
+            .iter().any(|w| s_lower.contains(w)) { "causal" }
+        else if ["is a", "defined as", "refers to", "means"]
+            .iter().any(|w| s_lower.contains(w)) { "definitional" }
+        else if ["more", "less", "better", "worse", "than"]
+            .iter().any(|w| s_lower.contains(w)) { "comparative" }
+        else if ["if", "unless", "provided", "assuming"]
+            .iter().any(|w| s_lower.contains(w)) { "conditional" }
+        else if ["good", "bad", "important", "should"]
+            .iter().any(|w| s_lower.contains(w)) { "evaluative" }
+        else { "factual" };
+
+        let truncated: String = sent.chars().take(200).collect();
+        props_json.push(format!(
+            r#"{{"id":"P{}","text":"{}","type":"{}"}}"#,
+            i + 1,
+            truncated.replace('"', "'"),
+            ptype
+        ));
+    }
+    result.insert("propositions".into(), format!("[{}]", props_json.join(",")));
+
+    // Relations: sequential
+    let mut rels_json = Vec::new();
+    for i in 0..sentences.len().saturating_sub(1) {
+        let s_lower = sentences[i].to_lowercase();
+        let rtype = if s_lower.contains("because") || s_lower.contains("causes") { "causes" }
+        else if lower.contains("therefore") || lower.contains("thus") { "implies" }
+        else { "supports" };
+        rels_json.push(format!(
+            r#"{{"from":"P{}","to":"P{}","type":"{}"}}"#,
+            i + 1, i + 2, rtype
+        ));
+    }
+    result.insert("relations".into(), format!("[{}]", rels_json.join(",")));
+
+    // Entities: capitalized words
+    let entity_re = Regex::new(r"\b[A-Z][a-z]{2,}\b").unwrap();
+    let skip = ["The", "This", "That", "These", "Those", "However", "Therefore",
+        "Because", "Although", "Moreover", "Furthermore"];
+    let mut entities: Vec<String> = entity_re.find_iter(text)
+        .map(|m| m.as_str().to_string())
+        .filter(|w| !skip.contains(&w.as_str()))
+        .collect();
+    entities.sort();
+    entities.dedup();
+    entities.truncate(10);
+    let entities_json: Vec<String> = entities.iter()
+        .map(|e| format!(r#""{}""#, e))
+        .collect();
+    result.insert("entities".into(), format!("[{}]", entities_json.join(",")));
+
+    // Domain
+    let domain = if ["equation", "theorem", "proof", "axiom"].iter().any(|w| lower.contains(w)) { "mathematics" }
+    else if ["gene", "protein", "cell", "evolution"].iter().any(|w| lower.contains(w)) { "biology" }
+    else if ["force", "energy", "quantum", "relativity"].iter().any(|w| lower.contains(w)) { "physics" }
+    else if ["algorithm", "code", "function", "module"].iter().any(|w| lower.contains(w)) { "computer_science" }
+    else if ["ontolog", "epistemo", "phenomeno"].iter().any(|w| lower.contains(w)) { "philosophy" }
+    else if ["statute", "precedent", "jurisdiction"].iter().any(|w| lower.contains(w)) { "law" }
+    else { "general" };
+    result.insert("domain".into(), domain.into());
+
+    // Negations
+    let negation_ids: Vec<String> = sentences.iter().enumerate()
+        .filter(|(_, s)| ["not", "no", "never", "neither", "cannot"]
+            .iter().any(|w| s.to_lowercase().contains(w)))
+        .map(|(i, _)| format!(r#""P{}""#, i + 1))
+        .collect();
+    result.insert("negations".into(), format!("[{}]", negation_ids.join(",")));
+
+    // Quantifiers
+    let mut quant_parts = Vec::new();
+    for (i, sent) in sentences.iter().enumerate() {
+        let s_lower = sent.to_lowercase();
+        let q = if ["all", "every", "each", "always"].iter().any(|w| s_lower.contains(w)) { Some("universal") }
+        else if ["some", "sometimes", "a few", "several"].iter().any(|w| s_lower.contains(w)) { Some("existential") }
+        else if ["most", "many", "often"].iter().any(|w| s_lower.contains(w)) { Some("most") }
+        else { None };
+        if let Some(qtype) = q {
+            quant_parts.push(format!(r#""P{}":"{}""#, i + 1, qtype));
+        }
+    }
+    result.insert("quantifiers".into(), format!("{{{}}}", quant_parts.join(",")));
+    result.insert("confidence".into(), "0.5".into());
+    result.insert("prop_count".into(), sentences.len().to_string());
+
+    Ok(result)
+}
+
+/// Batch heuristic extraction with Rayon parallelism.
+#[pyfunction]
+fn batch_heuristic_extract(texts: Vec<String>) -> PyResult<Vec<HashMap<String, String>>> {
+    let results: Vec<HashMap<String, String>> = texts.par_iter()
+        .map(|text| {
+            // Inline simplified version for rayon (avoid Regex in tight loop)
+            let mut result = HashMap::new();
+            let lower = text.to_lowercase();
+            let sentences: Vec<&str> = text.split(|c: char| c == '.' || c == '!' || c == '?')
+                .map(|s| s.trim())
+                .filter(|s| !s.is_empty())
+                .take(10)
+                .collect();
+
+            result.insert("prop_count".into(), sentences.len().to_string());
+            result.insert("confidence".into(), "0.5".into());
+
+            // Domain
+            let domain = if lower.contains("equation") || lower.contains("theorem") { "mathematics" }
+            else if lower.contains("gene") || lower.contains("protein") { "biology" }
+            else if lower.contains("force") || lower.contains("quantum") { "physics" }
+            else if lower.contains("algorithm") || lower.contains("code") { "computer_science" }
+            else { "general" };
+            result.insert("domain".into(), domain.into());
+
+            result
+        })
+        .collect();
+    Ok(results)
+}
+
+// ════════════════════════════════════════════════════════════
+// NEW: Temporal Decay Computation
+// ════════════════════════════════════════════════════════════
+
+/// Compute temporal decay factor: exp(-ln2 * age_years / half_life_years).
+/// Returns decay factor in [0, 1].
+#[pyfunction]
+fn temporal_decay(age_years: f64, half_life_years: f64) -> f64 {
+    if half_life_years <= 0.0 {
+        return 0.0;
+    }
+    (-std::f64::consts::LN_2 * age_years / half_life_years).exp()
+}
+
+/// Batch temporal decay with domain-specific half-lives.
+/// Input: Vec<(age_years, domain)>
+/// Returns: Vec<decay_factor>
+#[pyfunction]
+fn batch_temporal_decay(items: Vec<(f64, String)>) -> Vec<f64> {
+    items.par_iter()
+        .map(|(age, domain)| {
+            let half_life = match domain.as_str() {
+                "ai" | "machine_learning" => 0.5,
+                "technology" | "computer_science" => 2.0,
+                "medicine" | "biology" => 5.0,
+                "chemistry" => 8.0,
+                "economics" => 7.0,
+                "physics" => 20.0,
+                "geology" => 50.0,
+                "mathematics" => 100.0,
+                "philosophy" => 200.0,
+                "history" => 500.0,
+                _ => 10.0,
+            };
+            if half_life <= 0.0 { 0.0 }
+            else { (-std::f64::consts::LN_2 * age / half_life).exp() }
+        })
+        .collect()
+}
+
+// ════════════════════════════════════════════════════════════
+// NEW: Adversarial Text Analysis
+// ════════════════════════════════════════════════════════════
+
+/// Compute structural diff between two texts.
+/// Returns: (word_overlap_ratio, sentence_overlap_ratio, length_ratio)
+#[pyfunction]
+fn text_structural_diff(original: &str, perturbed: &str) -> (f64, f64, f64) {
+    use std::collections::HashSet;
+
+    let orig_words: HashSet<&str> = original.split_whitespace().collect();
+    let pert_words: HashSet<&str> = perturbed.split_whitespace().collect();
+
+    let word_overlap = if orig_words.is_empty() && pert_words.is_empty() {
+        1.0
+    } else if orig_words.is_empty() || pert_words.is_empty() {
+        0.0
+    } else {
+        let intersection = orig_words.intersection(&pert_words).count() as f64;
+        let union = orig_words.union(&pert_words).count() as f64;
+        intersection / union
+    };
+
+    let orig_sents: Vec<&str> = original.split(|c: char| c == '.' || c == '!' || c == '?')
+        .map(|s| s.trim()).filter(|s| !s.is_empty()).collect();
+    let pert_sents: Vec<&str> = perturbed.split(|c: char| c == '.' || c == '!' || c == '?')
+        .map(|s| s.trim()).filter(|s| !s.is_empty()).collect();
+    let sent_overlap = if orig_sents.is_empty() && pert_sents.is_empty() {
+        1.0
+    } else {
+        let o_set: HashSet<&str> = orig_sents.iter().copied().collect();
+        let p_set: HashSet<&str> = pert_sents.iter().copied().collect();
+        let intersection = o_set.intersection(&p_set).count() as f64;
+        let union = o_set.union(&p_set).count() as f64;
+        if union > 0.0 { intersection / union } else { 1.0 }
+    };
+
+    let len_ratio = if original.len() > 0 {
+        perturbed.len() as f64 / original.len() as f64
+    } else {
+        1.0
+    };
+
+    (word_overlap, sent_overlap, len_ratio)
+}
+
+/// Extract all numbers from text as f64.
+#[pyfunction]
+fn extract_numbers(text: &str) -> Vec<f64> {
+    let re = Regex::new(r"-?\d+\.?\d*").unwrap();
+    re.find_iter(text)
+        .filter_map(|m| m.as_str().parse::<f64>().ok())
+        .collect()
+}
+
+// ════════════════════════════════════════════════════════════
+// NEW: Cross-Domain Concept Bridge
+// ════════════════════════════════════════════════════════════
+
+/// Compute concept bridge similarity between two domain concept sets.
+/// Each concept is (name, domain, weight). Returns structural + semantic similarity.
+#[pyfunction]
+fn concept_bridge_similarity(
+    concepts_a: Vec<(String, String, f64)>,
+    concepts_b: Vec<(String, String, f64)>,
+) -> PyResult<(f64, f64)> {
+    if concepts_a.is_empty() || concepts_b.is_empty() {
+        return Ok((0.0, 0.0));
+    }
+
+    // Structural: same-name matches across domains
+    let structural: f64 = {
+        let mut matches = 0.0;
+        let total = concepts_a.len().max(concepts_b.len()) as f64;
+        for (name_a, _, w_a) in &concepts_a {
+            for (name_b, _, w_b) in &concepts_b {
+                // Exact or substring match
+                let na = name_a.to_lowercase();
+                let nb = name_b.to_lowercase();
+                if na == nb || na.contains(&nb) || nb.contains(&na) {
+                    matches += (w_a * w_b).sqrt();
+                }
+            }
+        }
+        (matches / total).min(1.0)
+    };
+
+    // Semantic: domain distance-based similarity
+    let semantic: f64 = {
+        let domain_distance = |a: &str, b: &str| -> f64 {
+            if a == b { return 0.0; }
+            let groups = vec![
+                vec!["math", "mathematics", "physics", "computer_science"],
+                vec!["biology", "chemistry", "medicine"],
+                vec!["music", "art", "creative"],
+                vec!["philosophy", "law", "social"],
+            ];
+            for group in &groups {
+                let a_in = group.iter().any(|g| a.contains(g));
+                let b_in = group.iter().any(|g| b.contains(g));
+                if a_in && b_in { return 0.3; }
+            }
+            0.7
+        };
+
+        let mut total_sim = 0.0;
+        let count = concepts_a.len() as f64;
+        for (_, domain_a, _) in &concepts_a {
+            let mut best = 0.0_f64;
+            for (_, domain_b, _) in &concepts_b {
+                let d = domain_distance(domain_a, domain_b);
+                let sim = 1.0 - d;
+                best = best.max(sim);
+            }
+            total_sim += best;
+        }
+        total_sim / count
+    };
+
+    Ok((structural, semantic))
+}
+
+/// Batch concept bridge: compute similarities for N pairs.
+#[pyfunction]
+fn batch_concept_bridge(
+    pairs: Vec<(Vec<(String, String, f64)>, Vec<(String, String, f64)>)>,
+) -> Vec<(f64, f64)> {
+    pairs.par_iter()
+        .map(|(a, b)| {
+            if a.is_empty() || b.is_empty() {
+                return (0.0, 0.0);
+            }
+            let structural = {
+                let mut matches = 0.0;
+                let total = a.len().max(b.len()) as f64;
+                for (na, _, wa) in a {
+                    for (nb, _, wb) in b {
+                        let la = na.to_lowercase();
+                        let lb = nb.to_lowercase();
+                        if la == lb || la.contains(&lb) || lb.contains(&la) {
+                            matches += (wa * wb).sqrt();
+                        }
+                    }
+                }
+                (matches / total).min(1.0)
+            };
+            (structural, 0.5) // semantic defaults to 0.5 in batch mode
+        })
+        .collect()
 }

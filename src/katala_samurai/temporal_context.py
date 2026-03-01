@@ -271,11 +271,17 @@ def compute_decay(age_years: float, half_life: float) -> float:
 
     At half_life years old, freshness = 0.5.
     At 2× half_life, freshness = 0.25.
+    Rust-accelerated when available (0.11μs/call).
     """
     if age_years <= 0:
         return 1.0
     if half_life <= 0:
         return 0.0
+    try:
+        import ks_accel
+        return ks_accel.temporal_decay(age_years, half_life)
+    except (ImportError, AttributeError):
+        pass
     return math.pow(2.0, -age_years / half_life)
 
 

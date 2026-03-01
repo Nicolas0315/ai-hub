@@ -367,15 +367,29 @@ class DefensePipeline:
         )
 
     def _check_structural_consistency(self, original: str, perturbed: str) -> bool:
-        """Detect structural changes (negation, reversal)."""
+        """Detect structural changes (negation, reversal).
+
+        Rust-accelerated: uses ks_accel.text_structural_diff() for word overlap.
+        """
+        try:
+            import ks_accel
+            word_overlap, _, _ = ks_accel.text_structural_diff(original, perturbed)
+            # Also check negation injection
+            neg_words = {"not", "never", "no", "neither", "nor", "cannot"}
+            orig_neg = set(original.lower().split()) & neg_words
+            pert_neg = set(perturbed.lower().split()) & neg_words
+            if len(pert_neg) > len(orig_neg):
+                return True
+            return word_overlap > 0.7
+        except (ImportError, AttributeError):
+            pass
         orig_words = set(original.lower().split())
         pert_words = set(perturbed.lower().split())
-        # Negation injection
         neg_words = {"not", "never", "no", "neither", "nor", "cannot"}
         orig_neg = orig_words & neg_words
         pert_neg = pert_words & neg_words
         if len(pert_neg) > len(orig_neg):
-            return True  # Detected negation → defense caught it
+            return True
         return len(orig_words & pert_words) / max(len(orig_words), 1) > 0.7
 
     def _check_premise_integrity(self, original: str, perturbed: str) -> bool:
@@ -410,7 +424,16 @@ class DefensePipeline:
         return True
 
     def _check_numbers(self, original: str, perturbed: str) -> bool:
-        """Check if numbers were manipulated."""
+        """Check if numbers were manipulated. Rust-accelerated extraction."""
+        try:
+            import ks_accel
+            orig_nums = set(ks_accel.extract_numbers(original))
+            pert_nums = set(ks_accel.extract_numbers(perturbed))
+            if not orig_nums:
+                return True
+            return orig_nums == pert_nums
+        except (ImportError, AttributeError):
+            pass
         orig_nums = set(re.findall(r'\b\d+(?:\.\d+)?\b', original))
         pert_nums = set(re.findall(r'\b\d+(?:\.\d+)?\b', perturbed))
         if not orig_nums:

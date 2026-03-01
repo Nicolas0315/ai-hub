@@ -114,6 +114,17 @@ def _cosine_similarity(a: list[float], b: list[float]) -> float:
     return _dot(a, b) / (na * nb)
 
 
+def _cosine_matrix_rust(vectors: list[list[float]]) -> list[list[float]]:
+    """Compute pairwise cosine matrix via Rust. Falls back to Python."""
+    try:
+        import ks_accel
+        return ks_accel.orthogonality_matrix(vectors)
+    except (ImportError, AttributeError):
+        n = len(vectors)
+        return [[_cosine_similarity(vectors[i], vectors[j])
+                 for j in range(n)] for i in range(n)]
+
+
 # ════════════════════════════════════════════
 # Phase 1: Dimension Expansion
 # ════════════════════════════════════════════
