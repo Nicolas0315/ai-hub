@@ -56,3 +56,4 @@ rust_accel/target/
 rust_accel/*.whl
 ks40b-lite/target/
 .vercel
+ks_engine/target/
