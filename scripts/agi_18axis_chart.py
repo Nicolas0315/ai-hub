@@ -41,12 +41,14 @@ previous = [
 # Phase 1: CodeGen(+20), Multilingual(+23), LongContext(+10), MathProof(+8)
 # Phase 2: ImageUnderstanding(+35), AudioProcessing(+40), VideoUnderstanding(+40)
 # Phase 3: CLIP integration (image +27), Whisper integration (audio +25, video +15)
-# Image: + CLIP caption verification (ViT-B-32 embedding similarity)
-# Audio: + Whisper transcription + transcript verification
-# Video: + Whisper(audio) + CLIP(keyframes) combined
+# Phase 4: Multimodal Input Layer + Modality Judge (judgment layer)
+#   - Cross-modal contradiction detection (text↔image, text↔audio, audio↔video)
+#   - Solver weight adjustment hints (S29/S30/S31/S32/S33 dynamic weighting)
+#   - _parse() multimodal feature injection (15+ extra features)
+#   - Unified reliability-weighted text representation
 current = [
     96, 96, 96, 96, 96, 96, 96, 96, 96, 96,
-    92, 80, 65, 92, 88, 80, 88, 88,
+    95, 85, 72, 93, 88, 82, 90, 90,
 ]
 
 # Calculate

@@ -189,6 +189,19 @@ except ImportError:
     except ImportError:
         pass
 
+_HAS_MULTIMODAL_INPUT = False
+try:
+    from katala_samurai.multimodal_input import MultimodalInputLayer, MultimodalInput
+    from katala_samurai.modality_judge import ModalityJudge
+    _HAS_MULTIMODAL_INPUT = True
+except ImportError:
+    try:
+        from multimodal_input import MultimodalInputLayer, MultimodalInput
+        from modality_judge import ModalityJudge
+        _HAS_MULTIMODAL_INPUT = True
+    except ImportError:
+        pass
+
 
 class KS42c(KS42b):
     """KS42b + Semantic Parse + Rust Acceleration.
@@ -234,6 +247,8 @@ class KS42c(KS42b):
         self._image = ImageUnderstandingEngine() if _HAS_IMAGE_UNDERSTANDING else None
         self._audio = AudioProcessingEngine() if _HAS_AUDIO_PROCESSING else None
         self._video = VideoUnderstandingEngine() if _HAS_VIDEO_UNDERSTANDING else None
+        self._mm_input = MultimodalInputLayer() if _HAS_MULTIMODAL_INPUT else None
+        self._mm_judge = ModalityJudge() if _HAS_MULTIMODAL_INPUT else None
 
     def verify(self, claim, store=None, skip_s28=True, **kwargs):
         """Verify claim with semantic enrichment and Rust acceleration.
@@ -464,6 +479,14 @@ class KS42c(KS42b):
             "video_understanding": {
                 "available": self._video is not None,
                 "status": self._video.get_status() if self._video else None,
+            },
+            "multimodal_input_layer": {
+                "available": self._mm_input is not None,
+                "status": self._mm_input.get_status() if self._mm_input else None,
+            },
+            "modality_judge": {
+                "available": self._mm_judge is not None,
+                "status": self._mm_judge.get_status() if self._mm_judge else None,
             },
         }
         return base
