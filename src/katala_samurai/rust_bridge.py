@@ -24,7 +24,7 @@ def classify_claim(text: str) -> Dict[str, float]:
     if RUST_AVAILABLE:
         return _rust.classify_claim(text)
     # Python fallback (import lazily)
-    from .metacognitive_planner import _classify_type
+    from metacognitive_planner import _classify_type
     return _classify_type(text)
 
 
@@ -133,7 +133,7 @@ def reason_space_analyze(solvers: list, reasons: list,
                 result[k] = v
         return result
     # Python fallback: import ReasonSpace
-    from .reason_space import ReasonSpace
+    from reason_space import ReasonSpace
     rs = ReasonSpace()
     for s, r, c, v in zip(solvers, reasons, confidences, verdicts):
         rs.register(s, r, c, v)
@@ -149,7 +149,7 @@ def neuromodulate(claim_type: str, difficulty: str,
         mode_val = raw.pop("mode", 0.0)
         raw["mode"] = "VIGILANT" if mode_val > 0 else ("RELAXED" if mode_val < 0 else "NORMAL")
         return raw
-    from .neuromodulation import Neuromodulator
+    from neuromodulation import Neuromodulator
     nm = Neuromodulator()
     params = nm.modulate(claim_type, difficulty, prediction_error, novelty)
     params["mode"] = nm.get_state()["mode"]
@@ -180,7 +180,7 @@ def predictive_error(predicted_conf: float, actual_conf: float,
         depth_map = {0.0: "MINIMAL", 1.0: "PARTIAL", 2.0: "FULL"}
         raw["meta_depth"] = depth_map.get(raw["meta_depth"], "PARTIAL")
         return raw
-    from .predictive_coding import PredictiveEngine
+    from predictive_coding import PredictiveEngine
     pe = PredictiveEngine(surprise_threshold)
     pred = {"predicted_confidence": predicted_conf, "predicted_verdict": predicted_verdict,
             "predicted_range": [range_low, range_high], "precision": precision}
