@@ -48,6 +48,14 @@ except ImportError:
 
 from katala_coding.kcs1a import KCS1a, CodeVerdict
 
+# ── Rust backend (optional, ~14x faster) ──────────────────────
+try:
+    import ks42_core as _rust
+    _HAS_RUST = True
+except ImportError:
+    _rust = None
+    _HAS_RUST = False
+
 # ── Constants ──────────────────────────────────────────────────
 AXES = ("r_struct", "r_context", "r_qualia", "r_cultural", "r_temporal")
 AXIS_LABELS = {
@@ -98,16 +106,37 @@ class LossVector:
         return (self.r_struct, self.r_context, self.r_qualia,
                 self.r_cultural, self.r_temporal)
 
+    def _rust_lv(self):
+        """Get or create cached Rust LossVector."""
+        if _HAS_RUST:
+            try:
+                return _rust.RustLossVector(
+                    self.r_struct, self.r_context, self.r_qualia,
+                    self.r_cultural, self.r_temporal,
+                )
+            except Exception:
+                pass
+        return None
+
     def magnitude(self) -> float:
         """Euclidean distance from ideal (1,1,1,1,1)."""
+        rlv = self._rust_lv()
+        if rlv is not None:
+            return rlv.magnitude()
         return math.sqrt(sum((1.0 - v) ** 2 for v in self.as_tuple()))
 
     def mean(self) -> float:
+        rlv = self._rust_lv()
+        if rlv is not None:
+            return rlv.mean()
         vals = self.as_tuple()
         return sum(vals) / len(vals)
 
     def dominant_loss_axis(self) -> str:
         """Axis with the largest gap from 1.0."""
+        rlv = self._rust_lv()
+        if rlv is not None:
+            return rlv.dominant_loss_axis()
         worst_val = min(self.as_tuple())
         for ax in AXES:
             if getattr(self, ax) == worst_val:
@@ -116,6 +145,10 @@ class LossVector:
 
     def void_dimensions(self, threshold: float = LOSS_THRESHOLD) -> list[str]:
         """Axes below threshold — candidate spaces for creative solutions."""
+        if threshold == LOSS_THRESHOLD:
+            rlv = self._rust_lv()
+            if rlv is not None:
+                return rlv.void_dimensions()
         return [ax for ax in AXES if getattr(self, ax) < threshold]
 
     def axis_score(self, axis: str) -> float:
@@ -123,6 +156,14 @@ class LossVector:
 
     def distance_to(self, other: LossVector) -> float:
         """Euclidean distance between two loss vectors."""
+        if _HAS_RUST:
+            try:
+                rlv_a = self._rust_lv()
+                rlv_b = other._rust_lv()
+                if rlv_a is not None and rlv_b is not None:
+                    return rlv_a.distance_to(rlv_b)
+            except Exception:
+                pass
         return math.sqrt(
             sum((a - b) ** 2 for a, b in zip(self.as_tuple(), other.as_tuple()))
         )
@@ -189,6 +230,13 @@ def _classify_loss_pattern(lv: LossVector) -> str:
     - temporal_decay: only R_temporal is declining
     - mixed: combination of patterns
     """
+    if _HAS_RUST:
+        try:
+            rlv = lv._rust_lv()
+            if rlv is not None:
+                return _rust.classify_loss_pattern(rlv)
+        except Exception:
+            pass
     mean = lv.mean()
     voids = lv.void_dimensions()
     scores = lv.as_tuple()
@@ -457,6 +505,12 @@ def _compute_tension(ax_a: str, ax_b: str,
     """
     a_vals = scores.get(ax_a, [])
     b_vals = scores.get(ax_b, [])
+
+    if _HAS_RUST:
+        try:
+            return _rust.compute_tension(ax_a, ax_b, a_vals, b_vals)
+        except Exception:
+            pass
 
     if len(a_vals) < 3 or len(b_vals) < 3:
         # Not enough data — use heuristic from axis semantics
