@@ -40,56 +40,37 @@ class Claim:
         self.propositions = self._parse(text)
 
     def _parse(self, text):
-        """Content-sensitive proposition extraction.
+        """Content-sensitive proposition extraction (35 features).
 
-        Extracts structural + semantic features from text so different
-        claims produce genuinely different proposition vectors.
+        Delegates to parse_bridge (Rust-accelerated with Python fallback).
         """
-        text_lower = text.lower()
-        words = text_lower.split()
-        word_count = len(words)
-
-        stops = {"the", "a", "an", "is", "are", "was", "were", "be", "been",
-                 "being", "have", "has", "had", "do", "does", "did", "will",
-                 "would", "could", "should", "may", "might", "shall", "can",
-                 "to", "of", "in", "for", "on", "with", "at", "by", "from",
-                 "as", "into", "through", "during", "before", "after", "it",
-                 "its", "this", "that", "these", "those", "and", "or", "but",
-                 "not", "no", "nor"}
-        content_words = [w.strip(",.;:?!()\"'[]") for w in words
-                         if w.strip(",.;:?!()\"'[]") not in stops
-                         and len(w.strip(",.;:?!()\"'[]")) > 1]
-        unique_content = set(content_words)
-
-        props = {}
-        props["p_has_content"] = len(content_words) > 0
-        props["p_rich_vocab"] = len(unique_content) > max(len(content_words) * 0.5, 3) if content_words else False
-        props["p_long_text"] = word_count > 15
-        props["p_short_text"] = word_count <= 5
-        props["p_complex_words"] = any(len(w) > 10 for w in content_words) if content_words else False
-
-        sentences = re.split(r'[.!?;]+', text)
-        sentences = [s.strip() for s in sentences if s.strip()]
-        props["p_multi_sentence"] = len(sentences) > 1
-        props["p_has_conjunction"] = any(w in text_lower for w in [" and ", " or ", " but ", " yet ", " however "])
-        props["p_has_negation"] = any(w in words for w in ["not", "no", "never", "neither", "nor", "none", "cannot", "isn't", "aren't", "doesn't", "don't", "won't"])
-        props["p_has_quantifier"] = any(w in words for w in ["all", "every", "each", "some", "many", "most", "few", "several", "any", "none"])
-
-        props["p_causal"] = any(w in text_lower for w in ["because", "therefore", "hence", "thus", "consequently", "causes", "leads", "results", "due", "since", "implies", "entails"])
-        props["p_comparative"] = any(w in text_lower for w in ["more", "less", "better", "worse", "greater", "smaller", "higher", "lower", "faster", "slower", "than", "compared"])
-        props["p_temporal"] = any(w in text_lower for w in ["before", "after", "during", "when", "then", "now", "previously", "currently", "recently", "future", "past", "present"])
-        props["p_definitional"] = any(kw in text_lower for kw in ["is a", "is an", "defined as", "refers to", "means", "constitutes", "consists of"])
-        props["p_has_numbers"] = bool(re.search(r'\d+', text))
+        try:
+            from katala_samurai.parse_bridge import parse_propositions
+            props = parse_propositions(text)
+        except ImportError:
+            try:
+                from parse_bridge import parse_propositions
+                props = parse_propositions(text)
+            except ImportError:
+                props = self._parse_fallback(text)
         props["p_has_evidence"] = len(self.evidence) > 0
         props["p_strong_evidence"] = len(self.evidence) >= 3
+        return props
 
-        props["p_nested"] = text.count(",") > 2 or text.count("(") > 0
-        props["p_chain"] = any(w in text_lower for w in ["therefore", "thus", "hence", "consequently", "so that"])
-
-        text_hash = hashlib.md5(text.encode()).hexdigest()
-        props["p_hash_even"] = int(text_hash[0], 16) % 2 == 0
-        props["p_hash_quarter"] = int(text_hash[1], 16) % 4 == 0
-
+    def _parse_fallback(self, text):
+        """Minimal fallback if parse_bridge unavailable."""
+        text_lower = text.lower()
+        words = text_lower.split()
+        props = {}
+        props["p_has_content"] = len(words) > 0
+        props["p_long_text"] = len(words) > 15
+        props["p_short_text"] = len(words) <= 5
+        props["p_has_negation"] = any(w in words for w in ["not", "no", "never"])
+        props["p_causal"] = any(w in text_lower for w in ["because", "therefore", "causes"])
+        props["p_has_numbers"] = bool(re.search(r'\d+', text))
+        h = hashlib.md5(text.encode()).hexdigest()
+        props["p_hash_even"] = int(h[0], 16) % 2 == 0
+        props["p_hash_quarter"] = int(h[1], 16) % 4 == 0
         return props
 
 
