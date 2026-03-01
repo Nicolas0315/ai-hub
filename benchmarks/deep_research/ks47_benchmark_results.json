@@ -1,0 +1,287 @@
+{
+  "timestamp": "2026-03-02T00:15:34+0900",
+  "ks47_version": "KS47-v1",
+  "benchmark": "DeepResearch Bench (100 tasks, 22 domains)",
+  "content_only": [
+    {
+      "model": "claude-3-7-sonnet-latest",
+      "score": 0.6828,
+      "grade": "B",
+      "axes": {
+        "query_coverage": 0.7125,
+        "search_depth": 0.0,
+        "synthesis_quality": 0.635,
+        "citation_verify": 0.0,
+        "orchestration": 0.7297
+      },
+      "grades": {
+        "C": 36,
+        "D": 8,
+        "B": 37,
+        "A": 18,
+        "S": 1
+      },
+      "avg_citations": 0.0,
+      "avg_claims": 14.4,
+      "avg_report_length": 14090.0,
+      "tasks": 100,
+      "elapsed_s": 0.44
+    },
+    {
+      "model": "gemini-2.5-pro-deepresearch",
+      "score": 0.6443,
+      "grade": "C",
+      "axes": {
+        "query_coverage": 0.6627,
+        "search_depth": 0.7532,
+        "synthesis_quality": 0.6461,
+        "citation_verify": 0.7405,
+        "orchestration": 0.6262
+      },
+      "grades": {
+        "A": 24,
+        "B": 22,
+        "C": 32,
+        "D": 20,
+        "F": 2
+      },
+      "avg_citations": 113.0,
+      "avg_claims": 39.4,
+      "avg_report_length": 67872.0,
+      "tasks": 100,
+      "elapsed_s": 2.03
+    },
+    {
+      "model": "reference",
+      "score": 0.643,
+      "grade": "C",
+      "axes": {
+        "query_coverage": 0.6028,
+        "search_depth": 0.0052,
+        "synthesis_quality": 0.6628,
+        "citation_verify": 0.0058,
+        "orchestration": 0.6469
+      },
+      "grades": {
+        "D": 14,
+        "C": 29,
+        "F": 10,
+        "B": 9,
+        "A": 38
+      },
+      "avg_citations": 0.1,
+      "avg_claims": 23.1,
+      "avg_report_length": 45447.0,
+      "tasks": 100,
+      "elapsed_s": 1.38
+    },
+    {
+      "model": "perplexity-Research",
+      "score": 0.6217,
+      "grade": "C",
+      "axes": {
+        "query_coverage": 0.6563,
+        "search_depth": 0.7736,
+        "synthesis_quality": 0.5491,
+        "citation_verify": 0.9932,
+        "orchestration": 0.7017
+      },
+      "grades": {
+        "B": 45,
+        "A": 6,
+        "D": 32,
+        "C": 17
+      },
+      "avg_citations": 56.3,
+      "avg_claims": 7.8,
+      "avg_report_length": 13604.0,
+      "tasks": 100,
+      "elapsed_s": 0.45
+    },
+    {
+      "model": "grok-deeper-search",
+      "score": 0.5935,
+      "grade": "C",
+      "axes": {
+        "query_coverage": 0.5818,
+        "search_depth": 0.3956,
+        "synthesis_quality": 0.5439,
+        "citation_verify": 0.8109,
+        "orchestration": 0.6777
+      },
+      "grades": {
+        "B": 38,
+        "C": 31,
+        "A": 1,
+        "D": 30
+      },
+      "avg_citations": 18.0,
+      "avg_claims": 4.8,
+      "avg_report_length": 8732.0,
+      "tasks": 100,
+      "elapsed_s": 0.24
+    },
+    {
+      "model": "openai-deepresearch",
+      "score": 0.5919,
+      "grade": "C",
+      "axes": {
+        "query_coverage": 0.573,
+        "search_depth": 0.545,
+        "synthesis_quality": 0.5879,
+        "citation_verify": 0.9546,
+        "orchestration": 0.6135
+      },
+      "grades": {
+        "A": 14,
+        "B": 20,
+        "C": 35,
+        "D": 29,
+        "F": 2
+      },
+      "avg_citations": 78.5,
+      "avg_claims": 25.8,
+      "avg_report_length": 56852.0,
+      "tasks": 100,
+      "elapsed_s": 1.53
+    }
+  ],
+  "full_5axis": [
+    {
+      "model": "perplexity-Research",
+      "score": 0.7364,
+      "grade": "B",
+      "axes": {
+        "query_coverage": 0.6563,
+        "search_depth": 0.7736,
+        "synthesis_quality": 0.5491,
+        "citation_verify": 0.9932,
+        "orchestration": 0.7017
+      },
+      "grades": {
+        "A": 31,
+        "B": 42,
+        "S": 1,
+        "C": 26
+      },
+      "avg_citations": 56.3,
+      "avg_claims": 7.8,
+      "avg_report_length": 13604.0,
+      "tasks": 100,
+      "elapsed_s": 0.45
+    },
+    {
+      "model": "gemini-2.5-pro-deepresearch",
+      "score": 0.6916,
+      "grade": "B",
+      "axes": {
+        "query_coverage": 0.6627,
+        "search_depth": 0.7532,
+        "synthesis_quality": 0.6461,
+        "citation_verify": 0.7405,
+        "orchestration": 0.6262
+      },
+      "grades": {
+        "A": 22,
+        "B": 45,
+        "F": 2,
+        "C": 31
+      },
+      "avg_citations": 113.0,
+      "avg_claims": 39.4,
+      "avg_report_length": 67872.0,
+      "tasks": 100,
+      "elapsed_s": 2.04
+    },
+    {
+      "model": "openai-deepresearch",
+      "score": 0.6713,
+      "grade": "B",
+      "axes": {
+        "query_coverage": 0.573,
+        "search_depth": 0.545,
+        "synthesis_quality": 0.5879,
+        "citation_verify": 0.9546,
+        "orchestration": 0.6135
+      },
+      "grades": {
+        "D": 5,
+        "B": 43,
+        "C": 41,
+        "A": 11
+      },
+      "avg_citations": 78.5,
+      "avg_claims": 25.8,
+      "avg_report_length": 56852.0,
+      "tasks": 100,
+      "elapsed_s": 1.54
+    },
+    {
+      "model": "grok-deeper-search",
+      "score": 0.6,
+      "grade": "C",
+      "axes": {
+        "query_coverage": 0.5818,
+        "search_depth": 0.3956,
+        "synthesis_quality": 0.5439,
+        "citation_verify": 0.8109,
+        "orchestration": 0.6777
+      },
+      "grades": {
+        "C": 46,
+        "B": 37,
+        "D": 16,
+        "F": 1
+      },
+      "avg_citations": 18.0,
+      "avg_claims": 4.8,
+      "avg_report_length": 8732.0,
+      "tasks": 100,
+      "elapsed_s": 0.24
+    },
+    {
+      "model": "claude-3-7-sonnet-latest",
+      "score": 0.3704,
+      "grade": "D",
+      "axes": {
+        "query_coverage": 0.7125,
+        "search_depth": 0.0,
+        "synthesis_quality": 0.635,
+        "citation_verify": 0.0,
+        "orchestration": 0.7297
+      },
+      "grades": {
+        "F": 44,
+        "D": 55,
+        "C": 1
+      },
+      "avg_citations": 0.0,
+      "avg_claims": 14.4,
+      "avg_report_length": 14090.0,
+      "tasks": 100,
+      "elapsed_s": 0.43
+    },
+    {
+      "model": "reference",
+      "score": 0.3565,
+      "grade": "D",
+      "axes": {
+        "query_coverage": 0.6028,
+        "search_depth": 0.0052,
+        "synthesis_quality": 0.6628,
+        "citation_verify": 0.0058,
+        "orchestration": 0.6469
+      },
+      "grades": {
+        "F": 52,
+        "D": 47,
+        "B": 1
+      },
+      "avg_citations": 0.1,
+      "avg_claims": 23.1,
+      "avg_report_length": 45447.0,
+      "tasks": 100,
+      "elapsed_s": 1.32
+    }
+  ]
+}
