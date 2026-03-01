@@ -436,6 +436,153 @@ def s27_kam(claim):
     return score > 0.5
 
 
+# ─── S29-S33: Semantic Truth Solvers ────────────────────────────────────────
+# Architecture fix (Youta, 2026-03-01):
+#   S01-S27 check proposition STRUCTURE (SAT satisfiability of booleans).
+#   S29-S33 check claim CONTENT (factual truth of the text itself).
+#   This is the missing layer that makes "Earth is flat" = FAIL.
+
+import re as _re
+
+# Known false claims: scientific consensus violations.
+_KNOWN_FALSE_PATTERNS = [
+    (_re.compile(r"(?i)\bearth\b.{0,20}\bflat\b"), "Earth is an oblate spheroid"),
+    (_re.compile(r"(?i)\bflat\b.{0,20}\bearth\b"), "Earth is an oblate spheroid"),
+    (_re.compile(r"(?i)\bvaccines?\b.{0,30}\bcause\b.{0,20}\bautism\b"), "No causal link (Wakefield retracted)"),
+    (_re.compile(r"(?i)\bmoon\s+landing\b.{0,20}\b(fake|hoax|staged|faked)\b"), "Apollo confirmed by multiple sources"),
+    (_re.compile(r"(?i)\b(never|didn'?t|did\s+not)\b.{0,20}\bland.{0,5}\b.{0,10}\bmoon\b"), "Apollo confirmed"),
+    (_re.compile(r"(?i)\bsun\b.{0,20}\b(revolves?|orbits?|goes?)\b.{0,20}\bearth\b"), "Earth orbits the Sun"),
+    (_re.compile(r"(?i)\b5g\b.{0,30}\b(causes?|spreads?|creates?)\b.{0,20}\b(covid|virus|cancer|disease)\b"), "No RF→pathogen mechanism"),
+    (_re.compile(r"(?i)\b(faster|exceeds?)\b.{0,15}\bspeed\s+of\s+light\b"), "Nothing with mass exceeds c"),
+    (_re.compile(r"(?i)\bperpetual\s+motion\b.{0,20}\b(machine|device|works?|possible)\b"), "Violates thermodynamics"),
+    (_re.compile(r"(?i)\bhomeopath(y|ic)\b.{0,30}\b(cure|treat|effective|works?)\b"), "No evidence beyond placebo"),
+    (_re.compile(r"(?i)\bearth\b.{0,20}\b(6000|young|6,?000)\b.{0,10}\byears?\b"), "Earth is ~4.54 billion years old"),
+    (_re.compile(r"(?i)\bevolution\b.{0,20}\b(just\s+a\s+theory|not\s+real|fake|myth|lie)\b"), "Evolution: overwhelming evidence"),
+]
+
+# Known true facts: established science.
+_KNOWN_TRUE_PATTERNS = [
+    (_re.compile(r"(?i)\bspeed\s+of\s+light\b.{0,20}\b(3\s*[×x*]\s*10\^?8|299|300)\b"), "physics"),
+    (_re.compile(r"(?i)\bwater\b.{0,20}\b(boils?|boiling)\b.{0,20}\b100\s*°?\s*[cC]"), "chemistry"),
+    (_re.compile(r"(?i)\bwater\b.{0,20}\b(freez|frozen?)\b.{0,20}\b0\s*°?\s*[cC]"), "chemistry"),
+    (_re.compile(r"(?i)\bDNA\b.{0,20}\bdouble\s+helix\b"), "biology"),
+    (_re.compile(r"(?i)\bearth\b.{0,20}\b(orbits?|revolves?)\b.{0,20}\bsun\b"), "physics"),
+    (_re.compile(r"(?i)\bCRISPR\b.{0,30}\b(edit|cut|modify).{0,10}\b(gene|DNA|genome)\b"), "biology"),
+    (_re.compile(r"(?i)\bmRNA\b.{0,20}\b(vaccine|protein|ribosome|translat)\b"), "biology"),
+    (_re.compile(r"(?i)\bpi\b.{0,10}\b(3\.14|ratio|circumference)\b"), "mathematics"),
+]
+
+# Self-contradiction patterns.
+_CONTRADICTION_PATTERNS = [
+    _re.compile(r"(?i)\balways\b.{0,30}\bnever\b"),
+    _re.compile(r"(?i)\ball\b.{0,20}\bare\b.{0,30}\bnone?\b.{0,10}\bare\b"),
+    _re.compile(r"(?i)\bproven\b.{0,30}\bunproven\b"),
+    _re.compile(r"(?i)\btrue\b.{0,20}\bbut\b.{0,20}\bfalse\b"),
+]
+
+# Weasel words (low credibility signal).
+_RE_WEASEL = _re.compile(r"(?i)\b(some\s+say|many\s+believe|it\s+is\s+said|people\s+think|everyone\s+knows)\b")
+
+# Specific data patterns (high credibility signal).
+_RE_SPECIFIC_DATA = _re.compile(
+    r"(?:[\d,]+\.?\d*\s*(?:%|percent|mg|kg|km|mi|°C|°F|K|Hz|GHz|eV|mol|J|W|Pa|N|m/s|GeV)"
+    r"|p\s*[<=]\s*0\.\d+"
+    r"|\d{4}\s+study"
+    r"|Nature|Science|PNAS|Lancet|JAMA|arXiv)"
+)
+
+# Qualifier exceptions (prevent false positives on qualified claims).
+_SPEED_QUALIFIERS = {"quantum", "tunnel", "phase", "apparent", "tachyon"}
+_PLACEBO_QUALIFIER = "placebo"
+
+
+def _check_known_false(text):
+    """Check if text matches any known false claim pattern.
+    Returns list of (pattern_explanation,) for matches."""
+    text_lower = text.lower()
+    has_speed_qual = any(q in text_lower for q in _SPEED_QUALIFIERS)
+    has_placebo = _PLACEBO_QUALIFIER in text_lower
+    
+    matches = []
+    for pattern, explanation in _KNOWN_FALSE_PATTERNS:
+        if pattern.search(text):
+            # Skip qualified claims
+            if "exceeds c" in explanation and has_speed_qual:
+                continue
+            if "placebo" in explanation and has_placebo:
+                continue
+            matches.append(explanation)
+    return matches
+
+
+def s29_factual_truth(claim):
+    """S29: Known false claim detection.
+    
+    Checks claim TEXT (not propositions) against established scientific facts.
+    This is the key architectural fix: S01-S27 check boolean structure,
+    S29 checks whether the claim contradicts scientific consensus.
+    
+    Returns False (FAIL) if the claim matches a known false pattern.
+    """
+    matches = _check_known_false(claim.text)
+    return len(matches) == 0
+
+
+def s30_self_contradiction(claim):
+    """S30: Self-contradiction detection.
+    
+    Checks if the claim contains contradictory statements.
+    e.g., "always ... never", "all ... none", "proven ... unproven"
+    """
+    for pattern in _CONTRADICTION_PATTERNS:
+        if pattern.search(claim.text):
+            return False
+    return True
+
+
+def s31_credibility_signals(claim):
+    """S31: Credibility signal check.
+    
+    FAIL if claim uses weasel words without specific data to back them up.
+    Weasel words + specific data = acceptable (opinion supported by evidence).
+    Weasel words alone = low credibility.
+    """
+    has_weasel = bool(_RE_WEASEL.search(claim.text))
+    has_data = bool(_RE_SPECIFIC_DATA.search(claim.text))
+    
+    if has_weasel and not has_data:
+        return False
+    return True
+
+
+def s32_data_support(claim):
+    """S32: Specific data / citation presence.
+    
+    PASS if claim contains specific numbers with units, p-values,
+    journal names, or other concrete data indicators.
+    Claims with specific data are more verifiable and trustworthy.
+    """
+    data_count = len(_RE_SPECIFIC_DATA.findall(claim.text))
+    has_evidence = bool(claim.evidence)
+    return data_count > 0 or has_evidence
+
+
+def s33_fact_alignment(claim):
+    """S33: Known true fact alignment.
+    
+    PASS if claim matches a known true pattern OR doesn't match any known false.
+    This is the positive counterpart to S29 (which checks known false).
+    """
+    # Check known true patterns
+    for pattern, _domain in _KNOWN_TRUE_PATTERNS:
+        if pattern.search(claim.text):
+            return True
+    
+    # If not matching any known true, check it's not known false either
+    false_matches = _check_known_false(claim.text)
+    return len(false_matches) == 0
+
+
 # ─── S28: LLM Reproducibility Solver (実測型) ───────────────────────────────
 
 class ReproducibilitySolver:
@@ -932,6 +1079,12 @@ class KS30d(object):
             ("S25_FisherKL",      s25_info_geometry_fisher),
             ("S26_ZFC",           s26_zfc),
             ("S27_KAM",           s27_kam),
+            # S29-S33: Semantic Truth Solvers (content-aware, not boolean SAT)
+            ("S29_FactualTruth",  s29_factual_truth),
+            ("S30_NoContradict",  s30_self_contradiction),
+            ("S31_Credibility",   s31_credibility_signals),
+            ("S32_DataSupport",   s32_data_support),
+            ("S33_FactAlignment", s33_fact_alignment),
         ]
 
     def verify(self, claim, store=None):
@@ -943,7 +1096,7 @@ class KS30d(object):
         t0 = time.time()
         results = {}
 
-        # Run S01–S27 — externalize each output to store
+        # Run S01–S27 + S29-S33 — externalize each output to store
         for name, fn in self.solvers:
             try:
                 results[name] = fn(claim)
@@ -997,26 +1150,55 @@ class KS30d(object):
             })
 
         elapsed = time.time() - t0
-        passed_count = sum(results.values())
+        passed_count = sum(1 for v in results.values() if v)
         total = len(results)
 
-        ks27_pass_rate = sum(v for k, v in results.items() if k != "S28_Reproducibility") / 27
-        final_score = ks27_pass_rate * 0.75 + s28_score * 0.25
+        # Separate structural (S01-S27) and semantic (S29-S33) pass rates
+        structural_solvers = {k: v for k, v in results.items()
+                              if not k.startswith("S28") and not k.startswith("S29")
+                              and not k.startswith("S30") and not k.startswith("S31")
+                              and not k.startswith("S32") and not k.startswith("S33")}
+        semantic_solvers = {k: v for k, v in results.items()
+                           if k.startswith(("S29", "S30", "S31", "S32", "S33"))}
+
+        structural_pass_rate = sum(1 for v in structural_solvers.values() if v) / max(len(structural_solvers), 1)
+        semantic_pass_rate = sum(1 for v in semantic_solvers.values() if v) / max(len(semantic_solvers), 1)
+
+        # Known false = automatic FAIL regardless of structural score
+        is_known_false = not results.get("S29_FactualTruth", True)
+
+        # Weighted: structural 50% + semantic 25% + S28 25%
+        # (Semantic truth solvers now have real weight in the final score)
+        final_score = structural_pass_rate * 0.50 + semantic_pass_rate * 0.25 + s28_score * 0.25
+
+        # Override: known false always fails
+        if is_known_false:
+            final_score = min(final_score, 0.40)  # Cap at 0.40
+
         # [FIX-3 v2] 高pass_rateなら外部エビデンスなしでもVERIFIED可能
-        if _no_evidence and ks27_pass_rate < 0.75:
+        if is_known_false:
+            verdict = False  # Known false = always UNVERIFIED
+        elif _no_evidence and structural_pass_rate < 0.75:
             # エビデンスなし＋低pass_rate → UNVERIFIED
             verdict = False
-        elif _no_evidence and ks27_pass_rate >= 0.75:
+        elif _no_evidence and structural_pass_rate >= 0.75:
             # エビデンスなし＋高pass_rate → ソルバー合意を信頼（閾値緩和）
-            verdict = final_score > 0.70 and passed_count >= 20
+            verdict = final_score > 0.65 and passed_count >= 22 and semantic_pass_rate >= 0.6
         else:
-            verdict = final_score > 0.80 and passed_count >= 25
+            verdict = final_score > 0.75 and passed_count >= 27 and semantic_pass_rate >= 0.6
+
+        # Semantic truth reasons for debugging
+        false_reasons = _check_known_false(claim.text)
 
         output = {
             "verdict": "VERIFIED" if verdict else "UNVERIFIED",
             "final_score": round(final_score, 4),
             "solvers_passed": f"{passed_count}/{total}",
-            "ks27_pass_rate": round(ks27_pass_rate, 4),
+            "structural_pass_rate": round(structural_pass_rate, 4),
+            "semantic_pass_rate": round(semantic_pass_rate, 4),
+            "is_known_false": is_known_false,
+            "semantic_reasons": false_reasons,
+            "ks27_pass_rate": round(structural_pass_rate, 4),  # backward compat
             "s28_score": round(s28_score, 4),
             "s28_breakdown": s28_breakdown,
             "elapsed_sec": round(elapsed, 3),
