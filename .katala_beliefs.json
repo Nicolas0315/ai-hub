@@ -1,7 +1,7 @@
 {
   "version": "1.0",
-  "total_probes": 113,
-  "total_surprises": 63,
+  "total_probes": 154,
+  "total_surprises": 84,
   "exploration_coverage": {
     "performance": 1.0,
     "scalability": 0.7,
@@ -298,14 +298,16 @@
       "claim": "Surprise in 'domain_a': prediction error 0.71 suggests missing factor",
       "domain": "domain_a",
       "predicted_outcome": "Refined probe will reveal the missing factor",
-      "confidence": 0.365,
+      "confidence": 0.6379,
       "status": "active",
-      "probes_run": 2,
-      "probes_confirmed": 0,
+      "probes_run": 4,
+      "probes_confirmed": 2,
       "probes_refuted": 2,
       "surprise_history": [
         0.7143,
-        0.8
+        0.8,
+        0.1,
+        0.1
       ],
       "created_at": 1772337110.954539,
       "source": "anomaly",
@@ -631,14 +633,16 @@
       "claim": "Surprise in 'performance': prediction error 0.71 suggests missing factor",
       "domain": "performance",
       "predicted_outcome": "Refined probe will reveal the missing factor",
-      "confidence": 0.365,
+      "confidence": 0.6379,
       "status": "active",
-      "probes_run": 2,
-      "probes_confirmed": 0,
+      "probes_run": 4,
+      "probes_confirmed": 2,
       "probes_refuted": 2,
       "surprise_history": [
         0.7143,
-        0.8
+        0.8,
+        0.1,
+        0.1
       ],
       "created_at": 1772337129.266212,
       "source": "anomaly",
@@ -649,14 +653,16 @@
       "claim": "Surprise in 'performance': prediction error 0.80 suggests missing factor",
       "domain": "performance",
       "predicted_outcome": "Refined probe will reveal the missing factor",
-      "confidence": 0.365,
+      "confidence": 0.6379,
       "status": "active",
-      "probes_run": 2,
-      "probes_confirmed": 0,
+      "probes_run": 4,
+      "probes_confirmed": 2,
       "probes_refuted": 2,
       "surprise_history": [
         0.7143,
-        0.8
+        0.8,
+        0.1,
+        0.1
       ],
       "created_at": 1772337129.2662451,
       "source": "anomaly",
@@ -823,14 +829,16 @@
       "claim": "Surprise in 'correctness': prediction error 0.90 suggests missing factor",
       "domain": "correctness",
       "predicted_outcome": "Refined probe will reveal the missing factor",
-      "confidence": 0.365,
+      "confidence": 0.6379,
       "status": "active",
-      "probes_run": 2,
-      "probes_confirmed": 0,
+      "probes_run": 4,
+      "probes_confirmed": 2,
       "probes_refuted": 2,
       "surprise_history": [
         0.7143,
-        0.8
+        0.8,
+        0.1,
+        0.1
       ],
       "created_at": 1772337129.268777,
       "source": "anomaly",
@@ -841,13 +849,15 @@
       "claim": "Surprise in 'correctness': prediction error 0.90 suggests missing factor",
       "domain": "correctness",
       "predicted_outcome": "Refined probe will reveal the missing factor",
-      "confidence": 0.365,
+      "confidence": 0.4278,
       "status": "active",
-      "probes_run": 2,
-      "probes_confirmed": 0,
-      "probes_refuted": 2,
+      "probes_run": 4,
+      "probes_confirmed": 1,
+      "probes_refuted": 3,
       "surprise_history": [
         0.7143,
+        0.8,
+        0.1,
         0.8
       ],
       "created_at": 1772337129.2688131,
@@ -1087,13 +1097,14 @@
       "claim": "Surprise in 'domain_b': prediction error 0.71 suggests missing factor",
       "domain": "domain_b",
       "predicted_outcome": "Refined probe will reveal the missing factor",
-      "confidence": 0.38,
+      "confidence": 0.326,
       "status": "active",
-      "probes_run": 1,
+      "probes_run": 2,
       "probes_confirmed": 0,
-      "probes_refuted": 1,
+      "probes_refuted": 2,
       "surprise_history": [
-        0.9
+        0.9,
+        0.8
       ],
       "created_at": 1772337141.507214,
       "source": "anomaly",
@@ -1104,12 +1115,15 @@
       "claim": "Surprise in 'domain_b': prediction error 0.90 suggests missing factor",
       "domain": "domain_b",
       "predicted_outcome": "Refined probe will reveal the missing factor",
-      "confidence": 0.5,
+      "confidence": 0.365,
       "status": "active",
-      "probes_run": 0,
+      "probes_run": 2,
       "probes_confirmed": 0,
-      "probes_refuted": 0,
-      "surprise_history": [],
+      "probes_refuted": 2,
+      "surprise_history": [
+        0.7143,
+        0.8
+      ],
       "created_at": 1772337141.508123,
       "source": "anomaly",
       "parent_id": "879f174e14"
@@ -1119,12 +1133,15 @@
       "claim": "Surprise in 'domain_b': prediction error 0.90 suggests missing factor",
       "domain": "domain_b",
       "predicted_outcome": "Refined probe will reveal the missing factor",
-      "confidence": 0.5,
+      "confidence": 0.365,
       "status": "active",
-      "probes_run": 0,
+      "probes_run": 2,
       "probes_confirmed": 0,
-      "probes_refuted": 0,
-      "surprise_history": [],
+      "probes_refuted": 2,
+      "surprise_history": [
+        0.7143,
+        0.8
+      ],
       "created_at": 1772337141.508173,
       "source": "anomaly",
       "parent_id": "b8608332ba"
@@ -1134,12 +1151,14 @@
       "claim": "Surprise in 'domain_b': prediction error 0.90 suggests missing factor",
       "domain": "domain_b",
       "predicted_outcome": "Refined probe will reveal the missing factor",
-      "confidence": 0.5,
+      "confidence": 0.62,
       "status": "active",
-      "probes_run": 0,
-      "probes_confirmed": 0,
+      "probes_run": 1,
+      "probes_confirmed": 1,
       "probes_refuted": 0,
-      "surprise_history": [],
+      "surprise_history": [
+        0.1
+      ],
       "created_at": 1772337141.508239,
       "source": "anomaly",
       "parent_id": "b8608332ba"
@@ -1149,12 +1168,14 @@
       "claim": "Surprise in 'domain_b': prediction error 0.90 suggests missing factor",
       "domain": "domain_b",
       "predicted_outcome": "Refined probe will reveal the missing factor",
-      "confidence": 0.5,
+      "confidence": 0.62,
       "status": "active",
-      "probes_run": 0,
-      "probes_confirmed": 0,
+      "probes_run": 1,
+      "probes_confirmed": 1,
       "probes_refuted": 0,
-      "surprise_history": [],
+      "surprise_history": [
+        0.1
+      ],
       "created_at": 1772337141.508296,
       "source": "anomaly",
       "parent_id": "c8124f6695"
@@ -1164,12 +1185,14 @@
       "claim": "Surprise in 'domain_b': prediction error 0.90 suggests missing factor",
       "domain": "domain_b",
       "predicted_outcome": "Refined probe will reveal the missing factor",
-      "confidence": 0.5,
+      "confidence": 0.62,
       "status": "active",
-      "probes_run": 0,
-      "probes_confirmed": 0,
+      "probes_run": 1,
+      "probes_confirmed": 1,
       "probes_refuted": 0,
-      "surprise_history": [],
+      "surprise_history": [
+        0.1
+      ],
       "created_at": 1772337141.5083468,
       "source": "anomaly",
       "parent_id": "c8124f6695"
@@ -1179,12 +1202,14 @@
       "claim": "Surprise in 'domain_b': prediction error 0.90 suggests missing factor",
       "domain": "domain_b",
       "predicted_outcome": "Refined probe will reveal the missing factor",
-      "confidence": 0.5,
+      "confidence": 0.62,
       "status": "active",
-      "probes_run": 0,
-      "probes_confirmed": 0,
+      "probes_run": 1,
+      "probes_confirmed": 1,
       "probes_refuted": 0,
-      "surprise_history": [],
+      "surprise_history": [
+        0.1
+      ],
       "created_at": 1772337141.508397,
       "source": "anomaly",
       "parent_id": "4d397e8699"
@@ -1194,12 +1219,14 @@
       "claim": "Surprise in 'domain_b': prediction error 0.90 suggests missing factor",
       "domain": "domain_b",
       "predicted_outcome": "Refined probe will reveal the missing factor",
-      "confidence": 0.5,
+      "confidence": 0.62,
       "status": "active",
-      "probes_run": 0,
-      "probes_confirmed": 0,
+      "probes_run": 1,
+      "probes_confirmed": 1,
       "probes_refuted": 0,
-      "surprise_history": [],
+      "surprise_history": [
+        0.1
+      ],
       "created_at": 1772337141.508448,
       "source": "anomaly",
       "parent_id": "4d397e8699"
@@ -1209,15 +1236,365 @@
       "claim": "Surprise in 'domain_b': prediction error 0.90 suggests missing factor",
       "domain": "domain_b",
       "predicted_outcome": "Refined probe will reveal the missing factor",
+      "confidence": 0.62,
+      "status": "active",
+      "probes_run": 1,
+      "probes_confirmed": 1,
+      "probes_refuted": 0,
+      "surprise_history": [
+        0.1
+      ],
+      "created_at": 1772337141.508502,
+      "source": "anomaly",
+      "parent_id": "18a3bcb625"
+    },
+    {
+      "hypothesis_id": "e3af185055",
+      "claim": "Surprise in 'domain_b': prediction error 0.80 suggests missing factor",
+      "domain": "domain_b",
+      "predicted_outcome": "Refined probe will reveal the missing factor",
+      "confidence": 0.62,
+      "status": "active",
+      "probes_run": 1,
+      "probes_confirmed": 1,
+      "probes_refuted": 0,
+      "surprise_history": [
+        0.1
+      ],
+      "created_at": 1772337513.8756459,
+      "source": "anomaly",
+      "parent_id": "18a3bcb625"
+    },
+    {
+      "hypothesis_id": "11eb3e8645",
+      "claim": "Surprise in 'domain_b': prediction error 0.71 suggests missing factor",
+      "domain": "domain_b",
+      "predicted_outcome": "Refined probe will reveal the missing factor",
+      "confidence": 0.62,
+      "status": "active",
+      "probes_run": 1,
+      "probes_confirmed": 1,
+      "probes_refuted": 0,
+      "surprise_history": [
+        0.1
+      ],
+      "created_at": 1772337513.875713,
+      "source": "anomaly",
+      "parent_id": "2cc8320a1b"
+    },
+    {
+      "hypothesis_id": "60c0a04efb",
+      "claim": "Surprise in 'domain_b': prediction error 0.80 suggests missing factor",
+      "domain": "domain_b",
+      "predicted_outcome": "Refined probe will reveal the missing factor",
+      "confidence": 0.62,
+      "status": "active",
+      "probes_run": 1,
+      "probes_confirmed": 1,
+      "probes_refuted": 0,
+      "surprise_history": [
+        0.1
+      ],
+      "created_at": 1772337513.875774,
+      "source": "anomaly",
+      "parent_id": "2cc8320a1b"
+    },
+    {
+      "hypothesis_id": "7e6793c1f4",
+      "claim": "Surprise in 'domain_b': prediction error 0.71 suggests missing factor",
+      "domain": "domain_b",
+      "predicted_outcome": "Refined probe will reveal the missing factor",
+      "confidence": 0.62,
+      "status": "active",
+      "probes_run": 1,
+      "probes_confirmed": 1,
+      "probes_refuted": 0,
+      "surprise_history": [
+        0.1
+      ],
+      "created_at": 1772337513.8758311,
+      "source": "anomaly",
+      "parent_id": "f1ff6607e2"
+    },
+    {
+      "hypothesis_id": "b66b60ee94",
+      "claim": "Surprise in 'domain_b': prediction error 0.80 suggests missing factor",
+      "domain": "domain_b",
+      "predicted_outcome": "Refined probe will reveal the missing factor",
+      "confidence": 0.62,
+      "status": "active",
+      "probes_run": 1,
+      "probes_confirmed": 1,
+      "probes_refuted": 0,
+      "surprise_history": [
+        0.1
+      ],
+      "created_at": 1772337513.8758888,
+      "source": "anomaly",
+      "parent_id": "f1ff6607e2"
+    },
+    {
+      "hypothesis_id": "60caf43b97",
+      "claim": "Surprise in 'correctness': prediction error 0.80 suggests missing factor",
+      "domain": "correctness",
+      "predicted_outcome": "Refined probe will reveal the missing factor",
+      "confidence": 0.365,
+      "status": "active",
+      "probes_run": 2,
+      "probes_confirmed": 0,
+      "probes_refuted": 2,
+      "surprise_history": [
+        0.7143,
+        0.8
+      ],
+      "created_at": 1772337513.879168,
+      "source": "anomaly",
+      "parent_id": "0c5459d716"
+    },
+    {
+      "hypothesis_id": "89eb295d1c",
+      "claim": "Surprise in 'correctness': prediction error 0.71 suggests missing factor",
+      "domain": "correctness",
+      "predicted_outcome": "Refined probe will reveal the missing factor",
+      "confidence": 0.365,
+      "status": "active",
+      "probes_run": 2,
+      "probes_confirmed": 0,
+      "probes_refuted": 2,
+      "surprise_history": [
+        0.7143,
+        0.8
+      ],
+      "created_at": 1772337513.87923,
+      "source": "anomaly",
+      "parent_id": "60caf43b97"
+    },
+    {
+      "hypothesis_id": "18c93d1820",
+      "claim": "Surprise in 'correctness': prediction error 0.80 suggests missing factor",
+      "domain": "correctness",
+      "predicted_outcome": "Refined probe will reveal the missing factor",
+      "confidence": 0.365,
+      "status": "active",
+      "probes_run": 2,
+      "probes_confirmed": 0,
+      "probes_refuted": 2,
+      "surprise_history": [
+        0.7143,
+        0.8
+      ],
+      "created_at": 1772337513.8792949,
+      "source": "anomaly",
+      "parent_id": "60caf43b97"
+    },
+    {
+      "hypothesis_id": "daeecbb774",
+      "claim": "Surprise in 'correctness': prediction error 0.71 suggests missing factor",
+      "domain": "correctness",
+      "predicted_outcome": "Refined probe will reveal the missing factor",
+      "confidence": 0.335,
+      "status": "active",
+      "probes_run": 2,
+      "probes_confirmed": 0,
+      "probes_refuted": 2,
+      "surprise_history": [
+        0.7143,
+        0.9
+      ],
+      "created_at": 1772337513.879356,
+      "source": "anomaly",
+      "parent_id": "89eb295d1c"
+    },
+    {
+      "hypothesis_id": "0b8c83bf04",
+      "claim": "Surprise in 'correctness': prediction error 0.80 suggests missing factor",
+      "domain": "correctness",
+      "predicted_outcome": "Refined probe will reveal the missing factor",
+      "confidence": 0.296,
+      "status": "active",
+      "probes_run": 2,
+      "probes_confirmed": 0,
+      "probes_refuted": 2,
+      "surprise_history": [
+        0.9,
+        0.9
+      ],
+      "created_at": 1772337513.8794172,
+      "source": "anomaly",
+      "parent_id": "89eb295d1c"
+    },
+    {
+      "hypothesis_id": "a255ce1833",
+      "claim": "Surprise in 'correctness': prediction error 0.71 suggests missing factor",
+      "domain": "correctness",
+      "predicted_outcome": "Refined probe will reveal the missing factor",
+      "confidence": 0.296,
+      "status": "active",
+      "probes_run": 2,
+      "probes_confirmed": 0,
+      "probes_refuted": 2,
+      "surprise_history": [
+        0.9,
+        0.9
+      ],
+      "created_at": 1772337513.881383,
+      "source": "anomaly",
+      "parent_id": "18c93d1820"
+    },
+    {
+      "hypothesis_id": "cb8d75977a",
+      "claim": "Surprise in 'correctness': prediction error 0.80 suggests missing factor",
+      "domain": "correctness",
+      "predicted_outcome": "Refined probe will reveal the missing factor",
+      "confidence": 0.296,
+      "status": "active",
+      "probes_run": 2,
+      "probes_confirmed": 0,
+      "probes_refuted": 2,
+      "surprise_history": [
+        0.9,
+        0.9
+      ],
+      "created_at": 1772337513.881449,
+      "source": "anomaly",
+      "parent_id": "18c93d1820"
+    },
+    {
+      "hypothesis_id": "9c0b6ea5d3",
+      "claim": "Surprise in 'correctness': prediction error 0.71 suggests missing factor",
+      "domain": "correctness",
+      "predicted_outcome": "Refined probe will reveal the missing factor",
+      "confidence": 0.38,
+      "status": "active",
+      "probes_run": 1,
+      "probes_confirmed": 0,
+      "probes_refuted": 1,
+      "surprise_history": [
+        0.9
+      ],
+      "created_at": 1772337513.881514,
+      "source": "anomaly",
+      "parent_id": "daeecbb774"
+    },
+    {
+      "hypothesis_id": "6f311174d3",
+      "claim": "Surprise in 'correctness': prediction error 0.90 suggests missing factor",
+      "domain": "correctness",
+      "predicted_outcome": "Refined probe will reveal the missing factor",
       "confidence": 0.5,
       "status": "active",
       "probes_run": 0,
       "probes_confirmed": 0,
       "probes_refuted": 0,
       "surprise_history": [],
-      "created_at": 1772337141.508502,
+      "created_at": 1772337513.88257,
       "source": "anomaly",
-      "parent_id": "18a3bcb625"
+      "parent_id": "daeecbb774"
+    },
+    {
+      "hypothesis_id": "caadcd632c",
+      "claim": "Surprise in 'correctness': prediction error 0.90 suggests missing factor",
+      "domain": "correctness",
+      "predicted_outcome": "Refined probe will reveal the missing factor",
+      "confidence": 0.5,
+      "status": "active",
+      "probes_run": 0,
+      "probes_confirmed": 0,
+      "probes_refuted": 0,
+      "surprise_history": [],
+      "created_at": 1772337513.882635,
+      "source": "anomaly",
+      "parent_id": "0b8c83bf04"
+    },
+    {
+      "hypothesis_id": "898786f490",
+      "claim": "Surprise in 'correctness': prediction error 0.90 suggests missing factor",
+      "domain": "correctness",
+      "predicted_outcome": "Refined probe will reveal the missing factor",
+      "confidence": 0.5,
+      "status": "active",
+      "probes_run": 0,
+      "probes_confirmed": 0,
+      "probes_refuted": 0,
+      "surprise_history": [],
+      "created_at": 1772337513.882699,
+      "source": "anomaly",
+      "parent_id": "0b8c83bf04"
+    },
+    {
+      "hypothesis_id": "d43c9edab8",
+      "claim": "Surprise in 'correctness': prediction error 0.90 suggests missing factor",
+      "domain": "correctness",
+      "predicted_outcome": "Refined probe will reveal the missing factor",
+      "confidence": 0.5,
+      "status": "active",
+      "probes_run": 0,
+      "probes_confirmed": 0,
+      "probes_refuted": 0,
+      "surprise_history": [],
+      "created_at": 1772337513.882766,
+      "source": "anomaly",
+      "parent_id": "a255ce1833"
+    },
+    {
+      "hypothesis_id": "ea20e11050",
+      "claim": "Surprise in 'correctness': prediction error 0.90 suggests missing factor",
+      "domain": "correctness",
+      "predicted_outcome": "Refined probe will reveal the missing factor",
+      "confidence": 0.5,
+      "status": "active",
+      "probes_run": 0,
+      "probes_confirmed": 0,
+      "probes_refuted": 0,
+      "surprise_history": [],
+      "created_at": 1772337513.8828402,
+      "source": "anomaly",
+      "parent_id": "a255ce1833"
+    },
+    {
+      "hypothesis_id": "ff9100c69e",
+      "claim": "Surprise in 'correctness': prediction error 0.90 suggests missing factor",
+      "domain": "correctness",
+      "predicted_outcome": "Refined probe will reveal the missing factor",
+      "confidence": 0.5,
+      "status": "active",
+      "probes_run": 0,
+      "probes_confirmed": 0,
+      "probes_refuted": 0,
+      "surprise_history": [],
+      "created_at": 1772337513.882904,
+      "source": "anomaly",
+      "parent_id": "cb8d75977a"
+    },
+    {
+      "hypothesis_id": "08bcfe2b7b",
+      "claim": "Surprise in 'correctness': prediction error 0.90 suggests missing factor",
+      "domain": "correctness",
+      "predicted_outcome": "Refined probe will reveal the missing factor",
+      "confidence": 0.5,
+      "status": "active",
+      "probes_run": 0,
+      "probes_confirmed": 0,
+      "probes_refuted": 0,
+      "surprise_history": [],
+      "created_at": 1772337513.882978,
+      "source": "anomaly",
+      "parent_id": "cb8d75977a"
+    },
+    {
+      "hypothesis_id": "f6db975044",
+      "claim": "Surprise in 'correctness': prediction error 0.90 suggests missing factor",
+      "domain": "correctness",
+      "predicted_outcome": "Refined probe will reveal the missing factor",
+      "confidence": 0.5,
+      "status": "active",
+      "probes_run": 0,
+      "probes_confirmed": 0,
+      "probes_refuted": 0,
+      "surprise_history": [],
+      "created_at": 1772337513.883043,
+      "source": "anomaly",
+      "parent_id": "9c0b6ea5d3"
     }
   ]
 }

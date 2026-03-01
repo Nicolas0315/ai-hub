@@ -554,6 +554,10 @@ class KS41b(KS41a):
             for g in planned:
                 g.verification_score = _gradient_verify(g, verdict.total_fidelity)
 
+        # Step 5b: Solver quality adjustment (if solver feedback available)
+        if solver_feedback:
+            planned = self._apply_solver_quality(planned, solver_feedback)
+
         # Step 6: Decompose large goals
         for g in planned:
             if len(g.goal) > DECOMPOSITION_THRESHOLD or g.priority == "high":
@@ -600,6 +604,54 @@ class KS41b(KS41a):
             project_phase=project_phase,
             version=self.VERSION,
         )
+
+    def _apply_solver_quality(
+        self,
+        planned: list[PlannedGoal],
+        solver_feedback: list[dict[str, Any]],
+    ) -> list[PlannedGoal]:
+        """Adjust goal priorities using SolverQualityEngine + SolverOptimizer.
+
+        Integrates inter-solver translation loss analysis to boost goals
+        that address disagreement hotspots and deprioritize goals where
+        solver consensus is already strong.
+        """
+        try:
+            from .solver_quality import SolverQualityEngine
+            from .solver_optimizer import SolverOptimizer
+
+            sqe = SolverQualityEngine()
+            optimizer = SolverOptimizer()
+
+            # Analyze solver disagreements
+            quality = sqe.analyze(solver_feedback)
+            optimized = optimizer.optimize(solver_feedback)
+
+            # Adjust priorities based on disagreement patterns
+            for g in planned:
+                goal_text = g.goal.lower()
+                # Boost goals targeting areas of solver disagreement
+                if quality.get("disagreement_type") == "framework":
+                    # Kuhnian framework conflicts → boost goals addressing paradigm gaps
+                    if any(kw in goal_text for kw in ["framework", "paradigm", "approach", "method"]):
+                        g.phase_boost *= 1.3
+                        g.priority = "high"
+                elif quality.get("disagreement_type") == "data_gap":
+                    # Resolvable data gaps → boost evidence-gathering goals
+                    if any(kw in goal_text for kw in ["test", "evidence", "data", "validate"]):
+                        g.phase_boost *= 1.2
+
+                # Apply ESS-based confidence adjustment
+                ess = optimized.get("ess", 0)
+                n_solvers = optimized.get("n_solvers", 1)
+                independence_ratio = ess / max(n_solvers, 1)
+                # Higher independence → higher confidence in verification
+                g.confidence *= (0.7 + 0.3 * independence_ratio)
+
+        except (ImportError, Exception):
+            pass  # Graceful degradation if solver modules unavailable
+
+        return planned
 
     def record_outcome(self, goal: PlannedGoal, outcome: str,
                        actual_impact: float) -> GoalHistory:

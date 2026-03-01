@@ -1,10 +1,18 @@
 """
-KS Agent — KS41b + PEV Loop Integration.
+KS Agent (KSA-1a) — KS41b + PEV Loop Integration.
 
-Connects KS41b verification pipeline as the Verify step in PEV loop.
-Plan: KS41b Goal Planning → Execute: Action Executor → Verify: KS41b verify()
+Connects KS41b verification pipeline as the Verify step in the
+Plan-Execute-Verify (PEV) loop. Each iteration:
+  Plan:    KS41b Goal Planning → decompose task into actionable steps
+  Execute: ActionExecutor → run file reads, shell commands, or KS verifications
+  Verify:  KS41b verify() → validate execution results with confidence scoring
 
-This is the minimal viable agent: KS can now plan, act, and verify in a loop.
+Theoretical basis:
+  - KS41b: 28-solver hybrid verification with anti-accumulation (KS30c C-4)
+  - PEV Loop: inspired by OODA (Observe-Orient-Decide-Act) adapted for
+    verification-centric AI agents
+  - Self-Other Boundary (KS39b): agent verifies its own outputs, maintaining
+    provenance tracking between planning and execution roles
 
 Design: Youta Hilono + Nicolas
 Implementation: Shirokuma (OpenClaw AI)
@@ -14,9 +22,8 @@ from __future__ import annotations
 
 import sys
 import os
-import time
 import json
-from typing import Any, Dict, Optional
+from typing import Any, Optional
 
 _dir = os.path.dirname(os.path.abspath(__file__))
 if _dir not in sys.path:
@@ -38,10 +45,44 @@ except ImportError:
         KS_AVAILABLE = False
         KS41b = None
 
-# ── Constants ──
-AGENT_VERSION = "KSA-1a"
-DEFAULT_SESSION_TTL = 1800   # 30 min
-VERIFY_CONFIDENCE_MAP = {
+# ── Named Constants ──
+AGENT_VERSION: str = "KSA-1a"
+"""Current agent version identifier."""
+
+DEFAULT_SESSION_TTL: float = 1800.0
+"""Default session time-to-live in seconds (30 minutes)."""
+
+DEFAULT_MAX_ITERATIONS: int = 10
+"""Default maximum PEV loop iterations before giving up."""
+
+CONFIDENCE_VALID_THRESHOLD: float = 0.7
+"""Minimum confidence for verification to pass."""
+
+CONFIDENCE_CRITICAL_THRESHOLD: float = 0.3
+"""Below this confidence, task approach needs fundamental rethinking."""
+
+CONFIDENCE_WEAK_THRESHOLD: float = 0.5
+"""Below this confidence, significant adjustment needed."""
+
+FALLBACK_CONFIDENCE: float = 0.6
+"""Confidence assigned when KS verification errors but execution succeeded."""
+
+NO_KS_SUCCESS_CONFIDENCE: float = 0.75
+"""Confidence when no KS is available and execution succeeded."""
+
+NO_KS_FAILURE_CONFIDENCE: float = 0.2
+"""Confidence when execution failed (with or without KS)."""
+
+OUTPUT_TRUNCATE_CONTENT: int = 2000
+"""Max characters of file/exec output to preserve."""
+
+OUTPUT_TRUNCATE_ERROR: int = 500
+"""Max characters of error output to preserve."""
+
+CLAIM_TRUNCATE: int = 500
+"""Max characters in verification claim text."""
+
+VERIFY_CONFIDENCE_MAP: dict[str, float] = {
     "SUPPORT": 0.85,
     "LEAN_SUPPORT": 0.70,
     "UNCERTAIN": 0.45,
@@ -49,10 +90,11 @@ VERIFY_CONFIDENCE_MAP = {
     "REJECT": 0.10,
     "NO_EVIDENCE": 0.30,
 }
+"""Mapping from KS verdict strings to numeric confidence scores."""
 
 
 def _ks_verdict_to_confidence(verdict: str) -> float:
-    """Map KS verdict string to confidence float."""
+    """Map a KS verification verdict string to a numeric confidence score."""
     return VERIFY_CONFIDENCE_MAP.get(verdict, 0.5)
 
 
@@ -92,12 +134,20 @@ class KSAgent:
             max_iterations=max_iterations,
         )
 
-    def run(self, task: str, context: Optional[Dict] = None) -> PEVResult:
-        """Run the full agent loop on a task."""
+    def run(self, task: str, context: Optional[dict] = None) -> PEVResult:
+        """Run the full PEV agent loop on a task.
+
+        Args:
+            task: Natural language description of the task.
+            context: Optional initial context dict.
+
+        Returns:
+            PEVResult with success status, iterations, and step history.
+        """
         return self.pev.run(task, context)
 
-    def _plan(self, task: str, context: Dict) -> Dict[str, Any]:
-        """Plan step: decompose task into actionable steps."""
+    def _plan(self, task: str, context: dict) -> dict[str, Any]:
+        """Plan step: decompose task into actionable steps using KS41b goal planning."""
         iteration = context.get("iteration", 0)
         last_feedback = context.get("last_feedback", "")
 
@@ -120,8 +170,39 @@ class KSAgent:
 
         return plan
 
-    def _execute(self, plan: Dict, context: Dict) -> Dict[str, Any]:
-        """Execute step: run the planned action."""
+    def _execute_read(self, path: str) -> dict[str, Any]:
+        """Execute a file read action."""
+        r = self.executor.read_file(path)
+        return {"type": "file_read", "path": path,
+                "success": r.success, "content": r.output[:OUTPUT_TRUNCATE_CONTENT]}
+
+    def _execute_python(self, code: str) -> dict[str, Any]:
+        """Execute a Python code snippet."""
+        r = self.executor.execute_python(code)
+        return {"type": "python_exec", "success": r.success,
+                "output": r.output[:OUTPUT_TRUNCATE_CONTENT], "error": r.error[:OUTPUT_TRUNCATE_ERROR]}
+
+    def _execute_shell(self, cmd: str) -> dict[str, Any]:
+        """Execute a shell command."""
+        r = self.executor.execute_shell(cmd)
+        return {"type": "shell", "success": r.success,
+                "output": r.output[:OUTPUT_TRUNCATE_CONTENT], "error": r.error[:OUTPUT_TRUNCATE_ERROR]}
+
+    def _execute_verify(self, claim_text: str) -> dict[str, Any]:
+        """Execute a direct KS verification on a claim."""
+        if not self.ks:
+            return {"type": "ks_verify", "error": "KS not available"}
+        try:
+            claim = Claim(claim_text)
+            ks_result = self.ks.verify(claim, skip_s28=True)
+            return {"type": "ks_verify",
+                    "verdict": str(ks_result.get("verdict", "UNKNOWN")),
+                    "confidence": ks_result.get("confidence", 0.5)}
+        except Exception as e:
+            return {"type": "ks_verify", "error": str(e)}
+
+    def _execute(self, plan: dict, context: dict) -> dict[str, Any]:
+        """Execute step: dispatch the planned action to the appropriate handler."""
         steps = plan.get("steps", [])
         current = plan.get("current_step", 0)
 
@@ -129,108 +210,80 @@ class KSAgent:
             return {"output": None, "success": False, "error": "No steps to execute"}
 
         step = steps[min(current, len(steps) - 1)]
-        result = {"step": step, "outputs": []}
 
-        if step.startswith("read:"):
-            # File read action
-            path = step.split(":", 1)[1].strip()
-            r = self.executor.read_file(path)
-            result["outputs"].append({"type": "file_read", "path": path,
-                                       "success": r.success, "content": r.output[:2000]})
+        # Dispatch table: prefix → handler
+        dispatch: dict[str, Any] = {
+            "read:": lambda s: self._execute_read(s.split(":", 1)[1].strip()),
+            "exec:": lambda s: self._execute_python(s.split(":", 1)[1].strip()),
+            "shell:": lambda s: self._execute_shell(s.split(":", 1)[1].strip()),
+            "verify:": lambda s: self._execute_verify(s.split(":", 1)[1].strip()),
+        }
 
-        elif step.startswith("exec:"):
-            # Python execution
-            code = step.split(":", 1)[1].strip()
-            r = self.executor.execute_python(code)
-            result["outputs"].append({"type": "python_exec", "success": r.success,
-                                       "output": r.output[:2000], "error": r.error[:500]})
+        output = {"type": "generic", "step": step}
+        for prefix, handler in dispatch.items():
+            if step.startswith(prefix):
+                output = handler(step)
+                break
 
-        elif step.startswith("shell:"):
-            # Shell command
-            cmd = step.split(":", 1)[1].strip()
-            r = self.executor.execute_shell(cmd)
-            result["outputs"].append({"type": "shell", "success": r.success,
-                                       "output": r.output[:2000], "error": r.error[:500]})
+        return {
+            "step": step,
+            "outputs": [output],
+            "success": output.get("success", True),
+            "current_step": current,
+        }
 
-        elif step.startswith("verify:"):
-            # Direct KS verification
-            claim_text = step.split(":", 1)[1].strip()
-            if self.ks:
-                try:
-                    claim = Claim(claim_text)
-                    ks_result = self.ks.verify(claim, skip_s28=True)
-                    result["outputs"].append({"type": "ks_verify",
-                                               "verdict": str(ks_result.get("verdict", "UNKNOWN")),
-                                               "confidence": ks_result.get("confidence", 0.5)})
-                except Exception as e:
-                    result["outputs"].append({"type": "ks_verify", "error": str(e)})
-            else:
-                result["outputs"].append({"type": "ks_verify", "error": "KS not available"})
+    def _verify(self, output: dict, task: str) -> dict[str, Any]:
+        """Verify step: use KS41b to validate execution results.
 
-        else:
-            # Generic: treat as verification claim
-            result["outputs"].append({"type": "generic", "step": step})
-
-        result["success"] = all(o.get("success", True) for o in result["outputs"])
-        result["current_step"] = current
-        return result
-
-    def _verify(self, output: Dict, task: str) -> Dict[str, Any]:
-        """Verify step: use KS41b to validate execution results."""
+        Returns a dict with 'valid' (bool), 'confidence' (float), and 'feedback' (str).
+        Falls back to basic success check if KS is unavailable or errors.
+        """
         if not output or not output.get("success", False):
+            error_msg = output.get("outputs", [{}])[0].get("error", "unknown") if output else "no output"
+            return {"valid": False, "confidence": NO_KS_FAILURE_CONFIDENCE,
+                    "feedback": f"Execution failed: {error_msg}"}
+
+        if not self.ks:
+            success = output.get("success", False)
+            conf = NO_KS_SUCCESS_CONFIDENCE if success else NO_KS_FAILURE_CONFIDENCE
+            return {"valid": success, "confidence": conf, "feedback": "No KS available, basic check only"}
+
+        return self._verify_with_ks(output, task)
+
+    def _verify_with_ks(self, output: dict, task: str) -> dict[str, Any]:
+        """Run KS41b verification on execution output."""
+        outputs = output.get("outputs", [])
+        claim_text = f"Task '{task}' completed with: {json.dumps(outputs[:3], default=str)[:CLAIM_TRUNCATE]}"
+
+        try:
+            claim = Claim(claim_text)
+            ks_result = self.ks.verify(claim, skip_s28=True)
+            verdict = str(ks_result.get("verdict", "UNCERTAIN"))
+            confidence = _ks_verdict_to_confidence(verdict)
             return {
-                "valid": False,
-                "confidence": 0.2,
-                "feedback": f"Execution failed: {output.get('outputs', [{}])[0].get('error', 'unknown')}",
+                "valid": confidence >= CONFIDENCE_VALID_THRESHOLD,
+                "confidence": confidence,
+                "feedback": f"KS verdict: {verdict}",
+                "ks_result": {k: str(v)[:200] for k, v in ks_result.items()},
             }
+        except Exception as e:
+            return {"valid": output.get("success", False),
+                    "confidence": FALLBACK_CONFIDENCE,
+                    "feedback": f"KS error (fallback): {e}"}
 
-        # If KS is available, verify the output claim
-        if self.ks:
-            # Construct verification claim from output
-            outputs = output.get("outputs", [])
-            claim_text = f"Task '{task}' was successfully completed with result: {json.dumps(outputs[:3], default=str)[:500]}"
-            
-            try:
-                claim = Claim(claim_text)
-                ks_result = self.ks.verify(claim, skip_s28=True)
-                verdict = str(ks_result.get("verdict", "UNCERTAIN"))
-                confidence = _ks_verdict_to_confidence(verdict)
-
-                return {
-                    "valid": confidence >= 0.7,
-                    "confidence": confidence,
-                    "feedback": f"KS verdict: {verdict}",
-                    "ks_result": {k: str(v)[:200] for k, v in ks_result.items()},
-                }
-            except Exception as e:
-                # KS verification failed, fall back to basic check
-                return {
-                    "valid": output.get("success", False),
-                    "confidence": 0.6,
-                    "feedback": f"KS error (fallback): {e}",
-                }
-        else:
-            # No KS: basic success check only
-            return {
-                "valid": output.get("success", False),
-                "confidence": 0.75 if output.get("success") else 0.2,
-                "feedback": "No KS available, basic check only",
-            }
-
-    def _adjust(self, task: str, output: Dict, verify_result: Dict, context: Dict) -> Dict:
-        """Adjust step: generate feedback for next iteration."""
+    def _adjust(self, task: str, output: dict, verify_result: dict, context: dict) -> dict:
+        """Adjust step: generate feedback for next PEV iteration based on verification confidence."""
         feedback = verify_result.get("feedback", "Unknown issue")
         confidence = verify_result.get("confidence", 0.0)
 
-        if confidence < 0.3:
+        if confidence < CONFIDENCE_CRITICAL_THRESHOLD:
             return {"feedback": f"CRITICAL: {feedback}. Rethink approach entirely."}
-        elif confidence < 0.5:
+        if confidence < CONFIDENCE_WEAK_THRESHOLD:
             return {"feedback": f"WEAK: {feedback}. Significant adjustment needed."}
-        else:
-            return {"feedback": f"CLOSE: {feedback}. Minor refinement."}
+        return {"feedback": f"CLOSE: {feedback}. Minor refinement."}
 
-    def _decompose_task(self, task: str) -> list:
-        """Simple task decomposition heuristic."""
+    def _decompose_task(self, task: str) -> list[str]:
+        """Decompose a task string into actionable step prefixes."""
         task_lower = task.lower()
 
         if "verify" in task_lower or "check" in task_lower:
@@ -247,8 +300,8 @@ class KSAgent:
         else:
             return [f"verify: {task}"]
 
-    def get_status(self) -> Dict[str, Any]:
-        """Agent status."""
+    def get_status(self) -> dict[str, Any]:
+        """Return current agent status including KS availability and session state."""
         return {
             "version": AGENT_VERSION,
             "ks_available": KS_AVAILABLE,
