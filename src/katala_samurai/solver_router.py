@@ -224,6 +224,7 @@ class AdaptiveSolverRouter:
         escalation_k: int = ESCALATION_POOL_SIZE,
         max_rounds: int = MAX_ESCALATION_ROUNDS,
     ):
+        """Initialize router with solver pool and escalation parameters."""
         self.pool = solver_pool or create_full_solver_pool()
         self.initial_k = initial_k
         self.escalation_k = escalation_k

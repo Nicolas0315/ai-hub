@@ -284,11 +284,14 @@ def _compute_r_context_1b(
             referenced.append(fw)
 
     if not referenced:
-        # No specific theory → check general documentation quality
+        # No specific theory → assess general documentation quality
         func_count = len(re.findall(r'def\s+\w+', code))
-        doc_count = len(re.findall(r'def\s+\w+.*?:\s*\n\s+"""', code))
+        doc_count = len(re.findall(r'def\s+\w+.*?:\s*\n\s+"""', code, re.DOTALL))
         doc_ratio = doc_count / max(func_count, 1)
-        return round(0.5 + 0.3 * doc_ratio, SCORE_PRECISION), gaps
+        # Module docstring presence bonus
+        has_module_doc = bool(re.match(r'\s*"""', code))
+        module_bonus = 0.1 if has_module_doc else 0.0
+        return round(min(1.0, 0.5 + 0.4 * doc_ratio + module_bonus), SCORE_PRECISION), gaps
 
     # Check preservation
     preserved = 0
@@ -370,7 +373,8 @@ def _compute_r_qualia_1b(
 
     # 2. Docstring coverage (stricter threshold)
     if func_names:
-        docstrings = len(re.findall(r'def\s+\w+.*?:\s*\n\s+"""', code))
+        # Match docstrings at any indentation level
+        docstrings = len(re.findall(r'def\s+\w+.*?:\s*\n\s+"""', code, re.DOTALL))
         ratio = min(1.0, docstrings / len(func_names))
         scores.append(ratio)
         if ratio < QUALIA_DOCSTRING_MIN:
@@ -392,11 +396,21 @@ def _compute_r_qualia_1b(
 
     # 4. Magic numbers (stricter)
     magic_nums = re.findall(r'(?<![.\w])\d+\.?\d*(?![.\w])', code)
+    # Strip comments and strings before counting magic numbers
+    code_stripped = re.sub(r'""".*?"""|\'\'\'.*?\'\'\'', '', code, flags=re.DOTALL)
+    code_stripped = re.sub(r'"[^"]*"|\'[^\']*\'', '', code_stripped)
+    code_stripped = re.sub(r'#.*$', '', code_stripped, flags=re.MULTILINE)
+    magic_nums = re.findall(r'(?<![.\w])\d+\.?\d*(?![.\w])', code_stripped)
     safe = {'0', '1', '2', '3', '4', '5', '0.0', '1.0', '0.5', '100', '1000', '10'}
     magic = [n for n in magic_nums if n not in safe]
-    # Exclude numbers that appear in named constant assignments (UPPER_CASE = N)
+    # Exclude numbers in named constant assignments (UPPER_CASE = N)
     const_nums = set(re.findall(r'^[A-Z_]{2,}\s*=\s*(\d+\.?\d*)', code, re.MULTILINE))
     magic = [n for n in magic if n not in const_nums]
+    # Exclude numbers inside dict/list literals (data tables, not logic)
+    # Heuristic: if >50% of magic numbers are 0.X values, likely a data table
+    decimal_ratio = sum(1 for n in magic if '.' in n and float(n) < 1) / max(len(magic), 1)
+    if decimal_ratio > 0.5:
+        magic = [n for n in magic if '.' not in n or float(n) >= 1]
     if len(magic) > QUALIA_MAX_MAGIC:
         penalty = min(0.5, len(magic) * 0.04)
         scores.append(1.0 - penalty)

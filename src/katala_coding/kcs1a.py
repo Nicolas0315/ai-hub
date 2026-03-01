@@ -342,52 +342,44 @@ _KATALA_CONVENTIONS = {
 }
 
 
+# Convention relevance rules: name → (relevance_check_pattern, warn_on_miss)
+_CONVENTION_RELEVANCE = {
+    "dataclass_slots":  ("@dataclass",                    True),
+    "type_annotations": (r"def |class ",                  False),
+    "rust_fallback":    ("rust",                          True),
+    "round_scores":     (r"score|loss|fidelity",          False),
+    "clamp_values":     (r"score|loss|ratio",             False),
+}
+
+
 def _compute_r_cultural(code: str, project: str = "katala") -> tuple[float, list[str]]:
     """Measure adherence to team/project conventions."""
-    violations = []
-
     if project != "katala":
-        return 0.7, []  # No conventions defined for other projects
+        return 0.7, []
 
-    conventions_checked = 0
-    conventions_met = 0
+    violations = []
+    checked = 0
+    met = 0
+    code_lower = code.lower()
 
     for name, (pattern, description) in _KATALA_CONVENTIONS.items():
-        # Only check if the convention is relevant to this code
-        if name == "dataclass_slots" and "@dataclass" in code:
-            conventions_checked += 1
-            if re.search(pattern, code):
-                conventions_met += 1
-            else:
-                violations.append(f"Convention: {description}")
+        relevance = _CONVENTION_RELEVANCE.get(name)
+        if not relevance:
+            continue
+        check_pat, warn = relevance
+        # Check relevance
+        if not re.search(check_pat, code_lower if name != "dataclass_slots" else code):
+            continue
+        checked += 1
+        if re.search(pattern, code):
+            met += 1
+        elif warn:
+            violations.append(f"Convention: {description}")
 
-        elif name == "type_annotations" and ("def " in code or "class " in code):
-            conventions_checked += 1
-            if re.search(pattern, code):
-                conventions_met += 1
-            # Don't warn — not all files need it
-
-        elif name == "rust_fallback" and "rust" in code.lower():
-            conventions_checked += 1
-            if re.search(pattern, code):
-                conventions_met += 1
-            else:
-                violations.append(f"Convention: {description}")
-
-        elif name == "round_scores" and re.search(r'score|loss|fidelity', code.lower()):
-            conventions_checked += 1
-            if re.search(pattern, code):
-                conventions_met += 1
-
-        elif name == "clamp_values" and re.search(r'score|loss|ratio', code.lower()):
-            conventions_checked += 1
-            if re.search(pattern, code):
-                conventions_met += 1
-
-    if conventions_checked == 0:
+    if checked == 0:
         return 0.8, []
 
-    score = conventions_met / conventions_checked
+    score = met / checked
     return round(min(1.0, 0.3 + 0.7 * score), 4), violations
 
 
