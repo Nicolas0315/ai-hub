@@ -68,7 +68,38 @@ Respond in EXACTLY this JSON format (no markdown):
 
 
 def _call_llm(prompt, timeout=15):
-    """Call available LLM for semantic extraction. Non-judging use only."""
+    """Call available LLM for semantic extraction. Non-judging use only.
+
+    Priority: Ollama (local) → Gemini → OpenAI.
+    Ollama is preferred because it's free, fast, and local.
+    """
+    # --- Ollama (local LLM) ---
+    ollama_url = os.environ.get("OLLAMA_URL", "http://localhost:11434")
+    ollama_model = os.environ.get("OLLAMA_MODEL", "qwen3:8b")
+    try:
+        payload = json.dumps({
+            "model": ollama_model,
+            "prompt": prompt + "\n/no_think",
+            "stream": False,
+            "options": {"temperature": 0.1, "num_predict": 1024},
+        }).encode()
+        req = urllib.request.Request(
+            f"{ollama_url}/api/generate", data=payload,
+            headers={"Content-Type": "application/json"},
+        )
+        with urllib.request.urlopen(req, timeout=timeout) as resp:
+            data = json.loads(resp.read().decode())
+            text = data.get("response", "")
+            text = re.sub(r'^```json\s*', '', text.strip())
+            text = re.sub(r'\s*```$', '', text.strip())
+            # Try to extract JSON from response
+            json_match = re.search(r'\{[\s\S]*\}', text)
+            if json_match:
+                return json.loads(json_match.group())
+    except Exception:
+        pass
+
+    # --- Gemini API ---
     api_key = os.environ.get("GEMINI_API_KEY", "")
     if api_key:
         try:

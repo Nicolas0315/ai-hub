@@ -1,0 +1,33 @@
+# Python venvs and build artifacts
+**/.venv
+**/__pycache__
+*.pyc
+*.pyo
+
+# KS lite environments
+ks40b-lite/.venv
+ks40b-lite
+
+# Rust build
+**/target
+
+# Git
+.git
+
+# Large data
+*.wav
+*.mp3
+*.flac
+*.npy
+*.pkl
+*.pt
+*.pth
+
+# Test artifacts
+.pytest_cache
+.mypy_cache
+
+# Python source (not needed for Next.js)
+src/katala_samurai
+src/katala_coding
+src/htlf
