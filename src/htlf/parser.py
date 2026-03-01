@@ -1,4 +1,10 @@
-"""Parser for extracting JSON-DAG representations from free text."""
+"""Parser for extracting JSON-DAG representations from free text.
+
+Supports multilingual concept extraction:
+- English: regex-based noun phrase mining
+- Japanese: MeCab/fugashi morphological analysis for compound noun extraction
+- Cross-lingual: automatic language detection + layer inference
+"""
 
 from __future__ import annotations
 
@@ -7,6 +13,15 @@ import os
 import re
 from dataclasses import asdict, dataclass
 from typing import Any, Literal
+
+# ── Morphological analysis (optional, graceful fallback) ──
+try:
+    import fugashi
+    _TAGGER: fugashi.Tagger | None = fugashi.Tagger()
+    _HAS_MORPHO = True
+except (ImportError, RuntimeError):
+    _TAGGER = None
+    _HAS_MORPHO = False
 
 NodeType = Literal["claim", "concept", "equation"]
 EdgeType = Literal["CAUSAL", "PREMISE", "SUPPORTS", "CONTRADICTS", "DEFINES", "QUANTIFIES"]
@@ -125,6 +140,148 @@ def _extract_noun_phrases(text: str) -> list[str]:
     return sorted(found.keys(), key=lambda k: found[k])
 
 
+def _detect_language(text: str) -> str:
+    """Detect dominant language: 'ja', 'en', or 'mixed'."""
+    # Count CJK vs Latin characters
+    cjk = len(re.findall(r'[\u3000-\u9fff\uff00-\uffef]', text))
+    latin = len(re.findall(r'[a-zA-Z]', text))
+    total = cjk + latin
+    if total == 0:
+        return "en"
+    ratio = cjk / total
+    if ratio > 0.5:
+        return "ja"
+    if ratio > 0.15:
+        return "mixed"
+    return "en"
+
+
+def _extract_ja_concepts(text: str) -> list[str]:
+    """Extract Japanese compound nouns using morphological analysis.
+
+    Uses fugashi (MeCab wrapper) to identify noun compounds:
+    - Consecutive 名詞 (noun) tokens are joined into compound terms
+    - Filters particles, auxiliaries, and single-character terms
+    - Falls back to regex if fugashi unavailable
+    """
+    if not _HAS_MORPHO or _TAGGER is None:
+        # Fallback: regex-based extraction
+        kanji = re.findall(r'[一-龯]{2,}(?:[一-龯ぁ-ん]*[一-龯])?', text)
+        kata = re.findall(r'[ァ-ヴー]{3,}(?:・[ァ-ヴー]{2,})*', text)
+        return list(dict.fromkeys(kanji + kata))
+
+    words = _TAGGER(text)
+    concepts: list[str] = []
+    current_compound: list[str] = []
+
+    noun_pos = {'名詞', '接尾辞'}
+    
+    for word in words:
+        pos = word.feature.pos1 if hasattr(word.feature, 'pos1') else ''
+        if pos in noun_pos and len(word.surface) >= 1:
+            current_compound.append(word.surface)
+        else:
+            if len(current_compound) >= 2 or (
+                len(current_compound) == 1 and len(current_compound[0]) >= 2
+            ):
+                compound = ''.join(current_compound)
+                if len(compound) >= 2:
+                    concepts.append(compound)
+            current_compound = []
+
+    # Flush last compound
+    if len(current_compound) >= 2 or (
+        len(current_compound) == 1 and len(current_compound[0]) >= 2
+    ):
+        compound = ''.join(current_compound)
+        if len(compound) >= 2:
+            concepts.append(compound)
+
+    return list(dict.fromkeys(concepts))
+
+
+def _extract_multilingual_concepts(text: str) -> list[str]:
+    """Extract concepts from mixed-language text.
+
+    Combines English noun phrase extraction with Japanese morphological analysis.
+    Handles cross-lingual pairs like "重力波 (gravitational waves)".
+    """
+    lang = _detect_language(text)
+
+    if lang == "en":
+        return _extract_noun_phrases(text)
+    elif lang == "ja":
+        ja_concepts = _extract_ja_concepts(text)
+        # Also grab any English terms embedded in Japanese text
+        en_terms = re.findall(r'[A-Z][a-z]{2,}(?:\s[A-Z][a-z]+)*', text)
+        en_terms += re.findall(r'[A-Z]{2,6}', text)
+        return list(dict.fromkeys(ja_concepts + [t.lower() for t in en_terms]))
+    else:  # mixed
+        en_concepts = _extract_noun_phrases(text)
+        ja_concepts = _extract_ja_concepts(text)
+        # Merge, preserving order
+        combined = list(dict.fromkeys(en_concepts + ja_concepts))
+        return combined
+
+
+def detect_layer(text: str) -> str:
+    """Auto-detect the symbolic layer of the input text.
+
+    Returns: 'math', 'formal_language', 'natural_language',
+             'music', 'creative_arts'
+
+    Enhanced with multilingual support:
+    - Japanese academic text → natural_language
+    - Japanese with 数式/定理 → math
+    - Code (any language) → formal_language
+    """
+    lang = _detect_language(text)
+
+    # Code detection (language-independent)
+    code_markers = [
+        r'def\s+\w+\(', r'class\s+\w+[:\(]', r'import\s+\w+',
+        r'function\s+\w+', r'\{.*\}', r'(?:int|void|string)\s+\w+',
+        r'=>\s*\{', r'#include', r'fn\s+\w+',
+    ]
+    if sum(1 for p in code_markers if re.search(p, text)) >= 2:
+        return "formal_language"
+
+    # Math detection
+    math_markers = [
+        r'\\(?:frac|sum|int|partial|nabla|infty|alpha|beta|gamma)',
+        r'∀|∃|∈|∉|⊂|⊃|∪|∩|→|⟹|≡|≅|≤|≥',
+        r'(?:theorem|lemma|proof|corollary)\s',
+        r'定理|補題|証明|公理',
+    ]
+    if sum(1 for p in math_markers if re.search(p, text, re.IGNORECASE)) >= 2:
+        return "math"
+
+    # Music detection
+    music_markers = [
+        r'(?:major|minor)\s+(?:key|scale|chord)',
+        r'(?:allegro|andante|adagio|forte|piano|crescendo)',
+        r'(?:C|D|E|F|G|A|B)(?:#|b)?(?:m|maj|min|dim|aug|7)',
+        r'長調|短調|和音|旋律|拍子',
+    ]
+    if sum(1 for p in music_markers if re.search(p, text, re.IGNORECASE)) >= 2:
+        return "music"
+
+    # Creative arts detection
+    art_markers = [
+        r'(?:canvas|brushstroke|composition|palette|sculpture)',
+        r'(?:perspective|chiaroscuro|sfumato|impasto)',
+        r'絵画|彫刻|構図|画法|色彩',
+    ]
+    if sum(1 for p in art_markers if re.search(p, text, re.IGNORECASE)) >= 2:
+        return "creative_arts"
+
+    # Formal language (but not code)
+    if re.search(r'∧|∨|¬|⊢|⊨|BNF|grammar|syntax|semantics', text):
+        return "formal_language"
+
+    return "natural_language"
+
+
 def _deduplicate_concepts(concepts: list[str], max_nodes: int = 25) -> list[str]:
     """Remove near-duplicate concepts."""
     result: list[str] = []
@@ -167,9 +324,12 @@ def _infer_edge_type_between(src_text: str, tgt_text: str, full_text: str) -> tu
 
 
 def _heuristic_extract(text: str, max_nodes: int = 20) -> DAG:
-    """Concept-level DAG extraction using noun phrase mining + co-occurrence edges."""
-    # Phase 1: Extract concepts
-    concepts = _extract_noun_phrases(text)
+    """Concept-level DAG extraction using noun phrase mining + co-occurrence edges.
+
+    Multilingual: auto-detects language and uses morphological analysis for Japanese.
+    """
+    # Phase 1: Extract concepts (multilingual)
+    concepts = _extract_multilingual_concepts(text)
     
     # Also add key sentences as claim nodes for coverage
     sentences = [s.strip() for s in re.split(r'(?<=[.!?。！？])\s+', text) if s.strip()]

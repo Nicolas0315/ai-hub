@@ -62,22 +62,59 @@ class SummaryVerdict:
 # ════════════════════════════════════════════
 
 def _extract_key_claims(text: str) -> list[str]:
-    """Extract sentence-level claims from text."""
-    # Split on sentence boundaries
-    sentences = re.split(r'(?<=[.!?。！？])\s+', text.strip())
+    """Extract sentence-level claims from text (multilingual)."""
+    # Split on sentence boundaries (English + Japanese)
+    sentences = re.split(r'(?<=[.!?。！？])\s*', text.strip())
     # Filter out very short sentences (likely headers/labels)
-    return [s.strip() for s in sentences if len(s.strip()) > 15]
+    return [s.strip() for s in sentences if len(s.strip()) > 10]
+
+
+# ── Morphological analysis for cross-lingual matching ──
+try:
+    import fugashi as _fugashi
+    _SL_TAGGER: _fugashi.Tagger | None = _fugashi.Tagger()
+except (ImportError, RuntimeError):
+    _SL_TAGGER = None
+
+
+def _tokenize_ja(text: str) -> list[str]:
+    """Tokenize Japanese text into content words using morphological analysis."""
+    if _SL_TAGGER is None:
+        # Fallback: character n-gram + kanji/katakana extraction
+        kanji = re.findall(r'[一-龯]{2,}', text)
+        kata = re.findall(r'[ァ-ヴー]{3,}', text)
+        return kanji + kata
+
+    words = _SL_TAGGER(text)
+    content_pos = {'名詞', '動詞', '形容詞'}
+    stop_surfaces = {'する', 'ある', 'いる', 'なる', 'れる', 'られる', 'こと', 'もの', 'ため', 'よう'}
+    result = []
+    for w in words:
+        pos = w.feature.pos1 if hasattr(w.feature, 'pos1') else ''
+        if pos in content_pos and w.surface not in stop_surfaces and len(w.surface) >= 2:
+            result.append(w.surface)
+    return result
+
+
+def _detect_text_lang(text: str) -> str:
+    """Detect if text is primarily Japanese or English."""
+    cjk = len(re.findall(r'[\u3000-\u9fff]', text))
+    latin = len(re.findall(r'[a-zA-Z]', text))
+    return "ja" if cjk > latin else "en"
 
 
 def _extract_entities(text: str) -> set[str]:
-    """Extract named entities and key terms."""
+    """Extract named entities and key terms (multilingual)."""
     # Capitalized words (English proper nouns)
     en_entities = set(re.findall(r'\b[A-Z][a-z]{2,}(?:\s[A-Z][a-z]+)*\b', text))
     # Numbers with context
     numbers = set(re.findall(r'\d+(?:\.\d+)?%?', text))
-    # Japanese key terms (katakana words, kanji compounds)
-    ja_entities = set(re.findall(r'[ァ-ヴー]{3,}|[一-龯]{2,}', text))
-    return en_entities | numbers | ja_entities
+    # Japanese key terms: use morphological analysis
+    ja_content = _tokenize_ja(text)
+    ja_entities = set(ja_content)
+    # Also grab katakana compounds
+    kata = set(re.findall(r'[ァ-ヴー]{3,}(?:・[ァ-ヴー]{2,})*', text))
+    return en_entities | numbers | ja_entities | kata
 
 
 def _compute_r_struct(source: str, summary: str) -> tuple[float, list[str]]:
@@ -98,15 +135,45 @@ def _compute_r_struct(source: str, summary: str) -> tuple[float, list[str]]:
     else:
         entity_preserved = 0.5
 
-    # 2. Claim coverage (fuzzy: check if key words from each source claim appear in summary)
+    # 2. Claim coverage (cross-lingual aware)
+    source_lang = _detect_text_lang(source)
+    summary_lang = _detect_text_lang(summary)
+    cross_lingual = source_lang != summary_lang
+
     claims_covered = 0
+    summary_lower = summary.lower()
+
     for claim in source_claims:
-        claim_words = set(re.findall(r'\w{4,}', claim.lower()))
-        summary_lower = summary.lower()
-        if claim_words:
-            overlap = sum(1 for w in claim_words if w in summary_lower) / len(claim_words)
-            if overlap >= 0.4:
-                claims_covered += 1
+        if cross_lingual:
+            # Cross-lingual: match entities (numbers, proper nouns, katakana)
+            # These survive translation better than content words
+            claim_entities = _extract_entities(claim)
+            summary_entities_local = _extract_entities(summary)
+            if claim_entities:
+                overlap = len(claim_entities & summary_entities_local) / len(claim_entities)
+                if overlap >= 0.2:  # Lower threshold for cross-lingual
+                    claims_covered += 1
+            # Also check Japanese tokenized content for semantic overlap
+            elif source_lang == "en":
+                # English → Japanese: look for katakana transliterations
+                en_words = set(re.findall(r'[A-Z][a-z]{2,}', claim))
+                if en_words and any(w.lower() in summary_lower for w in en_words):
+                    claims_covered += 1
+        else:
+            # Same language: word overlap
+            if source_lang == "ja":
+                claim_words = set(_tokenize_ja(claim))
+                summary_words = set(_tokenize_ja(summary))
+                if claim_words:
+                    overlap = len(claim_words & summary_words) / len(claim_words)
+                    if overlap >= 0.3:
+                        claims_covered += 1
+            else:
+                claim_words = set(re.findall(r'\w{4,}', claim.lower()))
+                if claim_words:
+                    overlap = sum(1 for w in claim_words if w in summary_lower) / len(claim_words)
+                    if overlap >= 0.4:
+                        claims_covered += 1
 
     claim_coverage = claims_covered / len(source_claims)
 
