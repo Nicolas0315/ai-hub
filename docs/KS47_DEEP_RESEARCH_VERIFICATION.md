@@ -172,15 +172,44 @@ ks46/src/                      # Rust拡張 (Phase 6+)
     citation_checker.rs
 ```
 
-## 7. 既存ベンチマークとの差別化
+## 7. ベンチマーク全景マップ (2025-2026)
 
-| | DeepResearch Bench | DRB (FutureSearch) | **KS47** |
+### 7.1 収集済みベンチマーク一覧
+
+| # | ベンチマーク | 論文 | タスク数 | 評価軸 | データ |
+|---|---|---|---|---|---|
+| 1 | **DeepResearch Bench** | 2506.11763 | 100 (22ドメイン) | RACE (4次元) + FACT | ✅ 取得済み |
+| 2 | **DeepResearch Bench II** | 2601.08536 | 132 | 9,430 fine-grained rubrics (info_recall/analysis/presentation) | ✅ 取得済み |
+| 3 | **DRB (FutureSearch)** | 2506.06287 | 91 | オフラインWeb + 客観正解 | leaderboard only |
+| 4 | **DRACO** (Perplexity) | 2602.11685 | 100 (10ドメイン) | 3,934 criteria (LLM-as-Judge) | ✅ HuggingFace |
+| 5 | **DeepSynth** | 2602.21143 | 120 (7ドメイン) | F1 + LLM-judge | ICLR 2026 |
+| 6 | **TRACE** | 2602.21230 | 可変 | Trajectory Utility (効率/認知/精度) | WWW 2026 |
+| 7 | **ResearcherBench** | 2507.16280 | 65 (35 AI科目) | Rubric + Factual dual | ✅ 取得済み |
+| 8 | **DeepScholar-bench** | — | Live (arXiv) | Related work生成品質 | OpenReview |
+| 9 | **Vision-DeepResearch** | 2602.02185 | マルチモーダル | 視覚+テキスト検索 | ✅ 取得済み |
+| 10 | **DR-50** | — | 50 (6タイプ) | 精度/レイテンシ | aimultiple.com |
+| 11 | **Deep Search QA** (DeepMind) | — | QA | Perplexity 79.5% | — |
+
+### 7.2 SOTA手法（ベンチから超えるべきターゲット）
+
+| 手法 | 論文 | スコア | 特徴 |
 |---|---|---|---|
-| 評価対象 | DRAの出力レポート | DRAのWeb検索能力 | **DRAの全プロセス** |
-| 評価方法 | LLM-as-Judge | 客観正解比較 | **KS46 solver chain + LLM hybrid** |
-| 引用検証 | FACT (URL-statement) | オフラインWeb | **FACT + KS46 claim verification** |
-| 自己検証 | なし | なし | **KCSの自己参照構造を継承** |
-| 多言語 | 中英 | 英語中心 | **KS46の多言語対応を継承** |
+| **FS-Researcher** | 2602.01566 | SOTA on DRB+DeepConsult | ファイルシステムベース dual-agent (Context Builder + Report Writer) |
+| **DualGraph** | 2602.13830 | RACE 53.08 | Knowledge Graph + Operation Graph の二重グラフ |
+| **CellCog** | — | DRB 54.65 | 商用 |
+| **Onyx Deep Research** | OSS (MIT) | DRB 54.54 | オープンソース |
+| **AgentCPM-Report** | 2602.06540 | 複数ベンチ | クローズドソース超え |
+
+### 7.3 KS47との差別化
+
+| | 既存ベンチマーク群 | **KS47** |
+|---|---|---|
+| 評価対象 | DRAの出力レポート or 検索能力 | **DRAの全プロセス (5軸)** |
+| 評価方法 | LLM-as-Judge or 客観正解 | **KS46 solver chain + LLM hybrid** |
+| 引用検証 | FACT / オフラインWeb | **FACT + KS46 claim verification** |
+| 自己検証 | なし | **KCSの自己参照構造を継承** |
+| 多言語 | 中英 or 英語のみ | **KS46の多言語対応を継承** |
+| プロセス評価 | TRACE のみ (Trajectory) | **5軸統合 + claim-level二層** |
 
 ## 8. 未解決の設計判断 (Youta相談事項)
 
