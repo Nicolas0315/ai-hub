@@ -156,6 +156,39 @@ except ImportError:
     except ImportError:
         pass
 
+_HAS_IMAGE_UNDERSTANDING = False
+try:
+    from katala_samurai.image_understanding import ImageUnderstandingEngine
+    _HAS_IMAGE_UNDERSTANDING = True
+except ImportError:
+    try:
+        from image_understanding import ImageUnderstandingEngine
+        _HAS_IMAGE_UNDERSTANDING = True
+    except ImportError:
+        pass
+
+_HAS_AUDIO_PROCESSING = False
+try:
+    from katala_samurai.audio_processing import AudioProcessingEngine
+    _HAS_AUDIO_PROCESSING = True
+except ImportError:
+    try:
+        from audio_processing import AudioProcessingEngine
+        _HAS_AUDIO_PROCESSING = True
+    except ImportError:
+        pass
+
+_HAS_VIDEO_UNDERSTANDING = False
+try:
+    from katala_samurai.video_understanding import VideoUnderstandingEngine
+    _HAS_VIDEO_UNDERSTANDING = True
+except ImportError:
+    try:
+        from video_understanding import VideoUnderstandingEngine
+        _HAS_VIDEO_UNDERSTANDING = True
+    except ImportError:
+        pass
+
 
 class KS42c(KS42b):
     """KS42b + Semantic Parse + Rust Acceleration.
@@ -198,6 +231,9 @@ class KS42c(KS42b):
         self._multilingual = MultilingualVerifier() if _HAS_MULTILINGUAL else None
         self._long_context = LongContextEngine() if _HAS_LONG_CONTEXT else None
         self._math_proof = MathProofEngine() if _HAS_MATH_PROOF else None
+        self._image = ImageUnderstandingEngine() if _HAS_IMAGE_UNDERSTANDING else None
+        self._audio = AudioProcessingEngine() if _HAS_AUDIO_PROCESSING else None
+        self._video = VideoUnderstandingEngine() if _HAS_VIDEO_UNDERSTANDING else None
 
     def verify(self, claim, store=None, skip_s28=True, **kwargs):
         """Verify claim with semantic enrichment and Rust acceleration.
@@ -416,6 +452,18 @@ class KS42c(KS42b):
             "math_proof": {
                 "available": self._math_proof is not None,
                 "status": self._math_proof.get_status() if self._math_proof else None,
+            },
+            "image_understanding": {
+                "available": self._image is not None,
+                "status": self._image.get_status() if self._image else None,
+            },
+            "audio_processing": {
+                "available": self._audio is not None,
+                "status": self._audio.get_status() if self._audio else None,
+            },
+            "video_understanding": {
+                "available": self._video is not None,
+                "status": self._video.get_status() if self._video else None,
             },
         }
         return base

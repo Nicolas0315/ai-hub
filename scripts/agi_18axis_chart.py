@@ -37,15 +37,15 @@ previous = [
     30, 15, 10, 65, 80, 55, 85, 75,
 ]
 
-# After multimodal engine implementation:
-# - CodeGenerationEngine: 65→85 (+20) — KCS feedback loop
-# - MultilingualEngine: 55→78 (+23) — 9 languages, 10/10 detection, multilingual known-false
-# - MathProofEngine: 80→88 (+8) — symbolic proof, SymPy, theorem matching
-# - LongContextEngine: 75→85 (+10) — chunk→verify→consistency
-# - Others unchanged (need CLIP/Whisper for vision/audio)
+# After full multimodal engine implementation:
+# Phase 1: CodeGen(+20), Multilingual(+23), LongContext(+10), MathProof(+8)
+# Phase 2: ImageUnderstanding(+35), AudioProcessing(+40), VideoUnderstanding(+40)
+# Image: metadata extraction, color analysis, manipulation detection, caption verification
+# Audio: WAV/MP3 parsing, spectral analysis, VAD, splice detection, transcript verification
+# Video: MP4/AVI parsing, scene detection, temporal consistency, deepfake risk assessment
 current = [
     96, 96, 96, 96, 96, 96, 96, 96, 96, 96,
-    30, 15, 10, 85, 88, 78, 85, 85,
+    65, 55, 50, 85, 88, 78, 85, 85,
 ]
 
 # Calculate
@@ -105,7 +105,7 @@ summary = (
     f"新規8軸:  {sum(multi_8)}/{sum(iags[10:])} (平均{sum(multi_8)/8:.0f}%) | vs Q*: {sum(1 for m,q in zip(multi_8,q_star[10:]) if m>=q)}勝{sum(1 for m,q in zip(multi_8,q_star[10:]) if m<q)}敗\n"
     f"全18軸:   {curr_total}/{iags_total} (平均{curr_total/18:.0f}%) | vs Q*: {curr_wins}勝{18-curr_wins}敗\n"
     f"\n前回比: +{curr_total-prev_total}点\n"
-    f"Python: 178モジュール | Rust: 2,584行"
+    f"Python: 181モジュール | Rust: 2,584行"
 )
 ax1.text(0.02, 0.98, summary, transform=ax1.transAxes,
          fontsize=9, verticalalignment='top',
