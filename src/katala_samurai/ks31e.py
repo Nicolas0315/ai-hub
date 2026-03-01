@@ -598,6 +598,8 @@ class KS31e:
         flags = []
         if semantics and semantics["mode"] == "llm":
             flags.append("CONTENT_AWARE")
+        elif semantics and semantics["mode"] == "degraded_enhanced":
+            flags.append("CONTENT_PARTIAL")
         elif semantics:
             flags.append("DEGRADED_MODE")
         if causal:

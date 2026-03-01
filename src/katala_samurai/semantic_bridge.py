@@ -162,15 +162,80 @@ def extract_semantics(claim_text, evidence=None):
             "latency_ms": latency * 1000,
         }
 
-    # Degraded mode: sentence splitting (no LLM)
+    # Enhanced degraded mode: structural analysis without LLM
+    # Instead of just splitting sentences, extract typed propositions
+    # and basic causal/semantic structure from text patterns.
     sentences = re.split(r'[.;]\s+', claim_text)
     sentences = [s.strip() for s in sentences if len(s.strip()) > 10]
+
+    propositions = []
+    implicit_assumptions = []
+    key_entities = []
+    causal_links = []
+
+    # Causal keywords → typed propositions
+    causal_keywords = {
+        "because": "causal", "therefore": "causal", "hence": "causal",
+        "thus": "causal", "consequently": "causal", "causes": "causal",
+        "leads to": "causal", "results in": "causal", "due to": "causal",
+        "since": "causal", "so ": "causal", "implies": "causal",
+    }
+    comparative_keywords = ["more", "less", "better", "worse", "greater",
+                            "smaller", "higher", "lower", "than", "compared"]
+    definitional_keywords = ["is a", "is an", "defined as", "refers to",
+                             "means", "constitutes"]
+    temporal_keywords = ["before", "after", "during", "when", "then",
+                         "previously", "currently", "recently"]
+
+    text_lower = claim_text.lower()
+    for sent in sentences:
+        sent_lower = sent.lower()
+
+        # Classify proposition type
+        ptype = "factual"  # default
+        for kw, ctype in causal_keywords.items():
+            if kw in sent_lower:
+                ptype = ctype
+                # Extract causal link
+                parts = re.split(r'\b(?:because|therefore|hence|thus|since|causes|leads to|results in|due to)\b',
+                                 sent, flags=re.IGNORECASE)
+                if len(parts) >= 2:
+                    causal_links.append({
+                        "cause": parts[0].strip()[:80],
+                        "effect": parts[-1].strip()[:80],
+                        "strength": "moderate",
+                    })
+                break
+        if ptype == "factual":
+            if any(kw in sent_lower for kw in comparative_keywords):
+                ptype = "comparative"
+            elif any(kw in sent_lower for kw in definitional_keywords):
+                ptype = "definitional"
+
+        propositions.append({"text": sent, "type": ptype})
+
+    # Extract entities: capitalized words, numbers, quoted terms
+    entity_pattern = re.compile(r'(?:[A-Z][a-z]+(?:\s+[A-Z][a-z]+)*|\d+(?:\.\d+)?(?:\s*%|\s*[A-Za-z]+)?|"[^"]+"|\'[^\']+\')')
+    for match in entity_pattern.finditer(claim_text):
+        entity = match.group().strip("\"'")
+        if len(entity) > 1 and entity.lower() not in {"the", "a", "an", "is", "it"}:
+            key_entities.append(entity)
+    key_entities = list(dict.fromkeys(key_entities))[:10]  # dedupe, max 10
+
+    # Implicit assumptions from quantifiers and conditionals
+    if any(w in text_lower for w in ["all ", "every ", "always ", "never "]):
+        implicit_assumptions.append("Universal quantifier implies no exceptions exist")
+    if "if " in text_lower:
+        implicit_assumptions.append("Conditional claim assumes antecedent can be true")
+    if any(w in text_lower for w in ["should ", "must ", "need "]):
+        implicit_assumptions.append("Normative claim assumes shared value framework")
+
     return {
-        "mode": "degraded",
-        "propositions": [{"text": s, "type": "unknown"} for s in sentences],
-        "implicit_assumptions": [],
-        "key_entities": [],
-        "causal_links": [],
+        "mode": "degraded_enhanced",
+        "propositions": propositions if propositions else [{"text": claim_text, "type": "factual"}],
+        "implicit_assumptions": implicit_assumptions,
+        "key_entities": key_entities,
+        "causal_links": causal_links,
         "latency_ms": latency * 1000,
     }
 
