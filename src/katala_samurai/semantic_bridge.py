@@ -24,11 +24,18 @@ Principles:
   - No accumulation: fresh extraction every run
 """
 
+import hashlib
 import os
 import json
 import urllib.request
 import re
 import time
+
+# ── In-memory LLM response cache ──
+# Caches LLM extraction results by prompt hash to avoid redundant API calls
+# within the same process. Particularly useful for batch verification.
+_llm_cache: dict[str, dict] = {}
+_LLM_CACHE_MAX = 200  # max entries to prevent unbounded growth
 
 
 EXTRACTION_PROMPT = """Extract the core logical propositions from this claim. 
@@ -105,11 +112,16 @@ def _call_llm(prompt, timeout=12):
 
     Priority: Ollama (local, cached probe) → Gemini (flash) → OpenAI.
     Optimizations:
+    - In-memory response cache (same prompt → same result, skip API call)
     - Ollama liveness is cached for 5 minutes (no repeated socket probes)
     - Gemini uses gemini-2.0-flash-lite for speed
     - Timeout reduced from 15s to 12s
     - JSON parsing centralized
     """
+    # ── Cache check ──
+    cache_key = hashlib.md5(prompt.encode()).hexdigest()
+    if cache_key in _llm_cache:
+        return _llm_cache[cache_key]
     # --- Ollama (local LLM) — cached liveness check ---
     ollama_url = os.environ.get("OLLAMA_URL", "http://localhost:11434")
     ollama_model = os.environ.get("OLLAMA_MODEL", "qwen3:8b")
@@ -134,6 +146,8 @@ def _call_llm(prompt, timeout=12):
                 data = json.loads(resp.read().decode())
                 result = _parse_llm_json(data.get("response", ""))
                 if result:
+                    if len(_llm_cache) < _LLM_CACHE_MAX:
+                        _llm_cache[cache_key] = result
                     return result
         except Exception:
             pass
@@ -156,6 +170,8 @@ def _call_llm(prompt, timeout=12):
                 text = data["candidates"][0]["content"]["parts"][0]["text"]
                 result = _parse_llm_json(text)
                 if result:
+                    if len(_llm_cache) < _LLM_CACHE_MAX:
+                        _llm_cache[cache_key] = result
                     return result
         except Exception:
             pass
@@ -178,6 +194,8 @@ def _call_llm(prompt, timeout=12):
                 text = data["choices"][0]["message"]["content"]
                 result = _parse_llm_json(text)
                 if result:
+                    if len(_llm_cache) < _LLM_CACHE_MAX:
+                        _llm_cache[cache_key] = result
                     return result
         except Exception:
             pass
