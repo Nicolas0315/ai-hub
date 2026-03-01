@@ -1,3 +1,4 @@
+from __future__ import annotations
 """
 KS35b — Katala Samurai 35b: Session Toxicity Guard
 

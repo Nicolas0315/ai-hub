@@ -53,6 +53,26 @@ class HarmonicStructure:
     implicit_assumptions: List[str] = field(default_factory=list)
 
 def extract_harmonic_structure(spectrogram, sr=22050, hop_length=512):
+    """S2: Extract harmonic structure from a spectrogram.
+
+    Computes chroma profile, estimates key/tempo, detects chords,
+    and derives semantic concepts + implicit assumptions for downstream
+    patch selection and theory reference (S7).
+
+    Parameters
+    ----------
+    spectrogram : np.ndarray
+        Complex or magnitude STFT matrix (freq_bins x time_frames).
+    sr : int
+        Sample rate in Hz (default 22050).
+    hop_length : int
+        STFT hop length in samples (default 512).
+
+    Returns
+    -------
+    HarmonicStructure
+        Populated with chroma, chords, key, tempo, concepts, assumptions.
+    """
     import librosa
     hs = HarmonicStructure()
     S = np.abs(spectrogram)
@@ -69,6 +89,19 @@ def extract_harmonic_structure(spectrogram, sr=22050, hop_length=512):
     return hs
 
 def _detect_chords(chroma, min_conf=0.3):
+    """Detect chords from chroma features using template matching.
+
+    Slides a window across chroma frames, correlating each segment
+    against major/minor/7th chord templates. Returns chord labels
+    with beat positions and confidence scores.
+
+    Parameters
+    ----------
+    chroma : np.ndarray
+        12 x T chroma matrix.
+    min_conf : float
+        Minimum cosine similarity to accept a chord (default 0.3).
+    """
     if chroma is None: return []
     TEMPLATES = {
         'C':[1,0,0,0,1,0,0,1,0,0,0,0], 'Cm':[1,0,0,1,0,0,0,1,0,0,0,0],
@@ -94,6 +127,17 @@ def _detect_chords(chroma, min_conf=0.3):
     return chords
 
 def _estimate_key(chroma):
+    """Estimate musical key using Krumhansl-Kessler key profiles.
+
+    Correlates the mean chroma vector against major and minor
+    key profiles across all 12 pitch classes, returning the
+    best-matching key (e.g. 'F#m', 'C').
+
+    Parameters
+    ----------
+    chroma : np.ndarray
+        12 x T chroma matrix.
+    """
     if chroma is None: return "unknown"
     maj = [6.35,2.23,3.48,2.33,4.38,4.09,2.52,5.19,2.39,3.66,2.29,2.88]
     minor = [6.33,2.68,3.52,5.38,2.60,3.53,2.54,4.75,3.98,2.69,3.34,3.17]

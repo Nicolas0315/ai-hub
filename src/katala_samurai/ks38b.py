@@ -1,3 +1,4 @@
+from __future__ import annotations
 """
 KS38b — Katala Samurai 38b: Hardware-Optimized Pipeline
 

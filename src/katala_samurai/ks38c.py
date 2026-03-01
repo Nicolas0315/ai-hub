@@ -1,3 +1,4 @@
+from __future__ import annotations
 """
 KS38c — Katala Samurai 38c: Full-Stack Turbo Optimization
 

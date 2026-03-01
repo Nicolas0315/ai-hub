@@ -1,3 +1,4 @@
+from __future__ import annotations
 """
 KS36d — Katala Samurai 36d: Adaptive Strategy + Failure Learning
 

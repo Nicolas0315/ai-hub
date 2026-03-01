@@ -1,3 +1,4 @@
+from __future__ import annotations
 """
 KS36e — Katala Samurai 36e: Autonomous Learning Enhancement
 
