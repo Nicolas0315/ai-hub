@@ -385,15 +385,23 @@ def backtest_event_filter(
     equity_curve = [equity]
 
     for trade in trades:
-        entry_ts = pd.Timestamp(trade.get("entry_time", "2026-01-01"))
+        entry_ts_raw = trade.get("entry_time", "2026-01-01")
+        try:
+            entry_ts = pd.Timestamp(entry_ts_raw)
+            entry_dt = entry_ts.to_pydatetime()
+            if entry_dt.tzinfo is None:
+                entry_dt = entry_dt.replace(tzinfo=JST)
+        except Exception:
+            entry_dt = datetime.now(JST)
         # Check risk state at trade entry
-        state = manager.evaluate(now=entry_ts.to_pydatetime())
+        state = manager.evaluate(now=entry_dt)
         # Adjust size by risk multiplier
-        orig_size = float(trade["size_btc"])
+        orig_size = float(trade.get("size_btc", trade.get("adj_size_btc", 0.01)))
+        orig_pnl = float(trade.get("pnl", trade.get("adj_pnl", 0.0)))
         adj_size = manager.apply_to_size(orig_size)
         # Scale P&L by size adjustment
         scale = adj_size / orig_size if orig_size > 0 else 1.0
-        adj_pnl = float(trade["pnl"]) * scale
+        adj_pnl = orig_pnl * scale
 
         adjusted_trades.append({
             **trade,
@@ -409,10 +417,10 @@ def backtest_event_filter(
         equity_curve.append(equity)
 
     n = len(adjusted_trades)
-    wins = [t for t in adjusted_trades if t["adj_pnl"] > 0]
-    total_pnl = sum(t["adj_pnl"] for t in adjusted_trades)
-    win_pnl = [t["adj_pnl"] for t in wins]
-    loss_pnl = [abs(t["adj_pnl"]) for t in adjusted_trades if t["adj_pnl"] <= 0]
+    wins = [t for t in adjusted_trades if float(t.get("adj_pnl", 0)) > 0]
+    total_pnl = sum(float(t.get("adj_pnl", 0)) for t in adjusted_trades)
+    win_pnl = [float(t["adj_pnl"]) for t in wins]
+    loss_pnl = [abs(float(t["adj_pnl"])) for t in adjusted_trades if float(t.get("adj_pnl", 0)) <= 0]
     profit_factor = sum(win_pnl) / sum(loss_pnl) if loss_pnl else float("inf")
 
     returns = np.diff(equity_curve) / np.array(equity_curve[:-1])

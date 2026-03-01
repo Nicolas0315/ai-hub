@@ -139,11 +139,7 @@ def build_ohlcv(executions: pd.DataFrame, freq: str = "1min") -> pd.DataFrame:
     Returns:
         DataFrame with OHLCV columns indexed by JST timestamp.
     """
-    df = executions.set_index("exec_date")["price"].copy()
-    vol = executions.set_index("exec_date")["size"]
-
-    ohlcv = df.resample(freq).ogg()  # type: ignore[attr-defined]  # pandas groupby
-    # Manual OHLCV construction for clarity
+    # Manual OHLCV construction from tick data
     grp = executions.set_index("exec_date").resample(freq)
     ohlcv = pd.DataFrame({
         "open":   grp["price"].first(),
@@ -153,7 +149,7 @@ def build_ohlcv(executions: pd.DataFrame, freq: str = "1min") -> pd.DataFrame:
         "volume": grp["size"].sum(),
     }).dropna(subset=["close"])
 
-    return ohlcv
+    return ohlcv  # type: ignore[return-value]
 
 
 # ── Indicator Calculator ────────────────────────────────────────

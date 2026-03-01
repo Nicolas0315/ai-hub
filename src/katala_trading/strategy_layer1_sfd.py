@@ -287,8 +287,10 @@ class SFDStrategy:
             "exit_spot": spot,
             "exit_fx": fx,
             "pnl": pnl,
-            "duration_s": ts - pos.entry_time,
+            "duration_s": ts - pos.entry_time if isinstance(ts, float) else 0,
             "reason": reason,
+            "entry_time": str(pos.entry_time),
+            "exit_time": str(ts),
         }
         self._trade_history.append(trade)
         self._position = None

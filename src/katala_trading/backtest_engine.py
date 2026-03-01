@@ -161,6 +161,7 @@ def _run_combined_backtest(
         "total_pnl_jpy": total_pnl,
         "total_return_pct": total_return_pct,
         "max_drawdown_jpy": max_dd_jpy,
+        "trade_log": all_trades,
         "max_drawdown_pct": max_dd_pct,
         "profit_factor": compute_profit_factor(all_trades),
         "sharpe_ratio": sharpe,
