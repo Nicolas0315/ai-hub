@@ -224,6 +224,17 @@ except ImportError:
     except ImportError:
         pass
 
+_HAS_AXIS_MAX = False
+try:
+    from katala_samurai.axis_max_boost import AxisMaxBooster
+    _HAS_AXIS_MAX = True
+except ImportError:
+    try:
+        from axis_max_boost import AxisMaxBooster
+        _HAS_AXIS_MAX = True
+    except ImportError:
+        pass
+
 # ── PhD-gap engines (v3): peer_review, metacognitive, interdisciplinary, tacit_knowledge ──
 _HAS_PEER_REVIEW = False
 try:
@@ -318,6 +329,7 @@ class KS42c(KS42b):
         self._mm_judge = ModalityJudge() if _HAS_MULTIMODAL_INPUT else None
         self._cross_modal = CrossModalSolverEngine() if _HAS_CROSS_MODAL_SOLVER else None
         self._exceeds = ExceedsEngine() if _HAS_EXCEEDS else None
+        self._axis_max = AxisMaxBooster() if _HAS_AXIS_MAX else None
 
         # v3: PhD-gap engines
         self._peer_review = PeerReviewEngine() if _HAS_PEER_REVIEW else None
@@ -650,6 +662,10 @@ class KS42c(KS42b):
             "exceeds_engine": {
                 "available": self._exceeds is not None,
                 "status": self._exceeds.get_status() if self._exceeds else None,
+            },
+            "axis_max_boost": {
+                "available": self._axis_max is not None,
+                "status": self._axis_max.get_status() if self._axis_max else None,
             },
         }
         # v3: PhD-gap engines

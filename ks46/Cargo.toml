@@ -21,5 +21,5 @@ default = ["pyo3/extension-module"]
 cuda = []  # Enable CUDA-specific optimizations (KS43)
 
 [profile.release]
-opt-level = 3
-lto = true
+opt-level = 2
+lto = false
