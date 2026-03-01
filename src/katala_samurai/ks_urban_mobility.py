@@ -351,14 +351,88 @@ def compute_cross_modal(
     else:
         rtype = "environmental_impact"
 
+    # Temporal alignment: compare timestamp distributions across shared cells
+    temporal_alignment = _compute_temporal_alignment(patches_a, patches_b, intersection)
+
     return CrossModalCorrelation(
         modality_a=label_a,
         modality_b=label_b,
         spatial_overlap=round(spatial_overlap, 4),
-        temporal_alignment=1.0,  # TODO: implement timestamp comparison
+        temporal_alignment=round(temporal_alignment, 4),
         correlation_strength=round(corr, 4),
         relation_type=rtype,
     )
+
+
+def _compute_temporal_alignment(
+    patches_a: list[SpatialPatch],
+    patches_b: list[SpatialPatch],
+    shared_cells: set[tuple[int, int]],
+) -> float:
+    """Compute temporal alignment between two modalities.
+
+    Extracts timestamps from observations in shared grid cells,
+    measures the average temporal proximity (hours overlap ratio).
+    Returns 1.0 if timestamps are missing (graceful degradation).
+    """
+    if not shared_cells:
+        return 0.0
+
+    # Build cell → timestamps mapping
+    def _extract_timestamps(patches: list[SpatialPatch]) -> dict[tuple[int, int], list[str]]:
+        result: dict[tuple[int, int], list[str]] = {}
+        for p in patches:
+            cell = (p.grid_x, p.grid_y)
+            if cell not in shared_cells:
+                continue
+            ts_list: list[str] = []
+            for obs in p.observations:
+                for key in ("timestamp", "time", "datetime", "date"):
+                    val = obs.get(key)
+                    if isinstance(val, str) and len(val) >= 10:
+                        ts_list.append(val)
+                        break
+            if ts_list:
+                result[cell] = ts_list
+        return result
+
+    ts_a = _extract_timestamps(patches_a)
+    ts_b = _extract_timestamps(patches_b)
+
+    # If neither modality has timestamps, assume aligned (no data to contradict)
+    if not ts_a and not ts_b:
+        return 1.0
+
+    # Cells where both have timestamps
+    overlap_cells = set(ts_a.keys()) & set(ts_b.keys())
+    if not overlap_cells:
+        # One has timestamps, other doesn't — partial alignment
+        return 0.5
+
+    # Compare hour-of-day distributions per shared cell
+    alignments: list[float] = []
+    for cell in overlap_cells:
+        hours_a = _extract_hours(ts_a[cell])
+        hours_b = _extract_hours(ts_b[cell])
+        if hours_a and hours_b:
+            # Overlap ratio of hour sets
+            set_a = set(hours_a)
+            set_b = set(hours_b)
+            overlap = len(set_a & set_b) / max(len(set_a | set_b), 1)
+            alignments.append(overlap)
+
+    return sum(alignments) / max(len(alignments), 1) if alignments else 0.5
+
+
+def _extract_hours(timestamps: list[str]) -> list[int]:
+    """Extract hour-of-day from timestamp strings."""
+    import re as _re
+    hours: list[int] = []
+    for ts in timestamps:
+        m = _re.search(r'(\d{2}):(\d{2})', ts)
+        if m:
+            hours.append(int(m.group(1)))
+    return hours
 
 
 def _pearson(xs: list[float], ys: list[float]) -> float:

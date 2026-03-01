@@ -1,4 +1,16 @@
-"""Scoring functions for HTLF Phase 2."""
+"""
+Scoring functions for HTLF Phase 2.
+
+Computes 3+2 axis translation loss scores:
+- R_struct: structural preservation (concept graph edge/node fidelity)
+- R_context: contextual knowledge transfer (premise accessibility)
+- R_qualia: experiential/affective quality preservation
+
+The 12-profile classifier maps axis scores to canonical translation
+loss patterns using bottleneck-based dominance analysis.
+
+Design: Youta Hilono + Shirokuma, 2026-02
+"""
 
 from __future__ import annotations
 
@@ -19,6 +31,61 @@ from . import rust_bridge as rb
 ProfilePair = Literal["struct_context", "struct_qualia", "context_qualia", "struct", "context", "qualia"]
 ProfileMode = Literal["sum", "prod"]
 
+# --- Named constants for scoring thresholds ---
+EDGE_BLEND_WEIGHT: float = 0.6
+"""Weight of edge preservation in R_struct (vs node coverage at 1 - this)."""
+
+NODE_BLEND_WEIGHT: float = 1.0 - EDGE_BLEND_WEIGHT
+"""Weight of node coverage in R_struct."""
+
+EMBEDDING_SIMILARITY_THRESHOLD: float = 0.80
+"""Cosine similarity threshold for token-level semantic matching."""
+
+PREMISE_TOKEN_WEIGHT: float = 0.45
+"""Weight of token overlap in heuristic context scoring."""
+
+PREMISE_NGRAM_WEIGHT: float = 0.20
+"""Weight of n-gram overlap in heuristic context scoring."""
+
+PREMISE_SEMANTIC_WEIGHT: float = 0.35
+"""Weight of semantic similarity in heuristic context scoring."""
+
+CONTEXT_PREMISE_BLEND: float = 0.55
+"""Blend weight for premise-based score in overall R_context."""
+
+CONTEXT_SEMANTIC_BLEND: float = 0.25
+"""Blend weight for global semantic similarity in R_context."""
+
+CONTEXT_TFIDF_BLEND: float = 0.20
+"""Blend weight for TF-IDF overlap in R_context."""
+
+PARENT_MISSING_THRESHOLD: float = 0.30
+"""Similarity below which a parent premise is considered missing."""
+
+PARENT_MISSING_PENALTY: float = 0.75
+"""Multiplicative penalty when parent premise is missing."""
+
+BOTTLENECK_GAP_STRONG: float = 0.15
+"""Gap threshold for clear bottleneck axis in profile classification."""
+
+BOTTLENECK_GAP_MODERATE: float = 0.05
+"""Gap threshold for moderate bottleneck in profile classification."""
+
+MAX_LLM_INPUT_CHARS: int = 14000
+"""Maximum characters sent to LLM for premise extraction."""
+
+MAX_PREMISE_ITEMS: int = 12
+"""Maximum premise items extracted per text."""
+
+TOTAL_LOSS_WEIGHT_STRUCT: float = 0.35
+"""Weight of R_struct in total loss computation."""
+
+TOTAL_LOSS_WEIGHT_CONTEXT: float = 0.35
+"""Weight of R_context in total loss computation."""
+
+TOTAL_LOSS_WEIGHT_QUALIA: float = 0.30
+"""Weight of R_qualia in total loss computation."""
+
 EDGE_TYPE_WEIGHTS: dict[str, float] = {
     "CAUSAL": 1.3,
     "PREMISE": 1.25,
@@ -27,6 +94,7 @@ EDGE_TYPE_WEIGHTS: dict[str, float] = {
     "DEFINES": 1.05,
     "QUANTIFIES": 0.95,
 }
+"""Importance weights per edge type for R_struct computation."""
 
 EDGE_TYPE_MISMATCH_DISCOUNT: dict[tuple[str, str], float] = {
     ("CAUSAL", "SUPPORTS"): 0.7,
@@ -49,6 +117,7 @@ EDGE_TYPE_MISMATCH_DISCOUNT: dict[tuple[str, str], float] = {
     ("PREMISE", "DEFINES"): 0.7,
     ("DEFINES", "PREMISE"): 0.7,
 }
+"""Partial-credit discounts when edge types differ between source and target."""
 
 TERM_SYNONYM_GROUPS: list[set[str]] = [
     {"gravitational waves", "gravity waves", "重力波", "ripples in spacetime", "時空のさざなみ"},
@@ -57,11 +126,16 @@ TERM_SYNONYM_GROUPS: list[set[str]] = [
     {"protein folding", "タンパク質構造予測", "alphafold", "folding"},
     {"gene editing", "遺伝子編集", "crispr", "crispr-cas9"},
 ]
+"""Cross-lingual synonym groups for term matching."""
 
 
 @dataclass(slots=True)
 class ProfileScore:
-    """A single profile score among 12 profile patterns."""
+    """A single profile score among 12 translation loss profile patterns.
+
+    Each profile represents a specific axis combination (pair) and
+    composition mode (weighted sum vs geometric product).
+    """
 
     name: str
     pair: ProfilePair
@@ -71,7 +145,11 @@ class ProfileScore:
 
 @dataclass(slots=True)
 class ScoreResult:
-    """All HTLF axis scores and selected profile."""
+    """Complete HTLF axis scores bundle with profile classification.
+
+    Contains per-axis scores, selected profile pattern, total loss,
+    and the full 12-profile array for downstream analysis.
+    """
 
     r_struct: float
     r_context: float
@@ -86,12 +164,20 @@ class ScoreResult:
 
 @dataclass(slots=True)
 class PremiseItem:
+    """A single premise/concept extracted from source text.
+
+    Used in R_context computation to check whether target text
+    preserves the prerequisite knowledge needed to understand
+    the source's argument structure.
+    """
+
     term: str
     definition: str
     weight: float = 1.0
 
 
 def _normalize_edge_type(edge: object) -> str:
+    """Normalize an edge's type attribute to a canonical uppercase string."""
     edge_type = getattr(edge, "edge_type", None)
     if isinstance(edge_type, str) and edge_type:
         return edge_type.upper()
@@ -162,10 +248,11 @@ def compute_r_struct(source_dag: DAG, target_dag: DAG, match_result: MatchResult
         edge_score = rb.htlf_r_struct_typed(src_typed, tgt_typed, node_mapping, EDGE_TYPE_WEIGHTS, EDGE_TYPE_MISMATCH_DISCOUNT)
     
     # Blend: edge preservation (structural) + node coverage (conceptual)
-    return 0.6 * edge_score + 0.4 * node_ratio
+    return EDGE_BLEND_WEIGHT * edge_score + NODE_BLEND_WEIGHT * node_ratio
 
 
 def _tokenize(text: str) -> list[str]:
+    """Tokenize text into lowercase alpha/CJK tokens (length > 1)."""
     return [
         t.lower()
         for t in re.findall(r"[A-Za-z0-9_]+|[一-龯ぁ-んァ-ヴー]+", text)
@@ -174,6 +261,7 @@ def _tokenize(text: str) -> list[str]:
 
 
 def _build_synonym_map() -> dict[str, set[str]]:
+    """Build a lookup from each term to its synonym set."""
     synonym_map: dict[str, set[str]] = {}
     for group in TERM_SYNONYM_GROUPS:
         lower_group = {g.lower() for g in group}
@@ -208,6 +296,7 @@ def _embed_text(text: str) -> tuple[float, ...] | None:
 
 
 def _cosine(a: tuple[float, ...], b: tuple[float, ...]) -> float:
+    """Compute cosine similarity between two vectors."""
     if len(a) != len(b) or not a:
         return 0.0
     dot = sum(x * y for x, y in zip(a, b))
@@ -219,6 +308,7 @@ def _cosine(a: tuple[float, ...], b: tuple[float, ...]) -> float:
 
 
 def _extract_json_block(text: str) -> dict[str, Any] | None:
+    """Extract first JSON object from text, tolerating surrounding prose."""
     try:
         return json.loads(text)
     except Exception:
@@ -233,6 +323,7 @@ def _extract_json_block(text: str) -> dict[str, Any] | None:
 
 
 def _llm_json_openai(prompt: str, model: str, temperature: float = 0.0) -> dict[str, Any] | None:
+    """Call OpenAI API and parse JSON from response. Returns None on failure."""
     api_key = os.getenv("OPENAI_API_KEY")
     if not api_key:
         return None
@@ -247,6 +338,7 @@ def _llm_json_openai(prompt: str, model: str, temperature: float = 0.0) -> dict[
 
 
 def _llm_json_gemini(prompt: str, model: str = "gemini-1.5-flash", temperature: float = 0.0) -> dict[str, Any] | None:
+    """Call Gemini API and parse JSON from response. Returns None on failure."""
     api_key = os.getenv("GOOGLE_API_KEY") or os.getenv("GEMINI_API_KEY")
     if not api_key:
         return None
@@ -266,15 +358,18 @@ def _llm_json_gemini(prompt: str, model: str = "gemini-1.5-flash", temperature: 
 
 
 def _llm_json(prompt: str, openai_model: str = "gpt-4o-mini", gemini_model: str = "gemini-1.5-flash", temperature: float = 0.0) -> dict[str, Any] | None:
+    """Try OpenAI then Gemini for JSON extraction. Returns None if both fail."""
     return _llm_json_openai(prompt=prompt, model=openai_model, temperature=temperature) or _llm_json_gemini(
         prompt=prompt, model=gemini_model, temperature=temperature
     )
 
 
 def _text_similarity(a: str, b: str) -> float:
+    """Compute text similarity via embeddings (preferred) or Jaccard fallback."""
     va = _embed_text(a)
     vb = _embed_text(b)
     if va is not None and vb is not None:
+        # Cosine in [-1,1] → remap to [0,1]
         return max(0.0, min(1.0, (_cosine(va, vb) + 1.0) / 2.0))
 
     ta = set(_tokenize(a))
@@ -287,6 +382,7 @@ def _text_similarity(a: str, b: str) -> float:
 
 
 def _extract_premises_with_llm(source_text: str) -> list[PremiseItem] | None:
+    """Extract prerequisite concepts from source via LLM. Returns None on failure."""
     prompt = f"""SOURCE テキストを読んで、読者が必要とする前提知識を抽出してください。
 返答はJSONのみ:
 {{"items":[{{"term":"...","definition":"...","weight":1.0}}]}}
@@ -314,6 +410,7 @@ SOURCE:\n{source_text[:14000]}"""
 
 
 def _extract_premise_units(text: str) -> list[dict[str, object]]:
+    """Extract premise-bearing sentence units via heuristic markers."""
     units: list[dict[str, object]] = []
     sentences = [s.strip() for s in re.split(r"(?<=[.!?。！？])\s+", text) if s.strip()]
     premise_markers = ("if", "when", "under", "assuming", "given", "provided", "条件", "前提", "ただし", "場合")
@@ -337,6 +434,7 @@ def _extract_premise_units(text: str) -> list[dict[str, object]]:
 
 
 def _premises_from_heuristic(source_text: str) -> list[PremiseItem]:
+    """Fallback premise extraction using sentence-level heuristics."""
     units = _extract_premise_units(source_text)
     items: list[PremiseItem] = []
     for unit in units[:12]:
@@ -350,6 +448,7 @@ def _premises_from_heuristic(source_text: str) -> list[PremiseItem]:
 
 
 def _reader_definitions_from_target(target_text: str, items: list[PremiseItem]) -> dict[str, str] | None:
+    """Ask LLM-as-reader to define source terms using only target text."""
     term_list = "\n".join(f"- {it.term}" for it in items)
     prompt = f"""あなたはTARGETだけを読んだ読者です。SOURCEは見ていません。
 以下の用語/概念をTARGETのみから定義してください。
@@ -373,6 +472,7 @@ TARGET:\n{target_text[:14000]}"""
 
 
 def _token_match(src: str, tgt_tokens: set[str], synonym_map: dict[str, set[str]]) -> bool:
+    """Check if source token matches any target token (exact, synonym, or embedding)."""
     if src in tgt_tokens:
         return True
     if src in synonym_map and synonym_map[src] & tgt_tokens:
@@ -386,12 +486,13 @@ def _token_match(src: str, tgt_tokens: set[str], synonym_map: dict[str, set[str]
         tgt_vec = _embed_text(t)
         if tgt_vec is None:
             continue
-        if _cosine(src_vec, tgt_vec) >= 0.80:
+        if _cosine(src_vec, tgt_vec) >= EMBEDDING_SIMILARITY_THRESHOLD:
             return True
     return False
 
 
 def _idf_weights(source_units: list[dict[str, object]], target_text: str) -> dict[str, float]:
+    """Compute IDF weights across source premise units and target text."""
     docs: list[set[str]] = []
     for u in source_units:
         docs.append(set(u.get("tokens", [])))
@@ -407,6 +508,7 @@ def _idf_weights(source_units: list[dict[str, object]], target_text: str) -> dic
 
 
 def _heuristic_context_score(source_text: str, target_text: str) -> float:
+    """Compute R_context via heuristic: token overlap + n-grams + semantic similarity."""
     source_units = _extract_premise_units(source_text)
     if not source_units:
         return 0.5
@@ -450,10 +552,10 @@ def _heuristic_context_score(source_text: str, target_text: str) -> float:
                 if p < idx and p < len(source_units):
                     p_text = str(source_units[p].get("text", ""))
                     parent_scores.append(max((_text_similarity(p_text, ts) for ts in target_sentences), default=0.0))
-            if parent_scores and max(parent_scores) < 0.30 and semantic_score < 0.30:
-                parent_missing_factor = 0.75
+            if parent_scores and max(parent_scores) < PARENT_MISSING_THRESHOLD and semantic_score < PARENT_MISSING_THRESHOLD:
+                parent_missing_factor = PARENT_MISSING_PENALTY
 
-        unit_score = (0.45 * token_score + 0.20 * ngram_score + 0.35 * semantic_score) * parent_missing_factor
+        unit_score = (PREMISE_TOKEN_WEIGHT * token_score + PREMISE_NGRAM_WEIGHT * ngram_score + PREMISE_SEMANTIC_WEIGHT * semantic_score) * parent_missing_factor
         unit_weight = token_weight * (1.1 if parents else 1.0)
 
         total_weight += unit_weight
@@ -462,7 +564,7 @@ def _heuristic_context_score(source_text: str, target_text: str) -> float:
     premise_score = (weighted_sum / total_weight) if total_weight > 0 else 0.0
     global_semantic = _text_similarity(source_text[:4000], target_text[:4000])
     tfidf = rb.htlf_tfidf_overlap(_tokenize(source_text), target_text, idf)
-    return max(0.0, min(1.0, 0.55 * premise_score + 0.25 * global_semantic + 0.20 * tfidf))
+    return max(0.0, min(1.0, CONTEXT_PREMISE_BLEND * premise_score + CONTEXT_SEMANTIC_BLEND * global_semantic + CONTEXT_TFIDF_BLEND * tfidf))
 
 
 def compute_r_context_with_backend(source_text: str, target_text: str, model: str = "gpt-4o-mini") -> tuple[float, str]:
@@ -498,18 +600,33 @@ def compute_r_context_batch(cases: list[tuple[str, str]]) -> list[float]:
     return [compute_r_context(src, tgt) for src, tgt in cases]
 
 
+QUALIA_HEURISTIC_BASE: float = 0.10
+"""Baseline floor for heuristic qualia score."""
+
+QUALIA_SEMANTIC_WEIGHT: float = 0.25
+"""Weight of semantic similarity in heuristic qualia."""
+
+QUALIA_STYLE_WEIGHT: float = 0.15
+"""Weight of style marker match in heuristic qualia."""
+
+STYLE_MARKER_SCALE: float = 2000.0
+"""Scaling factor for punctuation density differences."""
+
+
 def _heuristic_qualia(source_text: str, target_text: str) -> float:
+    """Compute R_qualia heuristic from semantic similarity and style markers."""
     semantic = _text_similarity(source_text[:5000], target_text[:5000])
     src_exclaim = source_text.count("!") / max(1, len(source_text))
     tgt_exclaim = target_text.count("!") / max(1, len(target_text))
     src_q = source_text.count("?") / max(1, len(source_text))
     tgt_q = target_text.count("?") / max(1, len(target_text))
-    style_match = 1.0 - min(1.0, abs(src_exclaim - tgt_exclaim) * 2000 + abs(src_q - tgt_q) * 2000)
-    score = 0.10 + 0.25 * semantic + 0.15 * style_match
+    style_match = 1.0 - min(1.0, abs(src_exclaim - tgt_exclaim) * STYLE_MARKER_SCALE + abs(src_q - tgt_q) * STYLE_MARKER_SCALE)
+    score = QUALIA_HEURISTIC_BASE + QUALIA_SEMANTIC_WEIGHT * semantic + QUALIA_STYLE_WEIGHT * style_match
     return max(0.0, min(1.0, score))
 
 
 def _llm_qualia_one(source_text: str, target_text: str, temperature: float) -> float | None:
+    """Single LLM evaluation of qualia preservation (rating 1-5)."""
     prompt = f"""SOURCE と TARGET の体験的・感情的・感覚的な質(qualia)の保存度を1-5で採点。
 採点基準:
 1=ほぼ失われた, 3=部分保持, 5=高度に保持。
@@ -645,12 +762,12 @@ def classify_profiles(
     # Gap between bottleneck and preserved
     gap = sorted_axes[0][1] - sorted_axes[-1][1]
     
-    if gap > 0.15:
+    if gap > BOTTLENECK_GAP_STRONG:
         # Clear bottleneck: classify by the bottleneck axis (what's lost most)
         dominant_pair = bottleneck
         # When there's a clear gap, use "sum" (additive loss dominance)
         mode_choice = "sum"
-    elif gap > 0.05:
+    elif gap > BOTTLENECK_GAP_MODERATE:
         # Moderate gap: classify by the pair of the two most-lost axes
         top2 = sorted([sorted_axes[0][0], sorted_axes[1][0]])
         dominant_pair = f"{top2[0]}_{top2[1]}"
@@ -717,7 +834,7 @@ def compute_scores(
 
     # Total loss = weighted average of per-axis losses (not tied to profile_score)
     _rq = r_qualia if r_qualia is not None else 0.5
-    total_loss = 1.0 - (0.35 * r_struct + 0.35 * r_context + 0.30 * float(_rq))
+    total_loss = 1.0 - (TOTAL_LOSS_WEIGHT_STRUCT * r_struct + TOTAL_LOSS_WEIGHT_CONTEXT * r_context + TOTAL_LOSS_WEIGHT_QUALIA * float(_rq))
     return ScoreResult(
         r_struct=r_struct,
         r_context=r_context,

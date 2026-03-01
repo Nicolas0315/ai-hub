@@ -418,22 +418,26 @@ def _compute_r_qualia_1b(
         scores.append(0.5)
 
     # 4. Magic numbers (stricter)
-    magic_nums = re.findall(r'(?<![.\w])\d+\.?\d*(?![.\w])', code)
-    # Strip comments and strings before counting magic numbers
+    # Strip comments, strings, and docstrings before counting
     code_stripped = re.sub(r'""".*?"""|\'\'\'.*?\'\'\'', '', code, flags=re.DOTALL)
     code_stripped = re.sub(r'"[^"]*"|\'[^\']*\'', '', code_stripped)
     code_stripped = re.sub(r'#.*$', '', code_stripped, flags=re.MULTILINE)
-    magic_nums = re.findall(r'(?<![.\w])\d+\.?\d*(?![.\w])', code_stripped)
+    # Strip dict/list literal lines (data tables, not logic magic numbers)
+    # Lines like  ("CAUSAL", "SUPPORTS"): 0.7,  or  "key": 1.3,
+    code_no_tables = re.sub(r'^[^=]*(?:\(.*?\)|"[^"]*"|\'[^\']*\')\s*:\s*[\d.]+\s*,?\s*$', '', code_stripped, flags=re.MULTILINE)
+    # Also strip lines that are pure dict entries: "KEY": value,
+    code_no_tables = re.sub(r'^\s*["\'][^"\']+["\']\s*:\s*[\d.]+\s*,?\s*$', '', code_no_tables, flags=re.MULTILINE)
+    magic_nums = re.findall(r'(?<![.\w])\d+\.?\d*(?![.\w])', code_no_tables)
     safe = {'0', '1', '2', '3', '4', '5', '0.0', '1.0', '0.5', '100', '1000', '10'}
     magic = [n for n in magic_nums if n not in safe]
     # Exclude numbers in named constant assignments (UPPER_CASE = N)
-    const_nums = set(re.findall(r'^[A-Z_]{2,}\s*=\s*(\d+\.?\d*)', code, re.MULTILINE))
+    const_nums = set(re.findall(r'^[A-Z_]{2,}\s*[:{]?\s*(?:float|int|str|dict|list)?\s*=\s*(\d+\.?\d*)', code, re.MULTILINE))
     magic = [n for n in magic if n not in const_nums]
-    # Exclude numbers inside dict/list literals (data tables, not logic)
-    # Heuristic: if >50% of magic numbers are 0.X values, likely a data table
-    decimal_ratio = sum(1 for n in magic if '.' in n and float(n) < 1) / max(len(magic), 1)
-    if decimal_ratio > 0.5:
-        magic = [n for n in magic if '.' not in n or float(n) >= 1]
+    # Also exclude numbers that appear as values in module-level dict/set constants
+    const_dict_vals = set()
+    for m in re.finditer(r'^[A-Z_]{2,}\s*[:{].*?=\s*\{(.*?)\}', code, re.MULTILINE | re.DOTALL):
+        const_dict_vals.update(re.findall(r'(?<![.\w])(\d+\.?\d*)(?![.\w])', m.group(1)))
+    magic = [n for n in magic if n not in const_dict_vals]
     if len(magic) > QUALIA_MAX_MAGIC:
         penalty = min(0.5, len(magic) * 0.04)
         scores.append(1.0 - penalty)

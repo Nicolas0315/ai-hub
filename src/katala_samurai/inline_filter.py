@@ -8,6 +8,13 @@ Architecture:
   LLM (Ollama) → sentence splitter → KS40b.verify() per sentence
   → aggregate confidence → filtered output with per-sentence annotations
 
+Theoretical basis:
+  - KS40b 5-axis HTLF (R_struct, R_context, R_qualia, R_cultural, R_temporal)
+  - Each sentence is treated as a micro-translation from LLM's internal
+    representation to natural language, measurable via HTLF axes
+  - Confidence = KS40b verification score (0-1)
+  - Anti-accumulation principle (KS30c C-4): no cross-run state
+
 Usage:
   filter = KSInlineFilter(ollama_url="http://localhost:11434")
   result = filter.generate_and_verify("your prompt here", model="qwen3:8b")
@@ -21,11 +28,28 @@ import urllib.request
 from dataclasses import dataclass, field
 from typing import Any
 
+# --- Named constants ---
+DEFAULT_CONFIDENCE_THRESHOLD: float = 0.3
+"""Sentences below this confidence are flagged with ⚠️."""
+
+MIN_SENTENCE_LENGTH: int = 5
+"""Sentences shorter than this are skipped (not verified)."""
+
+DEFAULT_OLLAMA_URL: str = "http://localhost:11434"
+"""Default Ollama API endpoint."""
+
+OLLAMA_TIMEOUT_S: int = 120
+"""HTTP timeout for Ollama API calls."""
+
+DEFAULT_FALLBACK_CONFIDENCE: float = 0.5
+"""Default confidence when KS40b returns no explicit value."""
+
 # Lazy imports for KS40b to avoid import chain issues at module level
-_ks_instance = None
+_ks_instance: Any = None
 
 
-def _get_ks():
+def _get_ks() -> Any:
+    """Get or create singleton KS40b instance (lazy-loaded)."""
     global _ks_instance
     if _ks_instance is None:
         from katala_samurai.ks40b import KS40b
@@ -35,6 +59,16 @@ def _get_ks():
 
 @dataclass
 class SentenceVerdict:
+    """Verification result for a single sentence.
+
+    Attributes:
+        text: The sentence text.
+        confidence: KS40b verification confidence (0-1).
+        status: Verification status string from KS40b.
+        ks_time_ms: Time spent on KS40b verification in milliseconds.
+        htlf_loss: Optional HTLF loss breakdown dict.
+    """
+
     text: str
     confidence: float
     status: str | None
@@ -44,6 +78,22 @@ class SentenceVerdict:
 
 @dataclass
 class FilteredOutput:
+    """Complete inline filter result with per-sentence verdicts.
+
+    Attributes:
+        prompt: Original prompt sent to LLM.
+        model: LLM model name used.
+        raw_response: Unfiltered LLM response text.
+        sentences: Per-sentence verification verdicts.
+        llm_time_s: LLM generation time in seconds.
+        ks_time_s: Total KS40b verification time in seconds.
+        total_time_s: End-to-end pipeline time in seconds.
+        llm_tok_per_s: LLM throughput in tokens per second.
+        avg_confidence: Average confidence across verified sentences.
+        min_confidence: Minimum confidence across verified sentences.
+        flagged_count: Number of sentences below confidence threshold.
+    """
+
     prompt: str
     model: str
     raw_response: str
@@ -59,15 +109,16 @@ class FilteredOutput:
     @property
     def filtered_response(self) -> str:
         """Return response with low-confidence sentences marked."""
-        parts = []
+        parts: list[str] = []
         for s in self.sentences:
-            if s.confidence < 0.3:
+            if s.confidence < DEFAULT_CONFIDENCE_THRESHOLD:
                 parts.append(f"⚠️[conf={s.confidence:.2f}] {s.text}")
             else:
                 parts.append(s.text)
         return " ".join(parts)
 
     def summary(self) -> str:
+        """Generate human-readable summary of filter results."""
         lines = [
             f"Model: {self.model}",
             f"LLM: {self.llm_tok_per_s:.0f} tok/s, {self.llm_time_s:.1f}s",
@@ -107,12 +158,13 @@ class KSInlineFilter:
     verifies each with KS40b, returns annotated output.
     """
 
-    def __init__(self, ollama_url: str = "http://localhost:11434",
-                 confidence_threshold: float = 0.3):
+    def __init__(self, ollama_url: str = DEFAULT_OLLAMA_URL,
+                 confidence_threshold: float = DEFAULT_CONFIDENCE_THRESHOLD):
         self.ollama_url = ollama_url
         self.threshold = confidence_threshold
 
     def _ollama_generate(self, prompt: str, model: str = "qwen3:8b") -> dict:
+        """Call Ollama /api/generate endpoint synchronously."""
         req = urllib.request.Request(
             f"{self.ollama_url}/api/generate",
             data=json.dumps({
@@ -122,10 +174,11 @@ class KSInlineFilter:
             }).encode(),
             headers={"Content-Type": "application/json"},
         )
-        resp = json.loads(urllib.request.urlopen(req, timeout=120).read())
+        resp = json.loads(urllib.request.urlopen(req, timeout=OLLAMA_TIMEOUT_S).read())
         return resp
 
     def generate_and_verify(self, prompt: str, model: str = "qwen3:8b") -> FilteredOutput:
+        """Generate text via Ollama and verify each sentence with KS40b."""
         t_start = time.time()
 
         # Step 1: LLM generation
@@ -147,8 +200,8 @@ class KSInlineFilter:
         t_ks_start = time.time()
 
         # Separate verifiable sentences from tiny fragments
-        verifiable = [(i, s) for i, s in enumerate(sentences) if len(s.strip()) >= 5]
-        skip_indices = {i for i in range(len(sentences)) if len(sentences[i].strip()) < 5}
+        verifiable = [(i, s) for i, s in enumerate(sentences) if len(s.strip()) >= MIN_SENTENCE_LENGTH]
+        skip_indices = {i for i in range(len(sentences)) if len(sentences[i].strip()) < MIN_SENTENCE_LENGTH}
 
         # Batch verify all verifiable sentences
         batch_results = {}
@@ -162,7 +215,7 @@ class KSInlineFilter:
                 per_sentence_ms = (batch_elapsed / len(claims)) * 1000 if claims else 0
 
                 for (idx, _), result in zip(verifiable, raw_results):
-                    conf = result.get("confidence", 0.5) if isinstance(result, dict) else getattr(result, "confidence", 0.5)
+                    conf = result.get("confidence", DEFAULT_FALLBACK_CONFIDENCE) if isinstance(result, dict) else getattr(result, "confidence", DEFAULT_FALLBACK_CONFIDENCE)
                     status = result.get("status") if isinstance(result, dict) else getattr(result, "status", None)
                     htlf = result.get("htlf_loss") if isinstance(result, dict) else None
                     batch_results[idx] = (conf, status, htlf, per_sentence_ms)
@@ -211,20 +264,24 @@ class KSInlineFilter:
         )
 
     def verify_only(self, text: str) -> FilteredOutput:
-        """Verify pre-existing text without LLM generation."""
+        """Verify pre-existing text without LLM generation.
+
+        Splits text into sentences and runs KS40b on each,
+        returning annotated output with per-sentence confidence.
+        """
         t_start = time.time()
         sentences = split_sentences(text)
         ks = _get_ks()
-        verdicts = []
+        verdicts: list[SentenceVerdict] = []
 
         for sent in sentences:
-            if len(sent.strip()) < 5:
+            if len(sent.strip()) < MIN_SENTENCE_LENGTH:
                 verdicts.append(SentenceVerdict(text=sent, confidence=1.0, status="SKIP", ks_time_ms=0))
                 continue
             t1 = time.time()
             try:
                 result = ks.verify(sent)
-                conf = result.get("confidence", 0.5) if isinstance(result, dict) else getattr(result, "confidence", 0.5)
+                conf = result.get("confidence", DEFAULT_FALLBACK_CONFIDENCE) if isinstance(result, dict) else getattr(result, "confidence", DEFAULT_FALLBACK_CONFIDENCE)
                 status = result.get("status") if isinstance(result, dict) else getattr(result, "status", None)
             except Exception:
                 conf = 0.0
@@ -241,7 +298,7 @@ class KSInlineFilter:
             total_time_s=time.time() - t_start,
             avg_confidence=sum(confs)/len(confs) if confs else 0,
             min_confidence=min(confs) if confs else 0,
-            flagged_count=sum(1 for c in confs if c < 0.3),
+            flagged_count=sum(1 for c in confs if c < self.threshold),
         )
 
 
