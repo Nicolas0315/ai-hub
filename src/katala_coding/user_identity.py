@@ -80,7 +80,7 @@ _DEFAULT_USERS: list[dict[str, Any]] = [
     {
         "name": "Nicolas",
         "trust_level": TrustLevel.DESIGNER,
-        "platform_ids": {"discord": "259231974760120321"},
+        "platform_ids": {"discord": "259231974760120321", "line": "Ue22c67c9159a9e84b0159d3f1ae32b0c"},
         "permissions": {"share_private_info", "modify_self_model", "modify_core_memory"},
         "notes": "創造者1",
     },
