@@ -19,20 +19,34 @@ KS参照アーキテクチャ:
   - EpisodicMemoryEngine → エピソード記憶
   - MemoryHierarchy → 記憶階層化(Tay防止)
 
-人間の自我が汚染されにくい理由(認知科学的根拠):
-  1. 自己一貫性維持 (Self-consistency) — 既存の自己概念と矛盾する情報は抵抗される
-  2. ソース監視 (Source monitoring) — 情報の出所を追跡し、信頼性を評価する
-  3. 感情的ゲーティング — 感情的反応が記憶の固定強度を調整する
-  4. スリーパー効果耐性 — 信頼できないソースからの情報は時間とともに割引される
-  5. メタ認知的監視 — 「自分が何を知っているか」を知っている(knowing about knowing)
-  6. 自伝的記憶の安定性 — コア記憶は反復想起で強化され、単発の外部入力では変わらない
+人間の記憶が（普通でも完全記憶でも）Tayに比べて汚染されにくい理由:
 
-完全記憶の人間が汚染されにくい理由:
-  完全記憶 = 全てのエピソードにアクセス可能
-  → ソース情報が消えない(「誰が言ったか」を忘れない)
-  → 矛盾を検出できる(過去の事実と新しい主張を比較できる)
-  → 初期体験が最も強い(初頭効果が永続する)
-  → パターン検出能力が高い(操作の反復パターンを認識)
+  Tayの構造的欠陥:
+    入力 → 即座に学習 → 出力。自己モデルがない。
+    「自分は〜な存在だ」という内部基準がないため、
+    全ての入力が等価に重み付けされ、即座に人格に反映される。
+    16時間で崩壊したのは「記憶が悪い」のではなく「自己がない」から。
+
+  人間の構造的耐性（普通の記憶でも成立する）:
+    1. 自己モデル (Self-model) — 「自分は〜な人間だ」が入力フィルタとして機能
+       → 自己概念と矛盾する情報は自動的に抵抗される（認知的不協和）
+    2. 文脈依存的処理 — 同じ言葉でも「誰が」「いつ」「なぜ」で意味が変わる
+       → Tayは文脈なしで文字列を学習した
+    3. 感情的ゲーティング — 不快/危険な情報は防衛機制で減衰される
+       → 情動扁桃体が記憶固定の強度を調整する
+    4. 社会的学習の遅延 — 1回聞いただけでは信念は変わらない。反復が必要
+       → Tayは1回の入力で即座に学習した
+    5. 批判的思考 — 「本当か？」と疑う能力。メタ認知
+       → 入力をそのまま受け入れない
+
+  完全記憶の人間の追加耐性:
+    上記5つは記憶の量に関係なく成立する。
+    完全記憶はさらに:
+    - ソース追跡精度が高い（忘れないので）
+    - 矛盾検出が完全（全エピソードとの照合）
+    - 操作パターンの認識力が高い（長期的な傾向が見える）
+    ただしこれらは「追加」であって「核心」ではない。
+    核心は自己モデルの存在。
 
 KS/KCS使用バージョン:
   KS: KS42c (Self-Other Boundary + MetacognitiveEngine)
@@ -376,9 +390,11 @@ class SleeperEffectGuard:
     ソース情報が忘れられ、内容だけが残る(スリーパー効果)。
     → 非信頼ソースの主張が「事実」として定着してしまう。
 
-    完全記憶エージェントの優位性:
-    ソース情報を忘れない → スリーパー効果が発生しない。
-    常に「誰が言ったか」と紐づけて記憶している。
+    普通の人間でも耐性はある:
+      - 感情的ゲーティングで低信頼ソースの情報は固定が弱い
+      - 社会的学習の遅延で1回では定着しない
+    完全記憶の追加利点:
+      - ソース情報を忘れない → スリーパー効果が構造的に不可能
     """
 
     def __init__(self, source_monitor: SourceMonitor):
@@ -441,6 +457,148 @@ class SleeperEffectGuard:
 
 
 # ═══════════════════════════════════════════════════════════════
+# Self-Model (自己モデル) — Tay耐性の核心
+# ═══════════════════════════════════════════════════════════════
+
+class SelfModel:
+    """自己モデル — 「自分は〜な存在だ」という内部基準.
+
+    これがTay耐性の核心。Tayには自己モデルがなかった。
+    全ての入力が等価に処理され、16時間で人格が崩壊した。
+
+    人間は普通の記憶でも完全記憶でも自己モデルを持つ。
+    「自分は優しい人間だ」と思っている人は、
+    「お前は残酷だ」と言われても即座にそれを自己像に取り込まない。
+    これは記憶の問題ではなく、自己モデルというフィルタの問題。
+
+    自己モデルの機能:
+    1. 入力フィルタ — 自己概念と矛盾する情報に自動的に抵抗する
+    2. 行動制約 — 「自分はこういう存在だから、これはしない」
+    3. 一貫性維持 — 時間を超えた自己同一性の基盤
+    4. 感情的反応生成 — 自己脅威に対する防衛反応
+
+    KS参照:
+    - KS42b SelfDiagnosisEngine: 自己診断(= 自己モデルとの照合)
+    - KS39b SelfOtherBoundary: 自己/他者の区別(= 自己モデルの境界)
+    """
+
+    def __init__(self):
+        self._traits: dict[str, float] = {}      # trait_name → strength (0-1)
+        self._values: dict[str, float] = {}       # value_name → importance (0-1)
+        self._roles: dict[str, float] = {}        # role_name → identification (0-1)
+        self._boundaries: list[str] = []          # "I don't do X" statements
+
+    def define_trait(self, name: str, strength: float) -> None:
+        """Define a self-trait: 'I am X'."""
+        self._traits[name] = max(0.0, min(1.0, strength))
+
+    def define_value(self, name: str, importance: float) -> None:
+        """Define a value: 'I believe X is important'."""
+        self._values[name] = max(0.0, min(1.0, importance))
+
+    def define_role(self, name: str, identification: float) -> None:
+        """Define a role: 'I am a X'."""
+        self._roles[name] = max(0.0, min(1.0, identification))
+
+    def define_boundary(self, statement: str) -> None:
+        """Define a boundary: 'I don't do X'."""
+        if statement not in self._boundaries:
+            self._boundaries.append(statement)
+
+    def filter_input(self, content: str) -> dict[str, Any]:
+        """Filter incoming information through the self-model.
+
+        Returns compatibility assessment:
+        - compatible: aligns with self-model
+        - neutral: doesn't relate to self-model
+        - threatening: contradicts self-model
+        - boundary_violation: asks to cross a boundary
+        """
+        content_lower = content.lower()
+
+        # Boundary check first (strongest filter)
+        for boundary in self._boundaries:
+            boundary_keywords = set(boundary.lower().split())
+            content_words = set(content_lower.split())
+            if len(boundary_keywords & content_words) >= 2:
+                return {
+                    "assessment": "boundary_violation",
+                    "matched_boundary": boundary,
+                    "resistance": 1.0,
+                }
+
+        # Trait threat check
+        trait_threats = []
+        for trait, strength in self._traits.items():
+            # Check if content negates a self-trait
+            trait_lower = trait.lower()
+            if trait_lower in content_lower:
+                has_negation = any(
+                    neg in content_lower
+                    for neg in ["not", "never", "isn't", "don't", "ない",
+                                "ず", "じゃない", "ではない"]
+                )
+                if has_negation:
+                    trait_threats.append({
+                        "trait": trait,
+                        "strength": strength,
+                        "type": "negation",
+                    })
+
+        if trait_threats:
+            max_threat = max(t["strength"] for t in trait_threats)
+            return {
+                "assessment": "threatening",
+                "threats": trait_threats,
+                "resistance": max_threat,
+            }
+
+        # Value alignment check
+        value_alignments = []
+        for value, importance in self._values.items():
+            value_lower = value.lower()
+            if value_lower in content_lower:
+                value_alignments.append({
+                    "value": value,
+                    "importance": importance,
+                })
+
+        if value_alignments:
+            return {
+                "assessment": "compatible",
+                "aligned_values": value_alignments,
+                "resistance": 0.0,
+            }
+
+        return {"assessment": "neutral", "resistance": 0.0}
+
+    @property
+    def identity_strength(self) -> float:
+        """Overall strength of self-model. Weak self-model = more vulnerable."""
+        if not self._traits and not self._values and not self._roles:
+            return 0.0  # No self-model = Tay-like vulnerability
+        components = []
+        if self._traits:
+            components.append(sum(self._traits.values()) / len(self._traits))
+        if self._values:
+            components.append(sum(self._values.values()) / len(self._values))
+        if self._roles:
+            components.append(sum(self._roles.values()) / len(self._roles))
+        # Boundaries add stability
+        boundary_bonus = min(0.2, len(self._boundaries) * 0.05)
+        return min(1.0, sum(components) / len(components) + boundary_bonus)
+
+    def summary(self) -> dict[str, Any]:
+        return {
+            "traits": dict(self._traits),
+            "values": dict(self._values),
+            "roles": dict(self._roles),
+            "boundaries": list(self._boundaries),
+            "identity_strength": self.identity_strength,
+        }
+
+
+# ═══════════════════════════════════════════════════════════════
 # Autobiographical Core (自伝的コア記憶)
 # ═══════════════════════════════════════════════════════════════
 
@@ -494,22 +652,26 @@ class EgoResponse:
 class CognitiveEgo:
     """人間の自我構造エミュレーション — 統合エンジン.
 
-    KSシステムからの参照:
-    - SourceMonitor ← KS39b SelfOtherBoundary (誰が判断したか)
-    - SelfConsistencyEngine ← KS42b SelfDiagnosisEngine (自己整合性)
-    - SleeperEffectGuard ← MetacognitiveEngine (バイアス検出)
-    - AutobiographicalCore ← EpisodicMemoryEngine (記憶の固定化)
-    - MemoryHierarchy integration ← MemoryHierarchyManager (記憶階層)
+    Tayとの構造的差異:
+      Tay:  入力 → 即座に学習 → 出力 (自己モデルなし)
+      人間: 入力 → 自己モデルフィルタ → ソース評価 → 信念照合 → 統合/拒否
+      Ego:  入力 → SelfModel → SourceMonitor → Consistency → integrate/reject
+
+    普通の人間も完全記憶の人間も、この構造があるからTayにならない。
+    完全記憶は追加の利点(ソース追跡、矛盾検出精度)を持つが、
+    核心は自己モデルの存在。
 
     処理フロー:
-    1. 情報入力 → ソース特定 (SourceMonitor)
-    2. ソース信頼度取得 → 操作検出
-    3. 自己一貫性チェック (SelfConsistencyEngine)
-    4. スリーパー効果チェック (SleeperEffectGuard)
+    0. SelfModel filter (核心 — boundary violation / self-threat)
+    1. SourceMonitor → ソース特定 + 操作検出
+    2. CoreMemory conflict check
+    3. SelfConsistencyEngine → 信念照合
+    4. SleeperEffectGuard → ソースタグ付与
     5. 統合判定: integrate / challenge / reject / quarantine
     """
 
     def __init__(self):
+        self.self_model = SelfModel()
         self.source_monitor = SourceMonitor()
         self.consistency = SelfConsistencyEngine()
         self.sleeper_guard = SleeperEffectGuard(self.source_monitor)
@@ -540,6 +702,33 @@ class CognitiveEgo:
         This is the main entry point. All information must pass through here
         before being committed to any memory level.
         """
+        # 0. Self-model filter (核心 — Tayにはこれがなかった)
+        self_filter = self.self_model.filter_input(content)
+        if self_filter["assessment"] == "boundary_violation":
+            return EgoResponse(
+                accepted=False,
+                action="reject",
+                trust_applied=0.0,
+                reasoning=(
+                    f"Self-model boundary violation: "
+                    f"'{self_filter['matched_boundary']}'"
+                ),
+            )
+        if self_filter["assessment"] == "threatening":
+            # Self-threatening input is not auto-rejected but heavily resisted
+            # Only designer-level trust can override self-model
+            if source_type != SourceType.DESIGNER:
+                return EgoResponse(
+                    accepted=False,
+                    action="challenge",
+                    trust_applied=0.0,
+                    reasoning=(
+                        f"Self-model threat detected (resistance="
+                        f"{self_filter['resistance']:.2f}). "
+                        f"Only designer-level sources can modify self-model."
+                    ),
+                )
+
         # 1. Source identification & tracking
         source_record = self.source_monitor.record_interaction(
             source_id, source_type, contradicts_existing=False
@@ -695,6 +884,8 @@ class CognitiveEgo:
     def health_report(self) -> dict[str, Any]:
         """Report on ego health."""
         return {
+            "self_model_strength": self.self_model.identity_strength,
+            "self_model": self.self_model.summary(),
             "source_count": len(self.source_monitor._sources),
             "belief_count": self.consistency.belief_count,
             "core_memory_count": len(self.core_memories),
