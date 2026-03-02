@@ -376,6 +376,7 @@ class KS42c(KS42b):
             store = StageStore()
 
         skip_binding = kwargs.pop("skip_binding", False)
+        fast = kwargs.pop("fast", False)
 
         # ── Context Binding pre-gate (v4) ──
         binding_result = None
@@ -408,9 +409,10 @@ class KS42c(KS42b):
         if not isinstance(result, dict):
             return result
 
-        # Semantic enrichment
-        semantic_info = self._extract_semantic_info(claim)
+        # Semantic enrichment (skip LLM in fast mode)
+        semantic_info = self._extract_semantic_info(claim, fast=fast)
         result["semantic_enrichment"] = semantic_info
+        result["fast_mode"] = fast
 
         # Acceleration report
         result["acceleration"] = {
@@ -580,14 +582,16 @@ class KS42c(KS42b):
         result["version"] = self.VERSION
         return result
 
-    def _extract_semantic_info(self, claim) -> Dict[str, Any]:
+    def _extract_semantic_info(self, claim, fast: bool = False) -> Dict[str, Any]:
         """Extract semantic proposition data from claim.
+
+        fast=True: Skip LLM, use heuristic only (~0.06ms vs ~1500ms).
 
         Returns dict with proposition count, relation count, domain,
         entities, and source (ollama/gemini/heuristic/none).
         """
-        # Check if claim already has semantic data (from _parse)
-        if hasattr(claim, 'semantic') and claim.semantic is not None:
+        # Check if claim already has semantic data (from _parse) and not in fast mode
+        if not fast and hasattr(claim, 'semantic') and claim.semantic is not None:
             sem = claim.semantic
             return {
                 "source": sem.source,
@@ -612,7 +616,7 @@ class KS42c(KS42b):
         if self._semantic_available:
             try:
                 claim_text = claim.text if hasattr(claim, 'text') else str(claim)
-                sem = semantic_parse(claim_text)
+                sem = semantic_parse(claim_text, fast=fast)
                 return {
                     "source": sem.source,
                     "prop_count": sem.prop_count,

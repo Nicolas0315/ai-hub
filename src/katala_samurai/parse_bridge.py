@@ -210,14 +210,16 @@ def batch_parse_propositions(texts: List[str]) -> List[Dict[str, bool]]:
     return [_parse_python(t) for t in texts]
 
 
-def parse_semantic(text: str) -> "SemanticPropositions":
+def parse_semantic(text: str, fast: bool = False) -> "SemanticPropositions":
     """Get full semantic parse result (not just bools).
 
     Returns SemanticPropositions with .propositions, .relations,
     .entities, .domain, etc. for solvers that want rich data.
+
+    fast=True: Skip LLM tiers, use heuristic only (~0.06ms vs ~1500ms).
     """
     from katala_samurai.semantic_parse import semantic_parse
-    return semantic_parse(text)
+    return semantic_parse(text, fast=fast)
 
 
 # ── Info ──

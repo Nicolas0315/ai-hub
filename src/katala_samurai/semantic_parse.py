@@ -365,10 +365,11 @@ def _heuristic_extract(text: str) -> Dict:
 # Public API
 # ════════════════════════════════════════════════
 
-def semantic_parse(text: str, use_cache: bool = True) -> SemanticPropositions:
+def semantic_parse(text: str, use_cache: bool = True, fast: bool = False) -> SemanticPropositions:
     """Extract semantic propositions from text.
 
     3-tier: Ollama → Gemini → Heuristic fallback.
+    fast=True: Skip LLM tiers, go directly to heuristic (~0.06ms vs ~1500ms).
 
     Returns SemanticPropositions with:
     - .propositions: structured atomic claims
@@ -387,21 +388,27 @@ def semantic_parse(text: str, use_cache: bool = True) -> SemanticPropositions:
             return cached
 
     start = time.time()
-    prompt = _EXTRACTION_PROMPT.format(text=text.replace('"', '\\"'))
 
-    # Tier 1: Ollama
-    result = _call_ollama(prompt)
-    source = "ollama"
-
-    # Tier 2: Gemini
-    if result is None:
-        result = _call_gemini(prompt)
-        source = "gemini"
-
-    # Tier 3: Heuristic
-    if result is None:
+    if fast:
+        # Fast mode: heuristic only (~0.06ms)
         result = _heuristic_extract(text)
-        source = "heuristic"
+        source = "heuristic_fast"
+    else:
+        prompt = _EXTRACTION_PROMPT.format(text=text.replace('"', '\\"'))
+
+        # Tier 1: Ollama
+        result = _call_ollama(prompt)
+        source = "ollama"
+
+        # Tier 2: Gemini
+        if result is None:
+            result = _call_gemini(prompt)
+            source = "gemini"
+
+        # Tier 3: Heuristic
+        if result is None:
+            result = _heuristic_extract(text)
+            source = "heuristic"
 
     elapsed_ms = (time.time() - start) * 1000
 
