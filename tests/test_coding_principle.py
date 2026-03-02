@@ -1,12 +1,18 @@
 #!/usr/bin/env python3
 """Tests for KatalaCodingPrinciple (KCS-CP)."""
 from __future__ import annotations
-import sys, os
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
+
+import os
+import sys
+
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from src.katala_coding.coding_principle import (
     CodingPrincipleConfig,
-    CodingGate,
+    GateLevel,
+    GateStage,
+    KCSGate,
+    KSClaimsGate,
     MemoryWriteGate,
     KatalaCodingPrinciple,
     extract_code_claims,
@@ -70,92 +76,94 @@ def test_config_grade_passes_strict():
     assert not config.grade_passes("B")
 
 
-def test_coding_gate_basic():
-    gate = CodingGate(CodingPrincipleConfig(include_kcs_in_coding=False))
+def test_kcs_gate_basic():
+    gate = KCSGate(CodingPrincipleConfig())
     code = '''
 def verify(claim):
     """Verify a claim using independent solvers."""
     # Each solver judges only its own domain
     return {"verified": True}
 '''
-    result = gate.check_code(code)
-    assert "CodingGate" in result.gate_name
+    result = gate.check(code, design_spec="verify claim with independent checks")
+    assert result.gate_stage == GateStage.KCS_STRUCTURE
     assert result.elapsed_ms >= 0
     assert isinstance(result.passed, bool)
-    assert len(result.ks_verdicts) >= 1
+    assert result.kcs_version in {"KCS-1b", "KCS-1a", "NONE"}
 
 
-def test_coding_gate_with_kcs():
-    gate = CodingGate()
+def test_kcs_gate_with_design_spec():
+    gate = KCSGate(CodingPrincipleConfig())
     code = '''
 def hello():
     """Say hello."""
     print("hello")
 '''
-    result = gate.check_code(code, design_spec="A function that greets the user")
-    assert result.kcs_grade is not None
-    assert result.kcs_fidelity is not None
+    result = gate.check(code, design_spec="A function that greets the user")
+    assert result.gate_stage == GateStage.KCS_STRUCTURE
+    assert result.kcs_grade is None or result.kcs_grade in {"S", "A", "B", "C", "D", "F"}
+    assert result.kcs_fidelity is None or 0.0 <= result.kcs_fidelity <= 1.0
 
 
-def test_text_gate():
-    gate = CodingGate(CodingPrincipleConfig(include_kcs_in_coding=False))
+def test_ksclaims_text_gate():
+    gate = KSClaimsGate(CodingPrincipleConfig())
     result = gate.check_text("KSは翻訳損失を測定するフレームワークである。33のソルバーが独立に動作する。")
-    assert result.gate_name == "TextGate"
-    assert len(result.ks_verdicts) >= 1
+    assert result.gate_stage == GateStage.TEXT_CLAIMS
+    assert result.gate_level in {GateLevel.ADVISORY, GateLevel.MANDATORY}
 
 
 def test_memory_write_gate():
-    gate = MemoryWriteGate()
+    gate = MemoryWriteGate(CodingPrincipleConfig())
     content = "ニコラスさんはプロテスタント・ホーリネス教会の有神論者。Youtaは設計者。"
     result = gate.check(content)
-    assert result.gate_name == "MemoryWriteGate"
-    assert len(result.ks_verdicts) >= 1
+    assert result.gate_stage == GateStage.MEMORY_BIAS
+    assert result.gate_level in {GateLevel.ADVISORY, GateLevel.MANDATORY}
 
 
 def test_unified_principle():
     principle = KatalaCodingPrinciple()
-    
+
     # Code gate
     r1 = principle.gate_code("def f(): pass", design_spec="A no-op function")
-    assert "CodingGate" in r1.gate_name
-    
+    assert len(r1.gate_results) == 2
+
     # Text gate
     r2 = principle.gate_text("Katalaは翻訳損失を測定するフレームワークである。")
-    assert r2.gate_name == "TextGate"
-    
+    assert r2.gate_stage == GateStage.TEXT_CLAIMS
+
     # Memory gate
     r3 = principle.gate_memory("今日の議論でCoding Principleを実装した。")
-    assert r3.gate_name == "MemoryWriteGate"
-    
+    assert r3.gate_stage == GateStage.MEMORY_BIAS
+
     # Stats
     stats = principle.stats
-    assert stats["total"] == 3
+    assert stats["total_pipeline_runs"] == 1
+    assert stats["total_gate_runs"] == 2
 
 
 def test_format_result():
     principle = KatalaCodingPrinciple()
     result = principle.gate_text("テスト文。KSは検証フレームワーク。")
     formatted = principle.format_result(result)
-    assert "TextGate" in formatted
-    assert "PASS" in formatted or "BLOCK" in formatted
+    assert "Gate4_Text_Claims" in formatted
+    assert any(token in formatted for token in ("✅", "⚠️", "🚫"))
 
 
 def test_convenience_functions():
     r1 = gate_code("def f(): pass")
-    assert "CodingGate" in r1.gate_name
-    
+    assert len(r1.gate_results) == 2
+
     r2 = gate_text("テスト文。これは検証される。")
-    assert r2.gate_name == "TextGate"
-    
+    assert r2.gate_stage == GateStage.TEXT_CLAIMS
+
     r3 = gate_memory("メモリに書き込むテスト内容。十分長い文。")
-    assert r3.gate_name == "MemoryWriteGate"
+    assert r3.gate_stage == GateStage.MEMORY_BIAS
 
 
 def test_result_summary():
-    gate = CodingGate(CodingPrincipleConfig(include_kcs_in_coding=False))
-    result = gate.check_code("def f(): pass")
+    gate = KCSGate(CodingPrincipleConfig())
+    result = gate.check("def f(): pass", design_spec="no-op function")
     summary = result.summary
-    assert "CodingGate" in summary or "Gate" in summary
+    assert "Gate1_KCS_Structure" in summary
 
 
 if __name__ == "__main__":
