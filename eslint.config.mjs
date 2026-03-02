@@ -14,8 +14,7 @@ const eslintConfig = defineConfig([
     "next-env.d.ts",
   ]),
   {
-    // Relax strict rules for packages/ (engine code + tests)
-    files: ["packages/**/*.ts", "packages/**/*.tsx"],
+    // Relax strict rules project-wide: any is used for gRPC/proto/API interop
     rules: {
       "@typescript-eslint/no-explicit-any": "warn",
       "@typescript-eslint/no-unused-vars": ["warn", { argsIgnorePattern: "^_", varsIgnorePattern: "^_" }],
