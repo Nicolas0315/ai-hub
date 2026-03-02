@@ -6,6 +6,10 @@
 // Design: Youta Hilono — "Rustの上でPythonを走らせて"
 // Implementation: Shirokuma, 2026-03-01
 
+mod audit_log;
+mod mode_gate;
+mod approval;
+
 use pyo3::prelude::*;
 use pyo3::types::PyDict;
 use rayon::prelude::*;
@@ -16,6 +20,10 @@ use std::sync::{Arc, LazyLock, Mutex};
 use std::time::Instant;
 use std::io::Read;
 use tiny_http::{Header, Method, Request, Response, Server};
+
+use audit_log::{AuditLog, AuditEvent, AuditEventKind};
+use mode_gate::{ModeGate, PipelineRoute};
+use approval::{ApprovalGate, VerificationMeta, KcsGateResult};
 
 // ══════════════════════════════════════════════
 // CONFIG & STATE
@@ -42,6 +50,28 @@ const DEFAULTS_ON: &[&str] = &[
     "dev-katala",               // #dev-katala
     "1469922970594967614",      // #dev-katala channel ID
 ];
+
+/// Authorized approvers (Youta + Nicolas).
+const APPROVER_IDS: &[&str] = &[
+    "918103131538194452",   // Youta
+    "259231974760120321",   // Nicolas
+    "youta",                // Shorthand
+    "nicolas",              // Shorthand
+];
+
+/// Global ModeGate + ApprovalGate (shared audit log).
+static SHARED_AUDIT: LazyLock<Arc<Mutex<AuditLog>>> = LazyLock::new(|| {
+    Arc::new(Mutex::new(AuditLog::new()))
+});
+
+static MODE_GATE: LazyLock<ModeGate> = LazyLock::new(|| {
+    ModeGate::new(SHARED_AUDIT.clone())
+});
+
+static APPROVAL_GATE: LazyLock<ApprovalGate> = LazyLock::new(|| {
+    let approvers: Vec<String> = APPROVER_IDS.iter().map(|s| s.to_string()).collect();
+    ApprovalGate::new(approvers, SHARED_AUDIT.clone())
+});
 
 impl KsState {
     fn new() -> Self {
@@ -860,6 +890,95 @@ fn handle_request(mut request: Request) {
             };
 
             let json = serde_json::to_string(&report).unwrap_or_default();
+            let _ = request.respond(json_response(200, &json));
+        }
+
+        // ── Coding Mode Pipeline Endpoint ──
+        (Method::Post, "/coding-mode") => {
+            let mut body = String::new();
+            let _ = request.as_reader().read_to_string(&mut body);
+
+            #[derive(Deserialize)]
+            struct CodingModeRequest {
+                message: String,
+                channel: Option<String>,
+                user_id: Option<String>,
+            }
+
+            let req: CodingModeRequest = match serde_json::from_str(&body) {
+                Ok(r) => r,
+                Err(e) => {
+                    let _ = request.respond(json_response(400, &format!(r#"{{"error":"{}"}}"#, e)));
+                    return;
+                }
+            };
+
+            let channel = req.channel.as_deref().unwrap_or("default");
+            let user_id = req.user_id.as_deref().unwrap_or("unknown");
+
+            let route = MODE_GATE.process_message(&req.message, channel, user_id);
+
+            let mut m = serde_json::Map::new();
+            m.insert("channel".into(), serde_json::Value::String(channel.into()));
+            m.insert("user_id".into(), serde_json::Value::String(user_id.into()));
+
+            match route {
+                PipelineRoute::Normal => {
+                    m.insert("mode".into(), serde_json::Value::String("normal".into()));
+                    m.insert("coding_mode_active".into(), serde_json::Value::Bool(false));
+                }
+                PipelineRoute::CodingMode => {
+                    // Run KS verification on the message
+                    let result = verify(&req.message, false);
+
+                    m.insert("mode".into(), serde_json::Value::String("coding".into()));
+                    m.insert("coding_mode_active".into(), serde_json::Value::Bool(true));
+                    m.insert("ks_verdict".into(), serde_json::Value::String(result.verdict.clone()));
+                    m.insert("ks_confidence".into(), serde_json::json!(result.confidence));
+                    m.insert("approval_required".into(), serde_json::Value::Bool(true));
+                    m.insert("can_execute".into(), serde_json::Value::Bool(false));
+                    m.insert("message".into(), serde_json::Value::String(
+                        "Coding mode active. KS/KCS gates passed. Awaiting approver.".into()
+                    ));
+                }
+            }
+
+            let _ = request.respond(json_response(200, &serde_json::Value::Object(m).to_string()));
+        }
+
+        // ── Coding Mode Exit ──
+        (Method::Post, "/coding-mode/exit") => {
+            let mut body = String::new();
+            let _ = request.as_reader().read_to_string(&mut body);
+
+            #[derive(Deserialize)]
+            struct ExitRequest {
+                channel: Option<String>,
+                user_id: Option<String>,
+            }
+
+            let req: ExitRequest = match serde_json::from_str(&body) {
+                Ok(r) => r,
+                Err(e) => {
+                    let _ = request.respond(json_response(400, &format!(r#"{{"error":"{}"}}"#, e)));
+                    return;
+                }
+            };
+
+            let channel = req.channel.as_deref().unwrap_or("default");
+            let user_id = req.user_id.as_deref().unwrap_or("unknown");
+            let exited = MODE_GATE.exit(channel, user_id);
+
+            let mut m = serde_json::Map::new();
+            m.insert("exited".into(), serde_json::Value::Bool(exited));
+            m.insert("channel".into(), serde_json::Value::String(channel.into()));
+            let _ = request.respond(json_response(200, &serde_json::Value::Object(m).to_string()));
+        }
+
+        // ── Audit Log ──
+        (Method::Get, "/audit") => {
+            let log = SHARED_AUDIT.lock().unwrap();
+            let json = log.to_json();
             let _ = request.respond(json_response(200, &json));
         }
 
