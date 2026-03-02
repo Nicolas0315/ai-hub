@@ -79,7 +79,7 @@ describe("MatchmakingEngine", () => {
     const b = makeVector({ preferredTone: "enthusiastic" });
     const same = makeVector({});
     const scoreMismatch = engine.calculateSynergy(a, b);
-    const scoreMatch = engine.calculateSynergy(a, same); // both have defaults, a is concise, same is casual - also mismatch
+    const _scoreMatch = engine.calculateSynergy(a, same); // both have defaults, a is concise, same is casual - also mismatch
     // Just verify tone affects the score
     const c = makeVector({ preferredTone: "concise" });
     const scoreToneMatch = engine.calculateSynergy(a, c);

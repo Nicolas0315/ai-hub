@@ -1,4 +1,4 @@
-import * as grpc from "@grpc/grpc-js";
+// import * as grpc from "@grpc/grpc-js";
 import { SynergyRequest, SynergyResponse } from "../proto/synergy";
 import { MediationService } from "./MediationService";
 import { SynergyEngine } from "./SynergyEngine";

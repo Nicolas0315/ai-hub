@@ -52,7 +52,7 @@ export class BatchProcessor {
           processed++;
           onProgress?.({ processed, total: items.length, errors });
           return;
-        } catch (e: any) {
+        } catch (e: unknown) {
           lastError = e.message ?? String(e);
           if (attempt < maxRetries) continue;
         }

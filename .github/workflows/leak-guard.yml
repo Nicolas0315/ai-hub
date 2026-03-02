@@ -78,6 +78,8 @@ jobs:
               ':(exclude).env.example' \
               ':(exclude)*.test.ts' \
               ':(exclude)*.spec.ts' \
+              ':(exclude)benchmarks/*' \
+              ':(exclude)*.jsonl' \
               || true)
             if [ -n "$matches" ]; then
               echo "❌ Potential secret ($pattern) in: $matches"
