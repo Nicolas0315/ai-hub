@@ -48,3 +48,15 @@ KSI_MODEL=KS47 ./inf-Coding-Assist/ksi1-route.sh git status
 ```bash
 ./inf-Coding-Assist/ksi1-analyze.sh
 ```
+
+### 5) Human vs Katala 実測%（A/B）
+`ab-percent.py` で human/katala の同一タスクCSVから実測%を算出します。
+
+```bash
+python3 ./inf-Coding-Assist/ab-percent.py \
+  --human ./inf-Coding-run/human_metrics_template.csv \
+  --katala ./inf-Coding-run/katala_metrics_template.csv
+```
+
+CSV列:
+- `task_id,time_min,bugs,rework`

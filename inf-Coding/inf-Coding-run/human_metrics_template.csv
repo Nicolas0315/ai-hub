@@ -1,0 +1,4 @@
+task_id,time_min,bugs,rework
+T01,60,3,2
+T02,45,2,1
+T03,90,4,3
