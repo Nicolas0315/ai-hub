@@ -3,4 +3,28 @@
 inf-Coding から利用する補助ツール層。
 
 - `assist-exec.sh` を経由してコマンドを実行
-- Orderレイヤの設定で使用可否を強制
+- Orderレイヤの設定で使用可否を強制（`assist-on` でのみ実行可）
+
+## Workflow Tools
+
+### 1) 3-cycle task workflow（絶対条件）
+`assist-cycle.sh` はタスク単位で以下を実行します:
+- KS + KCS を毎サイクル実行（必須）
+- `test/build/fix` を 3 回ループ
+- 最後に 1 回だけ確認を返す（3行固定フォーマット）
+
+```bash
+./inf-Coding-Assist/assist-cycle.sh <task-id> [target-file]
+```
+
+固定出力フォーマット:
+1. `RESULT: ...`
+2. `DETAIL: ...`
+3. `NEXT: ...`
+
+### 2) heavy path rustization
+`assist-rustize.sh` は重い処理のRust化候補を抽出します。
+
+```bash
+./inf-Coding-Assist/assist-rustize.sh
+```

@@ -21,6 +21,8 @@
 - `open-katala.sh` : ガード通過後に Katala ルートでシェルを開く
 - `katala-exec.sh` : 通常実行ラッパー（ログは本文でなくハッシュ）
 - `assist-exec.sh` : Assist層経由の実行ラッパー
+- `inf-Coding-Assist/assist-cycle.sh` : KS+KCS必須の3サイクル（test/build/fix）実行
+- `inf-Coding-Assist/assist-rustize.sh` : 重い処理のRust化候補抽出
 - `log-to-cache.sh` : 実行イベントを cache 側へ追記
 - `cache-clean.sh` : cache 側を手動クリーン
 - `order-set.sh` : 命令発行（clean / katala-off / katala-on / assist-off / assist-on）

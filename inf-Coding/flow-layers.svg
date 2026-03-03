@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="700" viewBox="0 0 1200 700">
+  <defs>
+    <style>
+      .title { font: 700 32px Arial, sans-serif; fill: #111; }
+      .box { fill: #f7f9fc; stroke: #2b4c7e; stroke-width: 2; rx: 14; ry: 14; }
+      .label { font: 600 20px Arial, sans-serif; fill: #0f172a; }
+      .sub { font: 400 15px Arial, sans-serif; fill: #334155; }
+      .arrow { stroke: #1d4ed8; stroke-width: 3; fill: none; marker-end: url(#arrowhead); }
+      .note { font: 500 14px Arial, sans-serif; fill: #0f172a; }
+    </style>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#1d4ed8" />
+    </marker>
+  </defs>
+
+  <text x="40" y="55" class="title">Enigma → inf-Coding → Katala (Current Flow)</text>
+
+  <rect x="60" y="130" width="200" height="90" class="box"/>
+  <text x="90" y="165" class="label">Human Command</text>
+  <text x="95" y="190" class="sub">Discord / direct order</text>
+
+  <rect x="320" y="130" width="200" height="90" class="box"/>
+  <text x="385" y="165" class="label">Enigma</text>
+  <text x="352" y="190" class="sub">Interpret & route task</text>
+
+  <rect x="580" y="90" width="240" height="110" class="box"/>
+  <text x="625" y="130" class="label">inf-Coding-Order</text>
+  <text x="607" y="155" class="sub">katala-on/off, assist-on/off, clean</text>
+
+  <rect x="580" y="250" width="240" height="110" class="box"/>
+  <text x="627" y="290" class="label">inf-Coding Guard</text>
+  <text x="650" y="315" class="sub">guard.sh</text>
+
+  <rect x="900" y="70" width="240" height="120" class="box"/>
+  <text x="950" y="110" class="label">Assist Path</text>
+  <text x="940" y="135" class="sub">assist-exec.sh</text>
+  <text x="930" y="158" class="sub">(allowed only when assist-on)</text>
+
+  <rect x="900" y="250" width="240" height="110" class="box"/>
+  <text x="948" y="290" class="label">Katala Path</text>
+  <text x="938" y="315" class="sub">katala-exec.sh / open-katala.sh</text>
+
+  <rect x="900" y="430" width="240" height="120" class="box"/>
+  <text x="990" y="470" class="label">Katala</text>
+  <text x="935" y="495" class="sub">Implementation / analysis runtime</text>
+
+  <rect x="580" y="430" width="240" height="120" class="box"/>
+  <text x="625" y="470" class="label">inf-Coding-cache</text>
+  <text x="618" y="495" class="sub">activity.log (hashed command logs)</text>
+
+  <path d="M260 175 L320 175" class="arrow"/>
+  <path d="M520 175 L580 145" class="arrow"/>
+  <path d="M700 200 L700 250" class="arrow"/>
+  <path d="M820 145 L900 130" class="arrow"/>
+  <path d="M820 305 L900 305" class="arrow"/>
+  <path d="M1020 360 L1020 430" class="arrow"/>
+  <path d="M900 490 L820 490" class="arrow"/>
+  <path d="M900 305 L820 305" class="arrow"/>
+
+  <text x="58" y="620" class="note">Rule highlights: katala-off blocks Katala paths. assist-exec is strictly controlled by assist-on/off order.</text>
+</svg>
