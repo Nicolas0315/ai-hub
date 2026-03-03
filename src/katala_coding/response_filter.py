@@ -121,8 +121,8 @@ class ResponseFilter:
     @property
     def ks(self):
         if self._ks is None:
-            from src.katala_samurai.ks42c import KS42c
-            self._ks = KS42c()
+            from src.katala_samurai.katala_samurai_inf_000001 import Katala_Samurai_inf_000001
+            self._ks = Katala_Samurai_inf_000001()
         return self._ks
 
     def _split_statements(self, text: str) -> list[str]:
