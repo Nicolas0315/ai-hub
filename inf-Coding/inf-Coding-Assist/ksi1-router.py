@@ -44,10 +44,14 @@ def _matches(patterns: list[str], command: str) -> bool:
 
 
 def _select_model(command: str):
-    """Default is ① Katala_Quantum_02a. Use explicit selection for KSi2/KS47."""
+    """KQ-only policy: always use Katala_Quantum_02a unless explicitly disabled."""
+    kq_only = os.getenv("KQ_ONLY", "1").strip().lower()
+    if kq_only in {"1", "true", "yes", "on"}:
+        return KQ02a()
+
+    # fallback compatibility path (disabled by default)
     requested = os.getenv("KSI_MODEL", "").strip().lower()
     c = command.lower()
-
     if requested in {"ks47"} or "ks47" in c:
         return "KS47"
     if requested in {"ksi2", "katala_samurai_inf_000002"} or "ksi2" in c:
