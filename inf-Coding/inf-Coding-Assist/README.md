@@ -32,7 +32,7 @@ inf-Coding から利用する補助ツール層。
 ### 3) KSi1/KQ router (fast/strict)
 `ksi1-route.sh` は既定で `Katala_Quantum_01a (KQ01a)` を使ってコマンドを判定し、fast/strict で実行ルーティングします。
 
-- 既定: `[Katala_Quantum][KQ]シリーズを使用` (`Katala_Quantum_01a`)
+- 既定: `[Katala_Quantum][KQ]シリーズを使用` (`Katala_Quantum_02a`)
 - 明示時のみ: `[KSi]シリーズを使用` (`KSi2`)
 - 明示時のみ: `KS47` 直結（`ks-bridge.py`。自動フォールバックなし）
 

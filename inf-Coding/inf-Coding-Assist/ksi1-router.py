@@ -9,7 +9,7 @@ import sys
 
 sys.path.insert(0, '/mnt/c/Users/ogosh/Documents/NICOLAS/Katala/src')
 
-from katala_samurai.katala_quantum_01a import Katala_Quantum_01a, KQ01a
+from katala_samurai.katala_quantum_02a import Katala_Quantum_02a, KQ02a
 from katala_samurai.katala_samurai_inf_000002 import Katala_Samurai_inf_000002, KSi2
 from katala_samurai.inf_coding_adapter import emit_router_event
 
@@ -44,7 +44,7 @@ def _matches(patterns: list[str], command: str) -> bool:
 
 
 def _select_model(command: str):
-    """Default is ① Katala_Quantum_01a. Use explicit selection for KSi2/KS47."""
+    """Default is ① Katala_Quantum_02a. Use explicit selection for KSi2/KS47."""
     requested = os.getenv("KSI_MODEL", "").strip().lower()
     c = command.lower()
 
@@ -52,7 +52,7 @@ def _select_model(command: str):
         return "KS47"
     if requested in {"ksi2", "katala_samurai_inf_000002"} or "ksi2" in c:
         return KSi2()
-    return KQ01a()
+    return KQ02a()
 
 
 def decide_route(command: str) -> tuple[str, dict]:
