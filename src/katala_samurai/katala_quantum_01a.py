@@ -1,10 +1,11 @@
 """
 Katala_Quantum_01a (KQ01a)
-[Kataka_Quantum][KQ]シリーズを使用
+[Katala_Quantum][KQ]シリーズを使用
 
 KSi1次世代機: 量子エミュ主導の制御探索モデル。
 - 指定がなければ本モデルを優先使用
 - 制御探索を量子エミュレーション経路で実行
+- KS実測重み（KS29/S28）を取り込んだ推論強化版
 """
 from __future__ import annotations
 
@@ -17,6 +18,15 @@ try:
     _HAS_QEMU = True
 except Exception:
     _HAS_QEMU = False
+
+# KS29/S28 実測由来重み（ks29.py から採用）
+S28_WEIGHT_A_DATA_HASH: float = 0.35
+S28_WEIGHT_B_REPRODUCIBILITY: float = 0.25
+S28_WEIGHT_C_CONSENSUS: float = 0.25
+S28_WEIGHT_D_DETERMINISM: float = 0.15
+
+KS29_KS27_WEIGHT: float = 0.75
+KS29_S28_WEIGHT: float = 0.25
 
 
 class Katala_Quantum_01a:
@@ -33,13 +43,17 @@ class Katala_Quantum_01a:
             "series": self.SERIES,
             "quantum_control_only": True,
             "quantum_emulator_available": _HAS_QEMU,
+            "ks_weighted_reasoning": True,
         }
+
+    @staticmethod
+    def _clamp(x: float) -> float:
+        return max(0.0, min(1.0, x))
 
     def _quantum_route_probe(self, text: str) -> dict[str, Any]:
         """量子エミュ経由でfast/strict傾向を推定する。"""
         t = text.lower()
         if not _HAS_QEMU:
-            # fail-openではなく保守的
             score = 0.5
             return {"score": score, "mode": "quantum-fallback", "detail": "emulator-unavailable"}
 
@@ -54,19 +68,17 @@ class Katala_Quantum_01a:
         risk_hits = sum(1 for k in risky_tokens if k in t)
         safe_hits = sum(1 for k in safe_tokens if k in t)
 
-        # 回路変調: risky多いと位相を傾ける
         qc.ry(0, min(1.2, 0.2 + risk_hits * 0.2))
         qc.rx(1, max(0.1, 0.8 - safe_hits * 0.1))
         qc.cx(0, 1)
         qc.measure_all()
         r = qc.run(shots=256)
 
-        # strict寄り確率: '11' + '10' を高リスク側とみなす
         m = r.measurements or {}
         strict_mass = (m.get("11", 0) + m.get("10", 0)) / max(1, sum(m.values()))
         score = 1.0 - strict_mass
         return {
-            "score": round(max(0.0, min(1.0, score)), 3),
+            "score": round(self._clamp(score), 3),
             "mode": "quantum-emulated-control",
             "detail": {
                 "risk_hits": risk_hits,
@@ -76,21 +88,79 @@ class Katala_Quantum_01a:
             },
         }
 
+    def _s28_style_components(self, text: str, q_score: float) -> dict[str, float]:
+        """KS29 S28構造をKQに移植した軽量推論コンポーネント。"""
+        t = text.lower()
+
+        # A: data-hash相当（入力仕様の明確さ）
+        has_structured_meta = any(k in t for k in ["hash", "sha", "evidence", "source", "metadata"])
+        a = 1.0 if has_structured_meta else 0.6
+
+        # B: reproducibility相当（量子探索の再現度 proxy）
+        b = self._clamp(0.55 + (q_score - 0.5) * 0.9)
+
+        # C: consensus相当（命令の整合/矛盾少なさ）
+        conflict_markers = ["but", "however", "except", "ただし", "一方で"]
+        c = 0.7 if any(k in t for k in conflict_markers) else 0.88
+
+        # D: determinism相当（決定性が必要か）
+        deterministic_markers = ["must", "必ず", "固定", "deterministic", "再現"]
+        d = 0.9 if any(k in t for k in deterministic_markers) else 0.78
+
+        return {
+            "a_data_hash_like": round(a, 3),
+            "b_reproducibility_like": round(b, 3),
+            "c_consensus_like": round(c, 3),
+            "d_determinism_like": round(d, 3),
+        }
+
+    def _enhanced_reasoning_score(self, text: str, q_probe: dict[str, Any]) -> tuple[float, dict[str, Any]]:
+        q_score = float(q_probe.get("score", 0.5))
+        comps = self._s28_style_components(text, q_score)
+
+        s28_score = (
+            comps["a_data_hash_like"] * S28_WEIGHT_A_DATA_HASH
+            + comps["b_reproducibility_like"] * S28_WEIGHT_B_REPRODUCIBILITY
+            + comps["c_consensus_like"] * S28_WEIGHT_C_CONSENSUS
+            + comps["d_determinism_like"] * S28_WEIGHT_D_DETERMINISM
+        )
+
+        # KS29 final-score構造を準用: quantum-path(=ks27相当) + s28相当
+        final = q_score * KS29_KS27_WEIGHT + s28_score * KS29_S28_WEIGHT
+        final = self._clamp(final)
+
+        return round(final, 3), {
+            "q_score": round(q_score, 3),
+            "s28_like_score": round(s28_score, 3),
+            "weights": {
+                "ks29_ks27_weight": KS29_KS27_WEIGHT,
+                "ks29_s28_weight": KS29_S28_WEIGHT,
+                "s28_a": S28_WEIGHT_A_DATA_HASH,
+                "s28_b": S28_WEIGHT_B_REPRODUCIBILITY,
+                "s28_c": S28_WEIGHT_C_CONSENSUS,
+                "s28_d": S28_WEIGHT_D_DETERMINISM,
+            },
+            "components": comps,
+        }
+
     def verify(self, claim, store=None, skip_s28=True, **kwargs):
         text = claim.text if hasattr(claim, "text") else str(claim)
         probe = self._quantum_route_probe(text)
-        conf = float(probe["score"])
-        verdict = "LEAN_SUPPORT" if conf >= 0.66 else ("UNCERTAIN" if conf >= 0.45 else "LEAN_REJECT")
-        route = "fast" if conf >= 0.66 else "strict"
+
+        enhanced_score, reason = self._enhanced_reasoning_score(text, probe)
+
+        verdict = "SUPPORT" if enhanced_score >= 0.82 else ("LEAN_SUPPORT" if enhanced_score >= 0.66 else ("UNCERTAIN" if enhanced_score >= 0.45 else "LEAN_REJECT"))
+        route = "fast" if enhanced_score >= 0.66 else "strict"
 
         result = {
             "verdict": verdict,
-            "confidence": round(conf, 3),
-            "final_score": round(conf, 3),
-            "solvers_passed": "quantum-control/1",
+            "confidence": enhanced_score,
+            "final_score": enhanced_score,
+            "solvers_passed": "quantum-control+ks-weighted/2",
             "mode": probe["mode"],
             "route": route,
             "quantum_probe": probe["detail"],
+            "reasoning": reason,
             "series": self.SERIES,
         }
 
@@ -103,6 +173,7 @@ class Katala_Quantum_01a:
             "mode": result["mode"],
             "route": result["route"],
             "series": self.SERIES,
+            "reasoning": reason,
         })
         return result
 
