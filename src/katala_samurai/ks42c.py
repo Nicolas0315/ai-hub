@@ -280,18 +280,6 @@ except ImportError:
     except ImportError:
         pass
 
-# ── Context Binding (認識空間 基盤) ──
-_HAS_CONTEXT_BINDING = False
-try:
-    from katala_coding.context_binding import ContextBinding, BindingVerdict
-    _HAS_CONTEXT_BINDING = True
-except ImportError:
-    try:
-        from context_binding import ContextBinding, BindingVerdict
-        _HAS_CONTEXT_BINDING = True
-    except ImportError:
-        pass
-
 
 class KS42c(KS42b):
     """KS42b + Semantic Parse + Rust Acceleration.
@@ -349,58 +337,25 @@ class KS42c(KS42b):
         self._interdisciplinary = InterdisciplinaryEngine() if _HAS_INTERDISCIPLINARY else None
         self._tacit = TacitKnowledgeEngine() if _HAS_TACIT else None
 
-        # v4: Context Binding (認識空間 基盤 — KS前段)
-        self._context_binding = ContextBinding() if _HAS_CONTEXT_BINDING else None
 
     def verify(self, claim, store=None, skip_s28=True, **kwargs):
-        """Verify claim with Context Binding pre-gate + semantic enrichment.
+        """Verify claim with semantic enrichment.
 
-        Pipeline: [Context Binding] → KS verify → KCS (caller's responsibility)
-
-        Context Binding (v4):
-        - REJECT: identity conflict → returns immediately, no KS processing
-        - DEFER: purpose mismatch → returns immediately, no KS processing
-        - PASS: proceeds to full KS verification
+        Pipeline: KS verify → KCS (caller's responsibility)
 
         Args:
             claim: Claim object or text string.
             store: StageStore for intermediate results.
             skip_s28: Skip S28 solver (default True).
-            skip_binding: If True, bypass Context Binding (default False).
             **kwargs: HTLF and other params.
 
         Returns:
-            dict with KS42b results + 'context_binding' + 'semantic_enrichment' + 'acceleration'.
+            dict with KS42b results + 'semantic_enrichment' + 'acceleration'.
         """
         if store is None:
             store = StageStore()
 
-        skip_binding = kwargs.pop("skip_binding", False)
         fast = kwargs.pop("fast", False)
-
-        # ── Context Binding pre-gate (v4) ──
-        binding_result = None
-        if self._context_binding and not skip_binding:
-            claim_text = claim.text if hasattr(claim, 'text') else str(claim)
-            binding_result = self._context_binding.bind(claim_text)
-
-            if binding_result.verdict == BindingVerdict.REJECT:
-                return {
-                    "verdict": "REJECTED",
-                    "final_score": 0.0,
-                    "reason": f"Context Binding REJECT: {binding_result.reason}",
-                    "context_binding": binding_result.to_dict(),
-                    "version": self.VERSION,
-                }
-
-            if binding_result.verdict == BindingVerdict.DEFER:
-                return {
-                    "verdict": "DEFERRED",
-                    "final_score": 0.0,
-                    "reason": f"Context Binding DEFER: {binding_result.reason}",
-                    "context_binding": binding_result.to_dict(),
-                    "version": self.VERSION,
-                }
 
         start = time.time()
         result = super().verify(claim, store=store, skip_s28=skip_s28, **kwargs)
@@ -575,10 +530,6 @@ class KS42c(KS42b):
             )
             result["tacit_knowledge"] = tk.to_dict()
 
-        # v4: Attach Context Binding result
-        if binding_result is not None:
-            result["context_binding"] = binding_result.to_dict()
-
         result["version"] = self.VERSION
         return result
 
@@ -730,10 +681,5 @@ class KS42c(KS42b):
         base["tacit_knowledge"] = {
             "available": self._tacit is not None,
             "domain_profiles": len(self._tacit.profiles) if self._tacit else 0,
-        }
-        # v4: Context Binding
-        base["context_binding"] = {
-            "available": self._context_binding is not None,
-            "status": self._context_binding.get_status() if self._context_binding else None,
         }
         return base
