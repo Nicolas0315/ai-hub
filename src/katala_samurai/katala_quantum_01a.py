@@ -23,8 +23,15 @@ from .inf_coding_adapter import emit_bridge_output
 try:
     from katala_quantum.emulator import QuantumCircuit
     _HAS_QEMU = True
+    _QEMU_BACKEND = "numpy"
 except Exception:
-    _HAS_QEMU = False
+    try:
+        from katala_quantum.emulator_lite import QuantumCircuit
+        _HAS_QEMU = True
+        _QEMU_BACKEND = "lite"
+    except Exception:
+        _HAS_QEMU = False
+        _QEMU_BACKEND = "none"
 
 try:
     from .ks47_quantum_full import KS47QuantumFull
@@ -84,6 +91,7 @@ class Katala_Quantum_01a:
             "series": self.SERIES,
             "quantum_control_only": True,
             "quantum_emulator_available": _HAS_QEMU,
+            "quantum_emulator_backend": _QEMU_BACKEND,
             "ks_weighted_reasoning": True,
             "adaptive_quantum_probe": True,
             "gpu_budget_target": max(0.05, min(0.95, gpu_budget)),
@@ -255,7 +263,7 @@ class Katala_Quantum_01a:
             n_qubits = 2
 
         if self.QUANTUM_CIRCUIT_ONLY and not _HAS_QEMU:
-            raise RuntimeError("QuantumCircuit backend unavailable (numpy/emulator missing).")
+            raise RuntimeError("QuantumCircuit backend unavailable (numpy/lite emulator missing).")
 
         qc = QuantumCircuit(n_qubits)
         qc.h(0)
@@ -628,7 +636,7 @@ class Katala_Quantum_01a:
                 "assertive_allowed": refs_count > 0,
             },
             "series": self.SERIES,
-            "kq_revision": "01a-r12",
+            "kq_revision": "01a-r13",
             "quantize_all": quantize_all,
             "ks47_quantum_full_grade": (ks47q or {}).get("grade") if isinstance(ks47q, dict) else None,
         }
