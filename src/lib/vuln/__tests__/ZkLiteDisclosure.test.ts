@@ -208,6 +208,25 @@ describe("SecureDisclosureManager", () => {
         manager.revealFullReport(proofId, "wrong-secret", revealDetails)
       ).rejects.toThrow("Secret mismatch");
     });
+
+    it("should set patchedAt to the time markPatched was called, not revealFullReport", async () => {
+      const { proofId, secret } = await manager.createProof(sampleInput);
+      const beforePatch = new Date().toISOString();
+      await manager.markPatched(proofId);
+      const afterPatch = new Date().toISOString();
+
+      // Small delay to ensure revealFullReport has a different timestamp
+      await new Promise((resolve) => setTimeout(resolve, 5));
+
+      const report = await manager.revealFullReport(proofId, secret, revealDetails);
+
+      // patchedAt must fall within the markPatched window
+      expect(report.patchedAt >= beforePatch).toBe(true);
+      expect(report.patchedAt <= afterPatch).toBe(true);
+
+      // patchedAt must be strictly before or equal to revealedAt (never after)
+      expect(report.patchedAt <= report.revealedAt).toBe(true);
+    });
   });
 
   // ----------------------------------------------------------

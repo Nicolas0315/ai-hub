@@ -67,6 +67,8 @@ export interface ZkLiteProof {
   severity: VulnSeverity;
   /** 証明生成日時 */
   createdAt: string;
+  /** パッチ適用日時 (markPatched 呼び出し時に設定) */
+  patchedAt?: string;
   /** 証明状態 */
   status: ProofStatus;
   /** 失効情報 (失効時のみ) */
@@ -241,9 +243,12 @@ export class SecureDisclosureManager {
 
   /**
    * 証明を検証する。
-   * commitment と proof が同一 category/severity から生成されたことを確認。
-   * (注: nonce が同一でなければ完全な検証はできないが、
-   *   公開情報だけで「整合性チェック」が可能)
+   * commitment と proof が正しい SHA-256 形式であることと、状態が有効であることを確認する。
+   *
+   * ⚠️ 注意: これはフォーマット整合性チェックであり、暗号学的検証ではない。
+   * nonce を保持していないため、第三者が commitment の正当性を独立して再計算することはできない。
+   * セキュリティ判断の根拠として単独で使用しないこと。
+   * 完全な暗号検証が必要な場合は nonce を ZkLiteProof に保存する拡張を検討すること。
    */
   verifyProof(proofId: string): boolean {
     const zkProof = this.proofs.get(proofId);
@@ -268,8 +273,9 @@ export class SecureDisclosureManager {
       throw new Error(`Cannot mark as patched: proof is in state "${zkProof.status}"`);
     }
 
-    zkProof.status = "patched";
     const now = new Date().toISOString();
+    zkProof.status = "patched";
+    zkProof.patchedAt = now; // 正確なパッチ適用時刻を証明オブジェクトに保存
 
     await this.ledger.append("vuln:lifecycle:patched", {
       proofId,
@@ -324,7 +330,7 @@ export class SecureDisclosureManager {
       proofId,
       discoveredAt: details.discoveredAt,
       provenAt: zkProof.createdAt,
-      patchedAt: now, // markPatched 後に revealFullReport を呼ぶ想定
+      patchedAt: zkProof.patchedAt ?? now, // markPatched で記録した実際のパッチ時刻を使用
       revealedAt: now,
       category: zkProof.category,
       severity: zkProof.severity,
