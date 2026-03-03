@@ -30,6 +30,12 @@ try:
 except Exception:
     _HAS_KS47Q_FULL = False
 
+try:
+    from .kq_hyper_reasoner import KQHyperReasoner
+    _HAS_KQ_HYPER = True
+except Exception:
+    _HAS_KQ_HYPER = False
+
 # KS29/S28 実測由来重み（ks29.py から採用）
 S28_WEIGHT_A_DATA_HASH: float = 0.35
 S28_WEIGHT_B_REPRODUCIBILITY: float = 0.25
@@ -84,6 +90,7 @@ class Katala_Quantum_01a:
             "external_peer_review_reference": True,
             "persistent_cache_default": False,
             "multistage_quantum_graph": True,
+            "kq_hyper_reasoner": _HAS_KQ_HYPER,
         }
 
     @staticmethod
@@ -477,6 +484,16 @@ class Katala_Quantum_01a:
             **multistage,
         }
 
+        kq_hyper = None
+        if _HAS_KQ_HYPER:
+            try:
+                kq_hyper = KQHyperReasoner().evaluate(text)
+                hscore = float(kq_hyper.get("overall", enhanced_score))
+                enhanced_score = self._clamp(enhanced_score * 0.76 + hscore * 0.24)
+                reason["kq_hyper"] = kq_hyper
+            except Exception as e:
+                reason["kq_hyper_error"] = str(e)
+
         ks47q = None
         external_refs = self._external_peer_review_refs(text, limit=5)
         quantize_all = os.getenv("KQ_QUANTIZE_ALL", "1") == "1"
@@ -502,7 +519,7 @@ class Katala_Quantum_01a:
             "verdict": verdict,
             "confidence": enhanced_score,
             "final_score": enhanced_score,
-            "solvers_passed": f"quantum-control+ks-weighted+micro/{reason.get('micro_solver_count', 32)}",
+            "solvers_passed": f"quantum-control+ks-weighted+micro+hyper/{reason.get('micro_solver_count', 32)}",
             "mode": probe["mode"],
             "route": route,
             "quantum_probe": probe["detail"],
@@ -519,7 +536,7 @@ class Katala_Quantum_01a:
                 "assertive_allowed": refs_count > 0,
             },
             "series": self.SERIES,
-            "kq_revision": "01a-r7",
+            "kq_revision": "01a-r8",
             "quantize_all": quantize_all,
             "ks47_quantum_full_grade": (ks47q or {}).get("grade") if isinstance(ks47q, dict) else None,
         }
