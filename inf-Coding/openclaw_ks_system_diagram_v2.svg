@@ -1,0 +1,149 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="980" viewBox="0 0 1600 980">
+  <defs>
+    <style>
+      .title{font:700 36px 'Noto Sans JP','Yu Gothic UI','Meiryo',sans-serif;fill:#0f172a}
+      .sub{font:500 16px 'Noto Sans JP','Yu Gothic UI','Meiryo',sans-serif;fill:#475569}
+      .h{font:700 20px 'Noto Sans JP','Yu Gothic UI','Meiryo',sans-serif;fill:#0f172a}
+      .t{font:500 15px 'Noto Sans JP','Yu Gothic UI','Meiryo',sans-serif;fill:#334155}
+      .mono{font:600 13px 'Noto Sans Mono CJK JP','Consolas',monospace;fill:#475569}
+      .box{rx:16;ry:16;stroke-width:2.2}
+      .edge{fill:none;stroke-width:2.8;marker-end:url(#arrReq)}
+      .edgeAsync{fill:none;stroke-width:2.8;marker-end:url(#arrAsync)}
+      .edgeData{fill:none;stroke-width:2.8;marker-end:url(#arrData)}
+    </style>
+
+    <marker id="arrReq" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M0,0 L12,6 L0,12 z" fill="#334155"/>
+    </marker>
+    <marker id="arrAsync" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M0,0 L12,6 L0,12 z" fill="#0f766e"/>
+    </marker>
+    <marker id="arrData" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M0,0 L12,6 L0,12 z" fill="#7c3aed"/>
+    </marker>
+
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#f8fafc"/>
+      <stop offset="100%" stop-color="#eef2ff"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#0f172a" flood-opacity="0.12"/>
+    </filter>
+  </defs>
+
+  <rect width="1600" height="980" fill="url(#bg)"/>
+  <text x="56" y="66" class="title">OpenClaw × KS システム図（高精度版サンプル）</text>
+  <text x="56" y="94" class="sub">Grid整列 / 直交コネクタ / レイヤ分離 / 日本語ラベル最適化</text>
+
+  <!-- swimlane headers -->
+  <rect x="40" y="120" width="1520" height="42" rx="10" fill="#e2e8f0"/>
+  <text x="72" y="148" class="mono">Presentation</text>
+  <text x="482" y="148" class="mono">Orchestration</text>
+  <text x="912" y="148" class="mono">Domain Services</text>
+  <text x="1290" y="148" class="mono">Data &amp; Observability</text>
+
+  <!-- nodes row 1 -->
+  <g filter="url(#shadow)">
+    <rect x="60" y="200" width="320" height="140" class="box" fill="#dbeafe" stroke="#3b82f6"/>
+    <text x="88" y="244" class="h">ユーザー接点</text>
+    <text x="88" y="274" class="t">Discord / Web / Mobile</text>
+    <text x="88" y="300" class="t">指示・確認・通知受信</text>
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="450" y="200" width="390" height="180" class="box" fill="#dcfce7" stroke="#22c55e"/>
+    <text x="478" y="244" class="h">OpenClaw Gateway</text>
+    <text x="478" y="274" class="t">Session Router / Tool Dispatcher</text>
+    <text x="478" y="300" class="t">Policy Guard / Rate Limit / Auth</text>
+    <text x="478" y="326" class="t">Reply Tag / Channel Adapter</text>
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="910" y="200" width="350" height="180" class="box" fill="#ede9fe" stroke="#8b5cf6"/>
+    <text x="938" y="244" class="h">KS Core</text>
+    <text x="938" y="274" class="t">Workflow Engine / Rule Evaluation</text>
+    <text x="938" y="300" class="t">Knowledge API / Access Control</text>
+    <text x="938" y="326" class="t">Business Logic Modules</text>
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="1290" y="200" width="250" height="180" class="box" fill="#fef3c7" stroke="#f59e0b"/>
+    <text x="1318" y="244" class="h">Storage</text>
+    <text x="1318" y="274" class="t">PostgreSQL</text>
+    <text x="1318" y="300" class="t">Vector DB</text>
+    <text x="1318" y="326" class="t">Object Storage</text>
+  </g>
+
+  <!-- nodes row 2 -->
+  <g filter="url(#shadow)">
+    <rect x="450" y="470" width="390" height="210" class="box" fill="#cffafe" stroke="#06b6d4"/>
+    <text x="478" y="514" class="h">OpenClaw Workers</text>
+    <text x="478" y="544" class="t">Sub-agent / ACP Harness / Cron</text>
+    <text x="478" y="570" class="t">Diagram Generator (SVG→PNG)</text>
+    <text x="478" y="596" class="t">Message Publisher / Retry Queue</text>
+    <text x="478" y="622" class="t">Error Handling / Dead Letter</text>
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="910" y="470" width="350" height="210" class="box" fill="#e0f2fe" stroke="#0284c7"/>
+    <text x="938" y="514" class="h">Observability</text>
+    <text x="938" y="544" class="t">Metrics / Logs / Traces</text>
+    <text x="938" y="570" class="t">Usage Analytics</text>
+    <text x="938" y="596" class="t">Alert Rules / SLO Monitoring</text>
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="1290" y="470" width="250" height="210" class="box" fill="#fce7f3" stroke="#ec4899"/>
+    <text x="1318" y="514" class="h">Delivery</text>
+    <text x="1318" y="544" class="t">Discord Channel</text>
+    <text x="1318" y="570" class="t">Thread/DM Routing</text>
+    <text x="1318" y="596" class="t">Attachment CDN</text>
+  </g>
+
+  <!-- orthogonal connectors -->
+  <path d="M380 270 L450 270" class="edge" stroke="#334155"/>
+  <path d="M840 270 L910 270" class="edgeData" stroke="#7c3aed"/>
+  <path d="M1260 290 L1290 290" class="edgeData" stroke="#7c3aed"/>
+
+  <path d="M645 380 L645 470" class="edgeAsync" stroke="#0f766e"/>
+  <path d="M840 575 L910 575" class="edgeAsync" stroke="#0f766e"/>
+  <path d="M1260 575 L1290 575" class="edge" stroke="#334155"/>
+
+  <!-- feedback loop -->
+  <path d="M1085 470 L1085 430 L700 430 L700 380" class="edgeData" stroke="#7c3aed"/>
+  <path d="M1415 470 L1415 420 L250 420 L250 340" class="edge" stroke="#334155"/>
+
+  <!-- mini chart (accuracy KPI) -->
+  <g filter="url(#shadow)">
+    <rect x="60" y="470" width="320" height="290" class="box" fill="#ffffff" stroke="#94a3b8"/>
+  </g>
+  <text x="88" y="514" class="h">描画品質KPI（例）</text>
+  <text x="88" y="538" class="t">Precision / Alignment / Readability</text>
+
+  <line x1="98" y1="720" x2="350" y2="720" stroke="#334155" stroke-width="2"/>
+  <line x1="98" y1="720" x2="98" y2="570" stroke="#334155" stroke-width="2"/>
+  <polyline points="112,700 162,670 212,640 262,610 312,590" fill="none" stroke="#2563eb" stroke-width="3"/>
+  <circle cx="112" cy="700" r="4" fill="#2563eb"/>
+  <circle cx="162" cy="670" r="4" fill="#2563eb"/>
+  <circle cx="212" cy="640" r="4" fill="#2563eb"/>
+  <circle cx="262" cy="610" r="4" fill="#2563eb"/>
+  <circle cx="312" cy="590" r="4" fill="#2563eb"/>
+  <text x="108" y="742" class="t">v1</text>
+  <text x="158" y="742" class="t">v2</text>
+  <text x="208" y="742" class="t">v3</text>
+  <text x="258" y="742" class="t">v4</text>
+  <text x="308" y="742" class="t">v5</text>
+
+  <!-- legend -->
+  <rect x="40" y="810" width="1520" height="130" rx="12" fill="#ffffff" stroke="#cbd5e1"/>
+  <text x="70" y="848" class="h">高精度版で改善したポイント</text>
+  <text x="70" y="878" class="t">1) 40pxグリッドに沿った整列（視線移動が自然）  2) 直交配線で交差削減（可読性アップ）</text>
+  <text x="70" y="904" class="t">3) レイヤ分離（Presentation / Orchestration / Services / Data）  4) 文字サイズ階層統一</text>
+
+  <line x1="1090" y1="870" x2="1140" y2="870" stroke="#334155" stroke-width="3" marker-end="url(#arrReq)"/>
+  <text x="1150" y="875" class="t">同期Req/Resp</text>
+  <line x1="1090" y1="900" x2="1140" y2="900" stroke="#0f766e" stroke-width="3" marker-end="url(#arrAsync)"/>
+  <text x="1150" y="905" class="t">非同期イベント</text>
+  <line x1="1320" y1="870" x2="1370" y2="870" stroke="#7c3aed" stroke-width="3" marker-end="url(#arrData)"/>
+  <text x="1380" y="875" class="t">データ連携</text>
+</svg>

@@ -1,0 +1,91 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="900" viewBox="0 0 1400 900">
+  <defs>
+    <style>
+      .title { font: 700 34px 'Noto Sans JP','Yu Gothic','Meiryo',sans-serif; fill:#111827; }
+      .subtitle { font: 500 16px 'Noto Sans JP','Yu Gothic','Meiryo',sans-serif; fill:#4b5563; }
+      .label { font: 600 18px 'Noto Sans JP','Yu Gothic','Meiryo',sans-serif; fill:#111827; }
+      .small { font: 400 14px 'Noto Sans JP','Yu Gothic','Meiryo',sans-serif; fill:#374151; }
+      .edge { stroke:#475569; stroke-width:2.6; fill:none; marker-end:url(#arrow); }
+      .edge2 { stroke:#0f766e; stroke-width:2.6; fill:none; marker-end:url(#arrow2); }
+      .edge3 { stroke:#7c3aed; stroke-width:2.6; fill:none; marker-end:url(#arrow3); }
+    </style>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M0,0 L12,6 L0,12 z" fill="#475569" />
+    </marker>
+    <marker id="arrow2" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M0,0 L12,6 L0,12 z" fill="#0f766e" />
+    </marker>
+    <marker id="arrow3" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M0,0 L12,6 L0,12 z" fill="#7c3aed" />
+    </marker>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#f8fafc"/>
+      <stop offset="100%" stop-color="#eef2ff"/>
+    </linearGradient>
+  </defs>
+
+  <rect x="0" y="0" width="1400" height="900" fill="url(#bg)"/>
+  <text x="60" y="70" class="title">OpenClaw × KS システム図（テスト生成）</text>
+  <text x="60" y="100" class="subtitle">Flowchart + Graph 的要素を合わせたサンプル / 日本語ラベル確認</text>
+
+  <!-- User -->
+  <rect x="80" y="180" rx="18" ry="18" width="240" height="110" fill="#dbeafe" stroke="#3b82f6" stroke-width="2.5"/>
+  <text x="110" y="225" class="label">ユーザー</text>
+  <text x="110" y="250" class="small">Discord / Web / Mobile</text>
+
+  <!-- OpenClaw Gateway -->
+  <rect x="420" y="150" rx="18" ry="18" width="330" height="160" fill="#dcfce7" stroke="#22c55e" stroke-width="2.5"/>
+  <text x="450" y="198" class="label">OpenClaw Gateway</text>
+  <text x="450" y="225" class="small">Router・Tool Dispatcher・Session管理</text>
+  <text x="450" y="250" class="small">message / browser / cron / memory</text>
+
+  <!-- KS Core -->
+  <rect x="860" y="150" rx="18" ry="18" width="420" height="160" fill="#ede9fe" stroke="#8b5cf6" stroke-width="2.5"/>
+  <text x="890" y="198" class="label">KS Core Services</text>
+  <text x="890" y="225" class="small">Knowledge Store / Workflow / Analytics API</text>
+  <text x="890" y="250" class="small">Auth・Policy・Business Logic</text>
+
+  <!-- Data layer -->
+  <rect x="860" y="390" rx="18" ry="18" width="420" height="180" fill="#fef3c7" stroke="#f59e0b" stroke-width="2.5"/>
+  <text x="890" y="438" class="label">Data Layer</text>
+  <text x="890" y="465" class="small">PostgreSQL / Vector DB / Object Storage</text>
+  <text x="890" y="490" class="small">Logs・Metrics・Trace</text>
+
+  <!-- OpenClaw workers -->
+  <rect x="420" y="390" rx="18" ry="18" width="330" height="180" fill="#cffafe" stroke="#06b6d4" stroke-width="2.5"/>
+  <text x="450" y="438" class="label">OpenClaw Workers</text>
+  <text x="450" y="465" class="small">Sub-agent / ACP Harness / Schedulers</text>
+  <text x="450" y="490" class="small">Image/SVG Generator・Notifications</text>
+
+  <!-- graph panel -->
+  <rect x="80" y="390" rx="18" ry="18" width="240" height="320" fill="#ffffff" stroke="#94a3b8" stroke-width="2"/>
+  <text x="110" y="430" class="label">処理量グラフ</text>
+  <text x="110" y="452" class="small">(sample)</text>
+
+  <!-- bars -->
+  <line x1="120" y1="680" x2="280" y2="680" stroke="#334155" stroke-width="2"/>
+  <line x1="120" y1="680" x2="120" y2="500" stroke="#334155" stroke-width="2"/>
+  <rect x="135" y="610" width="24" height="70" fill="#60a5fa"/>
+  <rect x="175" y="570" width="24" height="110" fill="#34d399"/>
+  <rect x="215" y="540" width="24" height="140" fill="#f59e0b"/>
+  <rect x="255" y="515" width="24" height="165" fill="#a78bfa"/>
+  <text x="136" y="702" class="small">Q1</text>
+  <text x="176" y="702" class="small">Q2</text>
+  <text x="216" y="702" class="small">Q3</text>
+  <text x="256" y="702" class="small">Q4</text>
+
+  <!-- edges -->
+  <path d="M320 235 C360 235, 380 230, 420 230" class="edge"/>
+  <path d="M750 230 C800 230, 815 230, 860 230" class="edge3"/>
+  <path d="M1080 310 C1080 340, 1080 350, 1080 390" class="edge"/>
+  <path d="M585 310 C585 350, 585 350, 585 390" class="edge2"/>
+  <path d="M750 470 C805 470, 815 470, 860 470" class="edge2"/>
+  <path d="M1080 390 C970 330, 760 330, 640 390" class="edge3"/>
+
+  <!-- legend -->
+  <rect x="80" y="760" rx="12" ry="12" width="1200" height="95" fill="#ffffff" stroke="#cbd5e1"/>
+  <text x="110" y="798" class="small">灰色矢印: リクエスト/レスポンス</text>
+  <text x="430" y="798" class="small" fill="#0f766e">緑矢印: 非同期ジョブ/イベント</text>
+  <text x="780" y="798" class="small" fill="#7c3aed">紫矢印: データ連携/分析フィードバック</text>
+  <text x="110" y="828" class="small">このSVGはOpenClaw上で自動生成したテスト図です。</text>
+</svg>
