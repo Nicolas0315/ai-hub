@@ -94,6 +94,7 @@ class Katala_Quantum_01a:
             "multistage_quantum_graph": True,
             "kq_hyper_reasoner": _HAS_KQ_HYPER,
             "context_compression_layer": True,
+            "hierarchical_decoder": True,
         }
 
     @staticmethod
@@ -168,6 +169,39 @@ class Katala_Quantum_01a:
             "sentences_used": len(ordered),
             "dependency_hints": dep_hints,
             "digest": digest,
+        }
+
+    def _hierarchical_decode(self, text: str) -> dict[str, Any]:
+        """Long-form hierarchical decoding: section split -> local score -> global fuse."""
+        # coarse sectioning by paragraph/heading markers
+        chunks = [c.strip() for c in re.split(r'\n\n+|(?=#+\s)|(?=\d+\.)', text) if c.strip()]
+        if not chunks:
+            chunks = [text]
+
+        # cap to keep efficiency
+        chunks = chunks[:8]
+        local = []
+        for i, ch in enumerate(chunks, start=1):
+            p = self._quantum_route_probe(ch)
+            s = float(p.get("score", 0.5))
+            # encourage section coherence and penalize overly short fragments
+            if len(ch) < 60:
+                s *= 0.92
+            local.append({"idx": i, "chars": len(ch), "score": round(self._clamp(s), 3)})
+
+        scores = [x["score"] for x in local]
+        local_mean = sum(scores) / max(1, len(scores))
+        # continuity factor: lower variance = better hierarchical connection
+        var = sum((x - local_mean) ** 2 for x in scores) / max(1, len(scores))
+        continuity = self._clamp(1.0 - var * 2.5)
+        fused = self._clamp(local_mean * 0.78 + continuity * 0.22)
+
+        return {
+            "sections": len(local),
+            "local": local,
+            "local_mean": round(local_mean, 3),
+            "continuity": round(continuity, 3),
+            "fused_score": round(fused, 3),
         }
 
     def _micro_solver_suite(self, text: str) -> dict[str, Any]:
@@ -539,6 +573,11 @@ class Katala_Quantum_01a:
             **multistage,
         }
 
+        # Strengthen #4: hierarchical long-form decoder strategy
+        hdec = self._hierarchical_decode(ctext)
+        enhanced_score = self._clamp(enhanced_score * 0.78 + float(hdec.get("fused_score", enhanced_score)) * 0.22)
+        reason["kq_hierarchical_decode"] = hdec
+
         kq_hyper = None
         if _HAS_KQ_HYPER:
             try:
@@ -598,7 +637,7 @@ class Katala_Quantum_01a:
                 "assertive_allowed": refs_count > 0,
             },
             "series": self.SERIES,
-            "kq_revision": "01a-r9",
+            "kq_revision": "01a-r10",
             "quantize_all": quantize_all,
             "ks47_quantum_full_grade": (ks47q or {}).get("grade") if isinstance(ks47q, dict) else None,
         }
