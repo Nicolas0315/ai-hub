@@ -9,6 +9,7 @@ KSi1次世代機: 量子エミュ主導の制御探索モデル。
 """
 from __future__ import annotations
 
+import os
 from typing import Any
 
 from .inf_coding_adapter import emit_bridge_output
@@ -34,8 +35,10 @@ class Katala_Quantum_01a:
     SYSTEM_MODEL: str = "Katala_Quantum_01a"
     ALIAS: str = "KQ01a"
     SERIES: str = "[Katala_Quantum][KQ]シリーズを使用"
+    GPU_BUDGET_TARGET: float = 0.20
 
     def bridge_status(self) -> dict[str, Any]:
+        gpu_budget = float(os.getenv("KQ_GPU_BUDGET", str(self.GPU_BUDGET_TARGET)))
         return {
             "system": self.SYSTEM_NAME,
             "model": self.SYSTEM_MODEL,
@@ -44,6 +47,8 @@ class Katala_Quantum_01a:
             "quantum_control_only": True,
             "quantum_emulator_available": _HAS_QEMU,
             "ks_weighted_reasoning": True,
+            "adaptive_quantum_probe": True,
+            "gpu_budget_target": max(0.05, min(0.95, gpu_budget)),
         }
 
     @staticmethod
@@ -51,31 +56,53 @@ class Katala_Quantum_01a:
         return max(0.0, min(1.0, x))
 
     def _quantum_route_probe(self, text: str) -> dict[str, Any]:
-        """量子エミュ経由でfast/strict傾向を推定する。"""
+        """量子エミュ経由でfast/strict傾向を推定する（適応ショット/適応量子ビット）。"""
         t = text.lower()
-        if not _HAS_QEMU:
-            score = 0.5
-            return {"score": score, "mode": "quantum-fallback", "detail": "emulator-unavailable"}
-
-        n_qubits = 2
-        qc = QuantumCircuit(n_qubits)
-        qc.h(0)
-        qc.h(1)
+        gpu_budget = max(0.05, min(0.95, float(os.getenv("KQ_GPU_BUDGET", str(self.GPU_BUDGET_TARGET)))))
 
         risky_tokens = ["rm", "--force", "push", "rebase", "reset", "drop", "kubectl", "docker"]
         safe_tokens = ["status", "diff", "log", "ls", "grep", "find", "py_compile", "test", "build"]
-
         risk_hits = sum(1 for k in risky_tokens if k in t)
         safe_hits = sum(1 for k in safe_tokens if k in t)
+
+        complexity = len(t.split()) + risk_hits * 3
+        # budget 20% 付近を基準に、探索負荷を制御
+        shots = int(max(128, min(1024, 128 + complexity * 6 + gpu_budget * 320)))
+        n_qubits = 3 if (complexity > 24 or risk_hits >= 2) else 2
+
+        if not _HAS_QEMU:
+            score = self._clamp(0.5 + safe_hits * 0.02 - risk_hits * 0.04)
+            return {
+                "score": score,
+                "mode": "quantum-fallback",
+                "detail": {
+                    "reason": "emulator-unavailable",
+                    "risk_hits": risk_hits,
+                    "safe_hits": safe_hits,
+                    "shots": shots,
+                    "n_qubits": n_qubits,
+                    "gpu_budget": gpu_budget,
+                },
+            }
+
+        qc = QuantumCircuit(n_qubits)
+        qc.h(0)
+        qc.h(1)
+        if n_qubits == 3:
+            qc.h(2)
 
         qc.ry(0, min(1.2, 0.2 + risk_hits * 0.2))
         qc.rx(1, max(0.1, 0.8 - safe_hits * 0.1))
         qc.cx(0, 1)
+        if n_qubits == 3:
+            qc.rz(2, min(1.3, 0.3 + complexity * 0.01))
+            qc.cx(1, 2)
         qc.measure_all()
-        r = qc.run(shots=256)
+        r = qc.run(shots=shots)
 
         m = r.measurements or {}
-        strict_mass = (m.get("11", 0) + m.get("10", 0)) / max(1, sum(m.values()))
+        strict_keys = [k for k in m.keys() if k.endswith("1") or k.startswith("1")]
+        strict_mass = sum(m.get(k, 0) for k in strict_keys) / max(1, sum(m.values()))
         score = 1.0 - strict_mass
         return {
             "score": round(self._clamp(score), 3),
@@ -84,7 +111,10 @@ class Katala_Quantum_01a:
                 "risk_hits": risk_hits,
                 "safe_hits": safe_hits,
                 "strict_mass": round(strict_mass, 3),
-                "shots": 256,
+                "shots": shots,
+                "n_qubits": n_qubits,
+                "gpu_budget": gpu_budget,
+                "complexity": complexity,
             },
         }
 
@@ -160,8 +190,14 @@ class Katala_Quantum_01a:
             "mode": probe["mode"],
             "route": route,
             "quantum_probe": probe["detail"],
+            "quantum_features": {
+                "route_confidence": enhanced_score,
+                "probe_mode": probe["mode"],
+                "probe_detail": probe["detail"],
+            },
             "reasoning": reason,
             "series": self.SERIES,
+            "kq_revision": "01a-r1",
         }
 
         emit_bridge_output(self.SYSTEM_MODEL, {
