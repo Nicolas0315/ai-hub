@@ -38,20 +38,20 @@ chmod +x guard.sh order-enforce.sh open-katala.sh katala-exec.sh assist-exec.sh 
 ./order-set.sh katala-off
 ./order-set.sh katala-on
 
-# Assist禁止/強制
+# Assist禁止/許可
 ./order-set.sh assist-off
 ./order-set.sh assist-on
 
 # cache手動クリーン
 ./order-set.sh clean
 
-# 実行（assist-on時は assist-exec.sh を使用）
+# 実行（katala-exec / assist-exec は独立）
 ./katala-exec.sh git status
 ./assist-exec.sh git status
 ```
 
 ## ルール
 - `assist-off`: `assist-exec.sh` は実行拒否
-- `assist-on`: `katala-exec.sh` は実行拒否（必ず `assist-exec.sh` を使う）
+- `assist-on`: `assist-exec.sh` は実行許可（`katala-exec.sh` とは独立）
 
 ※ 今は「監査は後で別場所へ移管」方針のため、イベント記録は `inf-Coding-cache` 側に寄せています。

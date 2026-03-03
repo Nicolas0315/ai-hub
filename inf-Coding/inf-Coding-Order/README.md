@@ -7,11 +7,11 @@
 - `./order-set.sh katala-off` : Katala 利用を禁止
 - `./order-set.sh katala-on` : Katala 利用を許可
 - `./order-set.sh assist-off` : inf-Coding-Assist を禁止
-- `./order-set.sh assist-on` : inf-Coding-Assist 経由を強制
+- `./order-set.sh assist-on` : inf-Coding-Assist 利用を許可
 - `./order-show.sh` : 現在状態を表示
 
 ## 仕様
 - `katala-off` 中は `open-katala.sh` / `katala-exec.sh` / `assist-exec.sh` を拒否
 - `assist-off` 中は `assist-exec.sh` を拒否
-- `assist-on` 中は `katala-exec.sh` を拒否（`assist-exec.sh` を必須化）
+- `assist-on` 中は `assist-exec.sh` を許可（`katala-exec.sh` とは独立）
 - 命令イベントは `inf-Coding-cache/activity.log` に記録

@@ -68,7 +68,7 @@ case "$CMD" in
     LAST_UPDATED="$now"
     write_state
     "$SCRIPT_DIR/log-to-cache.sh" order "assist-on"
-    echo "[order] inf-Coding-Assist: ON (assist route required)"
+    echo "[order] inf-Coding-Assist: ON"
     ;;
   *)
     echo "Unknown command: $CMD" >&2
