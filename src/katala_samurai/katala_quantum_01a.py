@@ -21,6 +21,12 @@ try:
 except Exception:
     _HAS_QEMU = False
 
+try:
+    from .ks47_quantum_full import KS47QuantumFull
+    _HAS_KS47Q_FULL = True
+except Exception:
+    _HAS_KS47Q_FULL = False
+
 # KS29/S28 実測由来重み（ks29.py から採用）
 S28_WEIGHT_A_DATA_HASH: float = 0.35
 S28_WEIGHT_B_REPRODUCIBILITY: float = 0.25
@@ -54,6 +60,8 @@ class Katala_Quantum_01a:
             "gpu_budget_target": max(0.05, min(0.95, gpu_budget)),
             "cpu_budget_target": max(0.05, min(0.95, cpu_budget)),
             "target_solver_coverage": "32+ micro-solvers (virtual)",
+            "ks47_quantum_full": _HAS_KS47Q_FULL,
+            "quantize_all": os.getenv("KQ_QUANTIZE_ALL", "1") == "1",
         }
 
     @staticmethod
@@ -245,6 +253,18 @@ class Katala_Quantum_01a:
 
         enhanced_score, reason = self._enhanced_reasoning_score(text, probe)
 
+        ks47q = None
+        quantize_all = os.getenv("KQ_QUANTIZE_ALL", "1") == "1"
+        if quantize_all and _HAS_KS47Q_FULL:
+            try:
+                ks47q = KS47QuantumFull().verify(query=text, report=text)
+                qfull = float(ks47q.get("overall_score", enhanced_score))
+                # 全量子化経路を優先しつつ、既存KQ推論を少し混ぜる
+                enhanced_score = self._clamp(qfull * 0.78 + enhanced_score * 0.22)
+                reason["ks47_quantum_full"] = ks47q
+            except Exception as e:
+                reason["ks47_quantum_full_error"] = str(e)
+
         verdict = "SUPPORT" if enhanced_score >= 0.82 else ("LEAN_SUPPORT" if enhanced_score >= 0.66 else ("UNCERTAIN" if enhanced_score >= 0.45 else "LEAN_REJECT"))
         route = "fast" if enhanced_score >= 0.66 else "strict"
 
@@ -263,7 +283,9 @@ class Katala_Quantum_01a:
             },
             "reasoning": reason,
             "series": self.SERIES,
-            "kq_revision": "01a-r2",
+            "kq_revision": "01a-r3",
+            "quantize_all": quantize_all,
+            "ks47_quantum_full_grade": (ks47q or {}).get("grade") if isinstance(ks47q, dict) else None,
         }
 
         emit_bridge_output(self.SYSTEM_MODEL, {
@@ -276,6 +298,7 @@ class Katala_Quantum_01a:
             "route": result["route"],
             "series": self.SERIES,
             "reasoning": reason,
+            "quantize_all": quantize_all,
         })
         return result
 
