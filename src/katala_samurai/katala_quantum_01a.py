@@ -9,8 +9,11 @@ KSi1次世代機: 量子エミュ主導の制御探索モデル。
 """
 from __future__ import annotations
 
+import json
 import os
 import subprocess
+import urllib.parse
+import urllib.request
 from typing import Any
 
 from .inf_coding_adapter import emit_bridge_output
@@ -62,6 +65,7 @@ class Katala_Quantum_01a:
             "target_solver_coverage": "32+ micro-solvers (virtual)",
             "ks47_quantum_full": _HAS_KS47Q_FULL,
             "quantize_all": os.getenv("KQ_QUANTIZE_ALL", "1") == "1",
+            "external_peer_review_reference": True,
         }
 
     @staticmethod
@@ -213,6 +217,51 @@ class Katala_Quantum_01a:
             "d_determinism_like": round(d, 3),
         }
 
+    def _external_peer_review_refs(self, text: str, limit: int = 5) -> dict[str, Any]:
+        """Crossref から査読済みジャーナル論文を優先取得（best-effort）。"""
+        if os.getenv("KQ_EXTERNAL_PAPERS", "1") != "1":
+            return {"enabled": False, "items": [], "source": "disabled"}
+
+        q = " ".join(text.strip().split()[:18])
+        if not q:
+            q = "verification architecture"
+
+        params = {
+            "query.title": q,
+            "filter": "type:journal-article",
+            "sort": "relevance",
+            "order": "desc",
+            "rows": str(max(1, min(10, limit))),
+        }
+        url = "https://api.crossref.org/works?" + urllib.parse.urlencode(params)
+
+        req = urllib.request.Request(
+            url,
+            headers={"User-Agent": "Katala-Quantum/1.0 (research-reference)"},
+        )
+
+        try:
+            with urllib.request.urlopen(req, timeout=2.5) as r:
+                data = json.loads(r.read().decode("utf-8", errors="ignore"))
+            items = []
+            for it in ((data.get("message") or {}).get("items") or []):
+                title = ((it.get("title") or [""])[0] or "").strip()
+                doi = (it.get("DOI") or "").strip()
+                issued = (((it.get("issued") or {}).get("date-parts") or [[None]])[0][0])
+                journal = ((it.get("container-title") or [""])[0] or "").strip()
+                if not title:
+                    continue
+                items.append({
+                    "title": title,
+                    "doi": doi,
+                    "year": issued,
+                    "journal": journal,
+                    "url": f"https://doi.org/{doi}" if doi else None,
+                })
+            return {"enabled": True, "source": "crossref-journal-article", "items": items[:limit]}
+        except Exception as e:
+            return {"enabled": True, "source": "crossref-journal-article", "items": [], "error": str(e)}
+
     def _enhanced_reasoning_score(self, text: str, q_probe: dict[str, Any]) -> tuple[float, dict[str, Any]]:
         q_score = float(q_probe.get("score", 0.5))
         comps = self._s28_style_components(text, q_score)
@@ -254,6 +303,7 @@ class Katala_Quantum_01a:
         enhanced_score, reason = self._enhanced_reasoning_score(text, probe)
 
         ks47q = None
+        external_refs = self._external_peer_review_refs(text, limit=5)
         quantize_all = os.getenv("KQ_QUANTIZE_ALL", "1") == "1"
         if quantize_all and _HAS_KS47Q_FULL:
             try:
@@ -282,8 +332,9 @@ class Katala_Quantum_01a:
                 "probe_detail": probe["detail"],
             },
             "reasoning": reason,
+            "external_peer_review_refs": external_refs,
             "series": self.SERIES,
-            "kq_revision": "01a-r3",
+            "kq_revision": "01a-r4",
             "quantize_all": quantize_all,
             "ks47_quantum_full_grade": (ks47q or {}).get("grade") if isinstance(ks47q, dict) else None,
         }
@@ -298,6 +349,7 @@ class Katala_Quantum_01a:
             "route": result["route"],
             "series": self.SERIES,
             "reasoning": reason,
+            "external_peer_review_ref_count": len((external_refs or {}).get("items", [])),
             "quantize_all": quantize_all,
         })
         return result
