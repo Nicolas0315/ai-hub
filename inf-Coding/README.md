@@ -18,7 +18,7 @@
 - `guard.sh` : 入口ガード（inf-Coding 経由か検証）
 - `order-enforce.sh` : 人間命令（katala-off/on）を強制
 - `open-katala.sh` : ガード通過後に Katala ルートでシェルを開く
-- `katala-exec.sh` : 推奨。inf-Coding経由を強制して Katala でコマンド実行
+- `katala-exec.sh` : 推奨。inf-Coding経由を強制して Katala でコマンド実行（ログにはコマンド本文でなくハッシュを記録）
 - `log-to-cache.sh` : 実行イベントを cache 側へ追記
 - `cache-clean.sh` : cache 側を手動クリーン
 - `order-set.sh` : 命令発行（clean / katala-off / katala-on）
