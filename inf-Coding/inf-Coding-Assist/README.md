@@ -34,11 +34,14 @@ inf-Coding から利用する補助ツール層。
 
 - 既定: `[Katala_Quantum][KQ]シリーズを使用` (`Katala_Quantum_01a`)
 - 明示時のみ: `[KSi]シリーズを使用` (`KSi2`)
+- 明示時のみ: `KS47` 直結（`ks-bridge.py`。自動フォールバックなし）
 
 ```bash
 ./inf-Coding-Assist/ksi1-route.sh git status
 # KSi2 を明示利用
 KSI_MODEL=KSi2 ./inf-Coding-Assist/ksi1-route.sh git status
+# KS47 を明示利用（失敗時は即エラー）
+KSI_MODEL=KS47 ./inf-Coding-Assist/ksi1-route.sh git status
 ```
 
 ### 4) adapter analysis

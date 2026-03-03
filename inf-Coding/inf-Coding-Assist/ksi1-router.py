@@ -44,15 +44,15 @@ def _matches(patterns: list[str], command: str) -> bool:
 
 
 def _select_model(command: str):
-    """Default is ① Katala_Quantum_01a. Use KSi2 only when explicitly requested."""
+    """Default is ① Katala_Quantum_01a. Use explicit selection for KSi2/KS47."""
     requested = os.getenv("KSI_MODEL", "").strip().lower()
     c = command.lower()
 
+    if requested in {"ks47"} or "ks47" in c:
+        return "KS47"
     if requested in {"ksi2", "katala_samurai_inf_000002"} or "ksi2" in c:
-        m = KSi2()
-    else:
-        m = KQ01a()
-    return m
+        return KSi2()
+    return KQ01a()
 
 
 def decide_route(command: str) -> tuple[str, dict]:
@@ -62,7 +62,31 @@ def decide_route(command: str) -> tuple[str, dict]:
         f"command: {command}\n"
         "Use fast-path for low-risk local read/build checks; strict-path for destructive/network/history-rewriting ops."
     )
-    result = model.verify(claim, fast=True)
+
+    if model == "KS47":
+        bridge = subprocess.run(
+            [
+                "python3",
+                "/mnt/c/Users/ogosh/Documents/NICOLAS/Katala/inf-Coding/inf-Coding-Assist/ks-bridge.py",
+                "--model", "KS47",
+                "--query", claim,
+                "--report", command,
+            ],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        if bridge.returncode != 0:
+            raise RuntimeError(f"KS47 bridge failed: {bridge.stderr.strip()}")
+        result = json.loads((bridge.stdout or "{}").strip())
+        model_status = {
+            "model": "KS47",
+            "alias": "KS47",
+            "series": "[KS] explicit-only",
+        }
+    else:
+        result = model.verify(claim, fast=True)
+        model_status = model.bridge_status() if hasattr(model, 'bridge_status') else {}
 
     verdict = result.get('verdict') if isinstance(result, dict) else 'UNKNOWN'
     mode = result.get('mode') if isinstance(result, dict) else 'unknown'
@@ -103,7 +127,6 @@ def decide_route(command: str) -> tuple[str, dict]:
             route = 'strict'
             reason = 'generic_default_strict'
 
-    model_status = model.bridge_status() if hasattr(model, 'bridge_status') else {}
     detail = {
         'route': route,
         'reason': reason,
