@@ -9,10 +9,12 @@ if [[ -f "$STATE_FILE" ]]; then
   source "$STATE_FILE"
 else
   KATALA_ALLOWED=1
+  ASSIST_MODE=auto
   LAST_UPDATED=""
   UPDATED_BY="unknown"
 fi
 
 echo "KATALA_ALLOWED=$KATALA_ALLOWED"
+echo "ASSIST_MODE=${ASSIST_MODE:-auto}"
 echo "LAST_UPDATED=${LAST_UPDATED:-}"
 echo "UPDATED_BY=${UPDATED_BY:-}"

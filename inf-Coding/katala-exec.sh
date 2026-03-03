@@ -13,6 +13,19 @@ cd "$KATALA_ROOT"
 
 "$SCRIPT_DIR/order-enforce.sh"
 
+STATE_FILE="$SCRIPT_DIR/inf-Coding-Order/order-state.env"
+if [[ -f "$STATE_FILE" ]]; then
+  # shellcheck disable=SC1090
+  source "$STATE_FILE"
+fi
+
+# 2) assist-on のときは必ず Assist を経由
+if [[ "${ASSIST_MODE:-auto}" == "on" ]]; then
+  "$SCRIPT_DIR/log-to-cache.sh" katala-exec:block "assist-on requires assist-exec"
+  echo "[katala-exec] blocked: inf-Coding-Assist-on is active. Use ./assist-exec.sh ..." >&2
+  exit 79
+fi
+
 CMD_RAW="$*"
 if command -v sha256sum >/dev/null 2>&1; then
   CMD_HASH="$(printf '%s' "$CMD_RAW" | sha256sum | awk '{print $1}')"
