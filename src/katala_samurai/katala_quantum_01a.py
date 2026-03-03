@@ -218,29 +218,37 @@ class Katala_Quantum_01a:
         }
 
     def _external_peer_review_refs(self, text: str, limit: int = 5) -> dict[str, Any]:
-        """Crossref から査読済みジャーナル論文を優先取得（best-effort）。"""
+        """Crossref + OpenAlex + PubMed を多重参照（best-effort）。"""
         if os.getenv("KQ_EXTERNAL_PAPERS", "1") != "1":
-            return {"enabled": False, "items": [], "source": "disabled"}
+            return {"enabled": False, "items": [], "source": "disabled", "providers": []}
 
         q = " ".join(text.strip().split()[:18])
         if not q:
             q = "verification architecture"
 
-        params = {
-            "query.title": q,
-            "filter": "type:journal-article",
-            "sort": "relevance",
-            "order": "desc",
-            "rows": str(max(1, min(10, limit))),
-        }
-        url = "https://api.crossref.org/works?" + urllib.parse.urlencode(params)
+        merged: list[dict[str, Any]] = []
+        errors: dict[str, str] = {}
 
-        req = urllib.request.Request(
-            url,
-            headers={"User-Agent": "Katala-Quantum/1.0 (research-reference)"},
-        )
+        def add_items(items: list[dict[str, Any]]):
+            seen = {(x.get("doi") or "", x.get("title") or "") for x in merged}
+            for it in items:
+                key = ((it.get("doi") or ""), (it.get("title") or ""))
+                if key in seen:
+                    continue
+                merged.append(it)
+                seen.add(key)
 
+        # 1) Crossref
         try:
+            params = {
+                "query.title": q,
+                "filter": "type:journal-article",
+                "sort": "relevance",
+                "order": "desc",
+                "rows": str(max(1, min(10, limit))),
+            }
+            url = "https://api.crossref.org/works?" + urllib.parse.urlencode(params)
+            req = urllib.request.Request(url, headers={"User-Agent": "Katala-Quantum/1.0 (research-reference)"})
             with urllib.request.urlopen(req, timeout=2.5) as r:
                 data = json.loads(r.read().decode("utf-8", errors="ignore"))
             items = []
@@ -252,15 +260,87 @@ class Katala_Quantum_01a:
                 if not title:
                     continue
                 items.append({
+                    "source": "crossref",
                     "title": title,
                     "doi": doi,
                     "year": issued,
                     "journal": journal,
                     "url": f"https://doi.org/{doi}" if doi else None,
                 })
-            return {"enabled": True, "source": "crossref-journal-article", "items": items[:limit]}
+            add_items(items)
         except Exception as e:
-            return {"enabled": True, "source": "crossref-journal-article", "items": [], "error": str(e)}
+            errors["crossref"] = str(e)
+
+        # 2) OpenAlex
+        try:
+            params = {
+                "search": q,
+                "filter": "type:article,is_oa:true",
+                "per-page": str(max(1, min(10, limit))),
+            }
+            url = "https://api.openalex.org/works?" + urllib.parse.urlencode(params)
+            req = urllib.request.Request(url, headers={"User-Agent": "Katala-Quantum/1.0 (research-reference)"})
+            with urllib.request.urlopen(req, timeout=2.5) as r:
+                data = json.loads(r.read().decode("utf-8", errors="ignore"))
+            items = []
+            for it in (data.get("results") or []):
+                title = (it.get("display_name") or "").strip()
+                doi = ((it.get("doi") or "").replace("https://doi.org/", "").strip())
+                year = it.get("publication_year")
+                journal = (((it.get("primary_location") or {}).get("source") or {}).get("display_name") or "").strip()
+                if not title:
+                    continue
+                items.append({
+                    "source": "openalex",
+                    "title": title,
+                    "doi": doi,
+                    "year": year,
+                    "journal": journal,
+                    "url": it.get("id") or (f"https://doi.org/{doi}" if doi else None),
+                })
+            add_items(items)
+        except Exception as e:
+            errors["openalex"] = str(e)
+
+        # 3) PubMed (esearch -> esummary)
+        try:
+            es_q = urllib.parse.urlencode({"db": "pubmed", "retmode": "json", "retmax": str(max(1, min(10, limit))), "term": q})
+            es_url = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?" + es_q
+            with urllib.request.urlopen(es_url, timeout=2.5) as r:
+                es = json.loads(r.read().decode("utf-8", errors="ignore"))
+            ids = ((es.get("esearchresult") or {}).get("idlist") or [])
+            if ids:
+                sm_q = urllib.parse.urlencode({"db": "pubmed", "retmode": "json", "id": ",".join(ids)})
+                sm_url = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?" + sm_q
+                with urllib.request.urlopen(sm_url, timeout=2.5) as r:
+                    sm = json.loads(r.read().decode("utf-8", errors="ignore"))
+                items = []
+                for pid in ids:
+                    it = ((sm.get("result") or {}).get(pid) or {})
+                    title = (it.get("title") or "").strip()
+                    year = (it.get("pubdate") or "")[:4]
+                    journal = (it.get("fulljournalname") or "").strip()
+                    if not title:
+                        continue
+                    items.append({
+                        "source": "pubmed",
+                        "title": title,
+                        "doi": "",
+                        "year": year,
+                        "journal": journal,
+                        "url": f"https://pubmed.ncbi.nlm.nih.gov/{pid}/",
+                    })
+                add_items(items)
+        except Exception as e:
+            errors["pubmed"] = str(e)
+
+        return {
+            "enabled": True,
+            "source": "crossref+openalex+pubmed",
+            "providers": ["crossref", "openalex", "pubmed"],
+            "items": merged[:limit],
+            "errors": errors,
+        }
 
     def _enhanced_reasoning_score(self, text: str, q_probe: dict[str, Any]) -> tuple[float, dict[str, Any]]:
         q_score = float(q_probe.get("score", 0.5))
@@ -334,7 +414,7 @@ class Katala_Quantum_01a:
             "reasoning": reason,
             "external_peer_review_refs": external_refs,
             "series": self.SERIES,
-            "kq_revision": "01a-r4",
+            "kq_revision": "01a-r5",
             "quantize_all": quantize_all,
             "ks47_quantum_full_grade": (ks47q or {}).get("grade") if isinstance(ks47q, dict) else None,
         }
