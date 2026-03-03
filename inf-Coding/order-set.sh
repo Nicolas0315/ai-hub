@@ -19,14 +19,14 @@ if [[ -f "$STATE_FILE" ]]; then
 fi
 
 normalize_state() {
-  # Rule B: assist-off => katala-off
-  if [[ "${ASSIST_MODE:-off}" == "off" ]]; then
-    KATALA_ALLOWED=0
-  fi
-
   # Rule C: katala-on => assist-on
   if [[ "${KATALA_ALLOWED:-0}" == "1" && "${ASSIST_MODE:-off}" != "on" ]]; then
     ASSIST_MODE=on
+  fi
+
+  # Rule B: assist-off => katala-off
+  if [[ "${ASSIST_MODE:-off}" == "off" ]]; then
+    KATALA_ALLOWED=0
   fi
 }
 
@@ -51,36 +51,31 @@ UPDATED_BY="human"
 
 case "$CMD" in
   clean)
-    "$SCRIPT_DIR/cache-clean.sh"
-    "$SCRIPT_DIR/log-to-cache.sh" order "clean by human"
-    echo "[order] cache cleaned"
+    # no-op: logging/cache subsystem removed
+    echo "[order] clean is deprecated (no cache/log subsystem)."
     ;;
   katala-off)
     KATALA_ALLOWED=0
     LAST_UPDATED="$now"
     write_state
-    "$SCRIPT_DIR/log-to-cache.sh" order "katala-off"
     echo "[order] Katala usage: OFF"
     ;;
   katala-on)
     KATALA_ALLOWED=1
     LAST_UPDATED="$now"
     write_state
-    "$SCRIPT_DIR/log-to-cache.sh" order "katala-on (assist auto-normalized to $ASSIST_MODE)"
     echo "[order] Katala usage: ON (assist=$ASSIST_MODE)"
     ;;
   assist-off)
     ASSIST_MODE=off
     LAST_UPDATED="$now"
     write_state
-    "$SCRIPT_DIR/log-to-cache.sh" order "assist-off (katala auto-normalized to $KATALA_ALLOWED)"
     echo "[order] inf-Coding-Assist: OFF (katala=$KATALA_ALLOWED)"
     ;;
   assist-on)
     ASSIST_MODE=on
     LAST_UPDATED="$now"
     write_state
-    "$SCRIPT_DIR/log-to-cache.sh" order "assist-on"
     echo "[order] inf-Coding-Assist: ON"
     ;;
   *)

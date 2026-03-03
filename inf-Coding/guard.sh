@@ -22,8 +22,4 @@ case "$CALLER_DIR" in
     ;;
 esac
 
-# 目印（現フェーズ: cache 側へ記録）
-mkdir -p "$INF_DIR/inf-Coding-cache"
-echo "$(date -Is) | guard-pass | caller=$CALLER_DIR" >> "$INF_DIR/inf-Coding-cache/activity.log"
-
 echo "$KATALA_ROOT"
