@@ -66,6 +66,7 @@ class Katala_Quantum_01a:
             "ks47_quantum_full": _HAS_KS47Q_FULL,
             "quantize_all": os.getenv("KQ_QUANTIZE_ALL", "1") == "1",
             "external_peer_review_reference": True,
+            "persistent_cache_default": False,
         }
 
     @staticmethod
@@ -395,6 +396,11 @@ class Katala_Quantum_01a:
             except Exception as e:
                 reason["ks47_quantum_full_error"] = str(e)
 
+        refs_count = len((external_refs or {}).get("items", []))
+        if refs_count == 0:
+            # Mandatory peer-reviewed reference guard: no refs => no assertive verdict
+            enhanced_score = min(enhanced_score, 0.44)
+
         verdict = "SUPPORT" if enhanced_score >= 0.82 else ("LEAN_SUPPORT" if enhanced_score >= 0.66 else ("UNCERTAIN" if enhanced_score >= 0.45 else "LEAN_REJECT"))
         route = "fast" if enhanced_score >= 0.66 else "strict"
 
@@ -413,8 +419,13 @@ class Katala_Quantum_01a:
             },
             "reasoning": reason,
             "external_peer_review_refs": external_refs,
+            "literature_guard": {
+                "mandatory": True,
+                "refs_count": refs_count,
+                "assertive_allowed": refs_count > 0,
+            },
             "series": self.SERIES,
-            "kq_revision": "01a-r5",
+            "kq_revision": "01a-r6",
             "quantize_all": quantize_all,
             "ks47_quantum_full_grade": (ks47q or {}).get("grade") if isinstance(ks47q, dict) else None,
         }

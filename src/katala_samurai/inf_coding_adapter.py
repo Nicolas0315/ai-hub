@@ -17,6 +17,12 @@ def _out_path() -> Path:
 
 
 def _append_row(row: dict[str, Any]) -> None:
+    # Default policy: no persistent storage (ephemeral mode)
+    # Set INF_CODING_PERSIST=1 only when explicit persistence is required.
+    persist = os.getenv("INF_CODING_PERSIST", "0") == "1"
+    if not persist:
+        return
+
     out_path = _out_path()
     out_path.parent.mkdir(parents=True, exist_ok=True)
     with out_path.open("a", encoding="utf-8") as f:
