@@ -20,18 +20,17 @@ from typing import Any
 
 from .inf_coding_adapter import emit_bridge_output
 
+# Hard-fixed backend policy: numpy emulator only (no fallback resolver)
 try:
     from katala_quantum.emulator import QuantumCircuit
-    _HAS_QEMU = True
-    _QEMU_BACKEND = "numpy"
-except Exception:
-    try:
-        from katala_quantum.emulator_lite import QuantumCircuit
-        _HAS_QEMU = True
-        _QEMU_BACKEND = "lite"
-    except Exception:
-        _HAS_QEMU = False
-        _QEMU_BACKEND = "none"
+except Exception as e:
+    raise RuntimeError(
+        "KQ backend policy requires katala_quantum.emulator (numpy backend). "
+        "Install/repair numpy backend; fallback backends are disabled."
+    ) from e
+
+_HAS_QEMU = True
+_QEMU_BACKEND = "numpy"
 
 try:
     from .ks47_quantum_full import KS47QuantumFull
