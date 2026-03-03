@@ -48,6 +48,22 @@ class Katala_Quantum_01a:
     GPU_BUDGET_TARGET: float = 0.40
     CPU_BUDGET_TARGET: float = 0.40
 
+    # Multi-stage quantum reasoning node graph (KQ internal expansion)
+    NODE_GRAPH: dict[str, tuple[str, float]] = {
+        "N01_intent": ("foundation", 0.10),
+        "N02_constraint": ("foundation", 0.10),
+        "N03_evidence": ("foundation", 0.08),
+        "N04_consistency": ("foundation", 0.08),
+        "N05_risk": ("foundation", 0.08),
+        "N06_resource": ("expansion", 0.08),
+        "N07_temporal": ("expansion", 0.07),
+        "N08_semantic": ("expansion", 0.08),
+        "N09_structural": ("expansion", 0.09),
+        "N10_counterfactual": ("synthesis", 0.08),
+        "N11_reproducibility": ("synthesis", 0.08),
+        "N12_operability": ("synthesis", 0.08),
+    }
+
     def bridge_status(self) -> dict[str, Any]:
         gpu_budget = float(os.getenv("KQ_GPU_BUDGET", str(self.GPU_BUDGET_TARGET)))
         cpu_budget = float(os.getenv("KQ_CPU_BUDGET", str(self.CPU_BUDGET_TARGET)))
@@ -67,6 +83,7 @@ class Katala_Quantum_01a:
             "quantize_all": os.getenv("KQ_QUANTIZE_ALL", "1") == "1",
             "external_peer_review_reference": True,
             "persistent_cache_default": False,
+            "multistage_quantum_graph": True,
         }
 
     @staticmethod
@@ -343,6 +360,76 @@ class Katala_Quantum_01a:
             "errors": errors,
         }
 
+    def _quick_quantum_node_score(self, text: str, node: str, intensity: float) -> float:
+        """Lightweight node-local quantum score for graph expansion."""
+        p = self._quantum_route_probe(f"{text} | node={node} | intensity={intensity:.3f}")
+        return float(p.get("score", 0.5))
+
+    def _quantum_multistage_reasoner(self, text: str, q_probe: dict[str, Any]) -> tuple[float, dict[str, Any]]:
+        """3-stage node expansion with efficiency-aware pruning."""
+        detail = (q_probe.get("detail") or {}) if isinstance(q_probe, dict) else {}
+        base_shots = int(detail.get("shots", 192)) if isinstance(detail, dict) else 192
+        resources = (detail.get("resource_probe") or {}) if isinstance(detail, dict) else {}
+
+        # Stage 1: foundation nodes (always run)
+        stage1 = {}
+        for node, (stage, _w) in self.NODE_GRAPH.items():
+            if stage != "foundation":
+                continue
+            bias = 0.12 + (len(node) % 5) * 0.02
+            stage1[node] = self._quick_quantum_node_score(text, node, bias)
+
+        # Efficiency pruning: if resource pressure, reduce expansion width
+        cpu_u = resources.get("cpu")
+        gpu_u = resources.get("gpu")
+        expansion_keep = 4
+        if isinstance(cpu_u, (int, float)) and cpu_u > 0.75 * self.CPU_BUDGET_TARGET:
+            expansion_keep = 3
+        if isinstance(gpu_u, (int, float)) and gpu_u > 0.75 * self.GPU_BUDGET_TARGET:
+            expansion_keep = 2
+
+        # Stage 2: expansion nodes (top-k guided)
+        ranked_s1 = sorted(stage1.items(), key=lambda kv: kv[1], reverse=True)
+        guide_nodes = {k for k, _ in ranked_s1[:max(1, min(3, len(ranked_s1)))]}
+        stage2 = {}
+        expansion_nodes = [n for n, (s, _) in self.NODE_GRAPH.items() if s == "expansion"]
+        for node in expansion_nodes[:expansion_keep]:
+            guide_bonus = 0.08 if any(g.split("_")[1] in node for g in guide_nodes) else 0.0
+            bias = 0.16 + guide_bonus + (len(node) % 4) * 0.02
+            stage2[node] = self._quick_quantum_node_score(text, node, bias)
+
+        # Stage 3: synthesis nodes (only if enough confidence variance)
+        s1_avg = sum(stage1.values()) / max(1, len(stage1))
+        s2_avg = sum(stage2.values()) / max(1, len(stage2))
+        delta = abs(s2_avg - s1_avg)
+        stage3 = {}
+        run_synthesis = delta > 0.03 or (s2_avg < 0.68)
+        if run_synthesis:
+            for node, (stage, _w) in self.NODE_GRAPH.items():
+                if stage != "synthesis":
+                    continue
+                bias = 0.20 + min(0.12, delta)
+                stage3[node] = self._quick_quantum_node_score(text, node, bias)
+
+        all_scores = {**stage1, **stage2, **stage3}
+        weighted = 0.0
+        wsum = 0.0
+        for node, score in all_scores.items():
+            w = self.NODE_GRAPH[node][1]
+            weighted += score * w
+            wsum += w
+        final = self._clamp(weighted / max(0.01, wsum))
+
+        return round(final, 3), {
+            "stage1_foundation": {k: round(v, 3) for k, v in stage1.items()},
+            "stage2_expansion": {k: round(v, 3) for k, v in stage2.items()},
+            "stage3_synthesis": {k: round(v, 3) for k, v in stage3.items()},
+            "expansion_keep": expansion_keep,
+            "run_synthesis": run_synthesis,
+            "stage_delta": round(delta, 3),
+            "node_count": len(all_scores),
+        }
+
     def _enhanced_reasoning_score(self, text: str, q_probe: dict[str, Any]) -> tuple[float, dict[str, Any]]:
         q_score = float(q_probe.get("score", 0.5))
         comps = self._s28_style_components(text, q_score)
@@ -382,6 +469,13 @@ class Katala_Quantum_01a:
         probe = self._quantum_route_probe(text)
 
         enhanced_score, reason = self._enhanced_reasoning_score(text, probe)
+        multistage_score, multistage = self._quantum_multistage_reasoner(text, probe)
+        # integrate multi-stage graph score (complexity↑ but sampled efficiently)
+        enhanced_score = self._clamp(enhanced_score * 0.68 + multistage_score * 0.32)
+        reason["kq_multistage"] = {
+            "score": multistage_score,
+            **multistage,
+        }
 
         ks47q = None
         external_refs = self._external_peer_review_refs(text, limit=5)
@@ -425,7 +519,7 @@ class Katala_Quantum_01a:
                 "assertive_allowed": refs_count > 0,
             },
             "series": self.SERIES,
-            "kq_revision": "01a-r6",
+            "kq_revision": "01a-r7",
             "quantize_all": quantize_all,
             "ks47_quantum_full_grade": (ks47q or {}).get("grade") if isinstance(ks47q, dict) else None,
         }
