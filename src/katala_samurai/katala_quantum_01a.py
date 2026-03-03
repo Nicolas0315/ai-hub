@@ -36,8 +36,8 @@ class Katala_Quantum_01a:
     SYSTEM_MODEL: str = "Katala_Quantum_01a"
     ALIAS: str = "KQ01a"
     SERIES: str = "[Katala_Quantum][KQ]シリーズを使用"
-    GPU_BUDGET_TARGET: float = 0.25
-    CPU_BUDGET_TARGET: float = 0.25
+    GPU_BUDGET_TARGET: float = 0.40
+    CPU_BUDGET_TARGET: float = 0.40
 
     def bridge_status(self) -> dict[str, Any]:
         gpu_budget = float(os.getenv("KQ_GPU_BUDGET", str(self.GPU_BUDGET_TARGET)))
