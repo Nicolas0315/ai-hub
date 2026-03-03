@@ -52,10 +52,10 @@ chmod +x guard.sh order-enforce.sh open-katala.sh katala-exec.sh assist-exec.sh 
 ./assist-exec.sh git status
 ```
 
-## ルール
-- `assist-off`: `assist-exec.sh` は実行拒否
-- `assist-on`: `assist-exec.sh` のみ実行許可（ON/OFFをOrderで強制）
-- `assist` が `on` でない限り `assist-exec.sh` は実行不可
-- `katala-exec.sh` とは独立（assist設定で katala-exec は塞がない）
+## ルール（Order強制）
+- `assist-off` ⇒ `katala-off`（自動正規化）
+- `katala-on` ⇒ `assist-on`（自動正規化）
+- `assist-on` 時のみ `assist-exec.sh` 実行可
+- `katala-off` 時は Katala 系実行を拒否
 
 ※ 今は「監査は後で別場所へ移管」方針のため、イベント記録は `inf-Coding-cache` 側に寄せています。
