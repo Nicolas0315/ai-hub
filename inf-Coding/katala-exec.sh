@@ -11,6 +11,7 @@ fi
 KATALA_ROOT="$($SCRIPT_DIR/guard.sh)"
 cd "$KATALA_ROOT"
 
+"$SCRIPT_DIR/order-enforce.sh"
 "$SCRIPT_DIR/log-to-cache.sh" katala-exec:start "$*"
 
 # inf-Coding経由でのみ Katala コマンドを実行するラッパー
