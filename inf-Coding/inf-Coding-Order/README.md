@@ -13,5 +13,6 @@
 ## 仕様
 - `katala-off` 中は `open-katala.sh` / `katala-exec.sh` / `assist-exec.sh` を拒否
 - `assist-off` 中は `assist-exec.sh` を拒否
-- `assist-on` 中は `assist-exec.sh` を許可（`katala-exec.sh` とは独立）
+- `assist-on` 中のみ `assist-exec.sh` を許可（ON/OFFをOrderで強制）
+- `katala-exec.sh` は assist 設定と独立
 - 命令イベントは `inf-Coding-cache/activity.log` に記録

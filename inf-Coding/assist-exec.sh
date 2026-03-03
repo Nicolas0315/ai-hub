@@ -15,10 +15,11 @@ if [[ -f "$STATE_FILE" ]]; then
   source "$STATE_FILE"
 fi
 
-# 1) assist-off のときは絶対に使わない
-if [[ "${ASSIST_MODE:-auto}" == "off" ]]; then
-  "$SCRIPT_DIR/log-to-cache.sh" assist:block "assist disabled by human order"
-  echo "[assist-exec] DISABLED by human order (inf-Coding-Assist-off)." >&2
+# assist は Order による ON/OFF を両方強制
+# - assist-on 以外では実行しない
+if [[ "${ASSIST_MODE:-auto}" != "on" ]]; then
+  "$SCRIPT_DIR/log-to-cache.sh" assist:block "assist requires explicit assist-on order"
+  echo "[assist-exec] BLOCKED: require human order 'assist-on'." >&2
   exit 78
 fi
 
