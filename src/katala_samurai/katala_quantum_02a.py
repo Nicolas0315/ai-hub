@@ -11,6 +11,7 @@ from __future__ import annotations
 import os
 import re
 import tempfile
+import urllib.parse
 import urllib.request
 from typing import Any
 
@@ -145,6 +146,42 @@ class Katala_Quantum_02a(Katala_Quantum_01a):
         s = re.sub(r"\s+", " ", s).strip()
         return s[:4000]
 
+    def _resolve_pdf_candidate(self, url: str, doi: str = "") -> str:
+        """Try to reach a paper PDF from landing pages via lightweight web exploration."""
+        candidates = []
+        if url:
+            candidates.append(url)
+        if doi:
+            d = doi.replace("https://doi.org/", "").strip()
+            if d:
+                candidates.append(f"https://doi.org/{d}")
+
+        seen = set()
+        for c in candidates:
+            if not c or c in seen:
+                continue
+            seen.add(c)
+            try:
+                req = urllib.request.Request(c, headers={"User-Agent": "Katala-Quantum/1.0"})
+                with urllib.request.urlopen(req, timeout=4.0) as r:
+                    final_url = (r.geturl() or c)
+                    ct = (r.headers.get("Content-Type") or "").lower()
+                    raw = r.read(250000)
+                if "pdf" in ct or final_url.lower().endswith(".pdf") or raw.startswith(b"%PDF-"):
+                    return final_url
+
+                html = raw.decode("utf-8", errors="ignore")
+                links = re.findall(r"href=[\"']([^\"']+)[\"']", html, flags=re.I)
+                for lk in links:
+                    lk2 = urllib.parse.urljoin(final_url, lk)
+                    ll = lk2.lower()
+                    if any(k in ll for k in [".pdf", "/pdf", "download", "fulltext", "articlepdf", "viewpdf"]):
+                        return lk2
+            except Exception:
+                continue
+
+        return url
+
     def _paper_stats(self, refs: dict[str, Any]) -> dict[str, Any]:
         items = (refs or {}).get("items") or []
         total = len(items)
@@ -152,8 +189,12 @@ class Katala_Quantum_02a(Katala_Quantum_01a):
 
         # try as many as possible but cap for latency
         for it in items[:50]:
-            url = (it.get("url") or "") if isinstance(it, dict) else ""
-            if self._is_pdf_readable(url):
+            if not isinstance(it, dict):
+                continue
+            url = (it.get("url") or "")
+            doi = (it.get("doi") or "")
+            probe_url = self._resolve_pdf_candidate(url, doi)
+            if self._is_pdf_readable(probe_url):
                 pdf_readable += 1
 
         ratio = (pdf_readable / total) if total else 0.0
@@ -177,16 +218,18 @@ class Katala_Quantum_02a(Katala_Quantum_01a):
             if not isinstance(it, dict):
                 continue
             url = (it.get("url") or "").strip()
+            doi = (it.get("doi") or "").strip()
             title = (it.get("title") or "").strip()[:120]
-            if not url:
+            if not url and not doi:
                 continue
+            resolved_url = self._resolve_pdf_candidate(url, doi)
             try:
-                req = urllib.request.Request(url, headers={"User-Agent": "Katala-Quantum/1.0"})
+                req = urllib.request.Request(resolved_url, headers={"User-Agent": "Katala-Quantum/1.0"})
                 with urllib.request.urlopen(req, timeout=3.0) as r:
                     raw = r.read(200000)
                     ct = (r.headers.get("Content-Type") or "").lower()
 
-                is_pdf = ("pdf" in ct) or url.lower().endswith(".pdf") or raw.startswith(b"%PDF-")
+                is_pdf = ("pdf" in ct) or resolved_url.lower().endswith(".pdf") or raw.startswith(b"%PDF-")
                 if is_pdf and pdf_ok < pdf_target:
                     txt = ""
                     # Prefer KS PDF extraction logic when available
@@ -271,7 +314,7 @@ class Katala_Quantum_02a(Katala_Quantum_01a):
         else:
             r["verdict"] = "LEAN_REJECT"
 
-        r["kq_revision"] = "02a-r6"
+        r["kq_revision"] = "02a-r7"
         r["model"] = self.SYSTEM_MODEL
         r["alias"] = self.ALIAS
         r["ks47_parity_pack"] = {"available": False, "status": "detached"}
@@ -290,10 +333,10 @@ class Katala_Quantum_02a(Katala_Quantum_01a):
         r["paper_stats"] = p
         r["paper_read_sweep"] = sweep
         r["new_issues"] = [
-            "PDF direct-link yield still limited from provider results",
-            "Some provider URLs are landing pages, not full text",
+            "Landing pages now explored for PDF links, but paywalled hosts still block full text",
+            "Some DOI redirects require JavaScript/session cookies and cannot be resolved via lightweight fetch",
             "KS pdf_reader path can fail when pdfplumber/pytesseract unavailable",
-            "40/40 target may require iterative query refinement and retries",
+            "40-PDF target may still require provider-level OA filters and multi-hop retries",
         ]
         r["fusion_weights"] = {
             "kq_base_weight": 0.82,
