@@ -6,7 +6,6 @@ import os
 import re
 import subprocess
 import sys
-from pathlib import Path
 
 sys.path.insert(0, '/mnt/c/Users/ogosh/Documents/NICOLAS/Katala/src')
 
@@ -19,6 +18,29 @@ RISK_PATTERNS = [
     r"\bcurl\b", r"\bwget\b", r"\bssh\b", r"\bscp\b",
 ]
 
+SAFE_FAST_PATTERNS = [
+    r"^git status(\s|$)",
+    r"^git diff(\s|$)",
+    r"^git log(\s|$)",
+    r"^ls(\s|$)",
+    r"^pwd$",
+    r"^cat(\s|$)",
+    r"^grep(\s|$)",
+    r"^find(\s|$)",
+    r"^python3 -m py_compile(\s|$)",
+    r"^npm run -s (test|build)(\s|$)",
+]
+
+STRICT_ONLY_PATTERNS = [
+    r"^git (push|rebase|reset|cherry-pick|tag|branch -D)(\s|$)",
+    r"^docker(\s|$)",
+    r"^kubectl(\s|$)",
+]
+
+
+def _matches(patterns: list[str], command: str) -> bool:
+    return any(re.search(p, command, re.IGNORECASE) for p in patterns)
+
 
 def decide_route(command: str) -> tuple[str, dict]:
     ks = KSi1()
@@ -29,20 +51,53 @@ def decide_route(command: str) -> tuple[str, dict]:
     )
     result = ks.verify(claim, fast=True)
 
-    risky = any(re.search(p, command, re.IGNORECASE) for p in RISK_PATTERNS)
+    verdict = result.get('verdict') if isinstance(result, dict) else 'UNKNOWN'
+    mode = result.get('mode') if isinstance(result, dict) else 'unknown'
     conf = float(result.get('confidence', 0.5)) if isinstance(result, dict) else 0.5
 
-    if risky or conf < 0.65:
+    risky = _matches(RISK_PATTERNS, command)
+    strict_only = _matches(STRICT_ONLY_PATTERNS, command)
+    safe_fast = _matches(SAFE_FAST_PATTERNS, command)
+
+    # Smarter policy:
+    # 1) strict-only commands always strict
+    # 2) risky commands strict unless KSi1 has very high confidence + safe_fast
+    # 3) known safe-fast commands can pass at lower threshold
+    if strict_only:
         route = 'strict'
+        reason = 'strict_only_pattern'
+    elif risky:
+        if safe_fast and conf >= 0.85 and verdict in {'SUPPORT', 'LEAN_SUPPORT'}:
+            route = 'fast'
+            reason = 'risky_but_high_conf_safe_fast'
+        else:
+            route = 'strict'
+            reason = 'risky_pattern'
+    elif safe_fast:
+        if conf >= 0.5 or verdict in {'SUPPORT', 'LEAN_SUPPORT'}:
+            route = 'fast'
+            reason = 'safe_fast_pattern'
+        else:
+            route = 'strict'
+            reason = 'safe_fast_low_conf'
     else:
-        route = 'fast'
+        # generic commands
+        if conf >= 0.72 and verdict in {'SUPPORT', 'LEAN_SUPPORT'}:
+            route = 'fast'
+            reason = 'generic_high_conf'
+        else:
+            route = 'strict'
+            reason = 'generic_default_strict'
 
     detail = {
         'route': route,
+        'reason': reason,
         'confidence': conf,
         'risky_pattern': risky,
-        'verdict': result.get('verdict') if isinstance(result, dict) else 'UNKNOWN',
-        'mode': result.get('mode') if isinstance(result, dict) else 'unknown',
+        'strict_only_pattern': strict_only,
+        'safe_fast_pattern': safe_fast,
+        'verdict': verdict,
+        'mode': mode,
     }
     emit_router_event('Katala_Samurai_inf_000001', {
         'alias': 'KSi1',
@@ -62,7 +117,6 @@ def main() -> int:
 
     print(json.dumps({'command': command, **detail}, ensure_ascii=False))
 
-    # fast/strict currently both execute via inf-Coding gateway; strict is reserved for extra checks in future
     env = os.environ.copy()
     env['KSI1_ROUTE'] = route
     rc = subprocess.call(sys.argv[1:], cwd='/mnt/c/Users/ogosh/Documents/NICOLAS/Katala', env=env)
