@@ -56,6 +56,7 @@ class Katala_Quantum_01a:
     GPU_BUDGET_TARGET: float = 0.40
     CPU_BUDGET_TARGET: float = 0.40
     QUANTUM_STABLE_MODE: bool = True
+    QUANTUM_CIRCUIT_ONLY: bool = True
 
     # Multi-stage quantum reasoning node graph (KQ internal expansion)
     NODE_GRAPH: dict[str, tuple[str, float]] = {
@@ -97,21 +98,12 @@ class Katala_Quantum_01a:
             "context_compression_layer": True,
             "hierarchical_decoder": True,
             "quantum_stable_mode": self.QUANTUM_STABLE_MODE,
+            "quantum_circuit_only": self.QUANTUM_CIRCUIT_ONLY,
         }
 
     @staticmethod
     def _clamp(x: float) -> float:
         return max(0.0, min(1.0, x))
-
-    def _pseudo_quantum_score(self, text: str, risk_hits: int, safe_hits: int) -> float:
-        """Deterministic, environment-independent quantum-like score."""
-        h = hashlib.sha256(text.encode("utf-8", errors="ignore")).hexdigest()
-        x = int(h[:8], 16) / 0xFFFFFFFF
-        y = int(h[8:16], 16) / 0xFFFFFFFF
-        base = 0.58 + 0.22 * (x - 0.5) + 0.10 * (y - 0.5)
-        base += safe_hits * 0.015
-        base -= risk_hits * 0.02
-        return self._clamp(base)
 
     def _resource_probe(self) -> dict[str, Any]:
         cpu = None
@@ -262,45 +254,32 @@ class Katala_Quantum_01a:
             shots = max(96, int(shots * 0.65))
             n_qubits = 2
 
-        # Stable mode: always derive a deterministic pseudo-quantum baseline
-        pseudo = self._pseudo_quantum_score(t, risk_hits, safe_hits)
-        qemu_score = None
-        qemu_used = False
+        if self.QUANTUM_CIRCUIT_ONLY and not _HAS_QEMU:
+            raise RuntimeError("QuantumCircuit backend unavailable (numpy/emulator missing).")
 
-        if _HAS_QEMU and self.QUANTUM_STABLE_MODE:
-            try:
-                qc = QuantumCircuit(n_qubits)
-                qc.h(0)
-                qc.h(1)
-                if n_qubits == 3:
-                    qc.h(2)
+        qc = QuantumCircuit(n_qubits)
+        qc.h(0)
+        qc.h(1)
+        if n_qubits == 3:
+            qc.h(2)
 
-                qc.ry(0, min(1.2, 0.2 + risk_hits * 0.2))
-                qc.rx(1, max(0.1, 0.8 - safe_hits * 0.1))
-                qc.cx(0, 1)
-                if n_qubits == 3:
-                    qc.rz(2, min(1.3, 0.3 + complexity * 0.01))
-                    qc.cx(1, 2)
-                qc.measure_all()
-                r = qc.run(shots=shots)
+        qc.ry(0, min(1.2, 0.2 + risk_hits * 0.2))
+        qc.rx(1, max(0.1, 0.8 - safe_hits * 0.1))
+        qc.cx(0, 1)
+        if n_qubits == 3:
+            qc.rz(2, min(1.3, 0.3 + complexity * 0.01))
+            qc.cx(1, 2)
+        qc.measure_all()
+        r = qc.run(shots=shots)
 
-                m = r.measurements or {}
-                strict_keys = [k for k in m.keys() if k.endswith("1") or k.startswith("1")]
-                strict_mass = sum(m.get(k, 0) for k in strict_keys) / max(1, sum(m.values()))
-                qemu_score = self._clamp(1.0 - strict_mass)
-                qemu_used = True
-            except Exception:
-                qemu_score = None
-
-        # Blend with low qemu influence to minimize environment-dependent drift
-        if qemu_score is None:
-            score = pseudo
-        else:
-            score = self._clamp(pseudo * 0.85 + qemu_score * 0.15)
+        m = r.measurements or {}
+        strict_keys = [k for k in m.keys() if k.endswith("1") or k.startswith("1")]
+        strict_mass = sum(m.get(k, 0) for k in strict_keys) / max(1, sum(m.values()))
+        score = self._clamp(1.0 - strict_mass)
 
         return {
-            "score": round(self._clamp(score), 3),
-            "mode": "quantum-stabilized",
+            "score": round(score, 3),
+            "mode": "quantum-circuit-only",
             "detail": {
                 "risk_hits": risk_hits,
                 "safe_hits": safe_hits,
@@ -310,9 +289,7 @@ class Katala_Quantum_01a:
                 "cpu_budget": cpu_budget,
                 "complexity": complexity,
                 "resource_probe": resources,
-                "pseudo_score": round(pseudo, 3),
-                "qemu_score": round(qemu_score, 3) if qemu_score is not None else None,
-                "qemu_used": qemu_used,
+                "qemu_used": True,
             },
         }
 
@@ -651,7 +628,7 @@ class Katala_Quantum_01a:
                 "assertive_allowed": refs_count > 0,
             },
             "series": self.SERIES,
-            "kq_revision": "01a-r11",
+            "kq_revision": "01a-r12",
             "quantize_all": quantize_all,
             "ks47_quantum_full_grade": (ks47q or {}).get("grade") if isinstance(ks47q, dict) else None,
         }
