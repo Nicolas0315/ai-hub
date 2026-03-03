@@ -58,4 +58,9 @@ chmod +x guard.sh order-enforce.sh open-katala.sh katala-exec.sh assist-exec.sh 
 - `assist-on` 時のみ `assist-exec.sh` 実行可
 - `katala-off` 時は Katala 系実行を拒否
 
+## チャット運用（負荷対策）
+- 基本は **1メッセージ完結**
+- 分割返信は **人間の明示依頼時のみ**
+- 内部処理は構造化（条件/禁止/例外）を維持する
+
 ※ 今は「監査は後で別場所へ移管」方針のため、イベント記録は `inf-Coding-cache` 側に寄せています。
