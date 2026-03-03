@@ -588,7 +588,12 @@ class Katala_Quantum_01a:
                 reason["kq_hyper_error"] = str(e)
 
         ks47q = None
-        external_refs = self._external_peer_review_refs(ctext, limit=5)
+        try:
+            paper_limit = int(os.getenv("KQ_PAPER_LIMIT", "20"))
+        except Exception:
+            paper_limit = 20
+        paper_limit = max(5, min(50, paper_limit))
+        external_refs = self._external_peer_review_refs(ctext, limit=paper_limit)
         quantize_all = os.getenv("KQ_QUANTIZE_ALL", "1") == "1"
         if quantize_all and _HAS_KS47Q_FULL:
             try:
