@@ -9,7 +9,8 @@ import sys
 
 sys.path.insert(0, '/mnt/c/Users/ogosh/Documents/NICOLAS/Katala/src')
 
-from katala_samurai.katala_samurai_inf_000001 import KSi1
+from katala_samurai.katala_quantum_01a import Katala_Quantum_01a, KQ01a
+from katala_samurai.katala_samurai_inf_000002 import Katala_Samurai_inf_000002, KSi2
 from katala_samurai.inf_coding_adapter import emit_router_event
 
 RISK_PATTERNS = [
@@ -42,14 +43,26 @@ def _matches(patterns: list[str], command: str) -> bool:
     return any(re.search(p, command, re.IGNORECASE) for p in patterns)
 
 
+def _select_model(command: str):
+    """Default is ① Katala_Quantum_01a. Use KSi2 only when explicitly requested."""
+    requested = os.getenv("KSI_MODEL", "").strip().lower()
+    c = command.lower()
+
+    if requested in {"ksi2", "katala_samurai_inf_000002"} or "ksi2" in c:
+        m = KSi2()
+    else:
+        m = KQ01a()
+    return m
+
+
 def decide_route(command: str) -> tuple[str, dict]:
-    ks = KSi1()
+    model = _select_model(command)
     claim = (
         "Route this command for efficiency+safety in inf-Coding.\n"
         f"command: {command}\n"
         "Use fast-path for low-risk local read/build checks; strict-path for destructive/network/history-rewriting ops."
     )
-    result = ks.verify(claim, fast=True)
+    result = model.verify(claim, fast=True)
 
     verdict = result.get('verdict') if isinstance(result, dict) else 'UNKNOWN'
     mode = result.get('mode') if isinstance(result, dict) else 'unknown'
@@ -59,11 +72,13 @@ def decide_route(command: str) -> tuple[str, dict]:
     strict_only = _matches(STRICT_ONLY_PATTERNS, command)
     safe_fast = _matches(SAFE_FAST_PATTERNS, command)
 
-    # Smarter policy:
-    # 1) strict-only commands always strict
-    # 2) risky commands strict unless KSi1 has very high confidence + safe_fast
-    # 3) known safe-fast commands can pass at lower threshold
-    if strict_only:
+    # Model suggested route has priority when provided
+    model_route = result.get('route') if isinstance(result, dict) else None
+
+    if model_route in {'fast', 'strict'}:
+        route = model_route
+        reason = 'model_quantum_route' if 'quantum' in str(mode) else 'model_route'
+    elif strict_only:
         route = 'strict'
         reason = 'strict_only_pattern'
     elif risky:
@@ -81,7 +96,6 @@ def decide_route(command: str) -> tuple[str, dict]:
             route = 'strict'
             reason = 'safe_fast_low_conf'
     else:
-        # generic commands
         if conf >= 0.72 and verdict in {'SUPPORT', 'LEAN_SUPPORT'}:
             route = 'fast'
             reason = 'generic_high_conf'
@@ -89,6 +103,7 @@ def decide_route(command: str) -> tuple[str, dict]:
             route = 'strict'
             reason = 'generic_default_strict'
 
+    model_status = model.bridge_status() if hasattr(model, 'bridge_status') else {}
     detail = {
         'route': route,
         'reason': reason,
@@ -98,9 +113,12 @@ def decide_route(command: str) -> tuple[str, dict]:
         'safe_fast_pattern': safe_fast,
         'verdict': verdict,
         'mode': mode,
+        'model': model_status.get('model', type(model).__name__),
+        'alias': model_status.get('alias', 'unknown'),
+        'series': model_status.get('series'),
     }
-    emit_router_event('Katala_Samurai_inf_000001', {
-        'alias': 'KSi1',
+    emit_router_event(detail['model'], {
+        'alias': detail['alias'],
         'command': command,
         **detail,
     })
@@ -119,6 +137,7 @@ def main() -> int:
 
     env = os.environ.copy()
     env['KSI1_ROUTE'] = route
+    env['KSI_MODEL_ACTIVE'] = detail.get('model', '')
     rc = subprocess.call(sys.argv[1:], cwd='/mnt/c/Users/ogosh/Documents/NICOLAS/Katala', env=env)
     return rc
 

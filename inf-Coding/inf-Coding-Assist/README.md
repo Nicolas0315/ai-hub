@@ -29,11 +29,16 @@ inf-Coding から利用する補助ツール層。
 ./inf-Coding-Assist/assist-rustize.sh
 ```
 
-### 3) KSi1 router (fast/strict)
-`ksi1-route.sh` は KSi1 でコマンドを判定し、fast/strict で実行ルーティングします。
+### 3) KSi1/KQ router (fast/strict)
+`ksi1-route.sh` は既定で `Katala_Quantum_01a (KQ01a)` を使ってコマンドを判定し、fast/strict で実行ルーティングします。
+
+- 既定: `[Katala_Quantum][KQ]シリーズを使用` (`Katala_Quantum_01a`)
+- 明示時のみ: `[KSi]シリーズを使用` (`KSi2`)
 
 ```bash
 ./inf-Coding-Assist/ksi1-route.sh git status
+# KSi2 を明示利用
+KSI_MODEL=KSi2 ./inf-Coding-Assist/ksi1-route.sh git status
 ```
 
 ### 4) adapter analysis
