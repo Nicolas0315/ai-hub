@@ -9,8 +9,10 @@ KSi1次世代機: 量子エミュ主導の制御探索モデル。
 """
 from __future__ import annotations
 
+import hashlib
 import json
 import os
+import re
 import subprocess
 import urllib.parse
 import urllib.request
@@ -91,6 +93,7 @@ class Katala_Quantum_01a:
             "persistent_cache_default": False,
             "multistage_quantum_graph": True,
             "kq_hyper_reasoner": _HAS_KQ_HYPER,
+            "context_compression_layer": True,
         }
 
     @staticmethod
@@ -117,6 +120,55 @@ class Katala_Quantum_01a:
         except Exception:
             pass
         return {"cpu": cpu, "gpu": gpu}
+
+    def _context_compress(self, text: str, max_sentences: int = 14) -> dict[str, Any]:
+        """Non-persistent context compression for long-form coding prompts."""
+        raw = text.strip()
+        lines = [ln.strip() for ln in raw.splitlines() if ln.strip()]
+
+        # sentence extraction (ja/en mixed)
+        parts = re.split(r'(?<=[。.!?！？])\s+|\n+', raw)
+        sents = [s.strip() for s in parts if s.strip()]
+
+        scored = []
+        keys = [
+            "must", "should", "require", "constraint", "設計", "実装", "依存", "solver", "quantum",
+            "ks47", "kq", "性能", "検証", "cache", "non-persistent", "論文", "evidence",
+        ]
+        for s in sents:
+            sl = s.lower()
+            score = len(s) * 0.01
+            score += sum(1.0 for k in keys if k in sl)
+            if any(ch.isdigit() for ch in s):
+                score += 0.6
+            if len(s) > 180:
+                score += 0.5
+            scored.append((score, s))
+
+        top = [s for _, s in sorted(scored, key=lambda x: x[0], reverse=True)[:max_sentences]]
+        # keep original relative ordering for readability
+        top_set = set(top)
+        ordered = [s for s in sents if s in top_set]
+        compressed = "\n".join(ordered)
+
+        # dependency-ish hints from import-like lines
+        dep_hints = []
+        for ln in lines:
+            ll = ln.lower()
+            if "import " in ll or "from " in ll or "requires" in ll or "dependency" in ll:
+                dep_hints.append(ln[:180])
+        dep_hints = dep_hints[:40]
+
+        digest = hashlib.sha256(raw.encode("utf-8", errors="ignore")).hexdigest()[:16]
+        return {
+            "compressed_text": compressed if compressed else raw[:2000],
+            "original_chars": len(raw),
+            "compressed_chars": len(compressed if compressed else raw[:2000]),
+            "compression_ratio": round((len(compressed if compressed else raw[:2000]) / max(1, len(raw))), 3),
+            "sentences_used": len(ordered),
+            "dependency_hints": dep_hints,
+            "digest": digest,
+        }
 
     def _micro_solver_suite(self, text: str) -> dict[str, Any]:
         """KS相当の網羅性を補う軽量マイクロソルバー群（virtual coverage）。"""
@@ -473,10 +525,13 @@ class Katala_Quantum_01a:
 
     def verify(self, claim, store=None, skip_s28=True, **kwargs):
         text = claim.text if hasattr(claim, "text") else str(claim)
-        probe = self._quantum_route_probe(text)
+        ctx = self._context_compress(text, max_sentences=14)
+        ctext = ctx["compressed_text"]
 
-        enhanced_score, reason = self._enhanced_reasoning_score(text, probe)
-        multistage_score, multistage = self._quantum_multistage_reasoner(text, probe)
+        probe = self._quantum_route_probe(ctext)
+
+        enhanced_score, reason = self._enhanced_reasoning_score(ctext, probe)
+        multistage_score, multistage = self._quantum_multistage_reasoner(ctext, probe)
         # integrate multi-stage graph score (complexity↑ but sampled efficiently)
         enhanced_score = self._clamp(enhanced_score * 0.68 + multistage_score * 0.32)
         reason["kq_multistage"] = {
@@ -495,11 +550,11 @@ class Katala_Quantum_01a:
                 reason["kq_hyper_error"] = str(e)
 
         ks47q = None
-        external_refs = self._external_peer_review_refs(text, limit=5)
+        external_refs = self._external_peer_review_refs(ctext, limit=5)
         quantize_all = os.getenv("KQ_QUANTIZE_ALL", "1") == "1"
         if quantize_all and _HAS_KS47Q_FULL:
             try:
-                ks47q = KS47QuantumFull().verify(query=text, report=text)
+                ks47q = KS47QuantumFull().verify(query=ctext, report=ctext)
                 qfull = float(ks47q.get("overall_score", enhanced_score))
                 # 全量子化経路を優先しつつ、既存KQ推論を少し混ぜる
                 enhanced_score = self._clamp(qfull * 0.78 + enhanced_score * 0.22)
@@ -529,6 +584,13 @@ class Katala_Quantum_01a:
                 "probe_detail": probe["detail"],
             },
             "reasoning": reason,
+            "context_compression": {
+                "original_chars": ctx["original_chars"],
+                "compressed_chars": ctx["compressed_chars"],
+                "compression_ratio": ctx["compression_ratio"],
+                "sentences_used": ctx["sentences_used"],
+                "digest": ctx["digest"],
+            },
             "external_peer_review_refs": external_refs,
             "literature_guard": {
                 "mandatory": True,
@@ -536,7 +598,7 @@ class Katala_Quantum_01a:
                 "assertive_allowed": refs_count > 0,
             },
             "series": self.SERIES,
-            "kq_revision": "01a-r8",
+            "kq_revision": "01a-r9",
             "quantize_all": quantize_all,
             "ks47_quantum_full_grade": (ks47q or {}).get("grade") if isinstance(ks47q, dict) else None,
         }
@@ -552,6 +614,7 @@ class Katala_Quantum_01a:
             "series": self.SERIES,
             "reasoning": reason,
             "external_peer_review_ref_count": len((external_refs or {}).get("items", [])),
+            "context_compression_ratio": ctx["compression_ratio"],
             "quantize_all": quantize_all,
         })
         return result
