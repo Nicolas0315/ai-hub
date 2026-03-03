@@ -8,11 +8,25 @@ Adds literature-driven fusion weight tuning based on:
 """
 from __future__ import annotations
 
+import os
 import re
+import tempfile
 import urllib.request
 from typing import Any
 
 from .katala_quantum_01a import Katala_Quantum_01a
+
+try:
+    from .paper_reference import _query_openalex  # KS paper search core
+    _HAS_KS_PAPER_SEARCH = True
+except Exception:
+    _HAS_KS_PAPER_SEARCH = False
+
+try:
+    from .pdf_reader import extract_text_pdfplumber, extract_text_ocr  # KS PDF extraction logic
+    _HAS_KS_PDF_READER = True
+except Exception:
+    _HAS_KS_PDF_READER = False
 
 
 class Katala_Quantum_02a(Katala_Quantum_01a):
@@ -26,6 +40,8 @@ class Katala_Quantum_02a(Katala_Quantum_01a):
             "alias": self.ALIAS,
             "ks47_dependency": False,
             "literature_weight_tuning": True,
+            "ks_paper_search_applied": _HAS_KS_PAPER_SEARCH,
+            "ks_pdf_logic_applied": _HAS_KS_PDF_READER,
         })
         return s
 
@@ -47,6 +63,58 @@ class Katala_Quantum_02a(Katala_Quantum_01a):
                 return b.startswith(b"%PDF-")
         except Exception:
             return False
+
+    def _augment_refs_with_ks_search(self, text: str, refs: dict[str, Any], target_total: int = 80) -> dict[str, Any]:
+        """Apply KS paper search system (OpenAlex core) to expand references."""
+        if not _HAS_KS_PAPER_SEARCH:
+            return refs
+
+        items = list((refs or {}).get("items") or [])
+        seen = {(it.get("doi") or "", it.get("title") or "") for it in items if isinstance(it, dict)}
+
+        terms = [w for w in re.findall(r"[A-Za-z]{4,}", text)[:10]]
+        queries = []
+        if terms:
+            queries.append(" ".join(terms[:4]))
+            queries.append(" ".join(terms[:3] + ["systematic review"]))
+            queries.append(" ".join(terms[:3] + ["empirical study"]))
+        else:
+            queries = ["verification architecture", "scientific reasoning model", "quantum control systems"]
+
+        for q in queries:
+            if len(items) >= target_total:
+                break
+            try:
+                res = _query_openalex(q, per_page=25, timeout=10)
+            except Exception:
+                continue
+            for work in res:
+                if len(items) >= target_total:
+                    break
+                title = (work.get("title") or "").strip()
+                doi_raw = (work.get("doi") or "").strip()
+                doi = doi_raw.replace("https://doi.org/", "") if doi_raw else ""
+                key = (doi, title)
+                if not title or key in seen:
+                    continue
+                seen.add(key)
+                year = work.get("publication_year")
+                items.append({
+                    "source": "ks-openalex",
+                    "title": title,
+                    "doi": doi,
+                    "year": year,
+                    "journal": "",
+                    "url": work.get("id") or (f"https://doi.org/{doi}" if doi else None),
+                })
+
+        out = dict(refs or {})
+        out["items"] = items
+        out.setdefault("providers", [])
+        if "ks-openalex" not in out["providers"]:
+            out["providers"].append("ks-openalex")
+        out["source"] = str(out.get("source", "")) + "+ks-openalex"
+        return out
 
     @staticmethod
     def _extract_pdf_text_lite(raw: bytes) -> str:
@@ -95,7 +163,7 @@ class Katala_Quantum_02a(Katala_Quantum_01a):
             "pdf_readable_ratio": round(ratio, 3),
         }
 
-    def _literature_read_sweep(self, refs: dict[str, Any], pdf_target: int = 30, text_target: int = 30) -> dict[str, Any]:
+    def _literature_read_sweep(self, refs: dict[str, Any], pdf_target: int = 40, text_target: int = 40) -> dict[str, Any]:
         items = (refs or {}).get("items") or []
         pdf_ok = 0
         text_ok = 0
@@ -120,8 +188,28 @@ class Katala_Quantum_02a(Katala_Quantum_01a):
 
                 is_pdf = ("pdf" in ct) or url.lower().endswith(".pdf") or raw.startswith(b"%PDF-")
                 if is_pdf and pdf_ok < pdf_target:
-                    txt = self._extract_pdf_text_lite(raw)
-                    if len(txt) >= 120:
+                    txt = ""
+                    # Prefer KS PDF extraction logic when available
+                    if _HAS_KS_PDF_READER:
+                        tmp_path = None
+                        try:
+                            with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tf:
+                                tf.write(raw)
+                                tmp_path = tf.name
+                            txt = extract_text_pdfplumber(tmp_path)
+                            if len((txt or "").strip()) < 120:
+                                txt = extract_text_ocr(tmp_path)
+                        except Exception:
+                            txt = ""
+                        finally:
+                            if tmp_path and os.path.exists(tmp_path):
+                                try:
+                                    os.unlink(tmp_path)
+                                except Exception:
+                                    pass
+                    if len((txt or "").strip()) < 120:
+                        txt = self._extract_pdf_text_lite(raw)
+                    if len((txt or "").strip()) >= 120:
                         pdf_ok += 1
                         pdf_titles.append(title or url)
                 elif (not is_pdf) and text_ok < text_target:
@@ -149,9 +237,18 @@ class Katala_Quantum_02a(Katala_Quantum_01a):
         if not isinstance(r, dict):
             return r
 
+        text = ""
+        if args:
+            c = args[0]
+            text = c.text if hasattr(c, "text") else str(c)
+        elif "claim" in kwargs:
+            c = kwargs.get("claim")
+            text = c.text if hasattr(c, "text") else str(c)
+
         refs = r.get("external_peer_review_refs") or {}
+        refs = self._augment_refs_with_ks_search(text, refs, target_total=80)
         p = self._paper_stats(refs)
-        sweep = self._literature_read_sweep(refs, pdf_target=30, text_target=30)
+        sweep = self._literature_read_sweep(refs, pdf_target=40, text_target=40)
 
         # Re-tune fusion weights using literature quality + actual readability sweep
         kq_score = float(r.get("final_score", r.get("confidence", 0.5)) or 0.5)
@@ -174,7 +271,7 @@ class Katala_Quantum_02a(Katala_Quantum_01a):
         else:
             r["verdict"] = "LEAN_REJECT"
 
-        r["kq_revision"] = "02a-r5"
+        r["kq_revision"] = "02a-r6"
         r["model"] = self.SYSTEM_MODEL
         r["alias"] = self.ALIAS
         r["ks47_parity_pack"] = {"available": False, "status": "detached"}
@@ -192,6 +289,12 @@ class Katala_Quantum_02a(Katala_Quantum_01a):
         }
         r["paper_stats"] = p
         r["paper_read_sweep"] = sweep
+        r["new_issues"] = [
+            "PDF direct-link yield still limited from provider results",
+            "Some provider URLs are landing pages, not full text",
+            "KS pdf_reader path can fail when pdfplumber/pytesseract unavailable",
+            "40/40 target may require iterative query refinement and retries",
+        ]
         r["fusion_weights"] = {
             "kq_base_weight": 0.82,
             "literature_weight": 0.18,
