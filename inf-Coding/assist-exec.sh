@@ -3,8 +3,12 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CORE_BIN="$SCRIPT_DIR/inf-Coding-core/target/release/inf-coding-core"
+USE_RUST_CORE="${INF_CODING_USE_RUST_CORE:-0}"
 
-if [[ -x "$CORE_BIN" ]]; then
+# Python/shell-first fast path is default.
+# Enable Rust core only when explicitly requested:
+#   INF_CODING_USE_RUST_CORE=1 ./assist-exec.sh <cmd...>
+if [[ "$USE_RUST_CORE" == "1" && -x "$CORE_BIN" ]]; then
   exec "$CORE_BIN" assist-exec "$@"
 fi
 

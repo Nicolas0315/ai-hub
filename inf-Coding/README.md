@@ -21,7 +21,7 @@
 - `order-enforce.sh` : 人間命令（katala-off/on）を強制
 - `open-katala.sh` : ガード通過後に Katala ルートでシェルを開く
 - `katala-exec.sh` : 通常実行ラッパー（ログ/ハッシュ保存なし）
-- `assist-exec.sh` : Assist層経由の実行ラッパー（ログ/ハッシュ保存なし）
+- `assist-exec.sh` : Assist層経由の実行ラッパー（ログ/ハッシュ保存なし、既定はPython/shell主軸）
 - `inf-Coding-Assist/assist-cycle.sh` : KS+KCS必須の3サイクル（test/build/fix）実行
 - `inf-Coding-Assist/assist-rustize.sh` : 重い処理のRust化候補抽出
 - `order-set.sh` : 命令発行（clean / katala-off / katala-on / assist-off / assist-on）
@@ -49,6 +49,9 @@ chmod +x guard.sh order-enforce.sh open-katala.sh katala-exec.sh assist-exec.sh 
 # 実行（katala-exec / assist-exec は独立）
 ./katala-exec.sh git status
 ./assist-exec.sh git status
+
+# Rustコアを明示有効化したい場合のみ
+INF_CODING_USE_RUST_CORE=1 ./assist-exec.sh git status
 ```
 
 ## ルール（Order強制）
