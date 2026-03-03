@@ -1,9 +1,9 @@
 # inf-Coding-Order
 
-人間の命令を優先する制御レイヤ（暫定）。
+人間の命令を優先する制御レイヤ（Rust統合コア経由）。
 
 ## 命令
-- `./order-set.sh clean` : cache を手動クリーン
+- `./order-set.sh clean` : 互換コマンド（現在は no-op）
 - `./order-set.sh katala-off` : Katala 利用を禁止
 - `./order-set.sh katala-on` : Katala 利用を許可
 - `./order-set.sh assist-off` : inf-Coding-Assist を禁止
@@ -15,4 +15,4 @@
 - `assist-off` を設定すると `katala-off` に自動正規化
 - `katala-on` を設定すると `assist-on` に自動正規化
 - `assist-on` 中のみ `assist-exec.sh` を許可
-- 命令イベントは `inf-Coding-cache/activity.log` に記録
+- 実行ログ/キャッシュは保存しない（stateless運用）

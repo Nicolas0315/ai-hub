@@ -2,12 +2,17 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+CORE_BIN="$SCRIPT_DIR/inf-Coding-core/target/release/inf-coding-core"
+
+if [[ -x "$CORE_BIN" ]]; then
+  exec "$CORE_BIN" order-set "${1:-}"
+fi
+
 STATE_DIR="$SCRIPT_DIR/inf-Coding-Order"
 STATE_FILE="$STATE_DIR/order-state.env"
 
 mkdir -p "$STATE_DIR"
 
-# defaults (safe)
 KATALA_ALLOWED=0
 ASSIST_MODE=off
 LAST_UPDATED=""
@@ -18,20 +23,7 @@ if [[ -f "$STATE_FILE" ]]; then
   source "$STATE_FILE"
 fi
 
-normalize_state() {
-  # Rule C: katala-on => assist-on
-  if [[ "${KATALA_ALLOWED:-0}" == "1" && "${ASSIST_MODE:-off}" != "on" ]]; then
-    ASSIST_MODE=on
-  fi
-
-  # Rule B: assist-off => katala-off
-  if [[ "${ASSIST_MODE:-off}" == "off" ]]; then
-    KATALA_ALLOWED=0
-  fi
-}
-
 write_state() {
-  normalize_state
   cat > "$STATE_FILE" <<EOF
 KATALA_ALLOWED=$KATALA_ALLOWED
 ASSIST_MODE=$ASSIST_MODE
@@ -51,7 +43,6 @@ UPDATED_BY="human"
 
 case "$CMD" in
   clean)
-    # no-op: logging/cache subsystem removed
     echo "[order] clean is deprecated (no cache/log subsystem)."
     ;;
   katala-off)
@@ -62,12 +53,14 @@ case "$CMD" in
     ;;
   katala-on)
     KATALA_ALLOWED=1
+    ASSIST_MODE=on
     LAST_UPDATED="$now"
     write_state
     echo "[order] Katala usage: ON (assist=$ASSIST_MODE)"
     ;;
   assist-off)
     ASSIST_MODE=off
+    KATALA_ALLOWED=0
     LAST_UPDATED="$now"
     write_state
     echo "[order] inf-Coding-Assist: OFF (katala=$KATALA_ALLOWED)"

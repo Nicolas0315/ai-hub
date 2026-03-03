@@ -2,16 +2,20 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+CORE_BIN="$SCRIPT_DIR/inf-Coding-core/target/release/inf-coding-core"
+
+if [[ -x "$CORE_BIN" ]]; then
+  exec "$CORE_BIN" guard
+fi
+
 INF_DIR="$SCRIPT_DIR"
 KATALA_ROOT="$(cd "$INF_DIR/.." && pwd)"
 
-# このスクリプトが想定ディレクトリにいることを保証
 if [[ ! -d "$KATALA_ROOT/src" ]]; then
   echo "[guard] Katala ルートを検出できません: $KATALA_ROOT" >&2
   exit 1
 fi
 
-# 呼び出し元が inf-Coding 配下であることを要求（絶対入口ガード）
 CALLER_DIR="$(pwd)"
 case "$CALLER_DIR" in
   "$INF_DIR"|"$INF_DIR"/*) ;;

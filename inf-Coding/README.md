@@ -15,8 +15,9 @@
 - `inf-Coding-Assist/` : 補助ツール層
 
 ## ファイル
+- `inf-Coding-core/` : Rust統合コア（guard/order/exec/open-shell を単一実装）
 - `katala-root` : Katala ルートへのシンボリックリンク
-- `guard.sh` : 入口ガード（inf-Coding 経由か検証）
+- `guard.sh` : Rustコア呼び出しラッパー（inf-Coding 経由か検証）
 - `order-enforce.sh` : 人間命令（katala-off/on）を強制
 - `open-katala.sh` : ガード通過後に Katala ルートでシェルを開く
 - `katala-exec.sh` : 通常実行ラッパー（ログ/ハッシュ保存なし）
