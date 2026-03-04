@@ -55,6 +55,10 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
             "bias_detection_layer": True,
             "htlf_loss_vector": True,
             "l8_final_5axis": True,
+            "self_other_boundary": True,
+            "creativity_detection": True,
+            "inline_sentence_verify": True,
+            "goal_report_output": True,
         })
         return s
 
@@ -139,6 +143,89 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
         if s >= 0.50:
             return "D"
         return "F"
+
+    def _self_other_boundary(self, text: str, result: dict[str, Any], bias: dict[str, Any]) -> dict[str, Any]:
+        t = (text or "").lower()
+        external_markers = sum(1 for k in ["according to", "source", "doi", "citation", "引用", "参照"] if k in t)
+        self_markers = sum(1 for k in ["i think", "my opinion", "私は", "主観", "感じる"] if k in t)
+        refs = float(((result.get("paper_stats") or {}).get("refs_count", 0)) or 0)
+        base = 0.5 + min(0.25, refs / 80.0) + min(0.15, external_markers * 0.03) - min(0.20, self_markers * 0.04)
+        base -= min(0.15, float((bias or {}).get("risk_score", 0.0)) * 0.2)
+        score = self._clamp(base)
+        return {
+            "score": round(score, 4),
+            "verdict": "PASS" if score >= 0.62 else "CAUTION",
+            "signals": {
+                "external_markers": external_markers,
+                "self_markers": self_markers,
+                "refs_count": int(refs),
+            },
+        }
+
+    def _creativity_detection(self, text: str, mlc: dict[str, Any], htlf: dict[str, float]) -> dict[str, Any]:
+        t = (text or "").lower()
+        novelty_tokens = ["novel", "creative", "metaphor", "new approach", "独自", "創造", "比喩"]
+        novelty = sum(1 for k in novelty_tokens if k in t)
+        consistency = float((mlc or {}).get("consistency_score", 0.5) or 0.5)
+        qualia_loss = float((htlf or {}).get("R_qualia", 0.5) or 0.5)
+        score = self._clamp(0.35 + min(0.35, novelty * 0.08) + consistency * 0.25 - qualia_loss * 0.2)
+        return {
+            "score": round(score, 4),
+            "novelty_hits": novelty,
+            "verdict": "PASS" if score >= 0.58 else "CAUTION",
+        }
+
+    def _inline_sentence_verify(self, text: str, tl: dict[str, Any], bias: dict[str, Any]) -> dict[str, Any]:
+        raw = (text or "").strip()
+        if not raw:
+            return {"enabled": True, "count": 0, "items": [], "summary": {"avg": 0.0, "cautions": 0}}
+        parts = [p.strip() for p in re.split(r"[。.!?\n]+", raw) if p.strip()]
+        items = []
+        base_loss = float((tl or {}).get("score", 0.5) or 0.5)
+        bias_risk = float((bias or {}).get("risk_score", 0.0) or 0.0)
+        for i, s in enumerate(parts[:16], start=1):
+            token_len = len(s.split())
+            density_bonus = min(0.12, token_len / 120.0)
+            score = self._clamp(0.62 + density_bonus - base_loss * 0.45 - bias_risk * 0.25)
+            items.append({
+                "idx": i,
+                "text": s[:180],
+                "score": round(score, 4),
+                "verdict": "PASS" if score >= 0.58 else "CAUTION",
+            })
+        cautions = sum(1 for x in items if x["verdict"] == "CAUTION")
+        avg = (sum(float(x["score"]) for x in items) / len(items)) if items else 0.0
+        return {
+            "enabled": True,
+            "count": len(items),
+            "items": items,
+            "summary": {"avg": round(avg, 4), "cautions": cautions},
+        }
+
+    def _goal_report(self, text: str, result: dict[str, Any], l8: dict[str, Any], inline_v: dict[str, Any]) -> dict[str, Any]:
+        goal = (text or "").strip()[:240]
+        grade = l8.get("grade", "C")
+        cautions = ((result.get("kq_solver_l1_l7") or {}).get("summary") or {}).get("cautions", [])
+        next_actions = []
+        if grade in {"D", "F"}:
+            next_actions.append("strengthen references and grounding before assertive output")
+        if inline_v.get("summary", {}).get("cautions", 0) > 0:
+            next_actions.append("review sentence-level cautions and rewrite weak claims")
+        if not next_actions:
+            next_actions.append("proceed to execution with strict monitoring")
+        return {
+            "goal": goal,
+            "status": "completed",
+            "roadmap": {
+                "phase": "kq-verify",
+                "next_actions": next_actions,
+            },
+            "history": {
+                "final_grade": grade,
+                "final_verdict": result.get("verdict"),
+                "cautions": cautions,
+            },
+        }
 
     def _l8_final_5axis(
         self,
@@ -441,6 +528,10 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
         r["multi_layer_consistency"] = mlc
         r["kq_domain_solver_pack"] = dpack
         r["kq_solver_l1_l7"] = self._l1_l7_solver_visualization(text, r, p, htmlp, sweep, dpack, mlc, tl)
+        r["self_other_boundary"] = self._self_other_boundary(text, r, bias)
+        r["creativity_detection"] = self._creativity_detection(text, mlc, htlf)
+        r["inline_sentence_verify"] = self._inline_sentence_verify(text, tl, bias)
+        r["goal_report"] = self._goal_report(text, r, r["kq_final_l8"], r["inline_sentence_verify"])
         r["legacy_compatibility"] = {
             "ks_style_fields": [
                 "translation_loss",
@@ -478,7 +569,7 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
         fw["translation_loss_penalty"] = round(min(0.10, loss_score * 0.12), 4)
         r["fusion_weights"] = fw
 
-        r["kq_revision"] = "02b-r5"
+        r["kq_revision"] = "02b-r6"
         r["model"] = self.SYSTEM_MODEL
         r["alias"] = self.ALIAS
         return r
