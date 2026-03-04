@@ -34,8 +34,9 @@ inf-Coding から利用する補助ツール層。
 
 - 既定: `[Katala_Quantum][KQ]シリーズを使用` (`Katala_Quantum_02a`)
 - 外部由来コンテキストは `untrusted` 扱い（拒否ではなく慎重ルーティング）
-- inf-Bridgeは `collect -> normalize -> context-bind -> pattern-detect -> plan -> kq-payload` の運用フローを実装
+- inf-Bridgeは `collect -> normalize -> context-bind -> pattern-detect -> external-signals -> adversarial-pretest -> hardware-batch-observe -> plan -> kq-payload` の運用フローを実装
 - `meta_visualization` で判定サマリー（risk_score / pattern_groups / route_hint）を出力
+- External Signals / Adversarial Pretest / Hardware Batch Telemetry を前段レイヤとして保持
 - inf-Bridge監査ログは一時キャッシュ出力のみで、タスク完了時に自動削除
 - GoalHistoryTracker は一時キャッシュ（`.tmp-goal-history`）で保持し、出力完了時に完全削除
 - 明示時のみ: `KS47` 直結（`ks-bridge.py`。自動フォールバックなし）

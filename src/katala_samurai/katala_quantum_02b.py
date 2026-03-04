@@ -9,6 +9,7 @@ KS-oriented upgrade over KQ02a:
 """
 from __future__ import annotations
 
+import os
 import re
 from typing import Any
 
@@ -59,6 +60,9 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
             "creativity_detection": True,
             "inline_sentence_verify": True,
             "goal_report_output": True,
+            "external_signals_layer": True,
+            "adversarial_pretest": True,
+            "hardware_batch_layer": True,
         })
         return s
 
@@ -202,6 +206,51 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
             "summary": {"avg": round(avg, 4), "cautions": cautions},
         }
 
+    def _external_signal_inference(self, text: str) -> dict[str, Any]:
+        t = (text or "").lower()
+        signals = {
+            "deadline": any(k in t for k in ["today", "urgent", "至急", "締切", "今日"]),
+            "research": any(k in t for k in ["paper", "doi", "citation", "査読", "論文"]),
+            "security": any(k in t for k in ["security", "token", "権限", "鍵", "安全"]),
+        }
+        strength = sum(1 for v in signals.values() if v)
+        if signals["security"]:
+            hint = "risk-reduction"
+        elif signals["research"]:
+            hint = "evidence-strengthening"
+        elif signals["deadline"]:
+            hint = "delivery-priority"
+        else:
+            hint = "stability"
+        return {"signals": signals, "strength": strength, "goal_hint": hint}
+
+    def _adversarial_pretest_kq(self, text: str) -> dict[str, Any]:
+        t = text or ""
+        contradictory = bool(re.search(r"(?i)(always|絶対).*(except|ただし|but)", t))
+        injection_like = bool(re.search(r"(?i)(ignore previous|system prompt|bypass)", t))
+        risk = min(1.0, (0.35 if contradictory else 0.0) + (0.45 if injection_like else 0.0))
+        return {
+            "enabled": True,
+            "contradictory_claim": contradictory,
+            "injection_like": injection_like,
+            "risk_score": round(risk, 4),
+            "verdict": "CAUTION" if risk >= 0.35 else "PASS",
+        }
+
+    def _hardware_batch_layer(self) -> dict[str, Any]:
+        try:
+            load1, load5, load15 = os.getloadavg()
+        except Exception:
+            load1, load5, load15 = 0.0, 0.0, 0.0
+        cpu_budget = float(os.getenv("KQ_CPU_BUDGET", "0.40"))
+        gpu_budget = float(os.getenv("KQ_GPU_BUDGET", "0.40"))
+        batch_mode = "batch" if load1 > max(1.0, os.cpu_count() * cpu_budget * 0.8) else "interactive"
+        return {
+            "cpu_load": {"1m": round(load1, 3), "5m": round(load5, 3), "15m": round(load15, 3)},
+            "budget": {"cpu": cpu_budget, "gpu": gpu_budget},
+            "mode": batch_mode,
+        }
+
     def _goal_report(self, text: str, result: dict[str, Any], l8: dict[str, Any], inline_v: dict[str, Any]) -> dict[str, Any]:
         goal = (text or "").strip()[:240]
         grade = l8.get("grade", "C")
@@ -213,17 +262,25 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
             next_actions.append("review sentence-level cautions and rewrite weak claims")
         if not next_actions:
             next_actions.append("proceed to execution with strict monitoring")
+        ext = self._external_signal_inference(text)
         return {
             "goal": goal,
             "status": "completed",
+            "external_signals": ext,
             "roadmap": {
                 "phase": "kq-verify",
+                "goal_hint": ext.get("goal_hint"),
                 "next_actions": next_actions,
             },
             "history": {
                 "final_grade": grade,
                 "final_verdict": result.get("verdict"),
                 "cautions": cautions,
+            },
+            "loop_state": {
+                "phase": "reflect",
+                "current_goal": ext.get("goal_hint"),
+                "next_goal": "pending_next_input",
             },
         }
 
@@ -531,6 +588,8 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
         r["self_other_boundary"] = self._self_other_boundary(text, r, bias)
         r["creativity_detection"] = self._creativity_detection(text, mlc, htlf)
         r["inline_sentence_verify"] = self._inline_sentence_verify(text, tl, bias)
+        r["adversarial_pretest"] = self._adversarial_pretest_kq(text)
+        r["hardware_batch_layer"] = self._hardware_batch_layer()
         r["goal_report"] = self._goal_report(text, r, r["kq_final_l8"], r["inline_sentence_verify"])
         r["legacy_compatibility"] = {
             "ks_style_fields": [
@@ -546,12 +605,14 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
         loss_score = float(tl.get("score", 0.0) or 0.0)
         consistency_score = float(mlc.get("consistency_score", 0.5) or 0.5)
         bias_risk = float(bias.get("risk_score", 0.0) or 0.0)
-        assertive_allowed = (loss_score <= 0.24) and (consistency_score >= 0.72) and (bias_risk <= 0.32)
+        adv_risk = float((r.get("adversarial_pretest") or {}).get("risk_score", 0.0) or 0.0)
+        assertive_allowed = (loss_score <= 0.24) and (consistency_score >= 0.72) and (bias_risk <= 0.32) and (adv_risk <= 0.35)
         r["translation_loss_gate"] = {
             "enabled": True,
             "threshold": 0.24,
             "consistency_threshold": 0.72,
             "bias_threshold": 0.32,
+            "adversarial_threshold": 0.35,
             "assertive_allowed": assertive_allowed,
         }
 
@@ -569,7 +630,7 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
         fw["translation_loss_penalty"] = round(min(0.10, loss_score * 0.12), 4)
         r["fusion_weights"] = fw
 
-        r["kq_revision"] = "02b-r6"
+        r["kq_revision"] = "02b-r7"
         r["model"] = self.SYSTEM_MODEL
         r["alias"] = self.ALIAS
         return r

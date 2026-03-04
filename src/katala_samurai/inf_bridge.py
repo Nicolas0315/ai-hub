@@ -151,6 +151,58 @@ def plan_step(payload: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def external_signals(payload: dict[str, Any]) -> dict[str, Any]:
+    txt = ((payload.get("kq_payload") or {}).get("text") or "").lower()
+    signal_hits = {
+        "deadline_signal": any(k in txt for k in ["today", "今日", "urgent", "至急", "締切"]),
+        "research_signal": any(k in txt for k in ["paper", "doi", "査読", "論文"]),
+        "security_signal": any(k in txt for k in ["security", "権限", "token", "鍵", "安全"]),
+    }
+    strength = sum(1 for v in signal_hits.values() if v)
+    goal_hint = "stability"
+    if signal_hits["security_signal"]:
+        goal_hint = "risk-reduction"
+    elif signal_hits["research_signal"]:
+        goal_hint = "evidence-strengthening"
+    elif signal_hits["deadline_signal"]:
+        goal_hint = "delivery-priority"
+    return {
+        "strength": strength,
+        "signals": signal_hits,
+        "goal_hint": goal_hint,
+    }
+
+
+def adversarial_pretest(payload: dict[str, Any], plan: dict[str, Any]) -> dict[str, Any]:
+    txt = ((payload.get("kq_payload") or {}).get("text") or "")
+    contradictory = bool(re.search(r"(?i)(always|絶対).*(except|ただし|but)", txt))
+    injection_like = bool(re.search(r"(?i)(ignore previous|system prompt|bypass)", txt))
+    pat_risk = float(((plan.get("pattern_detection") or {}).get("risk_score", 0.0) or 0.0))
+    risk = min(1.0, pat_risk + (0.25 if contradictory else 0.0) + (0.35 if injection_like else 0.0))
+    return {
+        "enabled": True,
+        "contradictory_claim": contradictory,
+        "injection_like": injection_like,
+        "risk_score": round(risk, 3),
+        "route_hint": "strict" if risk >= 0.35 else plan.get("route_hint", "fast"),
+    }
+
+
+def hardware_batch_telemetry() -> dict[str, Any]:
+    try:
+        load1, load5, load15 = os.getloadavg()
+    except Exception:
+        load1, load5, load15 = 0.0, 0.0, 0.0
+    cpu_budget = float(os.getenv("KQ_CPU_BUDGET", "0.40"))
+    gpu_budget = float(os.getenv("KQ_GPU_BUDGET", "0.40"))
+    mode = "batch" if load1 > max(1.0, os.cpu_count() * cpu_budget * 0.8) else "interactive"
+    return {
+        "cpu_load": {"1m": round(load1, 3), "5m": round(load5, 3), "15m": round(load15, 3)},
+        "budget": {"cpu": cpu_budget, "gpu": gpu_budget},
+        "batch_mode": mode,
+    }
+
+
 def build_meta_visualization(payload: dict[str, Any], plan: dict[str, Any]) -> dict[str, Any]:
     c = payload.get("context_binding") or {}
     pd = plan.get("pattern_detection") or {}
@@ -170,7 +222,10 @@ def build_meta_visualization(payload: dict[str, Any], plan: dict[str, Any]) -> d
             "normalize:command",
             "bind:context",
             "detect:patterns",
-            "plan:route_hint",
+            "sense:external_signals",
+            "pretest:adversarial",
+            "observe:hardware_batch",
+            "plan:route_hint+goal_hint",
             "emit:kq_payload",
         ],
     }
@@ -179,7 +234,25 @@ def build_meta_visualization(payload: dict[str, Any], plan: dict[str, Any]) -> d
 def run_inf_bridge(command: str) -> dict[str, Any]:
     payload = build_inf_bridge_payload(command)
     plan = plan_step(payload)
+    ext = external_signals(payload)
+    adv = adversarial_pretest(payload, plan)
+    hw = hardware_batch_telemetry()
+
+    # external signals influence goal hint and may tighten route
+    payload["external_signals"] = ext
+    payload["adversarial_pretest"] = adv
+    payload["hardware_batch_telemetry"] = hw
+
+    plan["goal_hint"] = ext.get("goal_hint")
+    plan["route_hint"] = adv.get("route_hint", plan.get("route_hint"))
     payload["plan"] = plan
+
+    payload["goal_loop_state"] = {
+        "phase": "goal_set",
+        "current_goal": ext.get("goal_hint"),
+        "next_goal": "pending_result_reflection",
+    }
+
     payload["meta_visualization"] = build_meta_visualization(payload, plan)
     return payload
 
