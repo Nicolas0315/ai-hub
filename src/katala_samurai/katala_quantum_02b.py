@@ -29,6 +29,14 @@ LAYER_DETECTION_THRESHOLD = 1
 
 
 class Katala_Quantum_02b(Katala_Quantum_02a):
+    # KSにあってKQで弱かった点をKQ側で補強（独立実装）
+    DOMAIN_MICRO_SOLVERS: dict[str, list[str]] = {
+        "formal": ["logic_consistency", "symbolic_relation", "proof_shape"],
+        "research": ["citation_grounding", "method_validity", "reproducibility_hint"],
+        "coding": ["dependency_risk", "interface_stability", "regression_surface"],
+        "policy": ["stakeholder_balance", "governance_risk", "escalation_risk"],
+        "creative": ["semantic_coherence", "style_drift", "context_fit"],
+    }
     SYSTEM_MODEL: str = "Katala_Quantum_02b"
     ALIAS: str = "KQ02b"
 
@@ -40,6 +48,9 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
             "kq_translation_loss_layer": True,
             "translation_loss_schema_fixed": True,
             "assertive_loss_gate": True,
+            "domain_micro_solvers": True,
+            "legacy_compatibility_layer": True,
+            "multi_layer_consistency": True,
         })
         return s
 
@@ -57,6 +68,58 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
                     scores[layer] += 1
         winner = max(scores, key=lambda k: scores[k])
         return winner if scores[winner] >= LAYER_DETECTION_THRESHOLD else "natural_language"
+
+    @staticmethod
+    def _layer_set(text: str) -> list[str]:
+        layers = []
+        if re.search(r"[∀∃∈∉⊆⊂⇒⇔¬]|\b(theorem|lemma|proof)\b", text, re.I):
+            layers.append("math")
+        if re.search(r"\b(grammar|syntax|semantics|logic)\b|::=|->", text, re.I):
+            layers.append("formal_language")
+        if re.search(r"\b(chord|interval|melody|harmony|rhythm)\b", text, re.I):
+            layers.append("music")
+        if re.search(r"\b(poem|story|novel|metaphor|creative)\b", text, re.I):
+            layers.append("creative")
+        if not layers:
+            layers.append("natural_language")
+        return sorted(set(layers))
+
+    def _check_multilayer_consistency(self, text: str) -> dict[str, Any]:
+        layers = self._layer_set(text)
+        contradiction_markers = ["しかし", "but", "一方", "although", "ただし"]
+        contradiction_count = sum(1 for m in contradiction_markers if m.lower() in text.lower())
+        base = 1.0 - min(0.6, contradiction_count * 0.08)
+        if len(layers) >= 3:
+            base -= 0.05  # cross-layer drift penalty
+        score = self._clamp(base)
+        return {
+            "layer_set": layers,
+            "consistency_score": round(score, 4),
+            "contradiction_count": contradiction_count,
+            "contradictions": [] if contradiction_count == 0 else ["marker_detected"],
+        }
+
+    def _domain_solver_pack(self, text: str) -> dict[str, Any]:
+        t = text.lower()
+        if any(k in t for k in ["proof", "logic", "theorem", "命題", "論理"]):
+            domain = "formal"
+        elif any(k in t for k in ["paper", "citation", "doi", "査読", "論文"]):
+            domain = "research"
+        elif any(k in t for k in ["code", "bug", "test", "commit", "実装"]):
+            domain = "coding"
+        elif any(k in t for k in ["policy", "state", "military", "governance", "構造"]):
+            domain = "policy"
+        else:
+            domain = "creative"
+
+        solvers = self.DOMAIN_MICRO_SOLVERS.get(domain, [])
+        hits = [s for s in solvers if any(tok in t for tok in s.split("_"))]
+        return {
+            "domain": domain,
+            "available": solvers,
+            "activated": hits,
+            "activation_ratio": round(len(hits) / max(1, len(solvers)), 3),
+        }
 
     def _compute_translation_loss(
         self,
@@ -115,9 +178,20 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
         # confidence: more refs and html hits => higher confidence in measured estimate
         confidence = self._clamp(0.45 + min(0.35, refs_count / 120.0) + min(0.20, html_hits / 20.0))
 
+        if score <= 0.18:
+            profile = "low-loss"
+        elif score <= 0.35:
+            profile = "controlled-loss"
+        elif score <= 0.55:
+            profile = "medium-loss"
+        else:
+            profile = "high-loss"
+
         return {
             "mode": "measured" if refs_count > 0 else "estimated",
             "score": round(score, 4),
+            "profile": profile,
+            "anchor_retention_estimate": round(1.0 - cross_lang_loss, 4),
             "components": {
                 "compression_loss": round(compression_loss, 4),
                 "citation_grounding_loss": round(citation_grounding_loss, 4),
@@ -150,17 +224,32 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
         sweep = r.get("paper_read_sweep") or {}
 
         tl = self._compute_translation_loss(text, r, p, htmlp, sweep)
+        mlc = self._check_multilayer_consistency(text)
+        dpack = self._domain_solver_pack(text)
 
         # C: fixed schema
         r["translation_loss"] = tl
         r["kq_translation_loss"] = tl
+        r["multi_layer_consistency"] = mlc
+        r["kq_domain_solver_pack"] = dpack
+        r["legacy_compatibility"] = {
+            "ks_style_fields": [
+                "translation_loss",
+                "multi_layer_consistency",
+                "auto_detected_layers",
+            ],
+            "compat_mode": "kq-independent",
+            "status": "enabled",
+        }
 
         # D: loss-aware assertiveness gate
         loss_score = float(tl.get("score", 0.0) or 0.0)
-        assertive_allowed = loss_score <= 0.24
+        consistency_score = float(mlc.get("consistency_score", 0.5) or 0.5)
+        assertive_allowed = (loss_score <= 0.24) and (consistency_score >= 0.72)
         r["translation_loss_gate"] = {
             "enabled": True,
             "threshold": 0.24,
+            "consistency_threshold": 0.72,
             "assertive_allowed": assertive_allowed,
         }
 
@@ -178,7 +267,7 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
         fw["translation_loss_penalty"] = round(min(0.10, loss_score * 0.12), 4)
         r["fusion_weights"] = fw
 
-        r["kq_revision"] = "02b-r1"
+        r["kq_revision"] = "02b-r2"
         r["model"] = self.SYSTEM_MODEL
         r["alias"] = self.ALIAS
         return r
