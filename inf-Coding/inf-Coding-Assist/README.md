@@ -34,6 +34,8 @@ inf-Coding から利用する補助ツール層。
 
 - 既定: `[Katala_Quantum][KQ]シリーズを使用` (`Katala_Quantum_02a`)
 - 外部由来コンテキストは `untrusted` 扱い（拒否ではなく慎重ルーティング）
+- inf-Bridgeは `collect -> normalize -> context-bind -> pattern-detect -> plan -> kq-payload` の運用フローを実装
+- `meta_visualization` で判定サマリー（risk_score / pattern_groups / route_hint）を出力
 - inf-Bridge監査ログは一時キャッシュ出力のみで、タスク完了時に自動削除
 - 明示時のみ: `KS47` 直結（`ks-bridge.py`。自動フォールバックなし）
 

@@ -8,6 +8,13 @@ import time
 from dataclasses import dataclass
 from typing import Any
 
+PATTERN_DETECTORS: dict[str, list[str]] = {
+    "destructive_ops": [r"\brm\b", r"\bdrop\b", r"\btruncate\b", r"\breset\b"],
+    "history_ops": [r"\brebase\b", r"\bcherry-pick\b", r"\bpush\b", r"\btag\b"],
+    "network_ops": [r"\bcurl\b", r"\bwget\b", r"\bssh\b", r"\bscp\b"],
+    "safe_read_ops": [r"^git status(\s|$)", r"^git diff(\s|$)", r"^ls(\s|$)", r"^cat(\s|$)"],
+}
+
 
 @dataclass
 class ContextBindingResult:
@@ -106,15 +113,75 @@ def build_inf_bridge_payload(command: str) -> dict[str, Any]:
     }
 
 
+def detect_patterns(text: str) -> dict[str, Any]:
+    low = (text or "").strip()
+    hits: dict[str, list[str]] = {}
+    for group, pats in PATTERN_DETECTORS.items():
+        matched = [p for p in pats if re.search(p, low, re.I)]
+        if matched:
+            hits[group] = matched
+
+    risk_score = 0.0
+    if "destructive_ops" in hits:
+        risk_score += 0.55
+    if "history_ops" in hits:
+        risk_score += 0.40
+    if "network_ops" in hits:
+        risk_score += 0.20
+    if "safe_read_ops" in hits and len(hits) == 1:
+        risk_score = max(0.0, risk_score - 0.25)
+
+    return {
+        "groups": list(hits.keys()),
+        "matches": hits,
+        "risk_score": round(min(1.0, risk_score), 3),
+    }
+
+
 def plan_step(payload: dict[str, Any]) -> dict[str, Any]:
     text = ((payload.get("kq_payload") or {}).get("text") or "").strip()
-    risky = bool(re.search(r"\b(rm|drop|truncate|reset|rebase|push)\b", text, re.I))
+    pat = detect_patterns(text)
+    risk_score = float(pat.get("risk_score", 0.0))
     return {
         "kind": "plan",
-        "route_hint": "strict" if risky else "fast",
-        "risk_level": "high" if risky else "normal",
+        "route_hint": "strict" if risk_score >= 0.35 else "fast",
+        "risk_level": "high" if risk_score >= 0.6 else ("medium" if risk_score >= 0.35 else "normal"),
         "trusted": False,
+        "pattern_detection": pat,
     }
+
+
+def build_meta_visualization(payload: dict[str, Any], plan: dict[str, Any]) -> dict[str, Any]:
+    c = payload.get("context_binding") or {}
+    pd = plan.get("pattern_detection") or {}
+    return {
+        "summary": {
+            "verdict": c.get("verdict"),
+            "purpose_score": c.get("purpose_score"),
+            "temporal_tag": c.get("temporal_tag"),
+            "route_hint": plan.get("route_hint"),
+            "risk_level": plan.get("risk_level"),
+            "risk_score": pd.get("risk_score", 0.0),
+            "pattern_groups": pd.get("groups", []),
+            "source_trust": ((payload.get("input") or {}).get("source_trust") or "untrusted"),
+        },
+        "flow": [
+            "collect:input",
+            "normalize:command",
+            "bind:context",
+            "detect:patterns",
+            "plan:route_hint",
+            "emit:kq_payload",
+        ],
+    }
+
+
+def run_inf_bridge(command: str) -> dict[str, Any]:
+    payload = build_inf_bridge_payload(command)
+    plan = plan_step(payload)
+    payload["plan"] = plan
+    payload["meta_visualization"] = build_meta_visualization(payload, plan)
+    return payload
 
 
 def make_ephemeral_audit_file() -> str:

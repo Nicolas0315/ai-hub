@@ -11,8 +11,7 @@ sys.path.insert(0, '/mnt/c/Users/ogosh/Documents/NICOLAS/Katala/src')
 
 from katala_samurai.katala_quantum_02a import Katala_Quantum_02a, KQ02a
 from katala_samurai.inf_bridge import (
-    build_inf_bridge_payload,
-    plan_step,
+    run_inf_bridge,
     make_ephemeral_audit_file,
     append_ephemeral_audit,
     cleanup_ephemeral_audit,
@@ -64,9 +63,8 @@ def _select_model(command: str):
 
 
 def decide_route(command: str) -> tuple[str, dict]:
-    bridge = build_inf_bridge_payload(command)
-    bridge_plan = plan_step(bridge)
-    bridge["plan"] = bridge_plan
+    bridge = run_inf_bridge(command)
+    bridge_plan = bridge.get("plan") or {}
     normalized_command = (bridge.get("input") or {}).get("normalized") or command
     cbind = (bridge.get("context_binding") or {})
 
