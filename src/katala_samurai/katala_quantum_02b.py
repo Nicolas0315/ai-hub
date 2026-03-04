@@ -52,6 +52,8 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
             "legacy_compatibility_layer": True,
             "multi_layer_consistency": True,
             "solver_l1_l7_visualization": True,
+            "bias_detection_layer": True,
+            "htlf_loss_vector": True,
         })
         return s
 
@@ -224,6 +226,51 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
             },
         }
 
+    def _bias_detection(self, text: str, result: dict[str, Any]) -> dict[str, Any]:
+        t = (text or "").lower()
+        markers = {
+            "single_source_absolutism": ["always", "絶対", "100%", "必ず"],
+            "authority_bias": ["because expert", "権威", "official says", "政府が言う"],
+            "confirmation_bias": ["obviously", "明らか", "当然", "no doubt"],
+            "framing_polarization": ["evil", "traitor", "敵", "陰謀"],
+            "data_omission_risk": ["without evidence", "根拠なし", "source unavailable"],
+        }
+        hit_map: dict[str, int] = {}
+        total_hits = 0
+        for k, words in markers.items():
+            c = sum(1 for w in words if w in t)
+            if c > 0:
+                hit_map[k] = c
+                total_hits += c
+
+        refs_count = float(((result.get("paper_stats") or {}).get("refs_count", 0)) or 0)
+        attenuation = 0.15 if refs_count >= 10 else 0.0
+        risk_score = self._clamp(total_hits * 0.08 - attenuation)
+        return {
+            "risk_score": round(risk_score, 4),
+            "markers": hit_map,
+            "verdict": "CAUTION" if risk_score >= 0.32 else "PASS",
+        }
+
+    @staticmethod
+    def _htlf_loss_vector(components: dict[str, float], bias_risk: float) -> dict[str, float]:
+        c = components
+        # HTLF-like 6-axis decomposition (0..1, higher = worse loss)
+        r_struct = min(1.0, c.get("compression_loss", 0.0) * 0.7 + c.get("decode_consistency_loss", 0.0) * 0.3)
+        r_context = min(1.0, c.get("citation_grounding_loss", 0.0) * 0.65 + c.get("readability_loss", 0.0) * 0.35)
+        r_qualia = min(1.0, c.get("cross_lang_loss", 0.0) * 0.5 + c.get("compression_loss", 0.0) * 0.2 + bias_risk * 0.3)
+        r_cultural = min(1.0, c.get("cross_lang_loss", 0.0) * 0.7 + bias_risk * 0.3)
+        r_paradigm = min(1.0, c.get("citation_grounding_loss", 0.0) * 0.6 + bias_risk * 0.4)
+        r_temporal = min(1.0, c.get("readability_loss", 0.0) * 0.6 + c.get("decode_consistency_loss", 0.0) * 0.4)
+        return {
+            "R_struct": round(r_struct, 4),
+            "R_context": round(r_context, 4),
+            "R_qualia": round(r_qualia, 4),
+            "R_cultural": round(r_cultural, 4),
+            "R_paradigm": round(r_paradigm, 4),
+            "R_temporal": round(r_temporal, 4),
+        }
+
     def _compute_translation_loss(
         self,
         text: str,
@@ -329,10 +376,14 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
         tl = self._compute_translation_loss(text, r, p, htmlp, sweep)
         mlc = self._check_multilayer_consistency(text)
         dpack = self._domain_solver_pack(text)
+        bias = self._bias_detection(text, {**r, "paper_stats": p})
+        htlf = self._htlf_loss_vector((tl.get("components") or {}), float(bias.get("risk_score", 0.0) or 0.0))
 
         # C: fixed schema
         r["translation_loss"] = tl
         r["kq_translation_loss"] = tl
+        r["bias_detection"] = bias
+        r["htlf_loss_vector"] = htlf
         r["multi_layer_consistency"] = mlc
         r["kq_domain_solver_pack"] = dpack
         r["kq_solver_l1_l7"] = self._l1_l7_solver_visualization(text, r, p, htmlp, sweep, dpack, mlc, tl)
@@ -349,11 +400,13 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
         # D: loss-aware assertiveness gate
         loss_score = float(tl.get("score", 0.0) or 0.0)
         consistency_score = float(mlc.get("consistency_score", 0.5) or 0.5)
-        assertive_allowed = (loss_score <= 0.24) and (consistency_score >= 0.72)
+        bias_risk = float(bias.get("risk_score", 0.0) or 0.0)
+        assertive_allowed = (loss_score <= 0.24) and (consistency_score >= 0.72) and (bias_risk <= 0.32)
         r["translation_loss_gate"] = {
             "enabled": True,
             "threshold": 0.24,
             "consistency_threshold": 0.72,
+            "bias_threshold": 0.32,
             "assertive_allowed": assertive_allowed,
         }
 
@@ -371,7 +424,7 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
         fw["translation_loss_penalty"] = round(min(0.10, loss_score * 0.12), 4)
         r["fusion_weights"] = fw
 
-        r["kq_revision"] = "02b-r3"
+        r["kq_revision"] = "02b-r4"
         r["model"] = self.SYSTEM_MODEL
         r["alias"] = self.ALIAS
         return r
