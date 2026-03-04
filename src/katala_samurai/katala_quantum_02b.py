@@ -54,6 +54,7 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
             "solver_l1_l7_visualization": True,
             "bias_detection_layer": True,
             "htlf_loss_vector": True,
+            "l8_final_5axis": True,
         })
         return s
 
@@ -122,6 +123,58 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
             "available": solvers,
             "activated": hits,
             "activation_ratio": round(len(hits) / max(1, len(solvers)), 3),
+        }
+
+    @staticmethod
+    def _grade_from_score(score: float) -> str:
+        s = max(0.0, min(1.0, score))
+        if s >= 0.90:
+            return "S"
+        if s >= 0.82:
+            return "A"
+        if s >= 0.72:
+            return "B"
+        if s >= 0.62:
+            return "C"
+        if s >= 0.50:
+            return "D"
+        return "F"
+
+    def _l8_final_5axis(
+        self,
+        result: dict[str, Any],
+        tl: dict[str, Any],
+        htlf: dict[str, float],
+        bias: dict[str, Any],
+        mlc: dict[str, Any],
+    ) -> dict[str, Any]:
+        # 5-axis (higher is better)
+        struct = self._clamp(1.0 - float(htlf.get("R_struct", 0.5)))
+        context = self._clamp(1.0 - float(htlf.get("R_context", 0.5)))
+        qualia = self._clamp(1.0 - float(htlf.get("R_qualia", 0.5)))
+        cultural = self._clamp(1.0 - float(htlf.get("R_cultural", 0.5)))
+        temporal = self._clamp(1.0 - float(htlf.get("R_temporal", 0.5)))
+
+        bias_penalty = min(0.18, float((bias or {}).get("risk_score", 0.0) or 0.0) * 0.3)
+        consistency_bonus = min(0.08, float((mlc or {}).get("consistency_score", 0.5) or 0.5) * 0.08)
+
+        axis = {
+            "A_struct": round(struct, 4),
+            "A_context": round(context, 4),
+            "A_qualia": round(qualia, 4),
+            "A_cultural": round(cultural, 4),
+            "A_temporal": round(temporal, 4),
+        }
+        base = (struct + context + qualia + cultural + temporal) / 5.0
+        final = self._clamp(base - bias_penalty + consistency_bonus)
+        return {
+            "version": "l8-5axis-v1",
+            "axes": axis,
+            "bias_penalty": round(bias_penalty, 4),
+            "consistency_bonus": round(consistency_bonus, 4),
+            "overall_score": round(final, 4),
+            "grade": self._grade_from_score(final),
+            "verdict": result.get("verdict", "UNCERTAIN"),
         }
 
     def _l1_l7_solver_visualization(
@@ -384,6 +437,7 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
         r["kq_translation_loss"] = tl
         r["bias_detection"] = bias
         r["htlf_loss_vector"] = htlf
+        r["kq_final_l8"] = self._l8_final_5axis(r, tl, htlf, bias, mlc)
         r["multi_layer_consistency"] = mlc
         r["kq_domain_solver_pack"] = dpack
         r["kq_solver_l1_l7"] = self._l1_l7_solver_visualization(text, r, p, htmlp, sweep, dpack, mlc, tl)
@@ -424,7 +478,7 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
         fw["translation_loss_penalty"] = round(min(0.10, loss_score * 0.12), 4)
         r["fusion_weights"] = fw
 
-        r["kq_revision"] = "02b-r4"
+        r["kq_revision"] = "02b-r5"
         r["model"] = self.SYSTEM_MODEL
         r["alias"] = self.ALIAS
         return r
