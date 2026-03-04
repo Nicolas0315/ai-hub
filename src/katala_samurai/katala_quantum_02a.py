@@ -29,6 +29,12 @@ try:
 except Exception:
     _HAS_KS_PDF_READER = False
 
+try:
+    from .peer_review_reach import check_reachability, normalize_item, trace_html_fulltext
+    _HAS_PEER_REACH = True
+except Exception:
+    _HAS_PEER_REACH = False
+
 
 class Katala_Quantum_02a(Katala_Quantum_01a):
     SYSTEM_MODEL: str = "Katala_Quantum_02a"
@@ -43,6 +49,8 @@ class Katala_Quantum_02a(Katala_Quantum_01a):
             "literature_weight_tuning": True,
             "ks_paper_search_applied": _HAS_KS_PAPER_SEARCH,
             "ks_pdf_logic_applied": _HAS_KS_PDF_READER,
+            "peer_db_scope": ["jstor", "springer", "web_of_science"],
+            "peer_db_framework": _HAS_PEER_REACH,
         })
         return s
 
@@ -275,6 +283,46 @@ class Katala_Quantum_02a(Katala_Quantum_01a):
             "errors": errors,
         }
 
+    def _html_first_pipeline(self, refs: dict[str, Any], limit: int = 20) -> dict[str, Any]:
+        if not _HAS_PEER_REACH:
+            return {
+                "enabled": False,
+                "reason": "peer_review_reach_unavailable",
+                "reachability": {},
+                "html_hits": [],
+            }
+
+        reach = check_reachability()
+        items = (refs or {}).get("items") or []
+        html_hits = []
+        scanned = 0
+
+        for it in items:
+            if scanned >= limit:
+                break
+            if not isinstance(it, dict):
+                continue
+            n = normalize_item(it)
+            t = trace_html_fulltext(n.get("url", ""), n.get("doi", ""))
+            scanned += 1
+            if t.get("ok"):
+                html_hits.append({
+                    "title": n.get("title"),
+                    "doi": n.get("doi"),
+                    "final_url": t.get("final_url"),
+                    "text_len": t.get("text_len"),
+                    "text_preview": t.get("text_preview"),
+                    "source": n.get("source"),
+                })
+
+        return {
+            "enabled": True,
+            "reachability": reach,
+            "scanned": scanned,
+            "html_hit_count": len(html_hits),
+            "html_hits": html_hits[:10],
+        }
+
     def verify(self, *args, **kwargs):
         r = super().verify(*args, **kwargs)
         if not isinstance(r, dict):
@@ -290,6 +338,7 @@ class Katala_Quantum_02a(Katala_Quantum_01a):
 
         refs = r.get("external_peer_review_refs") or {}
         refs = self._augment_refs_with_ks_search(text, refs, target_total=80)
+        html_pipeline = self._html_first_pipeline(refs, limit=24)
         p = self._paper_stats(refs)
         sweep = self._literature_read_sweep(refs, pdf_target=40, text_target=40)
 
@@ -297,10 +346,11 @@ class Katala_Quantum_02a(Katala_Quantum_01a):
         kq_score = float(r.get("final_score", r.get("confidence", 0.5)) or 0.5)
         ref_bonus = min(0.08, p["refs_count"] * 0.004)
         pdf_bonus = min(0.10, p["pdf_readable_ratio"] * 0.10)
+        html_bonus = min(0.08, float(html_pipeline.get("html_hit_count", 0)) * 0.003)
         sweep_bonus = min(0.12, (sweep["pdf_read_count"] + sweep["text_read_count"]) * 0.002)
 
         # baseline 0.82, literature/readability contributes up to +0.30
-        fused = self._clamp(kq_score * 0.82 + (0.5 + ref_bonus + pdf_bonus + sweep_bonus) * 0.18)
+        fused = self._clamp(kq_score * 0.82 + (0.5 + ref_bonus + pdf_bonus + sweep_bonus + html_bonus) * 0.18)
 
         r["final_score"] = fused
         r["confidence"] = fused
@@ -314,7 +364,7 @@ class Katala_Quantum_02a(Katala_Quantum_01a):
         else:
             r["verdict"] = "LEAN_REJECT"
 
-        r["kq_revision"] = "02a-r7"
+        r["kq_revision"] = "02a-r8"
         r["model"] = self.SYSTEM_MODEL
         r["alias"] = self.ALIAS
         r["ks47_parity_pack"] = {"available": False, "status": "detached"}
@@ -332,6 +382,7 @@ class Katala_Quantum_02a(Katala_Quantum_01a):
         }
         r["paper_stats"] = p
         r["paper_read_sweep"] = sweep
+        r["html_first_pipeline"] = html_pipeline
         r["new_issues"] = [
             "Landing pages now explored for PDF links, but paywalled hosts still block full text",
             "Some DOI redirects require JavaScript/session cookies and cannot be resolved via lightweight fetch",
@@ -344,6 +395,7 @@ class Katala_Quantum_02a(Katala_Quantum_01a):
             "ref_bonus": round(ref_bonus, 3),
             "pdf_bonus": round(pdf_bonus, 3),
             "sweep_bonus": round(sweep_bonus, 3),
+            "html_bonus": round(html_bonus, 3),
         }
 
         return r
