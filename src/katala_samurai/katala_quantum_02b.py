@@ -733,16 +733,12 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
         embodied_signal_loss = self._clamp(1.0 - embodied_signal_strength)
 
         # 3) temporal-paradigm loss (publication_time / subject_time + paradigm tags)
+        # policy: large time gap in peer-reviewed context is NOT an automatic loss increase.
         pub_year = int((paper_stats or {}).get("latest_year", 0) or 0)
         years_in_text = [int(y) for y in re.findall(r"\b(19\d{2}|20\d{2})\b", t)]
         subject_year = max(years_in_text) if years_in_text else 0
         if pub_year <= 0:
             pub_year = max(0, subject_year)
-        if pub_year > 0 and subject_year > 0:
-            year_gap = abs(pub_year - subject_year)
-            time_gap_penalty = min(1.0, year_gap / 20.0)
-        else:
-            time_gap_penalty = 0.35
 
         paradigm_tags = {
             "empiricism": ["trial", "experiment", "observed", "empirical", "実験"],
@@ -752,14 +748,15 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
             "engineering": ["pipeline", "system", "benchmark", "deployment", "実装"],
         }
         detected = [k for k, ws in paradigm_tags.items() if any(w in low for w in ws)]
-        paradigm_penalty = 0.18 if detected else 0.45
-        temporal_paradigm_loss = self._clamp(time_gap_penalty * 0.65 + paradigm_penalty * 0.35)
+        # loss focuses on detectability of temporal/paradigm coordinates, not age-gap penalty.
+        temporal_detectability = 1.0 if (pub_year > 0 or subject_year > 0) else 0.0
+        paradigm_detectability = min(1.0, len(detected) / 2.0)
+        temporal_paradigm_loss = self._clamp(1.0 - (temporal_detectability * 0.5 + paradigm_detectability * 0.5))
 
-        # 4) stance-context loss (sentence -> paragraph -> document lightweight proxy)
+        # 4) stance-context loss: do not judge validity; only estimate coordinate extractability
         stance_hits = sum(1 for k in ["we argue", "we claim", "suggest", "hypothesis", "主張", "示唆", "仮説"] if k in low)
         context_hits = sum(1 for k in ["however", "although", "in this context", "一方", "ただし", "文脈"] if k in low)
-        contradiction_hits = sum(1 for k in ["always", "never", "絶対", "必ず"] if k in low)
-        stance_context_strength = self._clamp(min(1.0, stance_hits / 3.0) * 0.45 + min(1.0, context_hits / 3.0) * 0.35 - min(0.4, contradiction_hits * 0.08))
+        stance_context_strength = self._clamp(min(1.0, stance_hits / 3.0) * 0.55 + min(1.0, context_hits / 3.0) * 0.45)
         stance_context_loss = self._clamp(1.0 - stance_context_strength)
 
         # 5) evidence grounding loss
@@ -817,12 +814,35 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
             "temporal_axes": {
                 "publication_time": pub_year,
                 "subject_time": subject_year,
-                "time_gap_penalty": round(time_gap_penalty, 4),
+                "time_gap_policy": "no_auto_penalty_for_peer_review",
+                "temporal_detectability": round(temporal_detectability, 4),
             },
             "embodied_axes": {
+                "policy": "sensory_action_environment_equal",
                 "sensory_hits": sensory_hits,
                 "action_hits": action_hits,
                 "environment_hits": env_hits,
+            },
+            "coordinate_extraction": {
+                "category_tags": [k for k, ws in {
+                    "medical": ["clinical", "patient", "trial", "症状", "治療"],
+                    "engineering": ["system", "pipeline", "benchmark", "deployment", "実装"],
+                    "social": ["policy", "society", "ethics", "制度", "倫理"],
+                    "cognitive": ["perception", "memory", "attention", "認知", "知覚"],
+                }.items() if any(w in low for w in ws)],
+                "paradigm_tags": detected,
+                "perspective_tags": [k for k, ws in {
+                    "author": ["we", "our", "本研究", "我々"],
+                    "participant": ["patient", "user", "participant", "被験者", "利用者"],
+                    "system": ["model", "system", "algorithm", "手法"],
+                    "institution": ["guideline", "policy", "regulation", "規制", "指針"],
+                }.items() if any(w in low for w in ws)],
+                "opinion_tags": [k for k, ws in {
+                    "hypothesis": ["hypothesis", "仮説", "we hypothesize"],
+                    "interpretation": ["suggest", "interpret", "示唆", "解釈"],
+                    "recommendation": ["should", "recommend", "提言", "推奨"],
+                    "observation": ["observed", "found", "観察", "結果"],
+                }.items() if any(w in low for w in ws)],
             },
         }
 
@@ -916,7 +936,7 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
         fw["mini_solver_activation_ratio"] = float((mini or {}).get("activation_ratio", 0.0) or 0.0)
         r["fusion_weights"] = fw
 
-        r["kq_revision"] = "02b-r11"
+        r["kq_revision"] = "02b-r12"
         r["model"] = self.SYSTEM_MODEL
         r["alias"] = self.ALIAS
         return r
