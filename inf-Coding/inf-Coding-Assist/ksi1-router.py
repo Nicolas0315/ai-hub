@@ -62,13 +62,13 @@ def decide_route(command: str) -> tuple[str, dict]:
     normalized_command = (bridge.get("input") or {}).get("normalized") or command
     cbind = (bridge.get("context_binding") or {})
 
-    # inf-Bridge pre-gate (before KQ)
-    if cbind.get("verdict") in {"reject", "defer"}:
+    # inf-Bridge caution gate (before KQ, no hard reject policy)
+    if cbind.get("verdict") in {"caution"}:
         route = "strict"
         detail = {
             "route": route,
             "reason": f"inf_bridge_{cbind.get('verdict')}",
-            "confidence": 0.0,
+            "confidence": 0.25,
             "risky_pattern": True,
             "strict_only_pattern": True,
             "safe_fast_pattern": False,

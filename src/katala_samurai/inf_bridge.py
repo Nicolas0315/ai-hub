@@ -8,7 +8,7 @@ from typing import Any
 
 @dataclass
 class ContextBindingResult:
-    verdict: str  # pass|reject|defer
+    verdict: str  # pass|caution (no hard reject policy)
     purpose_score: float
     identity_conflict: bool
     temporal_tag: str
@@ -64,9 +64,9 @@ def bind_input(text: str) -> ContextBindingResult:
     conflict, reason = _identity_conflict(text)
 
     if conflict:
-        return ContextBindingResult("reject", ps, True, temporal, reason)
+        return ContextBindingResult("caution", ps, True, temporal, reason)
     if ps < 0.2:
-        return ContextBindingResult("defer", ps, False, temporal, "low_purpose_score")
+        return ContextBindingResult("caution", ps, False, temporal, "low_purpose_score")
     return ContextBindingResult("pass", ps, False, temporal, "bound")
 
 
