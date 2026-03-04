@@ -51,6 +51,7 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
             "domain_micro_solvers": True,
             "legacy_compatibility_layer": True,
             "multi_layer_consistency": True,
+            "solver_l1_l7_visualization": True,
         })
         return s
 
@@ -119,6 +120,108 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
             "available": solvers,
             "activated": hits,
             "activation_ratio": round(len(hits) / max(1, len(solvers)), 3),
+        }
+
+    def _l1_l7_solver_visualization(
+        self,
+        text: str,
+        result: dict[str, Any],
+        paper_stats: dict[str, Any],
+        html_pipe: dict[str, Any],
+        sweep: dict[str, Any],
+        dpack: dict[str, Any],
+        mlc: dict[str, Any],
+        tl: dict[str, Any],
+    ) -> dict[str, Any]:
+        refs_count = float((paper_stats or {}).get("refs_count", 0) or 0)
+        html_hits = float((html_pipe or {}).get("html_hit_count", 0) or 0)
+        pdf_read = float((sweep or {}).get("pdf_read_count", 0) or 0)
+        text_read = float((sweep or {}).get("text_read_count", 0) or 0)
+        conf = float(result.get("confidence", result.get("final_score", 0.5)) or 0.5)
+        consistency = float((mlc or {}).get("consistency_score", 0.5) or 0.5)
+        tscore = float((tl or {}).get("score", 0.5) or 0.5)
+
+        l1 = {
+            "stage": "L1_input_provenance",
+            "score": round(0.55, 4),
+            "verdict": "PASS",
+            "subsolvers": {
+                "source_trust_classifier": "untrusted-default",
+                "input_normalizer": "active",
+                "context_binding": (result.get("inf_bridge") or {}).get("context_binding", "kq-local"),
+            },
+        }
+        l2 = {
+            "stage": "L2_structure_decode",
+            "score": round(self._clamp(conf * 0.7 + consistency * 0.3), 4),
+            "verdict": "PASS" if consistency >= 0.72 else "CAUTION",
+            "subsolvers": {
+                "context_compression": result.get("context_compression_ratio"),
+                "hierarchical_decode": ((result.get("reason") or {}).get("kq_hierarchical_decode") or {}),
+                "multi_layer_consistency": mlc,
+            },
+        }
+        l3 = {
+            "stage": "L3_reference_grounding",
+            "score": round(self._clamp(min(1.0, refs_count / 40.0) * 0.8 + min(1.0, html_hits / 10.0) * 0.2), 4),
+            "verdict": "PASS" if refs_count >= 8 else "CAUTION",
+            "subsolvers": {
+                "paper_stats": paper_stats,
+                "html_first_pipeline": {
+                    "html_hit_count": int(html_hits),
+                    "reachable": ((html_pipe or {}).get("reachability") or {}).get("reachable", []),
+                },
+            },
+        }
+        l4 = {
+            "stage": "L4_readability_execution",
+            "score": round(self._clamp((pdf_read + text_read) / 40.0), 4),
+            "verdict": "PASS" if (pdf_read + text_read) >= 20 else "CAUTION",
+            "subsolvers": {
+                "pdf_read_count": int(pdf_read),
+                "text_read_count": int(text_read),
+                "sweep": sweep,
+            },
+        }
+        l5 = {
+            "stage": "L5_translation_loss",
+            "score": round(self._clamp(1.0 - tscore), 4),
+            "verdict": "PASS" if tscore <= 0.24 else "CAUTION",
+            "subsolvers": {
+                "translation_loss": tl,
+                "loss_profile": tl.get("profile"),
+                "auto_layers": (tl.get("auto_detected_layers") or {}),
+            },
+        }
+        l6 = {
+            "stage": "L6_domain_solver_pack",
+            "score": round(self._clamp(float((dpack or {}).get("activation_ratio", 0.0) or 0.0) + 0.3), 4),
+            "verdict": "PASS",
+            "subsolvers": dpack,
+        }
+        l7 = {
+            "stage": "L7_final_gate_and_fusion",
+            "score": round(float(result.get("final_score", result.get("confidence", 0.5)) or 0.5), 4),
+            "verdict": str(result.get("verdict", "UNCERTAIN")),
+            "subsolvers": {
+                "translation_loss_gate": result.get("translation_loss_gate"),
+                "fusion_weights": result.get("fusion_weights"),
+                "final": {
+                    "confidence": result.get("confidence"),
+                    "final_score": result.get("final_score"),
+                },
+            },
+        }
+
+        stages = [l1, l2, l3, l4, l5, l6, l7]
+        return {
+            "version": "l1-l7-v1",
+            "stages": stages,
+            "summary": {
+                "avg_score": round(sum(float(s.get("score", 0.0)) for s in stages) / 7.0, 4),
+                "cautions": [s["stage"] for s in stages if s.get("verdict") == "CAUTION"],
+                "final_verdict": l7.get("verdict"),
+            },
         }
 
     def _compute_translation_loss(
@@ -232,6 +335,7 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
         r["kq_translation_loss"] = tl
         r["multi_layer_consistency"] = mlc
         r["kq_domain_solver_pack"] = dpack
+        r["kq_solver_l1_l7"] = self._l1_l7_solver_visualization(text, r, p, htmlp, sweep, dpack, mlc, tl)
         r["legacy_compatibility"] = {
             "ks_style_fields": [
                 "translation_loss",
@@ -267,7 +371,7 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
         fw["translation_loss_penalty"] = round(min(0.10, loss_score * 0.12), 4)
         r["fusion_weights"] = fw
 
-        r["kq_revision"] = "02b-r2"
+        r["kq_revision"] = "02b-r3"
         r["model"] = self.SYSTEM_MODEL
         r["alias"] = self.ALIAS
         return r
