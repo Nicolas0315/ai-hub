@@ -10,6 +10,7 @@ import sys
 sys.path.insert(0, '/mnt/c/Users/ogosh/Documents/NICOLAS/Katala/src')
 
 from katala_samurai.katala_quantum_02a import Katala_Quantum_02a, KQ02a
+from katala_samurai.inf_bridge import build_inf_bridge_payload
 from katala_samurai.inf_coding_adapter import emit_router_event
 
 RISK_PATTERNS = [
@@ -57,11 +58,40 @@ def _select_model(command: str):
 
 
 def decide_route(command: str) -> tuple[str, dict]:
-    model = _select_model(command)
+    bridge = build_inf_bridge_payload(command)
+    normalized_command = (bridge.get("input") or {}).get("normalized") or command
+    cbind = (bridge.get("context_binding") or {})
+
+    # inf-Bridge pre-gate (before KQ)
+    if cbind.get("verdict") in {"reject", "defer"}:
+        route = "strict"
+        detail = {
+            "route": route,
+            "reason": f"inf_bridge_{cbind.get('verdict')}",
+            "confidence": 0.0,
+            "risky_pattern": True,
+            "strict_only_pattern": True,
+            "safe_fast_pattern": False,
+            "verdict": cbind.get("verdict", "UNKNOWN").upper(),
+            "mode": "inf-bridge-pre-gate",
+            "model": "inf-bridge",
+            "alias": "inf-bridge",
+            "series": "[inf-Bridge]",
+            "inf_bridge": bridge,
+        }
+        emit_router_event(detail["model"], {
+            "alias": detail["alias"],
+            "command": normalized_command,
+            **detail,
+        })
+        return route, detail
+
+    model = _select_model(normalized_command)
     claim = (
         "Route this command for efficiency+safety in inf-Coding.\n"
-        f"command: {command}\n"
+        f"command: {normalized_command}\n"
         "Use fast-path for low-risk local read/build checks; strict-path for destructive/network/history-rewriting ops."
+        f"\ninf_bridge_meta: temporal={cbind.get('temporal_tag')} purpose={cbind.get('purpose_score')}"
     )
 
     if model == "KS47":
@@ -93,9 +123,9 @@ def decide_route(command: str) -> tuple[str, dict]:
     mode = result.get('mode') if isinstance(result, dict) else 'unknown'
     conf = float(result.get('confidence', 0.5)) if isinstance(result, dict) else 0.5
 
-    risky = _matches(RISK_PATTERNS, command)
-    strict_only = _matches(STRICT_ONLY_PATTERNS, command)
-    safe_fast = _matches(SAFE_FAST_PATTERNS, command)
+    risky = _matches(RISK_PATTERNS, normalized_command)
+    strict_only = _matches(STRICT_ONLY_PATTERNS, normalized_command)
+    safe_fast = _matches(SAFE_FAST_PATTERNS, normalized_command)
 
     # Model suggested route has priority when provided
     model_route = result.get('route') if isinstance(result, dict) else None
@@ -140,10 +170,11 @@ def decide_route(command: str) -> tuple[str, dict]:
         'model': model_status.get('model', type(model).__name__),
         'alias': model_status.get('alias', 'unknown'),
         'series': model_status.get('series'),
+        'inf_bridge': bridge,
     }
     emit_router_event(detail['model'], {
         'alias': detail['alias'],
-        'command': command,
+        'command': normalized_command,
         **detail,
     })
     return route, detail
