@@ -187,6 +187,7 @@ def decide_route(command: str) -> tuple[str, dict]:
         'alias': model_status.get('alias', 'unknown'),
         'series': model_status.get('series'),
         'inf_bridge': bridge,
+        'route_ab_evaluation': (bridge.get('route_ab_evaluation') if isinstance(bridge, dict) else None),
     }
     emit_router_event(detail['model'], {
         'alias': detail['alias'],

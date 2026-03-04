@@ -203,6 +203,33 @@ def hardware_batch_telemetry() -> dict[str, Any]:
     }
 
 
+def route_ab_evaluation(payload: dict[str, Any], plan: dict[str, Any], adv: dict[str, Any], hw: dict[str, Any]) -> dict[str, Any]:
+    txt = ((payload.get("kq_payload") or {}).get("text") or "")
+    length_factor = min(1.0, len(txt) / 900.0)
+    adv_risk = float((adv or {}).get("risk_score", 0.0) or 0.0)
+    pat_risk = float(((plan.get("pattern_detection") or {}).get("risk_score", 0.0) or 0.0))
+    cpu_load = float(((hw.get("cpu_load") or {}).get("1m", 0.0) or 0.0))
+
+    strict_safety = max(0.0, min(1.0, 0.58 + adv_risk * 0.30 + pat_risk * 0.25))
+    fast_speed = max(0.0, min(1.0, 0.62 + (1.0 - length_factor) * 0.18 - min(0.25, cpu_load * 0.02)))
+    fast_safety = max(0.0, min(1.0, 0.72 - adv_risk * 0.35 - pat_risk * 0.22))
+
+    strict_utility = strict_safety * 0.72 + (1.0 - min(1.0, length_factor * 0.7)) * 0.28
+    fast_utility = fast_safety * 0.55 + fast_speed * 0.45
+
+    recommended = "strict" if strict_utility >= fast_utility else "fast"
+    return {
+        "enabled": True,
+        "candidate_metrics": {
+            "strict": {"safety": round(strict_safety, 4), "utility": round(strict_utility, 4)},
+            "fast": {"safety": round(fast_safety, 4), "speed": round(fast_speed, 4), "utility": round(fast_utility, 4)},
+        },
+        "recommended": recommended,
+        "selected": plan.get("route_hint", recommended),
+        "divergence": round(abs(strict_utility - fast_utility), 4),
+    }
+
+
 def build_meta_visualization(payload: dict[str, Any], plan: dict[str, Any]) -> dict[str, Any]:
     c = payload.get("context_binding") or {}
     pd = plan.get("pattern_detection") or {}
@@ -225,6 +252,7 @@ def build_meta_visualization(payload: dict[str, Any], plan: dict[str, Any]) -> d
             "sense:external_signals",
             "pretest:adversarial",
             "observe:hardware_batch",
+            "evaluate:route_ab",
             "plan:route_hint+goal_hint",
             "emit:kq_payload",
         ],
@@ -245,6 +273,10 @@ def run_inf_bridge(command: str) -> dict[str, Any]:
 
     plan["goal_hint"] = ext.get("goal_hint")
     plan["route_hint"] = adv.get("route_hint", plan.get("route_hint"))
+    ab_eval = route_ab_evaluation(payload, plan, adv, hw)
+    payload["route_ab_evaluation"] = ab_eval
+    if ab_eval.get("recommended") == "strict":
+        plan["route_hint"] = "strict"
     payload["plan"] = plan
 
     payload["goal_loop_state"] = {

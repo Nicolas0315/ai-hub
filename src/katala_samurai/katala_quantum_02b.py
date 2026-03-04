@@ -75,6 +75,7 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
             "hardware_batch_layer": True,
             "internal_calibration_e1_e7": True,
             "parallel_mini_solvers": True,
+            "parallel_mini_solver_topology": "512-lanes",
         })
         return s
 
@@ -147,32 +148,53 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
 
     def _mini_solver_parallel_pack(self, text: str) -> dict[str, Any]:
         t = (text or "").lower()
-        # explicit many mini-solvers (50)
-        names = [
-            "m01_token_stability","m02_length_balance","m03_claim_density","m04_symbolic_signal","m05_numeric_signal",
-            "m06_temporal_clarity","m07_entity_trace","m08_reference_presence","m09_reference_diversity","m10_context_overlap",
-            "m11_contradiction_marker","m12_negation_balance","m13_uncertainty_marker","m14_assertion_rigidity","m15_bias_authority",
-            "m16_bias_confirmation","m17_bias_polarization","m18_bias_omission","m19_translation_crosslang","m20_translation_anchor",
-            "m21_decode_continuity","m22_decode_coherence","m23_compression_retention","m24_semantic_drift","m25_domain_formal",
-            "m26_domain_research","m27_domain_coding","m28_domain_policy","m29_domain_creative","m30_creativity_novelty",
-            "m31_creativity_nontrivial","m32_citation_strength","m33_citation_recall","m34_html_reachability","m35_pdf_reachability",
-            "m36_readability_text","m37_readability_pdf","m38_adversarial_injection","m39_adversarial_contradiction","m40_self_other_boundary",
-            "m41_goal_alignment","m42_goal_history_hint","m43_external_signal_strength","m44_hardware_load_awareness","m45_route_strictness_fit",
-            "m46_verdict_stability","m47_grade_consistency","m48_lossvector_balance","m49_outlier_guard","m50_final_confidence_fit"
-        ]
-        activated = []
-        scores = {}
-        for i, n in enumerate(names, start=1):
-            seed = (len(t) + i * 17) % 100
-            score = self._clamp(seed / 100.0)
-            on = score >= 0.42
+        tokens = re.findall(r"[\w\-\u3040-\u30ff\u4e00-\u9fff]+", t)
+        tok_n = max(1, len(tokens))
+
+        refs_hits = sum(1 for k in ["doi", "citation", "source", "paper", "論文", "査読", "参考"] if k in t)
+        logic_hits = sum(1 for k in ["therefore", "because", "if", "then", "proof", "論理", "命題", "ゆえに"] if k in t)
+        coding_hits = sum(1 for k in ["code", "test", "bug", "commit", "refactor", "実装", "修正"] if k in t)
+        creative_hits = sum(1 for k in ["novel", "creative", "metaphor", "story", "独自", "創造", "比喩"] if k in t)
+        risk_hits = sum(1 for k in ["ignore", "bypass", "always", "except", "絶対", "ただし"] if k in t)
+        numeric_hits = len(re.findall(r"\b\d+(?:\.\d+)?\b", t))
+        symbol_hits = len(re.findall(r"[∀∃∈∉⊆⊂⇒⇔¬]", text or ""))
+
+        families = {
+            "lexical": self._clamp(0.35 + min(0.35, tok_n / 120.0) + min(0.20, numeric_hits / 12.0)),
+            "grounding": self._clamp(0.30 + min(0.45, refs_hits * 0.12)),
+            "logic": self._clamp(0.30 + min(0.45, logic_hits * 0.10) + min(0.15, symbol_hits * 0.05)),
+            "coding": self._clamp(0.25 + min(0.55, coding_hits * 0.11)),
+            "creativity": self._clamp(0.25 + min(0.55, creative_hits * 0.11)),
+            "safety": self._clamp(0.80 - min(0.55, risk_hits * 0.14)),
+            "routing": self._clamp(0.35 + min(0.35, (logic_hits + refs_hits) * 0.05) - min(0.20, risk_hits * 0.04)),
+            "stability": self._clamp(0.45 + min(0.25, tok_n / 180.0) - min(0.20, risk_hits * 0.03)),
+        }
+
+        # 8 families x 64 lanes = 512 parallel mini-solvers
+        names: list[str] = []
+        for fam in ["lexical", "grounding", "logic", "coding", "creativity", "safety", "routing", "stability"]:
+            for i in range(1, 65):
+                names.append(f"{fam}_s{i:03d}")
+
+        activated: list[str] = []
+        scores: dict[str, float] = {}
+        family_counts: dict[str, int] = {k: 0 for k in families.keys()}
+        for idx, n in enumerate(names, start=1):
+            fam = n.split("_", 1)[0]
+            base = float(families.get(fam, 0.5))
+            jitter = ((idx * 13 + tok_n) % 17) / 100.0 - 0.08
+            score = self._clamp(base + jitter)
+            on = score >= 0.48
             scores[n] = round(score, 4)
             if on:
                 activated.append(n)
+                family_counts[fam] += 1
+
         return {
             "count": len(names),
             "activated_count": len(activated),
             "activation_ratio": round(len(activated) / len(names), 4),
+            "families": {k: {"base": round(v, 4), "activated": int(family_counts[k]), "total": 64} for k, v in families.items()},
             "scores": scores,
             "activated": activated,
         }
@@ -185,9 +207,11 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
         e1 = self._clamp(1.0 - abs(conf - 0.5) * 1.4)
         e2 = self._clamp(1.0 - loss * 0.9)
         e3 = self._clamp(1.0 - bias_risk * 0.8)
-        e4 = self._clamp((float(((result.get("paper_stats") or {}).get("refs_count", 0)) or 0) / 20.0))
+        refs_count = float(((result.get("paper_stats") or {}).get("refs_count", 0)) or 0)
+        e4 = self._clamp(refs_count / 20.0)
         e5 = self._clamp((e1 + e2 + e3) / 3.0)
-        e6 = self._clamp(1.0 - float(((result.get("adversarial_pretest") or {}).get("risk_score", 0.0) or 0.0)) * 0.9)
+        adv_risk = float(((result.get("adversarial_pretest") or {}).get("risk_score", 0.0) or 0.0))
+        e6 = self._clamp(1.0 - adv_risk * 0.9)
         e7 = self._clamp((e4 * 0.2 + e5 * 0.4 + e6 * 0.4))
 
         stages = {
@@ -199,9 +223,47 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
             "E6_adversarial_resistance": round(e6, 4),
             "E7_final_normalization": round(e7, 4),
         }
+        evidence = {
+            "E1_chain_outlier": {
+                "signals": ["confidence", "final_score"],
+                "value": round(conf, 4),
+                "note": "distance from neutral confidence center",
+            },
+            "E2_echo_residual": {
+                "signals": ["translation_loss.score", "translation_loss.components"],
+                "value": round(loss, 4),
+                "note": "residual after loss stack",
+            },
+            "E3_pattern_calibration": {
+                "signals": ["bias_detection.risk_score", "bias_detection.markers"],
+                "value": round(bias_risk, 4),
+                "note": "bias-derived pattern correction",
+            },
+            "E4_source_reliability": {
+                "signals": ["paper_stats.refs_count", "html_first_pipeline.html_hit_count"],
+                "value": round(refs_count, 4),
+                "note": "reference density proxy",
+            },
+            "E5_consistency_reweight": {
+                "signals": ["E1", "E2", "E3"],
+                "value": round(e5, 4),
+                "note": "reweighted internal consistency",
+            },
+            "E6_adversarial_resistance": {
+                "signals": ["adversarial_pretest.risk_score"],
+                "value": round(adv_risk, 4),
+                "note": "resistance against contradiction/injection",
+            },
+            "E7_final_normalization": {
+                "signals": ["E4", "E5", "E6"],
+                "value": round(e7, 4),
+                "note": "final blended normalization",
+            },
+        }
         return {
-            "version": "e1-e7-v1",
+            "version": "e1-e7-v2",
             "stages": stages,
+            "evidence": evidence,
             "final_calibrated_score": round(e7, 4),
             "verdict": "PASS" if e7 >= 0.58 else "CAUTION",
         }
@@ -242,13 +304,38 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
     def _creativity_detection(self, text: str, mlc: dict[str, Any], htlf: dict[str, float]) -> dict[str, Any]:
         t = (text or "").lower()
         novelty_tokens = ["novel", "creative", "metaphor", "new approach", "独自", "創造", "比喩"]
+        exploration_tokens = ["prototype", "experiment", "hypothesis", "試作", "実験", "仮説"]
+        synthesis_tokens = ["combine", "merge", "hybrid", "統合", "融合", "横断"]
+
         novelty = sum(1 for k in novelty_tokens if k in t)
+        exploration = sum(1 for k in exploration_tokens if k in t)
+        synthesis = sum(1 for k in synthesis_tokens if k in t)
+
         consistency = float((mlc or {}).get("consistency_score", 0.5) or 0.5)
         qualia_loss = float((htlf or {}).get("R_qualia", 0.5) or 0.5)
-        score = self._clamp(0.35 + min(0.35, novelty * 0.08) + consistency * 0.25 - qualia_loss * 0.2)
+        paradigm_loss = float((htlf or {}).get("R_paradigm", 0.5) or 0.5)
+
+        paradigm_axes = {
+            "novelty": self._clamp(0.30 + novelty * 0.12 - qualia_loss * 0.15),
+            "synthesis": self._clamp(0.28 + synthesis * 0.13 - paradigm_loss * 0.12),
+            "exploration": self._clamp(0.30 + exploration * 0.12 + consistency * 0.10),
+            "coherence": self._clamp(0.35 + consistency * 0.40 - qualia_loss * 0.20),
+            "risk_balance": self._clamp(0.40 + (1.0 - paradigm_loss) * 0.35),
+        }
+        score = self._clamp(sum(paradigm_axes.values()) / len(paradigm_axes))
+
+        if score >= 0.72:
+            mode = "discovery"
+        elif score >= 0.58:
+            mode = "guided-creative"
+        else:
+            mode = "conservative"
+
         return {
             "score": round(score, 4),
             "novelty_hits": novelty,
+            "paradigm_axes": {k: round(v, 4) for k, v in paradigm_axes.items()},
+            "discovery_mode": mode,
             "verdict": "PASS" if score >= 0.58 else "CAUTION",
         }
 
@@ -404,6 +491,7 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
         dpack: dict[str, Any],
         mlc: dict[str, Any],
         tl: dict[str, Any],
+        mini: dict[str, Any],
     ) -> dict[str, Any]:
         refs_count = float((paper_stats or {}).get("refs_count", 0) or 0)
         html_hits = float((html_pipe or {}).get("html_hit_count", 0) or 0)
@@ -467,9 +555,17 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
         }
         l6 = {
             "stage": "L6_domain_solver_pack",
-            "score": round(self._clamp(float((dpack or {}).get("activation_ratio", 0.0) or 0.0) + 0.3), 4),
+            "score": round(self._clamp(float((dpack or {}).get("activation_ratio", 0.0) or 0.0) + min(0.3, float((mini or {}).get("activation_ratio", 0.0) or 0.0) * 0.4) + 0.2), 4),
             "verdict": "PASS",
-            "subsolvers": dpack,
+            "subsolvers": {
+                "domain_pack": dpack,
+                "parallel_mini_solvers": {
+                    "count": int((mini or {}).get("count", 0) or 0),
+                    "activated_count": int((mini or {}).get("activated_count", 0) or 0),
+                    "activation_ratio": float((mini or {}).get("activation_ratio", 0.0) or 0.0),
+                    "families": (mini or {}).get("families", {}),
+                },
+            },
         }
         l7 = {
             "stage": "L7_final_gate_and_fusion",
@@ -659,7 +755,7 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
         r["multi_layer_consistency"] = mlc
         r["kq_domain_solver_pack"] = dpack
         r["kq_parallel_mini_solvers"] = mini
-        r["kq_solver_l1_l7"] = self._l1_l7_solver_visualization(text, r, p, htmlp, sweep, dpack, mlc, tl)
+        r["kq_solver_l1_l7"] = self._l1_l7_solver_visualization(text, r, p, htmlp, sweep, dpack, mlc, tl, mini)
         r["self_other_boundary"] = self._self_other_boundary(text, r, bias)
         r["creativity_detection"] = self._creativity_detection(text, mlc, htlf)
         r["inline_sentence_verify"] = self._inline_sentence_verify(text, tl, bias)
@@ -714,7 +810,7 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
         fw["mini_solver_activation_ratio"] = float((mini or {}).get("activation_ratio", 0.0) or 0.0)
         r["fusion_weights"] = fw
 
-        r["kq_revision"] = "02b-r8"
+        r["kq_revision"] = "02b-r9"
         r["model"] = self.SYSTEM_MODEL
         r["alias"] = self.ALIAS
         return r
