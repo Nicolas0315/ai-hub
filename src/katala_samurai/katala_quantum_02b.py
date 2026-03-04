@@ -76,6 +76,8 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
             "internal_calibration_e1_e7": True,
             "parallel_mini_solvers": True,
             "parallel_mini_solver_topology": "512-lanes",
+            "ks47_compatible_axis_layer": True,
+            "ks47_compatible_output_standard": True,
         })
         return s
 
@@ -481,6 +483,57 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
             "verdict": result.get("verdict", "UNCERTAIN"),
         }
 
+    def _ks47_compatible_axis_output(
+        self,
+        text: str,
+        result: dict[str, Any],
+        paper_stats: dict[str, Any],
+        html_pipe: dict[str, Any],
+        sweep: dict[str, Any],
+        mlc: dict[str, Any],
+        l8: dict[str, Any],
+    ) -> dict[str, Any]:
+        refs_count = float((paper_stats or {}).get("refs_count", 0) or 0)
+        html_hits = float((html_pipe or {}).get("html_hit_count", 0) or 0)
+        pdf_read = float((sweep or {}).get("pdf_read_count", 0) or 0)
+        text_read = float((sweep or {}).get("text_read_count", 0) or 0)
+
+        qcov = self._clamp(min(1.0, refs_count / 22.0) * 0.6 + min(1.0, len((text or "").split()) / 180.0) * 0.4)
+        sdepth = self._clamp(min(1.0, (html_hits + pdf_read + text_read) / 30.0) * 0.75 + min(1.0, refs_count / 35.0) * 0.25)
+        synth = self._clamp(float((mlc or {}).get("consistency_score", 0.5) or 0.5) * 0.45 + float((l8 or {}).get("overall_score", 0.5) or 0.5) * 0.55)
+        cite = self._clamp(min(1.0, refs_count / 30.0) * 0.7 + min(1.0, html_hits / 12.0) * 0.3)
+
+        mini = result.get("kq_parallel_mini_solvers") or {}
+        act_ratio = float((mini.get("activation_ratio", 0.0) or 0.0))
+        adv = float(((result.get("adversarial_pretest") or {}).get("risk_score", 0.0) or 0.0))
+        orch = self._clamp(0.45 + act_ratio * 0.35 + min(0.15, float(text_read + pdf_read) / 80.0) - min(0.20, adv * 0.22))
+
+        weights = {
+            "query_coverage": 0.15,
+            "search_depth": 0.20,
+            "synthesis_quality": 0.30,
+            "citation_verify": 0.25,
+            "orchestration": 0.10,
+        }
+        solver_results = {
+            "query_coverage": round(qcov, 4),
+            "search_depth": round(sdepth, 4),
+            "synthesis_quality": round(synth, 4),
+            "citation_verify": round(cite, 4),
+            "orchestration": round(orch, 4),
+        }
+        overall = self._clamp(sum(solver_results[k] * weights[k] for k in weights))
+
+        return {
+            "version": "ks47-compatible-kq-v1",
+            "mode": "kq-adapted-compatible",
+            "overall_score": round(overall, 4),
+            "grade": self._grade_from_score(overall),
+            "weights": weights,
+            "solver_results": solver_results,
+            "compatibility_note": "KS47 five-axis schema mapped to KQ-native signals",
+        }
+
     def _l1_l7_solver_visualization(
         self,
         text: str,
@@ -752,6 +805,7 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
         r["bias_detection"] = bias
         r["htlf_loss_vector"] = htlf
         r["kq_final_l8"] = self._l8_final_5axis(r, tl, htlf, bias, mlc)
+        r["ks47_compatible_output"] = self._ks47_compatible_axis_output(text, r, p, htmlp, sweep, mlc, r["kq_final_l8"])
         r["multi_layer_consistency"] = mlc
         r["kq_domain_solver_pack"] = dpack
         r["kq_parallel_mini_solvers"] = mini
@@ -768,6 +822,7 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
                 "translation_loss",
                 "multi_layer_consistency",
                 "auto_detected_layers",
+                "ks47_compatible_output",
             ],
             "compat_mode": "kq-independent",
             "status": "enabled",
@@ -810,7 +865,7 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
         fw["mini_solver_activation_ratio"] = float((mini or {}).get("activation_ratio", 0.0) or 0.0)
         r["fusion_weights"] = fw
 
-        r["kq_revision"] = "02b-r9"
+        r["kq_revision"] = "02b-r10"
         r["model"] = self.SYSTEM_MODEL
         r["alias"] = self.ALIAS
         return r
