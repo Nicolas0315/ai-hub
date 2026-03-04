@@ -674,13 +674,20 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
     @staticmethod
     def _htlf_loss_vector(components: dict[str, float], bias_risk: float) -> dict[str, float]:
         c = components
+        # KQ r11 mapping: new translation-loss components first, legacy keys fallback
+        semantic = c.get("semantic_fidelity_loss", c.get("compression_loss", 0.0))
+        embodied = c.get("embodied_signal_loss", c.get("cross_lang_loss", 0.0))
+        temporal = c.get("temporal_paradigm_loss", c.get("decode_consistency_loss", 0.0))
+        stance = c.get("stance_context_loss", 0.0)
+        evidence = c.get("evidence_grounding_loss", c.get("citation_grounding_loss", 0.0))
+
         # HTLF-like 6-axis decomposition (0..1, higher = worse loss)
-        r_struct = min(1.0, c.get("compression_loss", 0.0) * 0.7 + c.get("decode_consistency_loss", 0.0) * 0.3)
-        r_context = min(1.0, c.get("citation_grounding_loss", 0.0) * 0.65 + c.get("readability_loss", 0.0) * 0.35)
-        r_qualia = min(1.0, c.get("cross_lang_loss", 0.0) * 0.5 + c.get("compression_loss", 0.0) * 0.2 + bias_risk * 0.3)
-        r_cultural = min(1.0, c.get("cross_lang_loss", 0.0) * 0.7 + bias_risk * 0.3)
-        r_paradigm = min(1.0, c.get("citation_grounding_loss", 0.0) * 0.6 + bias_risk * 0.4)
-        r_temporal = min(1.0, c.get("readability_loss", 0.0) * 0.6 + c.get("decode_consistency_loss", 0.0) * 0.4)
+        r_struct = min(1.0, semantic * 0.7 + temporal * 0.3)
+        r_context = min(1.0, evidence * 0.65 + stance * 0.35)
+        r_qualia = min(1.0, embodied * 0.5 + semantic * 0.2 + bias_risk * 0.3)
+        r_cultural = min(1.0, embodied * 0.7 + bias_risk * 0.3)
+        r_paradigm = min(1.0, temporal * 0.6 + bias_risk * 0.4)
+        r_temporal = min(1.0, temporal * 0.6 + evidence * 0.4)
         return {
             "R_struct": round(r_struct, 4),
             "R_context": round(r_context, 4),
@@ -698,53 +705,85 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
         html_pipe: dict[str, Any],
         sweep: dict[str, Any],
     ) -> dict[str, Any]:
-        # A) compression loss (KQ context compression proxy)
-        compression_ratio = float(result.get("context_compression_ratio", 1.0) or 1.0)
-        compression_loss = min(1.0, abs(1.0 - compression_ratio))
+        t = text or ""
+        low = t.lower()
 
-        # B) citation grounding loss (refs + html fulltext hit quality)
         refs_count = float((paper_stats or {}).get("refs_count", 0))
         html_hits = float((html_pipe or {}).get("html_hit_count", 0))
-        grounding_strength = min(1.0, refs_count / 40.0) * 0.6 + min(1.0, html_hits / 12.0) * 0.4
-        citation_grounding_loss = 1.0 - grounding_strength
 
-        # C) cross-language loss (ported, estimated mode)
-        has_cjk = bool(re.search(r"[\u3040-\u30ff\u4e00-\u9fff]", text or ""))
-        has_latin = bool(re.search(r"[A-Za-z]", text or ""))
-        if has_cjk and has_latin:
-            # SAOT-like reduction from pretranslation baseline
-            cross_lang_loss = max(0.0, PRETRANSLATION_ACCURACY_LOSS_PCT / 100.0 * (1.0 - SAOT_ANCHOR_RETENTION_TARGET))
-        elif has_cjk or has_latin:
-            cross_lang_loss = 0.03
-        else:
-            cross_lang_loss = 0.08
-
-        # D) decode consistency loss from hierarchical continuity proxy
-        hdec = ((result.get("reason") or {}).get("kq_hierarchical_decode") or {})
-        continuity = float(hdec.get("continuity_factor", 0.5) or 0.5)
-        decode_consistency_loss = 1.0 - max(0.0, min(1.0, continuity))
-
-        # E) readability execution loss from sweep
         pdf_target = float((sweep or {}).get("pdf_target", 1) or 1)
         text_target = float((sweep or {}).get("text_target", 1) or 1)
         pdf_read = float((sweep or {}).get("pdf_read_count", 0) or 0)
         text_read = float((sweep or {}).get("text_read_count", 0) or 0)
         read_cov = min(1.0, (pdf_read / max(1.0, pdf_target)) * 0.5 + (text_read / max(1.0, text_target)) * 0.5)
-        readability_loss = 1.0 - read_cov
 
-        # Weighted aggregate (KS-like measured/estimated hybrid)
+        # 1) semantic fidelity loss
+        compression_ratio = float(result.get("context_compression_ratio", 1.0) or 1.0)
+        compression_loss = min(1.0, abs(1.0 - compression_ratio))
+        hdec = ((result.get("reason") or {}).get("kq_hierarchical_decode") or {})
+        continuity = float(hdec.get("continuity_factor", 0.5) or 0.5)
+        decode_loss = 1.0 - max(0.0, min(1.0, continuity))
+        semantic_fidelity_loss = self._clamp(compression_loss * 0.55 + decode_loss * 0.45)
+
+        # 2) embodied signal loss (sensory/action/environment)
+        sensory_hits = sum(1 for k in ["pain", "fatigue", "comfort", "discomfort", "痛み", "疲労", "感覚"] if k in low)
+        action_hits = sum(1 for k in ["intervention", "manipulation", "operate", "procedure", "介入", "操作", "動作"] if k in low)
+        env_hits = sum(1 for k in ["temperature", "touch", "noise", "visual", "environment", "温度", "接触", "環境"] if k in low)
+        embodied_signal_strength = self._clamp(min(1.0, sensory_hits / 3.0) * 0.34 + min(1.0, action_hits / 3.0) * 0.33 + min(1.0, env_hits / 3.0) * 0.33)
+        embodied_signal_loss = self._clamp(1.0 - embodied_signal_strength)
+
+        # 3) temporal-paradigm loss (publication_time / subject_time + paradigm tags)
+        pub_year = int((paper_stats or {}).get("latest_year", 0) or 0)
+        years_in_text = [int(y) for y in re.findall(r"\b(19\d{2}|20\d{2})\b", t)]
+        subject_year = max(years_in_text) if years_in_text else 0
+        if pub_year <= 0:
+            pub_year = max(0, subject_year)
+        if pub_year > 0 and subject_year > 0:
+            year_gap = abs(pub_year - subject_year)
+            time_gap_penalty = min(1.0, year_gap / 20.0)
+        else:
+            time_gap_penalty = 0.35
+
+        paradigm_tags = {
+            "empiricism": ["trial", "experiment", "observed", "empirical", "実験"],
+            "mechanistic": ["mechanism", "causal", "pathway", "機序"],
+            "statistical": ["regression", "significant", "p-value", "bayesian", "統計"],
+            "interpretive": ["interpret", "phenomenology", "narrative", "解釈"],
+            "engineering": ["pipeline", "system", "benchmark", "deployment", "実装"],
+        }
+        detected = [k for k, ws in paradigm_tags.items() if any(w in low for w in ws)]
+        paradigm_penalty = 0.18 if detected else 0.45
+        temporal_paradigm_loss = self._clamp(time_gap_penalty * 0.65 + paradigm_penalty * 0.35)
+
+        # 4) stance-context loss (sentence -> paragraph -> document lightweight proxy)
+        stance_hits = sum(1 for k in ["we argue", "we claim", "suggest", "hypothesis", "主張", "示唆", "仮説"] if k in low)
+        context_hits = sum(1 for k in ["however", "although", "in this context", "一方", "ただし", "文脈"] if k in low)
+        contradiction_hits = sum(1 for k in ["always", "never", "絶対", "必ず"] if k in low)
+        stance_context_strength = self._clamp(min(1.0, stance_hits / 3.0) * 0.45 + min(1.0, context_hits / 3.0) * 0.35 - min(0.4, contradiction_hits * 0.08))
+        stance_context_loss = self._clamp(1.0 - stance_context_strength)
+
+        # 5) evidence grounding loss
+        grounding_strength = min(1.0, refs_count / 40.0) * 0.45 + min(1.0, html_hits / 12.0) * 0.25 + read_cov * 0.30
+        evidence_grounding_loss = self._clamp(1.0 - grounding_strength)
+
+        # fixed-weight aggregate (manual tuning policy)
+        weights = {
+            "semantic_fidelity_loss": 0.24,
+            "embodied_signal_loss": 0.20,
+            "temporal_paradigm_loss": 0.20,
+            "stance_context_loss": 0.16,
+            "evidence_grounding_loss": 0.20,
+        }
         score = self._clamp(
-            compression_loss * 0.22
-            + citation_grounding_loss * 0.30
-            + cross_lang_loss * 0.16
-            + decode_consistency_loss * 0.18
-            + readability_loss * 0.14
+            semantic_fidelity_loss * weights["semantic_fidelity_loss"]
+            + embodied_signal_loss * weights["embodied_signal_loss"]
+            + temporal_paradigm_loss * weights["temporal_paradigm_loss"]
+            + stance_context_loss * weights["stance_context_loss"]
+            + evidence_grounding_loss * weights["evidence_grounding_loss"]
         )
 
         source_layer = self._detect_layer_from_features(text)
         target_layer = "natural_language"
-
-        # confidence: more refs and html hits => higher confidence in measured estimate
         confidence = self._clamp(0.45 + min(0.35, refs_count / 120.0) + min(0.20, html_hits / 20.0))
 
         if score <= 0.18:
@@ -760,18 +799,30 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
             "mode": "measured" if refs_count > 0 else "estimated",
             "score": round(score, 4),
             "profile": profile,
-            "anchor_retention_estimate": round(1.0 - cross_lang_loss, 4),
+            "anchor_retention_estimate": round(1.0 - semantic_fidelity_loss, 4),
             "components": {
-                "compression_loss": round(compression_loss, 4),
-                "citation_grounding_loss": round(citation_grounding_loss, 4),
-                "cross_lang_loss": round(cross_lang_loss, 4),
-                "decode_consistency_loss": round(decode_consistency_loss, 4),
-                "readability_loss": round(readability_loss, 4),
+                "semantic_fidelity_loss": round(semantic_fidelity_loss, 4),
+                "embodied_signal_loss": round(embodied_signal_loss, 4),
+                "temporal_paradigm_loss": round(temporal_paradigm_loss, 4),
+                "stance_context_loss": round(stance_context_loss, 4),
+                "evidence_grounding_loss": round(evidence_grounding_loss, 4),
             },
+            "weights": {k: round(v, 4) for k, v in weights.items()},
             "confidence": round(confidence, 4),
             "auto_detected_layers": {
                 "source": source_layer,
                 "target": target_layer,
+                "paradigm_tags": detected,
+            },
+            "temporal_axes": {
+                "publication_time": pub_year,
+                "subject_time": subject_year,
+                "time_gap_penalty": round(time_gap_penalty, 4),
+            },
+            "embodied_axes": {
+                "sensory_hits": sensory_hits,
+                "action_hits": action_hits,
+                "environment_hits": env_hits,
             },
         }
 
@@ -865,7 +916,7 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
         fw["mini_solver_activation_ratio"] = float((mini or {}).get("activation_ratio", 0.0) or 0.0)
         r["fusion_weights"] = fw
 
-        r["kq_revision"] = "02b-r10"
+        r["kq_revision"] = "02b-r11"
         r["model"] = self.SYSTEM_MODEL
         r["alias"] = self.ALIAS
         return r
