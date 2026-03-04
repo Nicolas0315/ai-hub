@@ -825,17 +825,29 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
             },
             "coordinate_extraction": {
                 "category_tags": [k for k, ws in {
-                    "medical": ["clinical", "patient", "trial", "症状", "治療"],
-                    "engineering": ["system", "pipeline", "benchmark", "deployment", "実装"],
-                    "social": ["policy", "society", "ethics", "制度", "倫理"],
-                    "cognitive": ["perception", "memory", "attention", "認知", "知覚"],
+                    "medical": ["clinical", "patient", "trial", "symptom", "therapy", "症状", "治療"],
+                    "engineering": ["system", "pipeline", "benchmark", "deployment", "implementation", "実装", "運用"],
+                    "social": ["policy", "society", "ethics", "institution", "制度", "倫理", "社会"],
+                    "cognitive": ["perception", "memory", "attention", "cognitive", "認知", "知覚", "記憶"],
+                    "education": ["learning", "curriculum", "classroom", "pedagogy", "教育", "学習"],
+                    "economics": ["market", "cost", "incentive", "productivity", "経済", "費用"],
+                    "security": ["threat", "vulnerability", "safety", "attack", "セキュリティ", "脆弱性"],
+                    "environment": ["climate", "pollution", "sustainability", "ecology", "環境", "気候"],
+                    "law_governance": ["law", "regulation", "compliance", "governance", "法", "規制", "ガバナンス"],
+                    "culture": ["culture", "norm", "value", "tradition", "文化", "価値観"],
                 }.items() if any(w in low for w in ws)],
                 "paradigm_tags": detected,
                 "perspective_tags": [k for k, ws in {
                     "author": ["we", "our", "本研究", "我々"],
-                    "participant": ["patient", "user", "participant", "被験者", "利用者"],
-                    "system": ["model", "system", "algorithm", "手法"],
-                    "institution": ["guideline", "policy", "regulation", "規制", "指針"],
+                    "participant": ["patient", "user", "participant", "subject", "被験者", "利用者"],
+                    "system": ["model", "system", "algorithm", "agent", "手法", "モデル"],
+                    "institution": ["guideline", "policy", "regulation", "committee", "規制", "指針"],
+                    "practitioner": ["clinician", "engineer", "operator", "teacher", "医師", "技術者", "運用者"],
+                    "community": ["community", "citizen", "public", "stakeholder", "市民", "社会"],
+                    "industry": ["company", "enterprise", "product", "business", "企業", "産業"],
+                    "regulator": ["authority", "government", "ministry", "oversight", "政府", "当局"],
+                    "historian": ["historical", "archive", "chronicle", "history", "歴史", "史料"],
+                    "global_south": ["global south", "developing", "low-resource", "途上国", "低資源"],
                 }.items() if any(w in low for w in ws)],
                 "opinion_tags": [k for k, ws in {
                     "hypothesis": ["hypothesis", "仮説", "we hypothesize"],
@@ -936,7 +948,7 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
         fw["mini_solver_activation_ratio"] = float((mini or {}).get("activation_ratio", 0.0) or 0.0)
         r["fusion_weights"] = fw
 
-        r["kq_revision"] = "02b-r12"
+        r["kq_revision"] = "02b-r13"
         r["model"] = self.SYSTEM_MODEL
         r["alias"] = self.ALIAS
         return r
