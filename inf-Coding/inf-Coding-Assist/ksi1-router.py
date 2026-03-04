@@ -15,6 +15,9 @@ from katala_samurai.inf_bridge import (
     make_ephemeral_audit_file,
     append_ephemeral_audit,
     cleanup_ephemeral_audit,
+    make_ephemeral_goal_history_file,
+    append_goal_event,
+    cleanup_goal_history,
 )
 from katala_samurai.inf_coding_adapter import emit_router_event
 
@@ -199,9 +202,11 @@ def main() -> int:
         return 64
 
     audit_path = make_ephemeral_audit_file()
+    goal_history_path = make_ephemeral_goal_history_file()
     try:
         command = ' '.join(sys.argv[1:])
         append_ephemeral_audit(audit_path, {"event": "start", "command": command})
+        append_goal_event(goal_history_path, {"event": "goal_set", "goal": command})
 
         route, detail = decide_route(command)
 
@@ -213,6 +218,12 @@ def main() -> int:
             "model": detail.get('model'),
             "verdict": detail.get('verdict'),
         })
+        append_goal_event(goal_history_path, {
+            "event": "goal_route",
+            "route": route,
+            "reason": detail.get('reason'),
+            "model": detail.get('model'),
+        })
 
         env = os.environ.copy()
         env['KSI1_ROUTE'] = route
@@ -221,10 +232,12 @@ def main() -> int:
 
         rc = subprocess.call(sys.argv[1:], cwd='/mnt/c/Users/ogosh/Documents/NICOLAS/Katala', env=env)
         append_ephemeral_audit(audit_path, {"event": "completed", "rc": rc})
+        append_goal_event(goal_history_path, {"event": "goal_complete", "rc": rc})
         return rc
     finally:
-        # cache-only audit: always remove at task completion
+        # cache-only audit/history: always remove at task completion
         cleanup_ephemeral_audit(audit_path)
+        cleanup_goal_history(goal_history_path)
 
 
 if __name__ == '__main__':

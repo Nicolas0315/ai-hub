@@ -184,6 +184,31 @@ def run_inf_bridge(command: str) -> dict[str, Any]:
     return payload
 
 
+def make_ephemeral_goal_history_file() -> str:
+    root = os.getenv(
+        "INF_BRIDGE_GOAL_DIR",
+        "/mnt/c/Users/ogosh/Documents/NICOLAS/Katala/inf-Coding/inf-Coding-run/.tmp-goal-history",
+    )
+    os.makedirs(root, exist_ok=True)
+    fd, path = tempfile.mkstemp(prefix="goal-history-", suffix=".jsonl", dir=root)
+    os.close(fd)
+    return path
+
+
+def append_goal_event(path: str, event: dict[str, Any]) -> None:
+    rec = {"ts": time.time(), **event}
+    with open(path, "a", encoding="utf-8") as f:
+        f.write(json.dumps(rec, ensure_ascii=False) + "\n")
+
+
+def cleanup_goal_history(path: str) -> None:
+    try:
+        if path and os.path.exists(path):
+            os.unlink(path)
+    except Exception:
+        pass
+
+
 def make_ephemeral_audit_file() -> str:
     root = os.getenv(
         "INF_BRIDGE_AUDIT_DIR",
