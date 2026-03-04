@@ -30,9 +30,11 @@ inf-Coding から利用する補助ツール層。
 ```
 
 ### 3) KQ/KS47 router (fast/strict)
-`ksi1-route.sh` は `inf-Bridge` 前段を通した後、既定で `Katala_Quantum_02a (KQ02a)` を使ってコマンドを判定し、fast/strict で実行ルーティングします。
+`ksi1-route.sh` は `inf-Bridge` 前段（plan→route→verify）を通した後、既定で `Katala_Quantum_02a (KQ02a)` を使ってコマンドを判定し、fast/strict で実行ルーティングします。
 
 - 既定: `[Katala_Quantum][KQ]シリーズを使用` (`Katala_Quantum_02a`)
+- 外部由来コンテキストは `untrusted` 扱い（拒否ではなく慎重ルーティング）
+- inf-Bridge監査ログは一時キャッシュ出力のみで、タスク完了時に自動削除
 - 明示時のみ: `KS47` 直結（`ks-bridge.py`。自動フォールバックなし）
 
 ```bash

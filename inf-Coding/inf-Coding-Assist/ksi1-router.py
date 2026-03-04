@@ -10,7 +10,13 @@ import sys
 sys.path.insert(0, '/mnt/c/Users/ogosh/Documents/NICOLAS/Katala/src')
 
 from katala_samurai.katala_quantum_02a import Katala_Quantum_02a, KQ02a
-from katala_samurai.inf_bridge import build_inf_bridge_payload
+from katala_samurai.inf_bridge import (
+    build_inf_bridge_payload,
+    plan_step,
+    make_ephemeral_audit_file,
+    append_ephemeral_audit,
+    cleanup_ephemeral_audit,
+)
 from katala_samurai.inf_coding_adapter import emit_router_event
 
 RISK_PATTERNS = [
@@ -59,6 +65,8 @@ def _select_model(command: str):
 
 def decide_route(command: str) -> tuple[str, dict]:
     bridge = build_inf_bridge_payload(command)
+    bridge_plan = plan_step(bridge)
+    bridge["plan"] = bridge_plan
     normalized_command = (bridge.get("input") or {}).get("normalized") or command
     cbind = (bridge.get("context_binding") or {})
 
@@ -130,6 +138,8 @@ def decide_route(command: str) -> tuple[str, dict]:
     # Model suggested route has priority when provided
     model_route = result.get('route') if isinstance(result, dict) else None
 
+    bridge_hint = bridge_plan.get('route_hint')
+
     if model_route in {'fast', 'strict'}:
         route = model_route
         reason = 'model_quantum_route' if 'quantum' in str(mode) else 'model_route'
@@ -158,6 +168,11 @@ def decide_route(command: str) -> tuple[str, dict]:
             route = 'strict'
             reason = 'generic_default_strict'
 
+    # inf-Bridge plan hint has final safety priority
+    if bridge_hint == 'strict' and route != 'strict':
+        route = 'strict'
+        reason = 'inf_bridge_plan_strict'
+
     detail = {
         'route': route,
         'reason': reason,
@@ -185,16 +200,33 @@ def main() -> int:
         print('Usage: ksi1-router.py <command...>', file=sys.stderr)
         return 64
 
-    command = ' '.join(sys.argv[1:])
-    route, detail = decide_route(command)
+    audit_path = make_ephemeral_audit_file()
+    try:
+        command = ' '.join(sys.argv[1:])
+        append_ephemeral_audit(audit_path, {"event": "start", "command": command})
 
-    print(json.dumps({'command': command, **detail}, ensure_ascii=False))
+        route, detail = decide_route(command)
 
-    env = os.environ.copy()
-    env['KSI1_ROUTE'] = route
-    env['KSI_MODEL_ACTIVE'] = detail.get('model', '')
-    rc = subprocess.call(sys.argv[1:], cwd='/mnt/c/Users/ogosh/Documents/NICOLAS/Katala', env=env)
-    return rc
+        print(json.dumps({'command': command, **detail}, ensure_ascii=False))
+        append_ephemeral_audit(audit_path, {
+            "event": "routed",
+            "route": route,
+            "reason": detail.get('reason'),
+            "model": detail.get('model'),
+            "verdict": detail.get('verdict'),
+        })
+
+        env = os.environ.copy()
+        env['KSI1_ROUTE'] = route
+        env['KSI_MODEL_ACTIVE'] = detail.get('model', '')
+        env['INF_BRIDGE_TRUST'] = (((detail.get('inf_bridge') or {}).get('input') or {}).get('source_trust') or 'untrusted')
+
+        rc = subprocess.call(sys.argv[1:], cwd='/mnt/c/Users/ogosh/Documents/NICOLAS/Katala', env=env)
+        append_ephemeral_audit(audit_path, {"event": "completed", "rc": rc})
+        return rc
+    finally:
+        # cache-only audit: always remove at task completion
+        cleanup_ephemeral_audit(audit_path)
 
 
 if __name__ == '__main__':
