@@ -12,6 +12,7 @@ from .kq_symbolic_bridge import (
 )
 from .rust_hotpath_bridge import dense_dependency_edges as _rust_dense_dependency_edges
 from .iut_formal_dictionary import IUT_FORMAL_DICTIONARY, normalize_iut_terms
+from .iut_lemma_catalog import build_iut_lemma_catalog_v1
 
 
 @dataclass
@@ -417,6 +418,8 @@ def evaluate_iut_core_subset_v1(nodes: list[IUTLemmaNode] | None = None) -> dict
             "detected": normalize_iut_terms(f"{n.title} {n.source_note}").get("detected_concepts", []),
         })
 
+    catalog = build_iut_lemma_catalog_v1()
+
     return {
         "ok": ok_n == total,
         "subset": "iut_core_subset_v1",
@@ -427,6 +430,12 @@ def evaluate_iut_core_subset_v1(nodes: list[IUTLemmaNode] | None = None) -> dict
         "formal_dictionary": {
             "concepts": [c.key for c in IUT_FORMAL_DICTIONARY],
             "node_hits": dictionary_hits,
+        },
+        "lemma_catalog": {
+            "version": "v1",
+            "size": len(catalog),
+            "ids": [c.lemma_id for c in catalog],
+            "papers": sorted(list({c.paper for c in catalog})),
         },
         "dependency_graph": graph,
         "optimization": {
