@@ -189,6 +189,13 @@ def _rank_envs_nn_qemu(names: list[str], candidates: list[dict[str, Any]], featu
     return [e for _, e in ranked]
 
 
+def _rank_bool_assignments_nn(names: list[str]) -> list[dict[str, bool]]:
+    if not names:
+        return []
+    cand = [{k: bool(v) for k, v in zip(names, bits)} for bits in product([False, True], repeat=len(names))]
+    return _rank_envs_nn_qemu(names, cand)
+
+
 def _smt_prefix_to_infix(formula: str) -> str:
     s = (formula or "").strip()
     low = s.lower()
@@ -779,8 +786,8 @@ def solve_sat_lite(expr: str) -> dict[str, Any]:
             }
 
         def _sat_for(subset: list[list[tuple[str, bool]]]) -> bool:
-            for bits in product([False, True], repeat=len(vars_list)):
-                env = {k: b for k, b in zip(vars_list, bits)}
+            ranked_envs = _rank_bool_assignments_nn(vars_list)
+            for env in ranked_envs:
                 if all(any((env.get(v, False) is sign) for v, sign in cl) for cl in subset):
                     return True
             return False
@@ -1255,8 +1262,9 @@ def solve_nra_lite(expr: str) -> dict[str, Any]:
         ranges = [range(lo, hi + 1) for (lo, hi) in doms.values()]
         sols = []
         checks = 0
-        for values in product(*ranges):
-            env = {k: int(v) for k, v in zip(names, values)}
+        cand_envs = [{k: int(v) for k, v in zip(names, values)} for values in product(*ranges)]
+        cand_envs = _rank_envs_nn_qemu(names, cand_envs)
+        for env in cand_envs:
             checks += 1
             ev = _eval_symbolic_env(formula, env)
             if ev.get("ok") and bool(ev.get("result")):
