@@ -30,6 +30,7 @@ try:
         eval_symbolic,
         solve_smt_optional,
         solve_sat_lite,
+        solve_math_logic_unified,
     )
     _HAS_KQ_FORMAL = True
 except Exception:
@@ -80,23 +81,35 @@ def _select_model(command: str):
 
 
 def _formal_probe(command: str) -> dict:
-    """Run lightweight formal probe so inf-Bridge routes with heuristic+formal evidence."""
+    """Run formal probe so inf-Bridge routes with heuristic+formal evidence."""
     if not _HAS_KQ_FORMAL:
         return {"enabled": False, "reason": "kq_formal_bridge_unavailable"}
 
     s = (command or "").strip()
     low = s.lower()
 
-    # Route to the strongest matching checker first
+    # Standard operation: run unified math+logic coverage first.
+    unified = solve_math_logic_unified(s)
+
+    # Keep explicit kind for routing compatibility.
     if any(k in low for k in ["vars:", "formula:", " in [", "==", ">=", "<="]):
         r = solve_smt_optional(s)
-        return {"enabled": True, "kind": "smt", "result": r}
+        return {"enabled": True, "kind": "smt", "result": r, "unified": unified}
     if any(k in low for k in ["cnf:", "clause:", "sat(", "unsat", " or ", " and "]):
         r = solve_sat_lite(s)
-        return {"enabled": True, "kind": "sat", "result": r}
+        return {"enabled": True, "kind": "sat", "result": r, "unified": unified}
+
+    primary = ((unified.get("primary") or {}).get("result") if isinstance(unified, dict) else None)
+    if isinstance(primary, dict):
+        return {
+            "enabled": True,
+            "kind": ((unified.get("primary") or {}).get("solver") or "unified"),
+            "result": primary,
+            "unified": unified,
+        }
 
     r = eval_symbolic(s)
-    return {"enabled": True, "kind": "symbolic", "result": r}
+    return {"enabled": True, "kind": "symbolic", "result": r, "unified": unified}
 
 
 def decide_route(command: str) -> tuple[str, dict]:
