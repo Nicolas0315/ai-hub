@@ -699,6 +699,7 @@ def verify_isabelle_proof(script: str) -> dict[str, Any]:
 
 def solve_sat_lite(expr: str) -> dict[str, Any]:
     """SAT-lite (CDCL-lite flavored) + UNSAT core-lite."""
+    sat_cache: dict[str, bool] = {}
     try:
         s = (expr or "").strip().lower()
         clause_txts = [x.strip() for x in re.split(r"\)\s*and\s*\(", s.strip().strip("()")) if x.strip()]
@@ -797,7 +798,22 @@ def solve_sat_lite(expr: str) -> dict[str, Any]:
             row = [(v, sign) for v, sign in cl if v not in pre_env]
             if row:
                 simplified.append(row)
-        clauses = simplified
+
+        # lightweight vivification: remove duplicate literals and sort short-first
+        vivified: list[list[tuple[str, bool]]] = []
+        for cl in simplified:
+            lit_map: dict[str, bool] = {}
+            taut = False
+            for v, sign in cl:
+                if v in lit_map and lit_map[v] is not sign:
+                    taut = True
+                    break
+                lit_map[v] = sign
+            if taut:
+                continue
+            vivified.append([(v, sgn) for v, sgn in sorted(lit_map.items(), key=lambda x: x[0])])
+        vivified.sort(key=len)
+        clauses = vivified
 
         watched_literals = [[(v if sign else f"not {v}") for v, sign in (cl[:2] if len(cl) >= 2 else cl[:1])] for cl in clauses]
 
@@ -838,8 +854,15 @@ def solve_sat_lite(expr: str) -> dict[str, Any]:
             for v, _ in cl:
                 var_activity[v] = var_activity.get(v, 0) + 1
 
+        restart_conf_base = 0
+        restart_conf_budget = 10**9
+        restart_triggered = False
+
         def dpll(env: dict[str, bool], level: int = 0):
-            nonlocal watched_literals
+            nonlocal watched_literals, restart_triggered, restart_conf_base, restart_conf_budget
+            if (trace["conflicts"] - restart_conf_base) >= restart_conf_budget:
+                restart_triggered = True
+                return None
             trace["checked_points"] += 1
             current_watches = _refresh_watches(env)
             watched_literals = current_watches
@@ -908,7 +931,21 @@ def solve_sat_lite(expr: str) -> dict[str, Any]:
             learned_clauses.append(f"backjump({v})")
             return None
 
-        sat_model = dpll(dict(pre_env))
+        # Luby-lite restart schedule (shortest-path practical boost)
+        restart_budgets = [64, 128, 256]
+        sat_model = None
+        restart_used = 0
+        for budget in restart_budgets:
+            restart_conf_base = trace["conflicts"]
+            restart_conf_budget = int(budget)
+            restart_triggered = False
+            sat_model = dpll(dict(pre_env), 0)
+            if sat_model is not None:
+                break
+            if restart_triggered:
+                restart_used += 1
+                continue
+            break
 
         if sat_model is not None:
             proof_trace = {
@@ -917,6 +954,7 @@ def solve_sat_lite(expr: str) -> dict[str, Any]:
                 "watched_literals_init": watched_literals,
                 "learned_clauses": learned_clauses,
                 "preprocess": {"removed_tautologies": removed_taut, "unit_assignments": len(pre_env)},
+                "restart": {"strategy": "luby-lite", "used": restart_used, "budgets": restart_budgets},
                 **trace,
             }
             return {
@@ -930,11 +968,25 @@ def solve_sat_lite(expr: str) -> dict[str, Any]:
             }
 
         def _sat_for(subset: list[list[tuple[str, bool]]]) -> bool:
+            # incremental SAT cache (ephemeral; cleared at end of this run)
+            key = "|".join(
+                ",".join([f"{v}:{1 if sign else 0}" for v, sign in cl])
+                for cl in sorted(
+                    [sorted(cl, key=lambda x: x[0]) for cl in subset],
+                    key=lambda row: (len(row), ",".join(v for v, _ in row)),
+                )
+            )
+            if key in sat_cache:
+                return sat_cache[key]
+
             ranked_envs = _rank_bool_assignments_nn(vars_list)
+            ok = False
             for env in ranked_envs:
                 if all(any((env.get(v, False) is sign) for v, sign in cl) for cl in subset):
-                    return True
-            return False
+                    ok = True
+                    break
+            sat_cache[key] = ok
+            return ok
 
         # First shrink greedily, then exact-minimize (for manageable clause counts)
         core = clauses[:]
@@ -990,6 +1042,7 @@ def solve_sat_lite(expr: str) -> dict[str, Any]:
             "watched_literals_init": watched_literals,
             "learned_clauses": learned_clauses,
             "preprocess": {"removed_tautologies": removed_taut, "unit_assignments": len(pre_env)},
+            "restart": {"strategy": "luby-lite", "used": restart_used, "budgets": restart_budgets},
             "unsat_core_exact_minimized": exact_min_applied,
             "unsat_core_minimal_verified": core_minimal,
             "unsat_core_quality": "high" if core_minimal else "medium",
@@ -1006,6 +1059,9 @@ def solve_sat_lite(expr: str) -> dict[str, Any]:
         }
     except Exception as e:
         return {"ok": False, "proof_status": "failed", "error": str(e), "solver": "sat-lite"}
+    finally:
+        # strict no-residual policy: clear all run-local caches/memory
+        sat_cache.clear()
 
 
 def solve_bitvec_lite(expr: str) -> dict[str, Any]:
