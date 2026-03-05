@@ -597,6 +597,12 @@ def solve_sat_lite(expr: str) -> dict[str, Any]:
             ranked_env = _rank_envs_quantum_emu(vars_list, probe)
             ranked_vars = [k for k in vars_list if ranked_env and ranked_env[0].get(k, False)] + [k for k in vars_list if not (ranked_env and ranked_env[0].get(k, False))]
 
+        # frequency/activity heuristic (CDCL-lite flavor)
+        var_activity = {v: 0 for v in vars_list}
+        for cl in clauses:
+            for v, _ in cl:
+                var_activity[v] = var_activity.get(v, 0) + 1
+
         def dpll(env: dict[str, bool], level: int = 0):
             nonlocal watched_literals
             trace["checked_points"] += 1
@@ -610,6 +616,10 @@ def solve_sat_lite(expr: str) -> dict[str, Any]:
                     st = _clause_state(cl, env)
                     if st == -1:
                         trace["conflicts"] += 1
+                        # tiny clause-learning surrogate: learn negation of current decision frontier
+                        if env:
+                            learnt = " or ".join([f"not {k}" if v else k for k, v in sorted(env.items())[:4]])
+                            learned_clauses.append(f"conflict_clause({learnt})")
                         return None
                     if st == 0:
                         un = [(v, sign) for v, sign in cl if v not in env]
@@ -618,11 +628,34 @@ def solve_sat_lite(expr: str) -> dict[str, Any]:
                             env[v] = sign
                             changed = True
 
+                # pure literal elimination in remaining unresolved clauses
+                unresolved = [cl for cl in clauses if _clause_state(cl, env) == 0]
+                if unresolved:
+                    pol = {}
+                    for cl in unresolved:
+                        for v, sign in cl:
+                            if v in env:
+                                continue
+                            pol.setdefault(v, set()).add(sign)
+                    for v, sset in pol.items():
+                        if len(sset) == 1 and v not in env:
+                            env[v] = list(sset)[0]
+                            changed = True
+
             if all(_clause_state(cl, env) == 1 for cl in clauses):
                 return dict(env)
 
-            # pick next variable
-            v = next((x for x in ranked_vars if x not in env), None)
+            # pick next variable by activity among unresolved clauses
+            unresolved = [cl for cl in clauses if _clause_state(cl, env) == 0]
+            cand = [x for x in ranked_vars if x not in env]
+            if unresolved:
+                score = {v: 0 for v in cand}
+                for cl in unresolved:
+                    for vv, _ in cl:
+                        if vv in score:
+                            score[vv] += 1
+                cand.sort(key=lambda x: (score.get(x, 0), var_activity.get(x, 0)), reverse=True)
+            v = cand[0] if cand else None
             if v is None:
                 return None
 
@@ -677,7 +710,7 @@ def solve_sat_lite(expr: str) -> dict[str, Any]:
                     i += 1
 
         exact_min_applied = False
-        if len(core) <= 14:
+        if len(core) <= 18:
             n = len(core)
             found = None
             for k in range(1, n + 1):
@@ -699,6 +732,16 @@ def solve_sat_lite(expr: str) -> dict[str, Any]:
         for v in sorted(unit_pos & unit_neg):
             learned_clauses.append(f"conflict({v})")
 
+        core_minimal = True
+        if len(core) > 1:
+            for i in range(len(core)):
+                trial = core[:i] + core[i + 1 :]
+                if not trial:
+                    continue
+                if not _sat_for(trial):
+                    core_minimal = False
+                    break
+
         return {
             "ok": True,
             "proof_status": "checked",
@@ -712,6 +755,8 @@ def solve_sat_lite(expr: str) -> dict[str, Any]:
                 "watched_literals_init": watched_literals,
                 "learned_clauses": learned_clauses,
                 "unsat_core_exact_minimized": exact_min_applied,
+                "unsat_core_minimal_verified": core_minimal,
+                "unsat_core_quality": "high" if core_minimal else "medium",
                 **trace,
             },
         }
@@ -837,65 +882,143 @@ def solve_hol_lite(expr: str) -> dict[str, Any]:
 
 
 def solve_ctl_lite(expr: str) -> dict[str, Any]:
-    """CTL-lite over finite path sets.
+    """CTL-lite on a finite linear Kripke path.
 
     Syntax:
-    - op=EX; p=[q,p,r]
-    - op=AX; p=[p,p]
-    - op=EF; p=[q,r,p]
-    - op=AG; p=[p,p,p]
+    - op=EX; atom=p; trace=[q,p,r]
+    - op=AG; atom=p; trace=[p,p,p]
     """
     try:
-        parts = {k.strip().lower(): v.strip().lower() for k,v in [x.split('=',1) for x in (expr or '').split(';') if '=' in x]}
-        op = parts.get('op','')
-        ptxt = parts.get('p','[]').strip()
-        if ptxt.startswith('[') and ptxt.endswith(']'):
-            body = ptxt[1:-1].strip()
+        parts = {k.strip().lower(): v.strip() for k,v in [x.split('=',1) for x in (expr or '').split(';') if '=' in x]}
+        op = parts.get('op','').lower()
+        atom = parts.get('atom', 'p').strip().lower()
+        ttxt = parts.get('trace', parts.get('p', '[]')).strip()
+        if ttxt.startswith('[') and ttxt.endswith(']'):
+            body = ttxt[1:-1].strip()
             seq = [x.strip().strip('"\'').lower() for x in body.split(',') if x.strip()]
         else:
-            seq = [x.strip().strip('"\'').lower() for x in ptxt.split(',') if x.strip()]
-        if not isinstance(seq,(list,tuple)):
-            return {'ok': False, 'proof_status': 'failed', 'solver': 'ctl-lite', 'error': 'p must be list'}
+            seq = [x.strip().strip('"\'').lower() for x in ttxt.split(',') if x.strip()]
+        if not isinstance(seq,(list,tuple)) or len(seq) == 0:
+            return {'ok': False, 'proof_status': 'failed', 'solver': 'ctl-lite', 'error': 'trace must be non-empty list'}
+
+        sat = [x == atom for x in seq]
         if op=='ex':
-            r = len(seq) >= 1 and seq[0] == 'p'
+            r = len(sat) >= 2 and sat[1]
         elif op=='ax':
-            r = len(seq) >= 1 and all(x == 'p' for x in seq[:1])
+            r = len(sat) >= 2 and sat[1]
         elif op=='ef':
-            r = any(x == 'p' for x in seq)
+            r = any(sat)
         elif op=='ag':
-            r = all(x == 'p' for x in seq)
+            r = all(sat)
         else:
             return {'ok': False, 'proof_status': 'failed', 'solver': 'ctl-lite', 'error': 'unsupported op'}
-        return {'ok': True, 'proof_status': 'checked', 'solver': 'ctl-lite', 'result': bool(r), 'op': op.upper()}
+        return {'ok': True, 'proof_status': 'checked', 'solver': 'ctl-lite', 'result': bool(r), 'op': op.upper(), 'atom': atom}
     except Exception as e:
         return {'ok': False, 'proof_status': 'failed', 'solver': 'ctl-lite', 'error': str(e)}
 
 
 def solve_mu_lite(expr: str) -> dict[str, Any]:
-    """mu-calculus-lite fixed-point style checker (very limited).
+    """mu-calculus-lite strict fixed-point checker over finite traces.
 
-    Syntax:
-    - mu X. p or X ; trace=[q,p]
-    - nu X. p and X ; trace=[p,p]
+    Supported body grammar (lowercase):
+    - p | x | ex x | ax x
+    - (A and B) | (A or B) | not A
+    Example:
+    - mu X. (p or ex x); trace=[q,p,p]
+    - nu X. (p and ax x); trace=[p,p,p]
     """
     try:
-        e=(expr or '').strip().lower()
-        tr=[]
-        if ';' in e and 'trace=' in e:
-            left,right=e.split(';',1)
-            e=left.strip()
-            ttxt = right.split('=',1)[1].strip()
-            if ttxt.startswith('[') and ttxt.endswith(']'):
-                body = ttxt[1:-1].strip()
-                tr=[x.strip().strip('"\'').lower() for x in body.split(',') if x.strip()]
-        tr=[str(x).strip().lower() for x in (tr or [])]
-        if e.startswith('mu '):
-            r = ('p' in tr) or (' p ' in f' {e} ')
-            return {'ok': True, 'proof_status': 'checked', 'solver': 'mu-lite', 'result': bool(r), 'fixpoint': 'mu'}
-        if e.startswith('nu '):
-            r = (len(tr)>0 and all(x=='p' for x in tr))
-            return {'ok': True, 'proof_status': 'checked', 'solver': 'mu-lite', 'result': bool(r), 'fixpoint': 'nu'}
-        return {'ok': False, 'proof_status': 'failed', 'solver': 'mu-lite', 'error': 'unsupported syntax'}
+        raw = (expr or '').strip()
+        parts = [x.strip() for x in raw.split(';') if x.strip()]
+        core = parts[0].lower() if parts else ''
+        atom = 'p'
+        trace = []
+        for p in parts[1:]:
+            if '=' not in p:
+                continue
+            k, v = p.split('=', 1)
+            k = k.strip().lower()
+            v = v.strip()
+            if k == 'atom':
+                atom = v.strip().strip('"\'').lower()
+            elif k == 'trace':
+                if v.startswith('[') and v.endswith(']'):
+                    body = v[1:-1].strip()
+                    trace = [x.strip().strip('"\'').lower() for x in body.split(',') if x.strip()]
+        if not trace:
+            return {'ok': False, 'proof_status': 'failed', 'solver': 'mu-lite', 'error': 'trace required'}
+
+        m = re.match(r'^(mu|nu)\s+([a-z_]\w*)\s*\.\s*(.+)$', core)
+        if not m:
+            return {'ok': False, 'proof_status': 'failed', 'solver': 'mu-lite', 'error': 'unsupported syntax'}
+        q, var, body = m.group(1), m.group(2), m.group(3)
+        n = len(trace)
+        pset = {i for i, x in enumerate(trace) if x == atom}
+
+        def eval_body(X: set[int]) -> set[int]:
+            b = body
+            # very small evaluator: replace terminals then resolve ex/ax over linear trace
+            out = set()
+            for i in range(n):
+                ctx = b
+                ctx = re.sub(rf'\b{re.escape(var)}\b', 'X', ctx)
+                ctx = re.sub(r'\bp\b', 'P', ctx)
+                # normalize whitespace
+                ctx = re.sub(r'\s+', ' ', ctx).strip()
+
+                def atom_val(tok: str) -> bool:
+                    t = tok.strip().lower()
+                    if t == 'p':
+                        return i in pset
+                    if t == 'x':
+                        return i in X
+                    if t == 'ex x':
+                        return (i + 1) < n and ((i + 1) in X)
+                    if t == 'ax x':
+                        return (i + 1) < n and ((i + 1) in X)
+                    return False
+
+                # handle simple binary forms first
+                t = ctx
+                t = t.replace('(', '').replace(')', '')
+                if ' and ' in t:
+                    a, b2 = [z.strip() for z in t.split(' and ', 1)]
+                    v = atom_val(a) and atom_val(b2)
+                elif ' or ' in t:
+                    a, b2 = [z.strip() for z in t.split(' or ', 1)]
+                    v = atom_val(a) or atom_val(b2)
+                elif t.startswith('not '):
+                    v = not atom_val(t[4:].strip())
+                else:
+                    v = atom_val(t)
+                if v:
+                    out.add(i)
+            return out
+
+        if q == 'mu':
+            X = set()
+            while True:
+                Xn = eval_body(X)
+                if Xn == X:
+                    break
+                X = Xn
+        else:
+            X = set(range(n))
+            while True:
+                Xn = eval_body(X)
+                if Xn == X:
+                    break
+                X = Xn
+
+        return {
+            'ok': True,
+            'proof_status': 'checked',
+            'solver': 'mu-lite',
+            'result': (0 in X),
+            'fixpoint': q,
+            'witness_set': sorted(list(X)),
+            'atom': atom,
+        }
     except Exception as e:
         return {'ok': False, 'proof_status': 'failed', 'solver': 'mu-lite', 'error': str(e)}
 def solve_nra_lite(expr: str) -> dict[str, Any]:
