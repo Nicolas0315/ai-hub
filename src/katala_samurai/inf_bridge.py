@@ -468,6 +468,33 @@ def build_flow_audit_report(payload: dict[str, Any], plan: dict[str, Any]) -> di
     }
 
 
+def _build_execution_role_plan(compute_meta: dict[str, Any], hw: dict[str, Any]) -> dict[str, Any]:
+    selected = str((compute_meta or {}).get("selected") or "classical")
+    lanes = list((compute_meta or {}).get("lanes") or [selected])
+    cpu_load = float(((hw.get("cpu_load") or {}).get("1m", 0.0) or 0.0))
+
+    # default role split: heavy on GPU, formal authority on CPU
+    role_plan = {
+        "neural_network": {"enabled": ("neuromorphic-emu" in lanes) or selected == "hybrid", "device": "gpu", "role": "ranking_and_embedding"},
+        "quantum_emulator": {"enabled": ("quantum-emu" in lanes) or selected == "hybrid", "device": "gpu", "role": "branch_prioritization"},
+        "non_von_neumann_emulator": {"enabled": ("neuromorphic-emu" in lanes) or selected == "hybrid", "device": "gpu", "role": "exploratory_candidate_generation"},
+        "von_neumann_formal": {"enabled": True, "device": "cpu", "role": "sat_smt_hol_authority"},
+    }
+
+    # degrade GPU lanes under host pressure
+    if cpu_load >= max(1.0, (os.cpu_count() or 4) * 0.8):
+        for k in ["neural_network", "quantum_emulator", "non_von_neumann_emulator"]:
+            if role_plan[k]["enabled"]:
+                role_plan[k]["mode"] = "degraded"
+
+    return {
+        "selected": selected,
+        "lanes": lanes,
+        "role_plan": role_plan,
+        "policy": "heavy_to_gpu_light_to_cpu_with_formal_cpu_authority",
+    }
+
+
 def run_inf_bridge(command: str) -> dict[str, Any]:
     payload = build_inf_bridge_payload(command)
     plan = plan_step(payload)
@@ -494,9 +521,12 @@ def run_inf_bridge(command: str) -> dict[str, Any]:
 
     compute_meta = select_compute_meta_router(payload, plan, adv, hw)
     payload["compute_meta_router"] = compute_meta
+    execution_plan = _build_execution_role_plan(compute_meta, hw)
+    payload["execution_role_plan"] = execution_plan
     try:
         payload["kq_payload"]["meta"]["compute_path"] = compute_meta.get("selected")
         payload["kq_payload"]["meta"]["compute_lanes"] = compute_meta.get("lanes")
+        payload["kq_payload"]["meta"]["execution_role_plan"] = execution_plan
     except Exception:
         pass
 
