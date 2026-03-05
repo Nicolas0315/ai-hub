@@ -425,6 +425,38 @@ class MultiSourceFetcher:
             "items": raw_items,
         }
 
+    def fetch_all_batched_stable(
+        self,
+        query_batches: list[list[str]],
+        per_source_limit: int = 8,
+        max_workers: int = 18,
+        cooldown_sec: float = 2.5,
+    ) -> dict[str, Any]:
+        """Rate-limit-aware batched fetch path for stable high-volume online collection."""
+        all_items: list[dict[str, Any]] = []
+        batch_stats: list[dict[str, Any]] = []
+        t0 = time.perf_counter()
+        for i, batch in enumerate(query_batches, 1):
+            r = self.fetch_all(batch, per_source_limit=per_source_limit, max_workers=max_workers)
+            all_items.extend(r.get("items") or [])
+            batch_stats.append(
+                {
+                    "batch": i,
+                    "queries": len(batch),
+                    "raw_count": int(r.get("raw_count", 0) or 0),
+                    "elapsed_ms": float(r.get("elapsed_ms", 0.0) or 0.0),
+                }
+            )
+            if i < len(query_batches) and cooldown_sec > 0:
+                time.sleep(float(cooldown_sec))
+
+        return {
+            "raw_count": len(all_items),
+            "elapsed_ms": round((time.perf_counter() - t0) * 1000.0, 3),
+            "batch_stats": batch_stats,
+            "items": all_items,
+        }
+
 
 class ParallelPaperReader:
     def __init__(self, timeout: int = TIMEOUT):
