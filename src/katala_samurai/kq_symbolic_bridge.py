@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import ast
+import hashlib
+import json
 import os
 import re
 import shutil
@@ -109,6 +111,14 @@ def _eval_symbolic_env(expr: str, env: dict[str, Any]) -> dict[str, Any]:
         return {"ok": True, "result": val, "type": type(val).__name__}
     except Exception as e:
         return {"ok": False, "error": str(e)}
+
+
+def _proof_fingerprint(payload: dict[str, Any]) -> str:
+    try:
+        raw = json.dumps(payload, sort_keys=True, ensure_ascii=False, default=str)
+    except Exception:
+        raw = str(payload)
+    return hashlib.sha256(raw.encode('utf-8', errors='ignore')).hexdigest()[:16]
 
 
 def _split_top_level(text: str, sep: str = ",") -> list[str]:
@@ -464,7 +474,15 @@ def eval_ltl_lite(expr: str) -> dict[str, Any]:
         trace = _ltl_norm_trace(ast.literal_eval(trace_txt))
         astn = _parse_temporal_formula(head)
         ok = _eval_temporal_ast(astn, trace, 0)
-        return {"ok": True, "result": ok, "operator": "MC", "proof_status": "checked", "mode": "model-check", "ast": str(astn)}
+        return {
+            "ok": True,
+            "result": ok,
+            "operator": "MC",
+            "proof_status": "checked",
+            "mode": "model-check",
+            "ast": str(astn),
+            "proof_certificate": _proof_fingerprint({"solver": "ltl-mc", "ast": str(astn), "result": bool(ok), "trace_len": len(trace)}),
+        }
     except Exception as e:
         return {"ok": False, "error": str(e), "proof_status": "failed"}
 
@@ -597,22 +615,24 @@ def solve_smt_optional(expr: str) -> dict[str, Any]:
         coverage = min(1.0, checks / max(1, total_space))
         status = "checked" if exhaustive else "inconclusive"
         mode_prefix = "nn-ranked" if total_space <= nn_rank_limit else "stream"
+        proof_trace = {
+            "mode": (f"{mode_prefix}+nn-qemu-priority+standalone-enumeration+interval-propagation+env-safe-eval" if _HAS_QEMU else f"{mode_prefix}+nn-priority+standalone-enumeration+interval-propagation+env-safe-eval"),
+            "variables": names,
+            "search_space": int(total_space),
+            "checked_points": int(checks),
+            "coverage": round(float(coverage), 4),
+            "exhaustive": bool(exhaustive),
+            "exhaustive_limit": int(exhaustive_limit),
+            "interval_pruning": prune_notes,
+        }
         return {
             "ok": True,
             "solver": "smt-kq-native-nn-qemu" if _HAS_QEMU else "smt-kq-native-nn",
             "proof_status": status,
             "solutions": sols,
             "solution_count": len(sols),
-            "proof_trace": {
-                "mode": (f"{mode_prefix}+nn-qemu-priority+standalone-enumeration+interval-propagation+env-safe-eval" if _HAS_QEMU else f"{mode_prefix}+nn-priority+standalone-enumeration+interval-propagation+env-safe-eval"),
-                "variables": names,
-                "search_space": int(total_space),
-                "checked_points": int(checks),
-                "coverage": round(float(coverage), 4),
-                "exhaustive": bool(exhaustive),
-                "exhaustive_limit": int(exhaustive_limit),
-                "interval_pruning": prune_notes,
-            },
+            "proof_trace": proof_trace,
+            "proof_certificate": _proof_fingerprint({"solver": "smt-kq-native", "status": status, "trace": proof_trace, "solutions": len(sols)}),
         }
     except Exception as e:
         return {
@@ -809,19 +829,21 @@ def solve_sat_lite(expr: str) -> dict[str, Any]:
         sat_model = dpll({})
 
         if sat_model is not None:
+            proof_trace = {
+                "variables": vars_list,
+                "mode": "cdcl-lite+nn-qemu-priority" if _HAS_QEMU else "cdcl-lite+nn-priority",
+                "watched_literals_init": watched_literals,
+                "learned_clauses": learned_clauses,
+                **trace,
+            }
             return {
                 "ok": True,
                 "proof_status": "checked",
                 "solver": "sat-lite-nn-qemu" if _HAS_QEMU else "sat-lite-nn",
                 "satisfiable": True,
                 "model": sat_model,
-                "proof_trace": {
-                    "variables": vars_list,
-                    "mode": "cdcl-lite+nn-qemu-priority" if _HAS_QEMU else "cdcl-lite+nn-priority",
-                    "watched_literals_init": watched_literals,
-                    "learned_clauses": learned_clauses,
-                    **trace,
-                },
+                "proof_trace": proof_trace,
+                "proof_certificate": _proof_fingerprint({"solver": "sat-lite", "status": "sat", "trace": proof_trace, "model": sat_model}),
             }
 
         def _sat_for(subset: list[list[tuple[str, bool]]]) -> bool:
@@ -878,23 +900,25 @@ def solve_sat_lite(expr: str) -> dict[str, Any]:
                     core_minimal = False
                     break
 
+        proof_trace = {
+            "variables": vars_list,
+            "core_size": len(core_txt),
+            "mode": "cdcl-lite+nn-qemu-priority" if _HAS_QEMU else "cdcl-lite+nn-priority",
+            "watched_literals_init": watched_literals,
+            "learned_clauses": learned_clauses,
+            "unsat_core_exact_minimized": exact_min_applied,
+            "unsat_core_minimal_verified": core_minimal,
+            "unsat_core_quality": "high" if core_minimal else "medium",
+            **trace,
+        }
         return {
             "ok": True,
             "proof_status": "checked",
             "solver": "sat-lite-nn-qemu" if _HAS_QEMU else "sat-lite-nn",
             "satisfiable": False,
             "unsat_core_lite": core_txt,
-            "proof_trace": {
-                "variables": vars_list,
-                "core_size": len(core_txt),
-                "mode": "cdcl-lite+nn-qemu-priority" if _HAS_QEMU else "cdcl-lite+nn-priority",
-                "watched_literals_init": watched_literals,
-                "learned_clauses": learned_clauses,
-                "unsat_core_exact_minimized": exact_min_applied,
-                "unsat_core_minimal_verified": core_minimal,
-                "unsat_core_quality": "high" if core_minimal else "medium",
-                **trace,
-            },
+            "proof_trace": proof_trace,
+            "proof_certificate": _proof_fingerprint({"solver": "sat-lite", "status": "unsat", "trace": proof_trace, "core": core_txt}),
         }
     except Exception as e:
         return {"ok": False, "proof_status": "failed", "error": str(e), "solver": "sat-lite"}
@@ -1128,13 +1152,15 @@ def solve_hol_lite(expr: str) -> dict[str, Any]:
             s = s.split('=', 1)[1].strip()
         astn = _parse_hol_expr(s)
         val = _eval_hol_ast(astn, {})
+        out_val = val if not (isinstance(val, tuple) and val and val[0] == 'closure') else '<lambda>'
         return {
             'ok': True,
             'proof_status': 'checked',
             'solver': 'hol-lite',
-            'result': val if not (isinstance(val, tuple) and val and val[0] == 'closure') else '<lambda>',
+            'result': out_val,
             'ast': str(astn),
             'mode': 'general-formula',
+            'proof_certificate': _proof_fingerprint({'solver': 'hol-lite', 'ast': str(astn), 'result': out_val}),
         }
     except Exception as e:
         return {'ok': False, 'proof_status': 'failed', 'solver': 'hol-lite', 'error': str(e)}
@@ -1178,6 +1204,7 @@ def solve_ctl_lite(expr: str) -> dict[str, Any]:
             'formula': formula,
             'ast': str(astn),
             'mode': 'model-check',
+            'proof_certificate': _proof_fingerprint({'solver': 'ctl-mc', 'ast': str(astn), 'result': bool(r), 'trace_len': len(trace)}),
         }
     except Exception as e:
         return {'ok': False, 'proof_status': 'failed', 'solver': 'ctl-lite', 'error': str(e)}
