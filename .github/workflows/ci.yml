@@ -42,10 +42,21 @@ jobs:
       - name: Run KQ deep grammar regression
         run: python3 inf-Coding/inf-Coding-Assist/kq_deep_grammar_regression.py
 
+  logic-math-benchmark:
+    name: Logic/Math Benchmark
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Run KQ logic-math benchmark
+        run: python3 inf-Coding/inf-Coding-Assist/kq_logic_math_benchmark.py
+
   build:
     name: Build
     runs-on: ubuntu-latest
-    needs: [lint, test, deep-grammar-regression]
+    needs: [lint, test, deep-grammar-regression, logic-math-benchmark]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4

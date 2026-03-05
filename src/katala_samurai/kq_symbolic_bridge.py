@@ -2114,13 +2114,31 @@ def _hol_collect_literals(node) -> set[Any]:
     return set()
 
 
-def _hol_proof_search_lite(astn, max_models: int = 256) -> dict[str, Any]:
+
+
+def _hol_strategy_from_expr(expr: str) -> dict[str, Any]:
+    t = (expr or '').lower()
+    if any(k in t for k in ['prime', 'mod', '%', 'gcd', 'divisible', '素数', '剰余']):
+        domain = [0, 1, 2, 3, 5, 7, 11, -1]
+        name = 'number-theory'
+    elif any(k in t for k in ['limit', 'derivative', 'integral', 'continu', '収束', '微分', '積分']):
+        domain = [0, 1, -1, 2, -2, 0.5, -0.5]
+        name = 'analysis'
+    elif any(k in t for k in ['group', 'ring', 'field', 'homomorphism', '群', '環', '体']):
+        domain = [0, 1, -1, 2]
+        name = 'algebra'
+    else:
+        domain = [False, True, 0, 1, -1]
+        name = 'general'
+    return {'name': name, 'seed_domain': domain}
+
+def _hol_proof_search_lite(astn, max_models: int = 256, strategy: dict[str, Any] | None = None) -> dict[str, Any]:
     free = sorted(_hol_collect_free_vars(astn))
     if not free:
         return {'checked_models': 1, 'counterexample': None, 'theorem_like': None}
 
     lits = _hol_collect_literals(astn)
-    seed_domain = [False, True, 0, 1, -1]
+    seed_domain = list((strategy or {}).get('seed_domain') or [False, True, 0, 1, -1])
     for v in sorted(lits, key=lambda x: (str(type(x)), str(x))):
         if v not in seed_domain and isinstance(v, (bool, int)):
             seed_domain.append(v)
@@ -2137,10 +2155,10 @@ def _hol_proof_search_lite(astn, max_models: int = 256) -> dict[str, Any]:
         except Exception:
             r = False
         if not r:
-            return {'checked_models': checked, 'counterexample': env, 'theorem_like': False, 'domain_seed': domain}
+            return {'checked_models': checked, 'counterexample': env, 'theorem_like': False, 'domain_seed': domain, 'strategy': (strategy or {}).get('name', 'general')}
         if checked >= cap:
             break
-    return {'checked_models': checked, 'counterexample': None, 'theorem_like': True, 'domain_seed': domain}
+    return {'checked_models': checked, 'counterexample': None, 'theorem_like': True, 'domain_seed': domain, 'strategy': (strategy or {}).get('name', 'general')}
 
 
 def _eval_hol_ast(node, env: dict[str, Any]):
@@ -2232,9 +2250,22 @@ def solve_hol_lite(expr: str) -> dict[str, Any]:
         inferred_type = _apply_subst_type(inferred_type, subst)
         val = _eval_hol_ast(astn_norm, {})
         out_val = val if not (isinstance(val, tuple) and val and val[0] == 'closure') else '<lambda>'
+        hol_strategy = _hol_strategy_from_expr(s)
         hol_max_models = int(os.getenv('KQ_HOL_MAX_MODELS', '512'))
         hol_adaptive_cap = min(2048, max(64, hol_max_models // max(1, len(_hol_collect_free_vars(astn_norm))) ))
-        proof_search = _hol_proof_search_lite(astn_norm, max_models=hol_adaptive_cap) if inferred_type == 'bool' else {'checked_models': 0, 'counterexample': None, 'theorem_like': None}
+        proof_search = _hol_proof_search_lite(astn_norm, max_models=hol_adaptive_cap, strategy=hol_strategy) if inferred_type == 'bool' else {'checked_models': 0, 'counterexample': None, 'theorem_like': None, 'strategy': hol_strategy.get('name', 'general')}
+        proof_trace_machine = {
+            'ast': str(astn_norm),
+            'inferred_type': inferred_type,
+            'unification_subst': _normalize_subst(subst),
+            'proof_search': proof_search,
+        }
+        proof_trace_human = {
+            'strategy': hol_strategy.get('name', 'general'),
+            'checked_models': int(proof_search.get('checked_models', 0) or 0),
+            'theorem_like': proof_search.get('theorem_like'),
+            'has_counterexample': bool(proof_search.get('counterexample') is not None),
+        }
         return {
             'ok': True,
             'proof_status': 'checked',
@@ -2248,7 +2279,9 @@ def solve_hol_lite(expr: str) -> dict[str, Any]:
             'inferred_type': inferred_type,
             'typecheck': {'ok': True, 'unification': {'enabled': True, 'substitutions': _normalize_subst(subst), 'count': len(subst)}, 'strict_function_application': True},
             'proof_search': proof_search,
-            'proof_certificate': _proof_fingerprint({'solver': 'hol-lite', 'ast': str(astn_norm), 'result': out_val, 'type': inferred_type, 'proof_search': proof_search}),
+            'proof_trace_machine': proof_trace_machine,
+            'proof_trace_human': proof_trace_human,
+            'proof_certificate': _proof_fingerprint({'solver': 'hol-lite', 'ast': str(astn_norm), 'result': out_val, 'type': inferred_type, 'proof_search': proof_search, 'strategy': hol_strategy.get('name', 'general')}),
         }
     except Exception as e:
         return {'ok': False, 'proof_status': 'failed', 'solver': 'hol-lite', 'error': str(e), 'normalization_notes': norm_notes, 'linguistic_trace': linguistic_trace}
