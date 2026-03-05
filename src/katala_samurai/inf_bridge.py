@@ -289,6 +289,56 @@ def run_inf_bridge(command: str) -> dict[str, Any]:
     return payload
 
 
+def purge_stale_goal_history(max_age_sec: float = 1800.0) -> dict[str, Any]:
+    root = os.getenv(
+        "INF_BRIDGE_GOAL_DIR",
+        "/mnt/c/Users/ogosh/Documents/NICOLAS/Katala/inf-Coding/inf-Coding-run/.tmp-goal-history",
+    )
+    os.makedirs(root, exist_ok=True)
+    now = time.time()
+    removed = 0
+    kept = 0
+    for name in os.listdir(root):
+        if not name.startswith("goal-history-") or not name.endswith(".jsonl"):
+            continue
+        path = os.path.join(root, name)
+        try:
+            age = now - os.path.getmtime(path)
+            if age >= max_age_sec:
+                os.unlink(path)
+                removed += 1
+            else:
+                kept += 1
+        except Exception:
+            kept += 1
+    return {"root": root, "removed": removed, "kept": kept, "max_age_sec": max_age_sec}
+
+
+def purge_stale_ephemeral_audit(max_age_sec: float = 1800.0) -> dict[str, Any]:
+    root = os.getenv(
+        "INF_BRIDGE_AUDIT_DIR",
+        "/mnt/c/Users/ogosh/Documents/NICOLAS/Katala/inf-Coding/inf-Coding-run/.tmp-audit",
+    )
+    os.makedirs(root, exist_ok=True)
+    now = time.time()
+    removed = 0
+    kept = 0
+    for name in os.listdir(root):
+        if not name.startswith("inf-bridge-") or not name.endswith(".ndjson"):
+            continue
+        path = os.path.join(root, name)
+        try:
+            age = now - os.path.getmtime(path)
+            if age >= max_age_sec:
+                os.unlink(path)
+                removed += 1
+            else:
+                kept += 1
+        except Exception:
+            kept += 1
+    return {"root": root, "removed": removed, "kept": kept, "max_age_sec": max_age_sec}
+
+
 def make_ephemeral_goal_history_file() -> str:
     root = os.getenv(
         "INF_BRIDGE_GOAL_DIR",

@@ -18,6 +18,8 @@ from katala_samurai.inf_bridge import (
     make_ephemeral_goal_history_file,
     append_goal_event,
     cleanup_goal_history,
+    purge_stale_ephemeral_audit,
+    purge_stale_goal_history,
 )
 from katala_samurai.inf_coding_adapter import emit_router_event
 
@@ -201,6 +203,10 @@ def main() -> int:
     if len(sys.argv) < 2:
         print('Usage: ksi1-router.py <command...>', file=sys.stderr)
         return 64
+
+    # proactive stale cleanup from prior abnormal terminations
+    purge_stale_ephemeral_audit(max_age_sec=600.0)
+    purge_stale_goal_history(max_age_sec=600.0)
 
     audit_path = make_ephemeral_audit_file()
     goal_history_path = make_ephemeral_goal_history_file()
