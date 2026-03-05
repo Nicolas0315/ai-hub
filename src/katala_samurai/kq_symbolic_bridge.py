@@ -822,6 +822,70 @@ def solve_hol_lite(expr: str) -> dict[str, Any]:
         return {"ok": False, "proof_status": "failed", "solver": "hol-lite", "error": str(e)}
 
 
+
+
+def solve_ctl_lite(expr: str) -> dict[str, Any]:
+    """CTL-lite over finite path sets.
+
+    Syntax:
+    - op=EX; p=[q,p,r]
+    - op=AX; p=[p,p]
+    - op=EF; p=[q,r,p]
+    - op=AG; p=[p,p,p]
+    """
+    try:
+        parts = {k.strip().lower(): v.strip().lower() for k,v in [x.split('=',1) for x in (expr or '').split(';') if '=' in x]}
+        op = parts.get('op','')
+        ptxt = parts.get('p','[]').strip()
+        if ptxt.startswith('[') and ptxt.endswith(']'):
+            body = ptxt[1:-1].strip()
+            seq = [x.strip().strip('"\'').lower() for x in body.split(',') if x.strip()]
+        else:
+            seq = [x.strip().strip('"\'').lower() for x in ptxt.split(',') if x.strip()]
+        if not isinstance(seq,(list,tuple)):
+            return {'ok': False, 'proof_status': 'failed', 'solver': 'ctl-lite', 'error': 'p must be list'}
+        if op=='ex':
+            r = len(seq) >= 1 and seq[0] == 'p'
+        elif op=='ax':
+            r = len(seq) >= 1 and all(x == 'p' for x in seq[:1])
+        elif op=='ef':
+            r = any(x == 'p' for x in seq)
+        elif op=='ag':
+            r = all(x == 'p' for x in seq)
+        else:
+            return {'ok': False, 'proof_status': 'failed', 'solver': 'ctl-lite', 'error': 'unsupported op'}
+        return {'ok': True, 'proof_status': 'checked', 'solver': 'ctl-lite', 'result': bool(r), 'op': op.upper()}
+    except Exception as e:
+        return {'ok': False, 'proof_status': 'failed', 'solver': 'ctl-lite', 'error': str(e)}
+
+
+def solve_mu_lite(expr: str) -> dict[str, Any]:
+    """mu-calculus-lite fixed-point style checker (very limited).
+
+    Syntax:
+    - mu X. p or X ; trace=[q,p]
+    - nu X. p and X ; trace=[p,p]
+    """
+    try:
+        e=(expr or '').strip().lower()
+        tr=[]
+        if ';' in e and 'trace=' in e:
+            left,right=e.split(';',1)
+            e=left.strip()
+            ttxt = right.split('=',1)[1].strip()
+            if ttxt.startswith('[') and ttxt.endswith(']'):
+                body = ttxt[1:-1].strip()
+                tr=[x.strip().strip('"\'').lower() for x in body.split(',') if x.strip()]
+        tr=[str(x).strip().lower() for x in (tr or [])]
+        if e.startswith('mu '):
+            r = ('p' in tr) or (' p ' in f' {e} ')
+            return {'ok': True, 'proof_status': 'checked', 'solver': 'mu-lite', 'result': bool(r), 'fixpoint': 'mu'}
+        if e.startswith('nu '):
+            r = (len(tr)>0 and all(x=='p' for x in tr))
+            return {'ok': True, 'proof_status': 'checked', 'solver': 'mu-lite', 'result': bool(r), 'fixpoint': 'nu'}
+        return {'ok': False, 'proof_status': 'failed', 'solver': 'mu-lite', 'error': 'unsupported syntax'}
+    except Exception as e:
+        return {'ok': False, 'proof_status': 'failed', 'solver': 'mu-lite', 'error': str(e)}
 def solve_nra_lite(expr: str) -> dict[str, Any]:
     """Non-linear arithmetic lite over bounded integer domains.
 

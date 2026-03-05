@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from .kq_symbolic_bridge import eval_symbolic, eval_modal, eval_predicate_lite, solve_constraint_lite, eval_ltl_lite, solve_smt_optional, verify_lean_proof, verify_coq_proof, verify_isabelle_proof, solve_sat_lite, solve_bitvec_lite, solve_array_lite, solve_uf_lite, solve_nra_lite, solve_zfc_lite, solve_hol_lite
+from .kq_symbolic_bridge import eval_symbolic, eval_modal, eval_predicate_lite, solve_constraint_lite, eval_ltl_lite, solve_smt_optional, verify_lean_proof, verify_coq_proof, verify_isabelle_proof, solve_sat_lite, solve_bitvec_lite, solve_array_lite, solve_uf_lite, solve_nra_lite, solve_zfc_lite, solve_hol_lite, solve_ctl_lite, solve_mu_lite
 
 
 class RustKQBridge:
@@ -183,3 +183,19 @@ class RustKQBridge:
             except Exception:
                 pass
         return solve_hol_lite(expr)
+
+    def ctl_kernel(self, expr: str) -> dict[str, Any]:
+        if self.available and self._mod is not None and hasattr(self._mod, "ctl_kernel"):
+            try:
+                return self._mod.ctl_kernel({"expr": expr})
+            except Exception:
+                pass
+        return solve_ctl_lite(expr)
+
+    def mu_kernel(self, expr: str) -> dict[str, Any]:
+        if self.available and self._mod is not None and hasattr(self._mod, "mu_kernel"):
+            try:
+                return self._mod.mu_kernel({"expr": expr})
+            except Exception:
+                pass
+        return solve_mu_lite(expr)

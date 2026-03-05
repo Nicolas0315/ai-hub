@@ -191,6 +191,20 @@ def hol_kernel(payload: dict[str, Any]) -> dict[str, Any]:
     return solve_hol_lite(expr)
 
 
+def ctl_kernel(payload: dict[str, Any]) -> dict[str, Any]:
+    from katala_samurai.kq_symbolic_bridge import solve_ctl_lite
+
+    expr = str(payload.get("expr", "") or "")
+    return solve_ctl_lite(expr)
+
+
+def mu_kernel(payload: dict[str, Any]) -> dict[str, Any]:
+    from katala_samurai.kq_symbolic_bridge import solve_mu_lite
+
+    expr = str(payload.get("expr", "") or "")
+    return solve_mu_lite(expr)
+
+
 def spml_kernel(payload: dict[str, Any]) -> dict[str, Any]:
     # scaffold only; deterministic pass-through aggregation
     w = payload.get("weights") or {}
