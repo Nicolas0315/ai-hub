@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import ast
+import re
+from itertools import product
 from typing import Any
 
 
@@ -74,6 +76,86 @@ class _SafeEval(ast.NodeVisitor):
 
     def generic_visit(self, node):
         raise ValueError(f"node not allowed: {type(node).__name__}")
+
+
+class _EnvSafeEval(_SafeEval):
+    def __init__(self, env: dict[str, Any]):
+        self.env = env or {}
+
+    def visit_Name(self, node: ast.Name):
+        if node.id in self.env:
+            v = self.env[node.id]
+            if isinstance(v, (int, float, bool)):
+                return v
+        return super().visit_Name(node)
+
+
+def _eval_symbolic_env(expr: str, env: dict[str, Any]) -> dict[str, Any]:
+    try:
+        tree = ast.parse(expr, mode="eval")
+        val = _EnvSafeEval(env).visit(tree)
+        return {"ok": True, "result": val, "type": type(val).__name__}
+    except Exception as e:
+        return {"ok": False, "error": str(e)}
+
+
+def _split_top_level(text: str, sep: str = ",") -> list[str]:
+    out, cur, depth = [], [], 0
+    for ch in text:
+        if ch in "([":
+            depth += 1
+        elif ch in ")]":
+            depth = max(0, depth - 1)
+        if ch == sep and depth == 0:
+            tok = "".join(cur).strip()
+            if tok:
+                out.append(tok)
+            cur = []
+            continue
+        cur.append(ch)
+    tok = "".join(cur).strip()
+    if tok:
+        out.append(tok)
+    return out
+
+
+def _smt_prefix_to_infix(formula: str) -> str:
+    s = (formula or "").strip()
+    low = s.lower()
+    for fn, op in (("and", "and"), ("or", "or")):
+        if low.startswith(fn + "(") and s.endswith(")"):
+            inner = s[len(fn) + 1 : -1]
+            args = _split_top_level(inner, ",")
+            return "(" + f" {op} ".join(_smt_prefix_to_infix(a) for a in args) + ")"
+    if low.startswith("not(") and s.endswith(")"):
+        inner = s[4:-1]
+        return f"(not ({_smt_prefix_to_infix(inner)}))"
+    return s
+
+
+def _parse_smt_lite(expr: str) -> tuple[dict[str, tuple[int, int]], str]:
+    s = (expr or "").strip()
+    if "formula:" in s and "vars:" in s:
+        left = s.split("formula:", 1)
+        vars_part = left[0].split("vars:", 1)[1].strip().rstrip(";")
+        formula = left[1].strip()
+        var_defs = _split_top_level(vars_part, ",")
+        doms: dict[str, tuple[int, int]] = {}
+        for v in var_defs:
+            m = re.match(r"^([A-Za-z_]\w*)\s+in\s*\[\s*(-?\d+)\s*,\s*(-?\d+)\s*\]$", v)
+            if not m:
+                continue
+            doms[m.group(1)] = (int(m.group(2)), int(m.group(3)))
+        return doms, _smt_prefix_to_infix(formula)
+
+    # backward compatible single-var format: x in [a,b]: constraint
+    if " in " in s and ":" in s:
+        var, rest = s.split(" in ", 1)
+        dom_txt, cons_txt = rest.split(":", 1)
+        lo, hi = ast.literal_eval(dom_txt.strip())
+        return {var.strip(): (int(lo), int(hi))}, cons_txt.strip()
+
+    return {}, s
 
 
 def eval_symbolic(expr: str) -> dict[str, Any]:
@@ -225,20 +307,57 @@ def solve_constraint_lite(expr: str) -> dict[str, Any]:
 
 
 def solve_smt_optional(expr: str) -> dict[str, Any]:
-    """SMT entry with pragmatic fallback.
+    """KQ-native SMT-lite solver (z3-independent).
 
-    If z3 is available and expression is parseable in this lite format,
-    we can extend later; for now detect availability and run constraint-lite.
+    Supported examples:
+    - x in [-3,3]: x*x-1==0
+    - vars: x in [-3,3], y in [0,3]; formula: and(x+y==2, x>=0, y>=0)
     """
     try:
-        import z3  # type: ignore
-        _ = z3
-        r = solve_constraint_lite(expr)
-        r["solver"] = "smt-z3-bridge-lite"
-        if r.get("proof_status") == "failed":
-            r["proof_status"] = "inconclusive"
-        return r
-    except Exception:
-        r = solve_constraint_lite(expr)
-        r["solver"] = "constraint-lite-fallback"
-        return r
+        doms, formula = _parse_smt_lite(expr)
+        if not doms:
+            r = solve_constraint_lite(expr)
+            r["solver"] = "smt-kq-native-fallback"
+            r["proof_trace"] = {"mode": "fallback", "reason": "no_domain_declaration"}
+            return r
+
+        names = list(doms.keys())
+        ranges = [range(lo, hi + 1) for (lo, hi) in doms.values()]
+        sols: list[dict[str, int]] = []
+        checks = 0
+        for values in product(*ranges):
+            env = {k: int(v) for k, v in zip(names, values)}
+            checks += 1
+            ev = _eval_symbolic_env(formula, env)
+            if ev.get("ok") and bool(ev.get("result")):
+                sols.append(env)
+                if len(sols) >= 128:
+                    break
+
+        total_space = 1
+        for r in ranges:
+            total_space *= len(r)
+        coverage = min(1.0, checks / max(1, total_space))
+        status = "checked" if coverage >= 0.999 else "inconclusive"
+        return {
+            "ok": True,
+            "solver": "smt-kq-native",
+            "proof_status": status,
+            "solutions": sols,
+            "solution_count": len(sols),
+            "proof_trace": {
+                "mode": "enumeration+env-safe-eval",
+                "variables": names,
+                "search_space": int(total_space),
+                "checked_points": int(checks),
+                "coverage": round(float(coverage), 4),
+            },
+        }
+    except Exception as e:
+        return {
+            "ok": False,
+            "solver": "smt-kq-native",
+            "proof_status": "failed",
+            "error": str(e),
+            "proof_trace": {"mode": "error"},
+        }
