@@ -380,14 +380,56 @@ class ParallelPaperReader:
 
 
 class ReasoningMeshExecutor:
-    CLAIM_PAT = re.compile(r"\b(therefore|thus|show|demonstrate|prove|implies|suggests|indicates|結論|示す|証明|示唆)\b", re.I)
+    CLAIM_PAT = re.compile(r"\b(therefore|thus|show|demonstrate|prove|implies|suggests|indicates|結論|示す|証明|示唆|if|then|all|exists|forall)\b", re.I)
 
-    def extract_claims(self, text: str) -> list[str]:
+    @staticmethod
+    def _normalize_claim_text(s: str) -> dict[str, Any]:
+        t = (s or "").strip()
+        low = t.lower()
+        notes = []
+        rep = {
+            " ならば ": " -> ",
+            " implies ": " -> ",
+            " iff ": " <-> ",
+            " かつ ": " and ",
+            " または ": " or ",
+            " もしくは ": " or ",
+        }
+        for a, b in rep.items():
+            if a in low:
+                low = low.replace(a, b)
+                notes.append(f"replace:{a.strip()}->{b.strip()}")
+
+        m_forall = re.search(r"all\s+([a-zA-Z_]\w*)\s+in\s*(\[[^\]]+\]|\([^\)]+\))\s*,?\s*(.+)", low)
+        if m_forall and "forall" not in low:
+            v, dom, body = m_forall.group(1), m_forall.group(2), m_forall.group(3)
+            low = f"forall {v} in {dom}. {body}"
+            notes.append("template:all->forall")
+
+        m_exists = re.search(r"there\s+exists\s+([a-zA-Z_]\w*)\s+in\s*(\[[^\]]+\]|\([^\)]+\))\s*,?\s*(.+)", low)
+        if m_exists and "exists" not in low:
+            v, dom, body = m_exists.group(1), m_exists.group(2), m_exists.group(3)
+            low = f"exists {v} in {dom}. {body}"
+            notes.append("template:exists")
+
+        if " if " in low and " then " in low and "->" not in low:
+            try:
+                a = low.split(" if ", 1)[1].split(" then ", 1)[0].strip()
+                b = low.split(" then ", 1)[1].strip()
+                low = f"({a}) -> ({b})"
+                notes.append("template:if-then")
+            except Exception:
+                pass
+
+        return {"normalized": low.strip(), "notes": notes}
+
+    def extract_claims(self, text: str) -> list[dict[str, Any]]:
         sents = [s.strip() for s in re.split(r"[。.!?\n]+", text or "") if s.strip()]
         claims = []
         for s in sents:
             if self.CLAIM_PAT.search(s) or len(s.split()) >= 10:
-                claims.append(s[:300])
+                n = self._normalize_claim_text(s[:300])
+                claims.append({"raw": s[:300], "normalized": n["normalized"], "notes": n["notes"]})
         return claims[:12]
 
     def run_parallel(self, items: list[dict[str, Any]], max_workers: int = 12) -> dict[str, Any]:
@@ -497,8 +539,14 @@ class FormalClaimRouter:
         claims = []
         for row in rows:
             for c in (row.get("claims") or []):
-                if self.LOGIC_PAT.search(c):
-                    claims.append(c)
+                if isinstance(c, dict):
+                    raw = str(c.get("raw") or "")
+                    norm = str(c.get("normalized") or raw)
+                else:
+                    raw = str(c)
+                    norm = raw
+                if self.LOGIC_PAT.search(norm) or self.LOGIC_PAT.search(raw):
+                    claims.append(norm)
         claims = claims[:200]
 
         routed = []
