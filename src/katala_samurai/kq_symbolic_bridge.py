@@ -338,7 +338,7 @@ def _ltl_norm_trace(trace_raw: Any) -> list[set[str]]:
 
 
 def _tok_formula(s: str) -> list[str]:
-    return [t for t in re.findall(r"<->|EX|AX|EF|AF|EG|AG|->|\(|\)|\!|\&|\||U|R|W|Y|O|H|[A-Za-z_][A-Za-z0-9_]*", (s or '').upper()) if t]
+    return [t for t in re.findall(r"<->|EX|AX|EF|AF|EG|AG|->|\(|\)|\!|\&|\||U|R|W|S|T|Y|O|H|[A-Za-z_][A-Za-z0-9_]*", (s or '').upper()) if t]
 
 
 def _parse_temporal_formula(s: str):
@@ -387,14 +387,18 @@ def _parse_temporal_formula(s: str):
 
     def parse_until():
         n = parse_unary()
-        while peek() in {'U', 'R', 'W'}:
+        while peek() in {'U', 'R', 'W', 'S', 'T'}:
             op = take(peek())
             if op == 'U':
                 n = ('u', n, parse_unary())
             elif op == 'R':
                 n = ('r', n, parse_unary())
-            else:
+            elif op == 'W':
                 n = ('w', n, parse_unary())
+            elif op == 'S':
+                n = ('s', n, parse_unary())
+            else:
+                n = ('t', n, parse_unary())
         return n
 
     def parse_unary():
@@ -476,6 +480,26 @@ def _eval_temporal_ast(node, trace: list[set[str]], i: int = 0, _memo: dict[tupl
         # weak until: either a U b or globally a
         a, b = node[1], node[2]
         out = _eval_temporal_ast(('u', a, b), trace, i, memo) or all(_eval_temporal_ast(a, trace, t, memo) for t in range(i, len(trace)))
+    elif k == 's':
+        # since: exists j<=i where b holds, and a holds for (j+1..i)
+        a, b = node[1], node[2]
+        out = False
+        for j in range(i, -1, -1):
+            if _eval_temporal_ast(b, trace, j, memo):
+                out = all(_eval_temporal_ast(a, trace, t, memo) for t in range(j + 1, i + 1))
+                if out:
+                    break
+    elif k == 't':
+        # triggered: dual of since (past release)
+        a, b = node[1], node[2]
+        out = False
+        for j in range(i, -1, -1):
+            if _eval_temporal_ast(a, trace, j, memo):
+                out = all(_eval_temporal_ast(b, trace, t, memo) for t in range(j, i + 1))
+                if out:
+                    break
+        if not out:
+            out = all(_eval_temporal_ast(b, trace, t, memo) for t in range(0, i + 1))
     else:
         raise ValueError(f'unsupported node: {k}')
 
@@ -544,6 +568,13 @@ def eval_ltl_lite(expr: str) -> dict[str, Any]:
         trace = _ltl_norm_trace(ast.literal_eval(trace_txt))
         astn = _parse_temporal_formula(head)
 
+        auto_trigger = int(os.getenv("KQ_TEMPORAL_AUTO_WINDOW_TRIGGER", "2000"))
+        auto_window = int(os.getenv("KQ_TEMPORAL_AUTO_WINDOW_SIZE", "512"))
+        auto_stride = int(os.getenv("KQ_TEMPORAL_AUTO_WINDOW_STRIDE", "256"))
+        if window is None and len(trace) >= auto_trigger:
+            window = auto_window
+            stride = auto_stride
+
         if window is not None:
             seg = _windowed_temporal_eval(astn, trace, window=window, stride=(stride or window))
             ok = bool(seg.get('result'))
@@ -563,7 +594,7 @@ def eval_ltl_lite(expr: str) -> dict[str, Any]:
             "proof_status": "checked",
             "mode": mode,
             "ast": str(astn),
-            "supported_ops": ["!", "&", "|", "->", "<->", "X", "Y", "F", "G", "O", "H", "U", "R", "W", "EX", "AX", "EF", "AF", "EG", "AG"],
+            "supported_ops": ["!", "&", "|", "->", "<->", "X", "Y", "F", "G", "O", "H", "U", "R", "W", "S", "T", "EX", "AX", "EF", "AF", "EG", "AG"],
             "memo_entries": memo_entries,
             "proof_certificate": _proof_fingerprint({"solver": "ltl-mc", "ast": str(astn), "result": bool(ok), "trace_len": len(trace), "memo": memo_entries}),
         }
@@ -1514,6 +1545,13 @@ def solve_ctl_lite(expr: str) -> dict[str, Any]:
         trace = _ltl_norm_trace(ast.literal_eval(trace_txt))
         astn = _parse_temporal_formula(formula)
 
+        auto_trigger = int(os.getenv("KQ_TEMPORAL_AUTO_WINDOW_TRIGGER", "2000"))
+        auto_window = int(os.getenv("KQ_TEMPORAL_AUTO_WINDOW_SIZE", "512"))
+        auto_stride = int(os.getenv("KQ_TEMPORAL_AUTO_WINDOW_STRIDE", "256"))
+        if window is None and len(trace) >= auto_trigger:
+            window = auto_window
+            stride = auto_stride
+
         if window is not None:
             seg = _windowed_temporal_eval(astn, trace, window=window, stride=(stride or window))
             r = bool(seg.get('result'))
@@ -1534,7 +1572,7 @@ def solve_ctl_lite(expr: str) -> dict[str, Any]:
             'formula': formula,
             'ast': str(astn),
             'mode': mode,
-            'supported_ops': ["!", "&", "|", "->", "<->", "X", "Y", "F", "G", "O", "H", "U", "R", "W", "EX", "AX", "EF", "AF", "EG", "AG"],
+            'supported_ops': ["!", "&", "|", "->", "<->", "X", "Y", "F", "G", "O", "H", "U", "R", "W", "S", "T", "EX", "AX", "EF", "AF", "EG", "AG"],
             'memo_entries': memo_entries,
             'proof_certificate': _proof_fingerprint({'solver': 'ctl-mc', 'ast': str(astn), 'result': bool(r), 'trace_len': len(trace), 'memo': memo_entries}),
         }
