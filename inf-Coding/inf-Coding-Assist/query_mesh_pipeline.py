@@ -403,6 +403,10 @@ class ReasoningMeshExecutor:
             " jika ": " if ", " maka ": " then ", " dan ": " and ", " atau ": " or ",  # id
             " toki ": " if ", " la ": " then ", " en ": " and ", " anu ": " or ",  # toki pona
             " se ": " if ", " tiam ": " then ", " kaj ": " and ", " aŭ ": " or ",  # eo
+            " igitur ": " then ", " ergo ": " then ", " aut ": " or ",  # latin
+            " εἰ ": " if ", " καί ": " and ", " ἤ ": " or ",  # ancient greek
+            " sace ": " if ", " ca ": " and ", " vā ": " or ",  # pali
+            " ܐܢ ": " if ", " ܗܝܕܝܢ ": " then ",  # classical syriac
         }
         for a, b in rep.items():
             if a in low:
@@ -410,8 +414,8 @@ class ReasoningMeshExecutor:
                 notes.append(f"replace:{a.strip()}->{b.strip()}")
 
         # multilingual quantifier keywords to canonical tokens
-        low = re.sub(r"\b(todos?|todas|todo|toute?s?|alle|all|alles|semua|모든|tutti|wszystkie|всі|tüm|όλοι|mọi|semua|lahat|sarva|𓂋)\b", "forall", low)
-        low = re.sub(r"\b(existe|existen|existem|il\s+existe|gibt\s+es|ada|ある|存在|существует|يوجد|है|有|esiste|istnieje|існує|vardır|υπάρχει|tồn tại|umiiral?)\b", "exists", low)
+        low = re.sub(r"\b(todos?|todas|todo|toute?s?|alle|all|alles|semua|모든|tutti|wszystkie|всі|tüm|όλοι|mọi|semua|lahat|sarva|omnis|omnes|sabba|πᾶς|𓂋)\b", "forall", low)
+        low = re.sub(r"\b(existe|existen|existem|il\s+existe|gibt\s+es|ada|ある|存在|существует|يوجد|है|有|esiste|istnieje|існує|vardır|υπάρχει|tồn tại|existit|atthi|ἐστίν|umiiral?)\b", "exists", low)
 
         m_forall = re.search(r"forall\s+([a-zA-Z_]\w*)\s+(in|en|em|dans|в|في|में|在|ใน|di)\s*(\[[^\]]+\]|\([^\)]+\))\s*,?\s*(.+)", low)
         if m_forall:
@@ -476,7 +480,7 @@ class ReasoningMeshExecutor:
 
 
 class FormalClaimRouter:
-    LOGIC_PAT = re.compile(r"(forall|exists|\bSAT\b|\bSMT\b|\bCTL\b|\bLTL\b|\bmu\b|\bnu\b|->|<->|\band\b|\bor\b|=|<=|>=|ならば|すべて|存在|si|entonces|y|o|se|ent[aã]o|e|ou|si\s+alors|et|ou|wenn|dann|und|oder|если|то|и|или|اذا|فإن|و|أو|यदि|तो|और|या|如果|那么|且|或|ถ้า|แล้ว|และ|หรือ|jika|maka|dan|atau|toki|la|en|aŭ|se\s+tiam|kaj|aux)", re.I)
+    LOGIC_PAT = re.compile(r"(forall|exists|\bSAT\b|\bSMT\b|\bCTL\b|\bLTL\b|\bmu\b|\bnu\b|->|<->|\band\b|\bor\b|=|<=|>=|ならば|すべて|存在|si|entonces|y|o|se|ent[aã]o|e|ou|si\s+alors|et|ou|wenn|dann|und|oder|если|то|и|или|اذا|فإن|و|أو|यदि|तो|और|या|如果|那么|且|或|ถ้า|แล้ว|และ|หรือ|jika|maka|dan|atau|toki|la|en|aŭ|se\s+tiam|kaj|aux|ergo|igitur|aut|εἰ|καί|ἤ|sace|vā|ܐܢ)", re.I)
 
     @staticmethod
     def _normalize_claim(claim: str) -> dict[str, Any]:
@@ -507,6 +511,10 @@ class FormalClaimRouter:
             " nếu ": " if ", " thì ": " then ", " và ": " and ", " hoặc ": " or ",  # vi
             " kalau ": " if ", " maka ": " then ",  # ms
             " kung ": " if ", " kung gayon ": " then ", " at ": " and ", " o ": " or ",  # tl
+            " igitur ": " then ", " ergo ": " then ", " aut ": " or ",  # latin
+            " εἰ ": " if ", " καί ": " and ", " ἤ ": " or ",  # ancient greek
+            " sace ": " if ", " ca ": " and ", " vā ": " or ",  # pali
+            " ܐܢ ": " if ", " ܗܝܕܝܢ ": " then ",  # classical syriac
             " 𒆠 ": " in ", " 𒌋 ": " and ",  # sumerian markers (best-effort)
         }
         for a, b in rep.items():
@@ -514,8 +522,8 @@ class FormalClaimRouter:
                 low = low.replace(a, b)
                 notes.append(f"replace:{a.strip()}->{b.strip()}")
 
-        low = re.sub(r"\b(todos?|todas|todo|toute?s?|alle|all|alles|semua|모든|tutti|wszystkie|всі|tüm|όλοι|mọi|semua|lahat|sarva|𓂋)\b", "forall", low)
-        low = re.sub(r"\b(existe|existen|existem|il\s+existe|gibt\s+es|ada|ある|存在|существует|يوجد|है|有|esiste|istnieje|існує|vardır|υπάρχει|tồn tại|umiiral?)\b", "exists", low)
+        low = re.sub(r"\b(todos?|todas|todo|toute?s?|alle|all|alles|semua|모든|tutti|wszystkie|всі|tüm|όλοι|mọi|semua|lahat|sarva|omnis|omnes|sabba|πᾶς|𓂋)\b", "forall", low)
+        low = re.sub(r"\b(existe|existen|existem|il\s+existe|gibt\s+es|ada|ある|存在|существует|يوجد|है|有|esiste|istnieje|існує|vardır|υπάρχει|tồn tại|existit|atthi|ἐστίν|umiiral?)\b", "exists", low)
 
         m_forall = re.search(r"forall\s+([a-zA-Z_]\w*)\s+(in|en|em|dans|в|في|में|在|ใน|di)\s*(\[[^\]]+\]|\([^\)]+\))\s*,?\s*(.+)", low)
         if m_forall:
