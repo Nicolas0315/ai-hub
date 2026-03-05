@@ -720,6 +720,85 @@ def solve_sat_lite(expr: str) -> dict[str, Any]:
         if not vars_list:
             return {"ok": False, "proof_status": "failed", "error": "no variables", "solver": "sat-lite"}
 
+        # B-track core strengthening: clause normalization + tautology removal + unit pre-propagation
+        removed_taut = 0
+        normalized: list[list[tuple[str, bool]]] = []
+        seen_clause_keys: set[tuple[tuple[str, bool], ...]] = set()
+        for cl in clauses:
+            lit_map: dict[str, bool] = {}
+            taut = False
+            for v, sign in cl:
+                if v in lit_map and lit_map[v] is not sign:
+                    taut = True
+                    break
+                lit_map[v] = sign
+            if taut:
+                removed_taut += 1
+                continue
+            key = tuple(sorted(lit_map.items(), key=lambda x: x[0]))
+            if key in seen_clause_keys:
+                continue
+            seen_clause_keys.add(key)
+            normalized.append(list(key))
+
+        clauses = normalized if normalized else []
+        if not clauses:
+            return {
+                "ok": True,
+                "proof_status": "checked",
+                "solver": "sat-lite-nn-qemu" if _HAS_QEMU else "sat-lite-nn",
+                "satisfiable": True,
+                "model": {},
+                "proof_trace": {"mode": "preprocess-only", "removed_tautologies": removed_taut},
+                "proof_certificate": _proof_fingerprint({"solver": "sat-lite", "status": "sat-empty-after-preprocess", "removed_tautologies": removed_taut}),
+            }
+
+        pre_env: dict[str, bool] = {}
+        changed_pre = True
+        while changed_pre:
+            changed_pre = False
+            for cl in clauses:
+                sat = any((v in pre_env and pre_env[v] is sign) for v, sign in cl)
+                if sat:
+                    continue
+                un = [(v, sign) for v, sign in cl if v not in pre_env]
+                if len(un) == 0:
+                    core_txt = [" or ".join([(v if sign else f"not {v}") for v, sign in c]) for c in clauses]
+                    return {
+                        "ok": True,
+                        "proof_status": "checked",
+                        "solver": "sat-lite-nn-qemu" if _HAS_QEMU else "sat-lite-nn",
+                        "satisfiable": False,
+                        "unsat_core_lite": core_txt,
+                        "proof_trace": {"mode": "preprocess-unit-unsat", "removed_tautologies": removed_taut, "pre_units": pre_env},
+                        "proof_certificate": _proof_fingerprint({"solver": "sat-lite", "status": "unsat-preprocess", "core": core_txt}),
+                    }
+                if len(un) == 1:
+                    v, sign = un[0]
+                    if v in pre_env and pre_env[v] is not sign:
+                        core_txt = [" or ".join([(x if sgn else f"not {x}") for x, sgn in c]) for c in clauses]
+                        return {
+                            "ok": True,
+                            "proof_status": "checked",
+                            "solver": "sat-lite-nn-qemu" if _HAS_QEMU else "sat-lite-nn",
+                            "satisfiable": False,
+                            "unsat_core_lite": core_txt,
+                            "proof_trace": {"mode": "preprocess-unit-conflict", "removed_tautologies": removed_taut, "pre_units": pre_env},
+                            "proof_certificate": _proof_fingerprint({"solver": "sat-lite", "status": "unsat-preprocess-conflict", "core": core_txt}),
+                        }
+                    if v not in pre_env:
+                        pre_env[v] = sign
+                        changed_pre = True
+
+        simplified: list[list[tuple[str, bool]]] = []
+        for cl in clauses:
+            if any((v in pre_env and pre_env[v] is sign) for v, sign in cl):
+                continue
+            row = [(v, sign) for v, sign in cl if v not in pre_env]
+            if row:
+                simplified.append(row)
+        clauses = simplified
+
         watched_literals = [[(v if sign else f"not {v}") for v, sign in (cl[:2] if len(cl) >= 2 else cl[:1])] for cl in clauses]
 
         def _clause_state(cl, env):
@@ -815,7 +894,10 @@ def solve_sat_lite(expr: str) -> dict[str, Any]:
             if v is None:
                 return None
 
-            for val in (True, False):
+            s_true = _nn_qemu_score_env(ranked_vars or vars_list, {**env, v: True})
+            s_false = _nn_qemu_score_env(ranked_vars or vars_list, {**env, v: False})
+            val_order = (True, False) if s_true >= s_false else (False, True)
+            for val in val_order:
                 trace["decisions"] += 1
                 env2 = dict(env)
                 env2[v] = val
@@ -826,7 +908,7 @@ def solve_sat_lite(expr: str) -> dict[str, Any]:
             learned_clauses.append(f"backjump({v})")
             return None
 
-        sat_model = dpll({})
+        sat_model = dpll(dict(pre_env))
 
         if sat_model is not None:
             proof_trace = {
@@ -834,6 +916,7 @@ def solve_sat_lite(expr: str) -> dict[str, Any]:
                 "mode": "cdcl-lite+nn-qemu-priority" if _HAS_QEMU else "cdcl-lite+nn-priority",
                 "watched_literals_init": watched_literals,
                 "learned_clauses": learned_clauses,
+                "preprocess": {"removed_tautologies": removed_taut, "unit_assignments": len(pre_env)},
                 **trace,
             }
             return {
@@ -906,6 +989,7 @@ def solve_sat_lite(expr: str) -> dict[str, Any]:
             "mode": "cdcl-lite+nn-qemu-priority" if _HAS_QEMU else "cdcl-lite+nn-priority",
             "watched_literals_init": watched_literals,
             "learned_clauses": learned_clauses,
+            "preprocess": {"removed_tautologies": removed_taut, "unit_assignments": len(pre_env)},
             "unsat_core_exact_minimized": exact_min_applied,
             "unsat_core_minimal_verified": core_minimal,
             "unsat_core_quality": "high" if core_minimal else "medium",
