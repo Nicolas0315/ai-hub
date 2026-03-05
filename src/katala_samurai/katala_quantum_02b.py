@@ -130,6 +130,7 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
             "orchestration_detail": True,
             "orchestration_history": True,
             "solver_exposure_extended": True,
+            "claim_level_citation_verify": True,
             "counter_hypothesis_layer": True,
             "schema_guard": True,
             "transient_session_mode": True,
@@ -302,6 +303,14 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
         execution_time_s = round(1.2 + (1.0 - mini_ratio) * 2.8 + max(0.0, adv_risk) * 1.6, 4)
         agent_consistency = self._clamp(consistency * 0.7 + triadic_score * 0.3)
 
+        phase_trace = [
+            {"phase": "spm_parse", "score": round(self._clamp(0.45 + triadic_score * 0.25), 4)},
+            {"phase": "spml_evaluate", "score": round(self._clamp(0.40 + consistency * 0.35), 4)},
+            {"phase": "solver_compose", "score": round(self._clamp(0.38 + mini_ratio * 0.45), 4)},
+            {"phase": "citation_verify", "score": round(self._clamp(0.35 + min(0.35, read_count / 80.0)), 4)},
+            {"phase": "final_gate", "score": round(self._clamp(agent_consistency * 0.7 + completion_rate * 0.3), 4)},
+        ]
+
         return {
             "completion_rate": round(completion_rate, 4),
             "recovery_events": recovery_events,
@@ -310,6 +319,8 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
             "agent_consistency": round(agent_consistency, 4),
             "recommended_mode": triadic.get("recommended_mode", "pairwise"),
             "pair_scores": {k: round(float(v or 0.0), 4) for k, v in pair.items()},
+            "phase_trace": phase_trace,
+            "depth_version": "orch-depth-v2",
         }
 
     def _append_orchestration_history(self, orchestration: dict[str, Any]) -> dict[str, Any]:
@@ -336,6 +347,42 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
             "avg_execution_time_s": round(avg_exec_time, 4),
             "total_recovery_events": int(total_recovery),
             "history_tail": hist[-8:],
+        }
+
+    def _claim_level_citation_verify(self, text: str, paper_stats: dict[str, Any], html_pipe: dict[str, Any]) -> dict[str, Any]:
+        sentences = [s.strip() for s in re.split(r"[。.!?\n]+", text or "") if s.strip()]
+        refs_count = int((paper_stats or {}).get("refs_count", 0) or 0)
+        html_hits = int((html_pipe or {}).get("html_hit_count", 0) or 0)
+
+        flow = []
+        supported = 0
+        uncertain = 0
+        for s in sentences:
+            has_cite_marker = any(k in s.lower() for k in ["doi", "citation", "source", "et al", "研究", "論文"])
+            evidence_score = self._clamp((0.55 if has_cite_marker else 0.10) + min(0.20, refs_count / 40.0) + min(0.15, html_hits / 20.0))
+            verdict = "SUPPORTED" if evidence_score >= 0.62 else "UNCERTAIN"
+            if verdict == "SUPPORTED":
+                supported += 1
+            else:
+                uncertain += 1
+            flow.append({
+                "sentence": s[:220],
+                "has_citation_marker": has_cite_marker,
+                "evidence_score": round(evidence_score, 4),
+                "verdict": verdict,
+            })
+
+        total = len(sentences)
+        support_ratio = (supported / total) if total > 0 else 0.0
+        return {
+            "enabled": True,
+            "version": "claim-verify-v2",
+            "sentences": total,
+            "supported": supported,
+            "uncertain": uncertain,
+            "support_ratio": round(support_ratio, 4),
+            "strict_flow": flow,
+            "final_verdict": "PASS" if support_ratio >= 0.60 else "CAUTION",
         }
 
     def _solver_exposure_extended(self, dpack: dict[str, Any], mini: dict[str, Any], complement: dict[str, Any]) -> dict[str, Any]:
@@ -788,6 +835,8 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
             "citation_verify": {
                 "refs_count": int(refs_count),
                 "html_hits": int(html_hits),
+                "claim_support_ratio": float(((result.get("claim_level_citation_verify") or {}).get("support_ratio", 0.0) or 0.0)),
+                "claim_flow_verdict": (result.get("claim_level_citation_verify") or {}).get("final_verdict", "CAUTION"),
             },
             "orchestration": {
                 "mini_activation_ratio": round(act_ratio, 4),
@@ -1268,6 +1317,7 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
         r["orchestration_detail"] = self._orchestration_detail(triadic, mini, mlc, sweep, adv_risk_now)
         r["orchestration_history"] = self._append_orchestration_history(r["orchestration_detail"])
         r["solver_exposure_extended"] = self._solver_exposure_extended(dpack, mini, complement)
+        r["claim_level_citation_verify"] = self._claim_level_citation_verify(text, p, htmlp)
         r["why_this_solver_set"] = {
             "spm_driven": True,
             "domain": dpack.get("domain"),
@@ -1369,7 +1419,20 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
         fw["solver_complement_boost_sum"] = round(sum(float(v or 0.0) for v in ((complement.get("family_boost") or {}).values())), 4)
         r["fusion_weights"] = fw
 
-        r["kq_revision"] = "02b-r20"
+        # output-time memory cleanup policy
+        try:
+            self.ORCHESTRATION_HISTORY.clear()
+            r["ephemeral_cleanup"] = {
+                "orchestration_history_cleared": True,
+                "persistent_cache": False,
+            }
+        except Exception:
+            r["ephemeral_cleanup"] = {
+                "orchestration_history_cleared": False,
+                "persistent_cache": False,
+            }
+
+        r["kq_revision"] = "02b-r21"
         r["model"] = self.SYSTEM_MODEL
         r["alias"] = self.ALIAS
         return r
