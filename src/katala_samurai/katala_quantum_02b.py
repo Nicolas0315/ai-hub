@@ -142,6 +142,8 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
             "predicate_lite_kernel": True,
             "constraint_kernel": True,
             "claim_ir_v1": True,
+            "claim_ir_v2": True,
+            "proof_status_gate_link": True,
             "spml_information_loss_ratio": True,
         })
         return s
@@ -1093,6 +1095,26 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
             },
         }
 
+    def _proof_status_summary(self, symbolic_eval: dict[str, Any]) -> dict[str, Any]:
+        statuses: list[str] = []
+        for k in ("items", "modal_items", "predicate_items", "constraint_items"):
+            for it in (symbolic_eval or {}).get(k, []) or []:
+                if isinstance(it, dict):
+                    statuses.append(str(it.get("proof_status", "unknown") or "unknown"))
+        n = len(statuses)
+        failed = sum(1 for s in statuses if s == "failed")
+        undec = sum(1 for s in statuses if s in {"undecidable", "inconclusive"})
+        checked = sum(1 for s in statuses if s in {"checked", "derived"})
+        return {
+            "total": n,
+            "checked": checked,
+            "failed": failed,
+            "undecidable_or_inconclusive": undec,
+            "checked_ratio": round((checked / n) if n else 1.0, 4),
+            "failed_ratio": round((failed / n) if n else 0.0, 4),
+            "undecidable_ratio": round((undec / n) if n else 0.0, 4),
+        }
+
     def _claim_ir_v1(self, text: str, spm: dict[str, Any], spml: dict[str, Any]) -> dict[str, Any]:
         return {
             "version": "claim-ir-v1",
@@ -1110,6 +1132,24 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
                 "mapping_completeness_loss": float((spml or {}).get("mapping_completeness_loss", 0.0) or 0.0),
                 "mapping_fidelity_loss": float((spml or {}).get("mapping_fidelity_loss", 0.0) or 0.0),
                 "information_loss_ratio": float((spml or {}).get("information_loss_ratio", 0.0) or 0.0),
+            },
+        }
+
+    def _claim_ir_v2(self, text: str, spm: dict[str, Any], spml: dict[str, Any], symbolic_eval: dict[str, Any]) -> dict[str, Any]:
+        v1 = self._claim_ir_v1(text, spm, spml)
+        proof = self._proof_status_summary(symbolic_eval or {})
+        return {
+            "version": "claim-ir-v2",
+            "source_modality": v1.get("source_modality", "text"),
+            "payload": v1.get("payload") or {},
+            "quality": v1.get("quality") or {},
+            "formal": {
+                "backend": (symbolic_eval or {}).get("backend", "none"),
+                "proof_status_summary": proof,
+            },
+            "evidence": {
+                "spml_profile": (spml or {}).get("profile", "unknown"),
+                "spml_score": float((spml or {}).get("score", 0.0) or 0.0),
             },
         }
 
@@ -1412,6 +1452,7 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
         r["spm_mapping"] = tl.get("spm_mapping") or {}
         r["spml"] = tl.get("spml") or {}
         r["claim_ir_v1"] = self._claim_ir_v1(text, r["spm_mapping"], r["spml"])
+        r["claim_ir_v2"] = self._claim_ir_v2(text, r["spm_mapping"], r["spml"], r.get("symbolic_expression_eval") or {})
         r["transient_session"] = self._transient_session_stamp()
         r["bias_detection"] = bias
         r["htlf_loss_vector"] = htlf
@@ -1483,9 +1524,17 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
         fidelity_loss = float(spml_obj.get("mapping_fidelity_loss", 0.0) or 0.0)
         counter_ok = ((r.get("counter_hypothesis") or {}).get("verdict") == "PASS")
         schema_ok = bool((r.get("schema_guard") or {}).get("valid"))
+        proof = ((r.get("claim_ir_v2") or {}).get("formal") or {}).get("proof_status_summary") or {}
+        failed_ratio = float(proof.get("failed_ratio", 0.0) or 0.0)
+        undecidable_ratio = float(proof.get("undecidable_ratio", 0.0) or 0.0)
+        # weak penalty policy (user preference)
+        proof_penalty = min(0.12, failed_ratio * 0.08 + undecidable_ratio * 0.04)
+        loss_score_adj = self._clamp(loss_score + proof_penalty)
+        consistency_adj = self._clamp(consistency_score - proof_penalty)
+
         assertive_allowed = (
-            (loss_score <= 0.24)
-            and (consistency_score >= 0.72)
+            (loss_score_adj <= 0.24)
+            and (consistency_adj >= 0.72)
             and (bias_risk <= 0.32)
             and (adv_risk <= 0.35)
             and (completeness_loss <= 0.42)
@@ -1503,6 +1552,10 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
             "spml_fidelity_threshold": 0.46,
             "counter_hypothesis_required": True,
             "schema_guard_required": True,
+            "proof_penalty_policy": {"failed": 0.08, "undecidable_or_inconclusive": 0.04, "cap": 0.12},
+            "proof_penalty": round(proof_penalty, 4),
+            "loss_score_adjusted": round(loss_score_adj, 4),
+            "consistency_score_adjusted": round(consistency_adj, 4),
             "counter_hypothesis_pass": counter_ok,
             "schema_guard_pass": schema_ok,
             "assertive_allowed": assertive_allowed,
@@ -1546,7 +1599,7 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
                 "persistent_cache": False,
             }
 
-        r["kq_revision"] = "02b-r25"
+        r["kq_revision"] = "02b-r26"
         r["model"] = self.SYSTEM_MODEL
         r["alias"] = self.ALIAS
         return r
