@@ -1046,10 +1046,28 @@ def solve_smt_optional(expr: str) -> dict[str, Any]:
         max_solutions = int(os.getenv("KQ_SMT_MAX_SOLUTIONS", "512"))
         nn_rank_limit = int(os.getenv("KQ_SMT_NN_RANK_LIMIT", "120000"))
 
-        # Portfolio strategy selection for SMT
+        # Portfolio strategy selection for SMT + auto exploration
         smt_strategy = 'nn-ranked' if total_space <= nn_rank_limit else 'stream'
         if total_space > 1000000:
             smt_strategy = 'sampled-stream'
+
+        auto_strategy = str(os.getenv('KQ_SMT_AUTO_STRATEGY', '1')).strip().lower() not in {'0', 'false', 'no', 'off'}
+        strategy_search = {"enabled": auto_strategy, "selected": smt_strategy, "candidates": []}
+        if auto_strategy and total_space <= max(200000, exhaustive_limit):
+            cand = ['nn-ranked', 'stream'] if total_space <= nn_rank_limit else ['stream', 'sampled-stream']
+            for c in cand:
+                score = 0.0
+                if c == 'nn-ranked':
+                    score = 0.65 + min(0.3, (1.0 - total_space / max(1.0, nn_rank_limit * 1.5)))
+                elif c == 'stream':
+                    score = 0.58 + min(0.25, total_space / max(1.0, nn_rank_limit * 3.0))
+                else:
+                    score = 0.52 + min(0.22, total_space / 1000000.0)
+                strategy_search['candidates'].append({'strategy': c, 'score': round(score, 4)})
+            strategy_search['candidates'].sort(key=lambda x: float(x.get('score', 0.0)), reverse=True)
+            if strategy_search['candidates']:
+                smt_strategy = str(strategy_search['candidates'][0].get('strategy') or smt_strategy)
+                strategy_search['selected'] = smt_strategy
         
         sols: list[dict[str, int]] = []
         checks = 0
@@ -1089,6 +1107,7 @@ def solve_smt_optional(expr: str) -> dict[str, Any]:
             "normalization_notes": norm_notes,
             "linguistic_trace": linguistic_trace,
             "strategy": smt_strategy,
+            "strategy_search": strategy_search,
             "search_space": int(total_space),
             "checked_points": int(checks),
             "coverage": round(float(coverage), 4),
@@ -2137,6 +2156,30 @@ def _hol_strategy_from_expr(expr: str) -> dict[str, Any]:
         name = 'general'
     return {'name': name, 'seed_domain': domain}
 
+
+def _hol_auto_strategy_search(astn, base_strategy: dict[str, Any], cap: int) -> dict[str, Any]:
+    candidates = [
+        base_strategy,
+        {'name': 'bool-first', 'seed_domain': [False, True, 0, 1, -1]},
+        {'name': 'int-first', 'seed_domain': [0, 1, -1, 2, -2, False, True]},
+    ]
+    pilot_cap = max(24, min(96, cap // 4))
+    scored: list[dict[str, Any]] = []
+    for c in candidates:
+        r = _hol_proof_search_lite(astn, max_models=pilot_cap, strategy=c)
+        theorem_like = r.get('theorem_like')
+        checked = int(r.get('checked_models', 0) or 0)
+        if theorem_like is False:
+            score = 1.0  # fast counterexample found is highly valuable
+        elif theorem_like is True:
+            score = 0.7 + min(0.29, checked / max(1, pilot_cap) * 0.29)
+        else:
+            score = 0.5
+        scored.append({'strategy': c, 'pilot': r, 'score': round(score, 4)})
+    scored.sort(key=lambda x: float(x.get('score', 0.0)), reverse=True)
+    best = scored[0] if scored else {'strategy': base_strategy, 'pilot': None, 'score': 0.0}
+    return {'selected': best.get('strategy') or base_strategy, 'candidates': scored}
+
 def _hol_proof_search_lite(astn, max_models: int = 256, strategy: dict[str, Any] | None = None) -> dict[str, Any]:
     free = sorted(_hol_collect_free_vars(astn))
     if not free:
@@ -2258,7 +2301,9 @@ def solve_hol_lite(expr: str) -> dict[str, Any]:
         hol_strategy = _hol_strategy_from_expr(s)
         hol_max_models = int(os.getenv('KQ_HOL_MAX_MODELS', '512'))
         hol_adaptive_cap = min(2048, max(64, hol_max_models // max(1, len(_hol_collect_free_vars(astn_norm))) ))
-        proof_search = _hol_proof_search_lite(astn_norm, max_models=hol_adaptive_cap, strategy=hol_strategy) if inferred_type == 'bool' else {'checked_models': 0, 'counterexample': None, 'theorem_like': None, 'strategy': hol_strategy.get('name', 'general')}
+        strategy_search = _hol_auto_strategy_search(astn_norm, hol_strategy, hol_adaptive_cap) if inferred_type == 'bool' else {'selected': hol_strategy, 'candidates': []}
+        selected_strategy = (strategy_search.get('selected') or hol_strategy)
+        proof_search = _hol_proof_search_lite(astn_norm, max_models=hol_adaptive_cap, strategy=selected_strategy) if inferred_type == 'bool' else {'checked_models': 0, 'counterexample': None, 'theorem_like': None, 'strategy': hol_strategy.get('name', 'general')}
         proof_search_sync = None
         if inferred_type == 'bool':
             sync_cap = max(32, hol_adaptive_cap // 2)
@@ -2267,10 +2312,11 @@ def solve_hol_lite(expr: str) -> dict[str, Any]:
             'ast': str(astn_norm),
             'inferred_type': inferred_type,
             'unification_subst': _normalize_subst(subst),
+            'strategy_search': strategy_search,
             'proof_search': proof_search,
         }
         proof_trace_human = {
-            'strategy': hol_strategy.get('name', 'general'),
+            'strategy': (selected_strategy or {}).get('name', hol_strategy.get('name', 'general')),
             'checked_models': int(proof_search.get('checked_models', 0) or 0),
             'theorem_like': proof_search.get('theorem_like'),
             'has_counterexample': bool(proof_search.get('counterexample') is not None),
@@ -2288,13 +2334,14 @@ def solve_hol_lite(expr: str) -> dict[str, Any]:
             'inferred_type': inferred_type,
             'typecheck': {'ok': True, 'unification': {'enabled': True, 'substitutions': _normalize_subst(subst), 'count': len(subst)}, 'strict_function_application': True},
             'proof_search': proof_search,
+            'strategy_search': strategy_search,
             'proof_search_sync': proof_search_sync,
             'proof_sync_consistency': (
                 None if proof_search_sync is None else bool((proof_search_sync or {}).get('theorem_like') == (proof_search or {}).get('theorem_like'))
             ),
             'proof_trace_machine': proof_trace_machine,
             'proof_trace_human': proof_trace_human,
-            'proof_certificate': _proof_fingerprint({'solver': 'hol-lite', 'ast': str(astn_norm), 'result': out_val, 'type': inferred_type, 'proof_search': proof_search, 'proof_search_sync': proof_search_sync, 'strategy': hol_strategy.get('name', 'general')}),
+            'proof_certificate': _proof_fingerprint({'solver': 'hol-lite', 'ast': str(astn_norm), 'result': out_val, 'type': inferred_type, 'proof_search': proof_search, 'proof_search_sync': proof_search_sync, 'strategy': (selected_strategy or {}).get('name', hol_strategy.get('name', 'general')), 'strategy_search': strategy_search}),
         }
     except Exception as e:
         return {'ok': False, 'proof_status': 'failed', 'solver': 'hol-lite', 'error': str(e), 'normalization_notes': norm_notes, 'linguistic_trace': linguistic_trace}
