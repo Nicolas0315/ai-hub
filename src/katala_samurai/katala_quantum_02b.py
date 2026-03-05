@@ -921,8 +921,8 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
             load1, load5, load15 = os.getloadavg()
         except Exception:
             load1, load5, load15 = 0.0, 0.0, 0.0
-        cpu_budget = float(os.getenv("KQ_CPU_BUDGET", "0.40"))
-        gpu_budget = float(os.getenv("KQ_GPU_BUDGET", "0.40"))
+        cpu_budget = float(os.getenv("KQ_CPU_BUDGET", "0.60"))
+        gpu_budget = float(os.getenv("KQ_GPU_BUDGET", "0.60"))
         batch_mode = "batch" if load1 > max(1.0, os.cpu_count() * cpu_budget * 0.8) else "interactive"
         return {
             "cpu_load": {"1m": round(load1, 3), "5m": round(load5, 3), "15m": round(load15, 3)},

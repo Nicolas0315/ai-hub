@@ -59,8 +59,8 @@ class Katala_Quantum_01a:
     SYSTEM_MODEL: str = "Katala_Quantum_01a"
     ALIAS: str = "KQ01a"
     SERIES: str = "[Katala_Quantum][KQ]シリーズを使用"
-    GPU_BUDGET_TARGET: float = 0.40
-    CPU_BUDGET_TARGET: float = 0.40
+    GPU_BUDGET_TARGET: float = 0.60
+    CPU_BUDGET_TARGET: float = 0.60
     QUANTUM_STABLE_MODE: bool = True
     QUANTUM_CIRCUIT_ONLY: bool = True
 

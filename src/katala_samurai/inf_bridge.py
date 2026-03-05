@@ -339,8 +339,8 @@ def hardware_batch_telemetry() -> dict[str, Any]:
         load1, load5, load15 = os.getloadavg()
     except Exception:
         load1, load5, load15 = 0.0, 0.0, 0.0
-    cpu_budget = float(os.getenv("KQ_CPU_BUDGET", "0.40"))
-    gpu_budget = float(os.getenv("KQ_GPU_BUDGET", "0.40"))
+    cpu_budget = float(os.getenv("KQ_CPU_BUDGET", "0.60"))
+    gpu_budget = float(os.getenv("KQ_GPU_BUDGET", "0.60"))
     mode = "batch" if load1 > max(1.0, os.cpu_count() * cpu_budget * 0.8) else "interactive"
     return {
         "cpu_load": {"1m": round(load1, 3), "5m": round(load5, 3), "15m": round(load15, 3)},
@@ -554,8 +554,8 @@ def _build_execution_role_plan(compute_meta: dict[str, Any], hw: dict[str, Any])
 
     cpu_load = float(((hw.get("cpu_load") or {}).get("1m", 0.0) or 0.0))
     budgets = (hw.get("budget") or {})
-    cpu_budget = float(budgets.get("cpu", 0.40) or 0.40)
-    gpu_budget = float(budgets.get("gpu", 0.40) or 0.40)
+    cpu_budget = float(budgets.get("cpu", 0.60) or 0.60)
+    gpu_budget = float(budgets.get("gpu", 0.60) or 0.60)
 
     cpu_cnt = max(1, (os.cpu_count() or 1))
     cpu_ratio = min(1.0, max(0.0, cpu_load / float(cpu_cnt)))
@@ -618,7 +618,7 @@ def _build_execution_role_plan(compute_meta: dict[str, Any], hw: dict[str, Any])
             "gpu_budget": gpu_budget,
             "cpu_pressure": round(cpu_pressure, 4),
             "gpu_pressure": round(gpu_pressure, 4),
-            "hard_cap": 0.40,
+            "hard_cap": 0.60,
         },
     }
 
