@@ -553,32 +553,76 @@ class FormalClaimRouter:
 
         return {'kind_hint': 'symbolic', 'expr': low, 'notes': notes}
 
+    @staticmethod
+    def _try_solver(kind: str, expr: str) -> dict[str, Any]:
+        if kind == 'ctl':
+            return solve_ctl_lite(expr)
+        if kind == 'ltl':
+            return eval_ltl_lite(expr)
+        if kind == 'hol':
+            return solve_hol_lite(expr)
+        if kind == 'smt':
+            return solve_smt_optional(expr)
+        if kind == 'sat':
+            return solve_sat_lite(expr)
+        return eval_symbolic(expr)
+
+    def _candidate_forms(self, normalized: str, kind_hint: str | None = None) -> list[tuple[str, str]]:
+        low = (normalized or '').strip().lower()
+        cands: list[tuple[str, str]] = []
+
+        # explicit temporal with missing trace -> attach conservative boolean trace
+        if any(x in f" {low} " for x in [" g ", " f ", " x ", " u ", " r ", " w ", " s ", " t "]) and "@" not in low:
+            cands.append(('ltl', f"{low} @ ['p','p','p']"))
+
+        if 'forall' in low or 'exists' in low or 'lambda' in low:
+            cands.append(('hol', low))
+
+        # SMT shaping fallback from comparison-rich claims
+        cmp_hits = re.findall(r'([a-zA-Z_]\w*)\s*(==|!=|<=|>=|<|>)\s*(-?\d+(?:\.\d+)?)', low)
+        dom_hit = re.search(r'([a-zA-Z_]\w*)\s+in\s*(\[[^\]]+\]|\([^\)]+\))', low)
+        if dom_hit and cmp_hits:
+            v, dom = dom_hit.group(1), dom_hit.group(2)
+            atoms = [f"{a} {op} {b}" for a, op, b in cmp_hits if a == v]
+            if atoms:
+                cands.append(('smt', f"vars: {v} in {dom}; formula: and(" + ", ".join(atoms) + ")"))
+
+        if 'vars:' in low or 'formula:' in low or kind_hint == 'smt':
+            cands.append(('smt', low))
+        if ' and ' in low or ' or ' in low or 'not ' in low or '->' in low or kind_hint == 'sat':
+            cands.append(('sat', low))
+
+        # baseline symbolic always last
+        cands.append(('symbolic', low))
+
+        # dedupe preserve order
+        out: list[tuple[str, str]] = []
+        seen = set()
+        for k, e in cands:
+            key = (k, e)
+            if key not in seen:
+                seen.add(key)
+                out.append((k, e))
+        return out
+
     def _route_one(self, claim: str) -> dict[str, Any]:
         c = (claim or "").strip()
         n = self._normalize_claim(c)
         norm = n["normalized"]
         fz = self._formalize_for_solver(norm)
         norm2 = str(fz.get('expr') or norm)
-        low = norm2.lower()
-
         merged_notes = (n["notes"] or []) + (fz.get("notes") or [])
-        if "ctl" in low or any(x in f" {low} " for x in [" ag ", " ef ", " ax ", " ex "]):
-            r = solve_ctl_lite(norm2)
-            return {"claim": c, "normalized_claim": norm2, "normalization_notes": merged_notes, "kind": "ctl", "formal": r}
-        if "ltl" in low or any(x in f" {low} " for x in [" g ", " f ", " x ", " u ", " r ", " w ", " s ", " t "]):
-            r = eval_ltl_lite(norm2) if "@" in norm2 else {"ok": False, "proof_status": "failed", "error": "ltl trace missing"}
-            return {"claim": c, "normalized_claim": norm2, "normalization_notes": merged_notes, "kind": "ltl", "formal": r}
-        if "forall" in low or "exists" in low or "lambda" in low:
-            r = solve_hol_lite(norm2)
-            return {"claim": c, "normalized_claim": norm2, "normalization_notes": merged_notes, "kind": "hol", "formal": r}
-        if "vars:" in low or "formula:" in low or str(fz.get('kind_hint')) == 'smt':
-            r = solve_smt_optional(norm2)
-            return {"claim": c, "normalized_claim": norm2, "normalization_notes": merged_notes, "kind": "smt", "formal": r}
-        if " and " in low or " or " in low or "not " in low or "->" in low or str(fz.get('kind_hint')) == 'sat':
-            r = solve_sat_lite(norm2)
-            return {"claim": c, "normalized_claim": norm2, "normalization_notes": merged_notes, "kind": "sat", "formal": r}
-        r = eval_symbolic(norm2)
-        return {"claim": c, "normalized_claim": norm2, "normalization_notes": merged_notes, "kind": "symbolic", "formal": r}
+
+        best = None
+        for kind, expr in self._candidate_forms(norm2, kind_hint=str(fz.get('kind_hint') or '').strip().lower() or None):
+            r = self._try_solver(kind, expr)
+            cand = {"claim": c, "normalized_claim": expr, "normalization_notes": merged_notes, "kind": kind, "formal": r}
+            if best is None:
+                best = cand
+            if bool((r or {}).get('ok')):
+                return cand
+
+        return best or {"claim": c, "normalized_claim": norm2, "normalization_notes": merged_notes, "kind": "symbolic", "formal": {"ok": False, "proof_status": "failed", "error": "no-candidate"}}
 
     def route_parallel(self, rows: list[dict[str, Any]], max_workers: int = 16) -> dict[str, Any]:
         claims = []
