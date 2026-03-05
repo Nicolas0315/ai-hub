@@ -1564,6 +1564,102 @@ def _infer_hol_type(node, tenv: dict[str, str], subst: dict[str, str] | None = N
     return 'unknown'
 
 
+def _hol_substitute(node, var: str, value_node):
+    k = node[0]
+    if k == 'leaf':
+        t = str(node[1]).strip()
+        if t == var:
+            return value_node
+        return node
+    if k == 'quant':
+        _, q, v, dom, body, ann = node
+        if v == var:
+            return node
+        return ('quant', q, v, dom, _hol_substitute(body, var, value_node), ann)
+    if k == 'lambda':
+        _, v, body, ann = node
+        if v == var:
+            return node
+        return ('lambda', v, _hol_substitute(body, var, value_node), ann)
+    if k in {'and', 'or'}:
+        return (k, _hol_substitute(node[1], var, value_node), _hol_substitute(node[2], var, value_node))
+    if k == 'not':
+        return ('not', _hol_substitute(node[1], var, value_node))
+    if k == 'app':
+        return ('app', _hol_substitute(node[1], var, value_node), _hol_substitute(node[2], var, value_node))
+    return node
+
+
+def _hol_beta_reduce(node, fuel: int = 128):
+    if fuel <= 0:
+        return node
+    k = node[0]
+    if k == 'app':
+        fn = _hol_beta_reduce(node[1], fuel - 1)
+        arg = _hol_beta_reduce(node[2], fuel - 1)
+        if isinstance(fn, tuple) and fn and fn[0] == 'lambda':
+            _, var, body, _ann = fn
+            reduced = _hol_substitute(body, var, arg)
+            return _hol_beta_reduce(reduced, fuel - 1)
+        return ('app', fn, arg)
+    if k in {'and', 'or'}:
+        return (k, _hol_beta_reduce(node[1], fuel - 1), _hol_beta_reduce(node[2], fuel - 1))
+    if k == 'not':
+        return ('not', _hol_beta_reduce(node[1], fuel - 1))
+    if k == 'quant':
+        _, q, v, dom, body, ann = node
+        return ('quant', q, v, dom, _hol_beta_reduce(body, fuel - 1), ann)
+    if k == 'lambda':
+        _, v, body, ann = node
+        return ('lambda', v, _hol_beta_reduce(body, fuel - 1), ann)
+    return node
+
+
+def _hol_collect_free_vars(node, bound: set[str] | None = None) -> set[str]:
+    b = set(bound or set())
+    k = node[0]
+    if k == 'leaf':
+        t = str(node[1]).strip()
+        if re.fullmatch(r'[A-Za-z_]\w*', t) and t not in b and t.lower() not in {'true', 'false'}:
+            return {t}
+        return set()
+    if k == 'quant':
+        _, _q, v, _dom, body, _ann = node
+        return _hol_collect_free_vars(body, b | {v})
+    if k == 'lambda':
+        _, v, body, _ann = node
+        return _hol_collect_free_vars(body, b | {v})
+    if k in {'and', 'or'}:
+        return _hol_collect_free_vars(node[1], b) | _hol_collect_free_vars(node[2], b)
+    if k == 'not':
+        return _hol_collect_free_vars(node[1], b)
+    if k == 'app':
+        return _hol_collect_free_vars(node[1], b) | _hol_collect_free_vars(node[2], b)
+    return set()
+
+
+def _hol_proof_search_lite(astn, max_models: int = 256) -> dict[str, Any]:
+    free = sorted(_hol_collect_free_vars(astn))
+    if not free:
+        return {'checked_models': 1, 'counterexample': None, 'theorem_like': None}
+
+    domain = [False, True, -1, 0, 1]
+    checked = 0
+    from itertools import product as _prod
+    for vals in _prod(domain, repeat=len(free)):
+        env = {k: v for k, v in zip(free, vals)}
+        checked += 1
+        try:
+            r = bool(_eval_hol_ast(astn, env))
+        except Exception:
+            r = False
+        if not r:
+            return {'checked_models': checked, 'counterexample': env, 'theorem_like': False}
+        if checked >= max_models:
+            break
+    return {'checked_models': checked, 'counterexample': None, 'theorem_like': True}
+
+
 def _eval_hol_ast(node, env: dict[str, Any]):
     k = node[0]
     if k == 'quant':
@@ -1632,21 +1728,26 @@ def solve_hol_lite(expr: str) -> dict[str, Any]:
         if s.lower().startswith('formula='):
             s = s.split('=', 1)[1].strip()
         astn = _parse_hol_expr(s)
+        # keep normalization conservative to avoid unsafe algebraic text rewrites
+        astn_norm = astn
         subst: dict[str, str] = {}
-        inferred_type = _infer_hol_type(astn, {}, subst)
+        inferred_type = _infer_hol_type(astn_norm, {}, subst)
         inferred_type = _apply_subst_type(inferred_type, subst)
-        val = _eval_hol_ast(astn, {})
+        val = _eval_hol_ast(astn_norm, {})
         out_val = val if not (isinstance(val, tuple) and val and val[0] == 'closure') else '<lambda>'
+        proof_search = _hol_proof_search_lite(astn_norm) if inferred_type == 'bool' else {'checked_models': 0, 'counterexample': None, 'theorem_like': None}
         return {
             'ok': True,
             'proof_status': 'checked',
             'solver': 'hol-lite',
             'result': out_val,
             'ast': str(astn),
-            'mode': 'general-formula+typecheck',
+            'ast_normalized': str(astn_norm),
+            'mode': 'general-formula+typecheck+unification+proofsearch',
             'inferred_type': inferred_type,
             'typecheck': {'ok': True, 'unification': {'enabled': True, 'substitutions': subst, 'count': len(subst)}, 'strict_function_application': True},
-            'proof_certificate': _proof_fingerprint({'solver': 'hol-lite', 'ast': str(astn), 'result': out_val, 'type': inferred_type}),
+            'proof_search': proof_search,
+            'proof_certificate': _proof_fingerprint({'solver': 'hol-lite', 'ast': str(astn_norm), 'result': out_val, 'type': inferred_type, 'proof_search': proof_search}),
         }
     except Exception as e:
         return {'ok': False, 'proof_status': 'failed', 'solver': 'hol-lite', 'error': str(e)}
