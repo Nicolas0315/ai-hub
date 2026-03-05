@@ -145,6 +145,7 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
             "smt_kernel": True,
             "smt_kq_native": True,
             "sat_lite_kernel": True,
+            "quantum_emu_formal_kernels": True,
             "lean_coq_proof_bridge": True,
             "isabelle_proof_bridge": True,
             "claim_ir_v1": True,
@@ -1663,7 +1664,7 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
                 "persistent_cache": False,
             }
 
-        r["kq_revision"] = "02b-r32"
+        r["kq_revision"] = "02b-r33"
         r["model"] = self.SYSTEM_MODEL
         r["alias"] = self.ALIAS
         return r

@@ -9,6 +9,13 @@ import tempfile
 from itertools import product
 from typing import Any
 
+try:
+    from katala_quantum.emulator_lite import QuantumCircuit  # type: ignore
+    _HAS_QEMU = True
+except Exception:
+    QuantumCircuit = None  # type: ignore
+    _HAS_QEMU = False
+
 
 class _SafeEval(ast.NodeVisitor):
     ALLOWED_BIN = {
@@ -121,6 +128,28 @@ def _split_top_level(text: str, sep: str = ",") -> list[str]:
     if tok:
         out.append(tok)
     return out
+
+
+def _rank_envs_quantum_emu(names: list[str], candidates: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    if not _HAS_QEMU or not names or not candidates:
+        return candidates
+    ranked: list[tuple[float, dict[str, Any]]] = []
+    for env in candidates:
+        try:
+            q = QuantumCircuit(max(1, min(8, len(names))))
+            for i, k in enumerate(names[:8]):
+                v = 1 if bool(env.get(k, False)) else 0
+                if v:
+                    q.h(i).rz(i, 0.7)
+                else:
+                    q.rx(i, 0.3)
+            m = q.measure_all().run(shots=64).measurements
+            score = float(m.get("1" * max(1, min(8, len(names))), 0)) / 64.0
+        except Exception:
+            score = 0.0
+        ranked.append((score, env))
+    ranked.sort(key=lambda x: x[0], reverse=True)
+    return [e for _, e in ranked]
 
 
 def _smt_prefix_to_infix(formula: str) -> str:
@@ -407,8 +436,9 @@ def solve_smt_optional(expr: str) -> dict[str, Any]:
         ranges = [range(lo, hi + 1) for (lo, hi) in doms2.values()]
         sols: list[dict[str, int]] = []
         checks = 0
-        for values in product(*ranges):
-            env = {k: int(v) for k, v in zip(names, values)}
+        cand_envs = [{k: int(v) for k, v in zip(names, values)} for values in product(*ranges)]
+        cand_envs = _rank_envs_quantum_emu(names, cand_envs)
+        for env in cand_envs:
             checks += 1
             ev = _eval_symbolic_env(formula, env)
             if ev.get("ok") and bool(ev.get("result")):
@@ -423,12 +453,12 @@ def solve_smt_optional(expr: str) -> dict[str, Any]:
         status = "checked" if coverage >= 0.999 else "inconclusive"
         return {
             "ok": True,
-            "solver": "smt-kq-native",
+            "solver": "smt-kq-native-qemu" if _HAS_QEMU else "smt-kq-native",
             "proof_status": status,
             "solutions": sols,
             "solution_count": len(sols),
             "proof_trace": {
-                "mode": "enumeration+interval-propagation+env-safe-eval",
+                "mode": "quantum-emu-priority+enumeration+interval-propagation+env-safe-eval" if _HAS_QEMU else "enumeration+interval-propagation+env-safe-eval",
                 "variables": names,
                 "search_space": int(total_space),
                 "checked_points": int(checks),
@@ -531,8 +561,9 @@ def solve_sat_lite(expr: str) -> dict[str, Any]:
 
         sat_model = None
         checks = 0
-        for bits in product([False, True], repeat=len(vars_list)):
-            env = {k: b for k, b in zip(vars_list, bits)}
+        cand_envs = [{k: b for k, b in zip(vars_list, bits)} for bits in product([False, True], repeat=len(vars_list))]
+        cand_envs = _rank_envs_quantum_emu(vars_list, cand_envs)
+        for env in cand_envs:
             checks += 1
             if all(sat_clause(cl, env) for cl in clauses):
                 sat_model = env
@@ -542,10 +573,10 @@ def solve_sat_lite(expr: str) -> dict[str, Any]:
             return {
                 "ok": True,
                 "proof_status": "checked",
-                "solver": "sat-lite",
+                "solver": "sat-lite-qemu" if _HAS_QEMU else "sat-lite",
                 "satisfiable": True,
                 "model": sat_model,
-                "proof_trace": {"variables": vars_list, "checked_points": checks},
+                "proof_trace": {"variables": vars_list, "checked_points": checks, "mode": "quantum-emu-priority" if _HAS_QEMU else "enumeration"},
             }
 
         # UNSAT core-lite: greedy remove test
@@ -572,7 +603,7 @@ def solve_sat_lite(expr: str) -> dict[str, Any]:
         return {
             "ok": True,
             "proof_status": "checked",
-            "solver": "sat-lite",
+            "solver": "sat-lite-qemu" if _HAS_QEMU else "sat-lite",
             "satisfiable": False,
             "unsat_core_lite": core_txt,
             "proof_trace": {"variables": vars_list, "checked_points": checks, "core_size": len(core_txt)},
