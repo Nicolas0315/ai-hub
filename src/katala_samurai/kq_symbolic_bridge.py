@@ -468,6 +468,28 @@ def _apply_family_grammar_templates(expr: str, family: str, solver: str) -> tupl
             notes.append('sat:iff-template')
 
     return " ".join(t.split()).strip(), notes
+def _grammar_quality_trace(notes: list[str], family: str, solver: str) -> dict[str, Any]:
+    n = notes or []
+    aggressive = sum(1 for x in n if any(k in x for k in ["anaphora", "subordination", "implication", "scope:not-all"]))
+    structural = sum(1 for x in n if "grammar:" in x)
+    risk = min(1.0, aggressive * 0.18 + max(0, structural - aggressive) * 0.06)
+    if risk >= 0.45:
+        priority = "high"
+    elif risk >= 0.22:
+        priority = "medium"
+    else:
+        priority = "low"
+    return {
+        "family": family or "unknown",
+        "solver": solver,
+        "transform_count": len(n),
+        "structural_transforms": structural,
+        "aggressive_transforms": aggressive,
+        "misconversion_risk": round(risk, 4),
+        "priority": priority,
+    }
+
+
 def _parse_smt_lite(expr: str) -> tuple[dict[str, tuple[int, int]], str]:
     s, _ = _normalize_logic_multilingual(expr)
     if "formula:" in s and "vars:" in s:
@@ -932,6 +954,7 @@ def solve_smt_optional(expr: str) -> dict[str, Any]:
         linguistic_trace = _detect_language_family(expr_norm)
         expr_norm2, fam_notes = _apply_family_grammar_templates(expr_norm, linguistic_trace.get('language_family','unknown'), 'smt')
         norm_notes = (norm_notes or []) + (fam_notes or [])
+        linguistic_trace['grammar_quality'] = _grammar_quality_trace(fam_notes or [], linguistic_trace.get('language_family','unknown'), 'smt')
         doms, formula = _parse_smt_lite(expr_norm2)
         if not doms:
             r = solve_constraint_lite(expr_norm)
@@ -1092,6 +1115,7 @@ def solve_sat_lite(expr: str, _internal: bool = False) -> dict[str, Any]:
         linguistic_trace = _detect_language_family(expr_norm)
         expr_norm2, fam_notes = _apply_family_grammar_templates(expr_norm, linguistic_trace.get('language_family','unknown'), 'sat')
         norm_notes = (norm_notes or []) + (fam_notes or [])
+        linguistic_trace['grammar_quality'] = _grammar_quality_trace(fam_notes or [], linguistic_trace.get('language_family','unknown'), 'sat')
         s = (expr_norm2 or "").strip().lower()
         clause_txts = [x.strip() for x in re.split(r"\)\s*and\s*\(", s.strip().strip("()")) if x.strip()]
         clauses: list[list[tuple[str, bool]]] = []
@@ -2087,6 +2111,7 @@ def solve_hol_lite(expr: str) -> dict[str, Any]:
     linguistic_trace = _detect_language_family(s)
     s, fam_notes = _apply_family_grammar_templates(s, linguistic_trace.get('language_family','unknown'), 'hol')
     norm_notes = (norm_notes or []) + (fam_notes or [])
+    linguistic_trace['grammar_quality'] = _grammar_quality_trace(fam_notes or [], linguistic_trace.get('language_family','unknown'), 'hol')
     try:
         if s.lower().startswith('formula='):
             s = s.split('=', 1)[1].strip()
