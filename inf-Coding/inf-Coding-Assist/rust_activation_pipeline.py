@@ -30,6 +30,7 @@ def main() -> int:
     maturin = shutil.which("maturin")
     if not maturin:
         out["reason"] = "maturin-not-found"
+        out["hint"] = "run inf-Coding-Assist/rust_bootstrap_and_activate.sh to auto-install maturin and retry"
         out["ok"] = False
         out["steps"] = steps
         print(json.dumps(out, ensure_ascii=False, indent=2))
