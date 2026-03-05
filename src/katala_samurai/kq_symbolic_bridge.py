@@ -435,6 +435,8 @@ def _apply_family_grammar_templates(expr: str, family: str, solver: str) -> tupl
     mq = re.search(r"\b(forall|exists)\s+([a-zA-Z_]\w*)\s+in\s*(\[[^\]]+\]|\([^\)]+\))\s*:\s*(.+)", low)
     if mq:
         q, v, dom, body = mq.group(1), mq.group(2), mq.group(3), mq.group(4)
+        qvars = re.findall(r"\b(?:forall|exists)\s+([a-zA-Z_]\w*)\s+in\s*(?:\[[^\]]+\]|\([^\)]+\))", low)
+        anchor = qvars[-1] if qvars else v
         body2 = re.sub(
             r"\b(it|they|them|this|that|he|she|him|her|these|those)\b"
             r"|それ|これ|あれ|彼|彼女|彼ら|彼女ら"
@@ -443,13 +445,58 @@ def _apply_family_grammar_templates(expr: str, family: str, solver: str) -> tupl
             r"|это|этот|она|он|они"
             r"|este|esta|eso|esa|ellos|ellas"
             r"|ceci|cela|il|elle|ils|elles",
-            v,
+            anchor,
             body,
         )
         if body2 != body:
             t = f"{q} {v} in {dom}: {body2}"
             notes.append("grammar:anaphora-lite")
             low = t.lower()
+
+    # logic connective normalization (scope-sensitive)
+    if ' iff ' in low and '<->' not in low:
+        t = re.sub(r"\biff\b", " <-> ", t, flags=re.I)
+        notes.append('grammar:connective:iff')
+        low = t.lower()
+
+    if ' unless ' in low and '->' not in low:
+        m_unless = re.search(r"(.+?)\bunless\b(.+)", low)
+        if m_unless:
+            a = m_unless.group(1).strip(' ,.;')
+            b = m_unless.group(2).strip(' ,.;')
+            if a and b:
+                t = f"(not ({b})) -> ({a})"
+                notes.append('grammar:connective:unless')
+                low = t.lower()
+
+    if ' only if ' in low and '->' not in low:
+        m_onlyif = re.search(r"(.+?)\bonly if\b(.+)", low)
+        if m_onlyif:
+            a = m_onlyif.group(1).strip(' ,.;')
+            b = m_onlyif.group(2).strip(' ,.;')
+            if a and b:
+                t = f"({a}) -> ({b})"
+                notes.append('grammar:connective:only-if')
+                low = t.lower()
+
+    # causal/contrastive subordination mapping
+    for kw in [" because ", " because of ", " since ", " だから ", " ので ", " 因为 ", " 因此 ", " क्योंकि ", " क्योंकि "]:
+        if kw in low and '->' not in low:
+            parts = low.split(kw, 1)
+            if len(parts) == 2 and parts[0].strip() and parts[1].strip():
+                t = f"({parts[1].strip()}) -> ({parts[0].strip()})"
+                notes.append(f"grammar:causal:{kw.strip()}")
+                low = t.lower()
+                break
+
+    for kw in [" although ", " though ", " however ", " but ", " しかし ", " だが ", " 但是 ", " 但 ", " 하지만 "]:
+        if kw in low and " and " not in low:
+            parts = low.split(kw, 1)
+            if len(parts) == 2 and parts[0].strip() and parts[1].strip():
+                t = f"({parts[0].strip()}) and ({parts[1].strip()})"
+                notes.append(f"grammar:contrast:{kw.strip()}")
+                low = t.lower()
+                break
 
     # solver-specific shaping
     if solver == 'hol':
