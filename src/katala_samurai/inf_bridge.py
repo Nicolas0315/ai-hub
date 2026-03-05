@@ -154,12 +154,37 @@ def plan_step(payload: dict[str, Any]) -> dict[str, Any]:
 
 def external_signals(payload: dict[str, Any]) -> dict[str, Any]:
     txt = ((payload.get("kq_payload") or {}).get("text") or "").lower()
+
+    language_markers: dict[str, list[str]] = {
+        "en": [" if ", " then ", " and ", " or ", " theorem", "proof"],
+        "es": [" si ", " entonces ", " y ", " o ", " teorema", "demostración"],
+        "pt": [" se ", " então ", " e ", " ou ", " teorema", "prova"],
+        "fr": [" si ", " alors ", " et ", " ou ", " théorème", "preuve"],
+        "ja": ["ならば", "かつ", "または", "証明", "定理", "論理"],
+        "ko": ["이면", "그리고", "또는", "증명", "정리", "논리"],
+        "ar": ["اذا", "فإن", "و", "أو", "برهان", "نظرية"],
+        "hi": ["यदि", "तो", "और", "या", "प्रमाण", "प्रमेय"],
+        "de": [" wenn ", " dann ", " und ", " oder ", " beweis", "satz"],
+        "ru": [" если ", " то ", " и ", " или ", "доказ", "теор"],
+        "zh": ["如果", "那么", "且", "或", "证明", "定理"],
+        "th": ["ถ้า", "แล้ว", "และ", "หรือ", "พิสูจน์", "ทฤษฎีบท"],
+        "id": [" jika ", " maka ", " dan ", " atau ", " bukti", "teorema"],
+        "it": [" se ", " allora ", " e ", " o ", " teorema", "dimostrazione"],
+        "conlang": [" toki ", " anu ", " se ", " tiam ", " kaj ", " aŭ "],
+    }
+
+    detected_languages = [
+        lang for lang, marks in language_markers.items()
+        if any(m in txt for m in marks)
+    ]
+
     signal_hits = {
         "deadline_signal": any(k in txt for k in ["today", "今日", "urgent", "至急", "締切"]),
         "research_signal": any(k in txt for k in ["paper", "doi", "査読", "論文"]),
         "security_signal": any(k in txt for k in ["security", "権限", "token", "鍵", "安全"]),
         "math_logic_signal": any(k in txt for k in ["logic", "論理", "数学", "数理", "proof", "theorem", "smt", "sat", "ctl", "ltl", "mu"]),
         "peer_review_priority_signal": any(k in txt for k in ["peer review", "査読", "doi", "journal", "impact factor"]),
+        "multilingual_logic_signal": len(detected_languages) > 0,
     }
     strength = sum(1 for v in signal_hits.values() if v)
     goal_hint = "stability"
@@ -173,10 +198,18 @@ def external_signals(payload: dict[str, Any]) -> dict[str, Any]:
         goal_hint = "evidence-strengthening"
     elif signal_hits["deadline_signal"]:
         goal_hint = "delivery-priority"
+
+    if signal_hits["multilingual_logic_signal"] and goal_hint == "stability":
+        goal_hint = "multilingual-formalization-priority"
+
     return {
         "strength": strength,
         "signals": signal_hits,
         "goal_hint": goal_hint,
+        "language_detection": {
+            "detected": detected_languages,
+            "count": len(detected_languages),
+        },
     }
 
 
