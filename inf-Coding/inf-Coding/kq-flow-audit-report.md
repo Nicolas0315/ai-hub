@@ -1,20 +1,18 @@
-# FlowIR Audit Report
+# FlowIR Audit Report (inf-Bridge)
 
-- Nodes: **7**
-- Edges: **9**
+- Nodes: **6**
+- Edges: **6**
 - SCC cycles: **1**
 
 ## Layers
 - `L0`: inbound
-- `L1`: bridge
-- `L2`: verify
-- `L3`: formal
-- `L4`: gate
-- `L5`: output
-- `L6`: cleanup
+- `L1`: collect, detect
+- `L2`: plan
+- `L3`: kq
+- `L4`: out
 
 ## High-Risk Edges
-- `gate -> formal` mode=conditional condition=`re-check on caution`
+- none
 
 ## Cycles (SCC)
-- output -> gate -> formal -> verify -> bridge
+- out -> kq -> plan

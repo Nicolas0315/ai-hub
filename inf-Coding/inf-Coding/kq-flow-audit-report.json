@@ -1,9 +1,5 @@
 {
-  "meta": {
-    "schema": "flowir-audit-v1",
-    "node_count": 7,
-    "edge_count": 9
-  },
+  "schema": "flowir-audit-v1",
   "nodes": [
     {
       "id": "inbound",
@@ -12,114 +8,84 @@
       "criticality": "critical"
     },
     {
-      "id": "bridge",
+      "id": "collect",
       "layer": "L1",
-      "label": "inf-Bridge",
+      "label": "Bridge Collect",
       "criticality": "critical"
     },
     {
-      "id": "verify",
+      "id": "detect",
+      "layer": "L1",
+      "label": "Pattern Detect",
+      "criticality": "normal"
+    },
+    {
+      "id": "plan",
       "layer": "L2",
+      "label": "Route Plan",
+      "criticality": "critical"
+    },
+    {
+      "id": "kq",
+      "layer": "L3",
       "label": "KQ Verify",
       "criticality": "critical"
     },
     {
-      "id": "formal",
-      "layer": "L3",
-      "label": "Formal Kernels",
-      "criticality": "normal"
-    },
-    {
-      "id": "gate",
+      "id": "out",
       "layer": "L4",
-      "label": "Loss/Gate",
-      "criticality": "critical"
-    },
-    {
-      "id": "output",
-      "layer": "L5",
       "label": "Output",
-      "criticality": "critical"
-    },
-    {
-      "id": "cleanup",
-      "layer": "L6",
-      "label": "Ephemeral Cleanup",
       "criticality": "critical"
     }
   ],
   "edges": [
     {
       "src": "inbound",
-      "dst": "bridge",
+      "dst": "collect",
       "mode": "required",
       "condition": "",
       "weight": 1.0,
       "risk": "low"
     },
     {
-      "src": "bridge",
-      "dst": "verify",
+      "src": "collect",
+      "dst": "detect",
       "mode": "required",
       "condition": "",
-      "weight": 1.0,
+      "weight": 0.95,
       "risk": "low"
     },
     {
-      "src": "verify",
-      "dst": "formal",
-      "mode": "conditional",
-      "condition": "formal inputs present",
-      "weight": 0.7,
-      "risk": "low"
-    },
-    {
-      "src": "formal",
-      "dst": "gate",
+      "src": "detect",
+      "dst": "plan",
       "mode": "required",
       "condition": "",
       "weight": 0.9,
       "risk": "low"
     },
     {
-      "src": "verify",
-      "dst": "gate",
+      "src": "plan",
+      "dst": "kq",
+      "mode": "required",
+      "condition": "route_hint",
+      "weight": 1.0,
+      "risk": "low"
+    },
+    {
+      "src": "kq",
+      "dst": "out",
       "mode": "required",
       "condition": "",
       "weight": 1.0,
       "risk": "low"
     },
     {
-      "src": "gate",
-      "dst": "output",
-      "mode": "required",
-      "condition": "",
-      "weight": 1.0,
-      "risk": "low"
-    },
-    {
-      "src": "output",
-      "dst": "cleanup",
-      "mode": "required",
-      "condition": "",
-      "weight": 1.0,
-      "risk": "low"
-    },
-    {
-      "src": "output",
-      "dst": "bridge",
+      "src": "out",
+      "dst": "plan",
       "mode": "optional",
-      "condition": "goal loop",
+      "condition": "goal_loop",
       "weight": 0.4,
       "risk": "medium"
-    },
-    {
-      "src": "gate",
-      "dst": "formal",
-      "mode": "conditional",
-      "condition": "re-check on caution",
-      "weight": 0.3,
-      "risk": "high"
     }
   ],
   "layers": {
@@ -127,41 +93,25 @@
       "inbound"
     ],
     "L1": [
-      "bridge"
+      "collect",
+      "detect"
     ],
     "L2": [
-      "verify"
+      "plan"
     ],
     "L3": [
-      "formal"
+      "kq"
     ],
     "L4": [
-      "gate"
-    ],
-    "L5": [
-      "output"
-    ],
-    "L6": [
-      "cleanup"
+      "out"
     ]
   },
   "cycles_scc": [
     [
-      "output",
-      "gate",
-      "formal",
-      "verify",
-      "bridge"
+      "out",
+      "kq",
+      "plan"
     ]
   ],
-  "risk_edges": [
-    {
-      "src": "gate",
-      "dst": "formal",
-      "mode": "conditional",
-      "condition": "re-check on caution",
-      "weight": 0.3,
-      "risk": "high"
-    }
-  ]
+  "risk_edges": []
 }

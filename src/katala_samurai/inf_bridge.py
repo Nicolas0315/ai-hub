@@ -6,6 +6,7 @@ import re
 import tempfile
 import time
 from dataclasses import dataclass
+from collections import defaultdict
 from typing import Any
 
 PATTERN_DETECTORS: dict[str, list[str]] = {
@@ -259,6 +260,78 @@ def build_meta_visualization(payload: dict[str, Any], plan: dict[str, Any]) -> d
     }
 
 
+def _flowir_scc(nodes: list[str], edges: list[tuple[str, str]]) -> list[list[str]]:
+    g: dict[str, list[str]] = defaultdict(list)
+    for a, b in edges:
+        g[a].append(b)
+    idx: dict[str, int] = {}
+    low: dict[str, int] = {}
+    st: list[str] = []
+    on: set[str] = set()
+    out: list[list[str]] = []
+    i = 0
+
+    def dfs(v: str):
+        nonlocal i
+        idx[v] = i
+        low[v] = i
+        i += 1
+        st.append(v)
+        on.add(v)
+        for w in g.get(v, []):
+            if w not in idx:
+                dfs(w)
+                low[v] = min(low[v], low[w])
+            elif w in on:
+                low[v] = min(low[v], idx[w])
+        if low[v] == idx[v]:
+            comp = []
+            while True:
+                w = st.pop()
+                on.remove(w)
+                comp.append(w)
+                if w == v:
+                    break
+            out.append(comp)
+
+    for n in nodes:
+        if n not in idx:
+            dfs(n)
+    return [c for c in out if len(c) > 1]
+
+
+def build_flow_audit_report(payload: dict[str, Any], plan: dict[str, Any]) -> dict[str, Any]:
+    nodes = [
+        {"id": "inbound", "layer": "L0", "label": "Inbound", "criticality": "critical"},
+        {"id": "collect", "layer": "L1", "label": "Bridge Collect", "criticality": "critical"},
+        {"id": "detect", "layer": "L1", "label": "Pattern Detect", "criticality": "normal"},
+        {"id": "plan", "layer": "L2", "label": "Route Plan", "criticality": "critical"},
+        {"id": "kq", "layer": "L3", "label": "KQ Verify", "criticality": "critical"},
+        {"id": "out", "layer": "L4", "label": "Output", "criticality": "critical"},
+    ]
+    risk = float(((plan.get("pattern_detection") or {}).get("risk_score", 0.0) or 0.0))
+    edges = [
+        {"src": "inbound", "dst": "collect", "mode": "required", "condition": "", "weight": 1.0, "risk": "low"},
+        {"src": "collect", "dst": "detect", "mode": "required", "condition": "", "weight": 0.95, "risk": "low"},
+        {"src": "detect", "dst": "plan", "mode": "required", "condition": "", "weight": 0.9, "risk": "low"},
+        {"src": "plan", "dst": "kq", "mode": "required", "condition": "route_hint", "weight": 1.0, "risk": "medium" if risk >= 0.35 else "low"},
+        {"src": "kq", "dst": "out", "mode": "required", "condition": "", "weight": 1.0, "risk": "low"},
+        {"src": "out", "dst": "plan", "mode": "optional", "condition": "goal_loop", "weight": 0.4, "risk": "medium"},
+    ]
+    cycles = _flowir_scc([n["id"] for n in nodes], [(e["src"], e["dst"]) for e in edges])
+    layers: dict[str, list[str]] = defaultdict(list)
+    for n in nodes:
+        layers[n["layer"]].append(n["id"])
+    return {
+        "schema": "flowir-audit-v1",
+        "nodes": nodes,
+        "edges": edges,
+        "layers": dict(layers),
+        "cycles_scc": cycles,
+        "risk_edges": [e for e in edges if e.get("risk") == "high"],
+    }
+
+
 def run_inf_bridge(command: str) -> dict[str, Any]:
     payload = build_inf_bridge_payload(command)
     plan = plan_step(payload)
@@ -286,6 +359,7 @@ def run_inf_bridge(command: str) -> dict[str, Any]:
     }
 
     payload["meta_visualization"] = build_meta_visualization(payload, plan)
+    payload["flow_audit_report"] = build_flow_audit_report(payload, plan)
     return payload
 
 
