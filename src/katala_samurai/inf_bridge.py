@@ -170,7 +170,22 @@ def external_signals(payload: dict[str, Any]) -> dict[str, Any]:
         "th": ["ถ้า", "แล้ว", "และ", "หรือ", "พิสูจน์", "ทฤษฎีบท"],
         "id": [" jika ", " maka ", " dan ", " atau ", " bukti", "teorema"],
         "it": [" se ", " allora ", " e ", " o ", " teorema", "dimostrazione"],
+        "pl": [" jeśli ", " wtedy ", " i ", " lub ", " twierdzenie", "dowód"],
+        "uk": [" якщо ", " тоді ", " і ", " або ", " теорема", "довед"],
+        "tr": [" eğer ", " ise ", " ve ", " veya ", " teorem", "ispat"],
+        "el": [" αν ", " τότε ", " και ", " ή ", " θεώρημα", "απόδειξη"],
+        "vi": [" nếu ", " thì ", " và ", " hoặc ", " định lý", "chứng minh"],
+        "ms": [" jika ", " maka ", " dan ", " atau ", " teorem", "bukti"],
+        "tl": [" kung ", " kung gayon ", " at ", " o ", " teorama", "patunay"],
+        "sw": [" ikiwa ", " basi ", " na ", " au ", " nadharia", "uthibitisho"],
+        "fa": [" اگر ", " آنگاه ", " و ", " یا ", " قضیه", "برهان"],
+        "he": [" אם ", " אז ", " ו ", " או ", " משפט", "הוכחה"],
         "conlang": [" toki ", " anu ", " se ", " tiam ", " kaj ", " aŭ "],
+        "sumerian": [" 𒀀 ", " 𒆠 ", " 𒌋 "],
+        "akkadian": [" šumma ", " u ", " awīlum ", " kīma"],
+        "ancient_egyptian": [" 𓄿 ", " 𓂋 ", " 𓈖 "],
+        "sanskrit_vedic": [" यदि ", " तर्हि ", " च ", " वा ", " प्रमाण"],
+        "classical_chinese": [" 若 ", " 則 ", " 且 ", " 或 ", " 證明"],
     }
 
     detected_languages = [

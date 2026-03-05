@@ -380,7 +380,7 @@ class ParallelPaperReader:
 
 
 class ReasoningMeshExecutor:
-    CLAIM_PAT = re.compile(r"(therefore|thus|show|demonstrate|prove|implies|suggests|indicates|結論|示す|証明|示唆|if|then|all|exists|forall|si|entonces|se|logo|si\s+ent[aã]o|si\s+alors|wenn|dann|если|то|اذا|فإن|यदि|तो|如果|那么|ถ้า|แล้ว|jika|maka|toki|la|se\s+tiam)", re.I)
+    CLAIM_PAT = re.compile(r"(therefore|thus|show|demonstrate|prove|implies|suggests|indicates|結論|示す|証明|示唆|if|then|all|exists|forall|si|entonces|se|logo|si\s+ent[aã]o|si\s+alors|wenn|dann|если|то|اذا|فإن|यदि|तो|如果|那么|ถ้า|แล้ว|jika|maka|toki|la|se\s+tiam|quando|allora|siempre|sempre|wenn|dann|если|то|اذا|فان|यदि|तो|如果|那么|ถ้า|แล้ว|jika|maka|kad|onda|at|kai)", re.I)
 
     @staticmethod
     def _normalize_claim_text(s: str) -> dict[str, Any]:
@@ -410,8 +410,8 @@ class ReasoningMeshExecutor:
                 notes.append(f"replace:{a.strip()}->{b.strip()}")
 
         # multilingual quantifier keywords to canonical tokens
-        low = re.sub(r"\b(todos?|todas|todo|toute?s?|alle|all|alles|semua|모든)\b", "forall", low)
-        low = re.sub(r"\b(existe|existen|existem|il\s+existe|gibt\s+es|ada|ある|存在|существует|يوجد|है|有)\b", "exists", low)
+        low = re.sub(r"\b(todos?|todas|todo|toute?s?|alle|all|alles|semua|모든|tutti|wszystkie|всі|tüm|όλοι|mọi|semua|lahat|sarva|𓂋)\b", "forall", low)
+        low = re.sub(r"\b(existe|existen|existem|il\s+existe|gibt\s+es|ada|ある|存在|существует|يوجد|है|有|esiste|istnieje|існує|vardır|υπάρχει|tồn tại|umiiral?)\b", "exists", low)
 
         m_forall = re.search(r"forall\s+([a-zA-Z_]\w*)\s+(in|en|em|dans|в|في|में|在|ใน|di)\s*(\[[^\]]+\]|\([^\)]+\))\s*,?\s*(.+)", low)
         if m_forall:
@@ -499,14 +499,23 @@ class FormalClaimRouter:
             " jika ": " if ", " maka ": " then ", " dan ": " and ", " atau ": " or ",
             " toki ": " if ", " la ": " then ", " en ": " and ", " anu ": " or ",
             " tiam ": " then ", " kaj ": " and ", " aŭ ": " or ",
+            " quando ": " if ", " allora ": " then ", " sempre ": " forall ",  # it extra
+            " gdy ": " if ", " wtedy ": " then ", " i ": " and ", " lub ": " or ",  # pl
+            " якщо ": " if ", " тоді ": " then ", " та ": " and ", " або ": " or ",  # uk
+            " eğer ": " if ", " ise ": " then ", " ve ": " and ", " veya ": " or ",  # tr
+            " αν ": " if ", " τότε ": " then ", " και ": " and ", " ή ": " or ",  # el
+            " nếu ": " if ", " thì ": " then ", " và ": " and ", " hoặc ": " or ",  # vi
+            " kalau ": " if ", " maka ": " then ",  # ms
+            " kung ": " if ", " kung gayon ": " then ", " at ": " and ", " o ": " or ",  # tl
+            " 𒆠 ": " in ", " 𒌋 ": " and ",  # sumerian markers (best-effort)
         }
         for a, b in rep.items():
             if a in low:
                 low = low.replace(a, b)
                 notes.append(f"replace:{a.strip()}->{b.strip()}")
 
-        low = re.sub(r"\b(todos?|todas|todo|toute?s?|alle|all|alles|semua|모든)\b", "forall", low)
-        low = re.sub(r"\b(existe|existen|existem|il\s+existe|gibt\s+es|ada|ある|存在|существует|يوجد|है|有)\b", "exists", low)
+        low = re.sub(r"\b(todos?|todas|todo|toute?s?|alle|all|alles|semua|모든|tutti|wszystkie|всі|tüm|όλοι|mọi|semua|lahat|sarva|𓂋)\b", "forall", low)
+        low = re.sub(r"\b(existe|existen|existem|il\s+existe|gibt\s+es|ada|ある|存在|существует|يوجد|है|有|esiste|istnieje|існує|vardır|υπάρχει|tồn tại|umiiral?)\b", "exists", low)
 
         m_forall = re.search(r"forall\s+([a-zA-Z_]\w*)\s+(in|en|em|dans|в|في|में|在|ใน|di)\s*(\[[^\]]+\]|\([^\)]+\))\s*,?\s*(.+)", low)
         if m_forall:
