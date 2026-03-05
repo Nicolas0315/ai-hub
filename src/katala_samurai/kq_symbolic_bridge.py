@@ -285,6 +285,64 @@ def _detect_language_family(expr: str) -> dict[str, Any]:
     conf = 0.0 if total <= 0 else round(best[1] / total, 4)
     return {'language_family': fam, 'confidence': conf, 'family_scores': scores}
 
+
+
+def _apply_family_grammar_templates(expr: str, family: str, solver: str) -> tuple[str, list[str]]:
+    t = f" {(expr or '').strip()} "
+    notes: list[str] = []
+
+    # Shared negation/comparison normalization
+    shared = {
+        " no ": " not ", " non ": " not ", " nicht ": " not ", " не ": " not ", " 不是 ": " not ",
+        " greater than ": " > ", " less than ": " < ", " equals ": " == ",
+        " mayor que ": " > ", " menor que ": " < ", " igual a ": " == ",
+        " größer als ": " > ", " kleiner als ": " < ",
+    }
+    for a,b in shared.items():
+        if a in t:
+            t=t.replace(a,b); notes.append(f"shared:{a.strip()}->{b.strip()}")
+
+    fam = (family or 'unknown').lower()
+
+    if fam == 'semitic':
+        rep = {" كل ": " forall ", " يوجد ": " exists ", " אם ": " if ", " אז ": " then "}
+        for a,b in rep.items():
+            if a in t:
+                t=t.replace(a,b); notes.append(f"semitic:{a.strip()}->{b.strip()}")
+    elif fam == 'sino-tibetan':
+        rep = {" 所有 ": " forall ", " 存在 ": " exists ", " 若 ": " if ", " 則 ": " then "}
+        for a,b in rep.items():
+            if a in t:
+                t=t.replace(a,b); notes.append(f"sino:{a.strip()}->{b.strip()}")
+    elif fam == 'japonic':
+        rep = {" すべて ": " forall ", " 存在 ": " exists ", " ない ": " not "}
+        for a,b in rep.items():
+            if a in t:
+                t=t.replace(a,b); notes.append(f"japonic:{a.strip()}->{b.strip()}")
+    elif fam == 'indo-aryan':
+        rep = {" सब ": " forall ", " है ": " exists ", " नहीं ": " not "}
+        for a,b in rep.items():
+            if a in t:
+                t=t.replace(a,b); notes.append(f"indo-aryan:{a.strip()}->{b.strip()}")
+
+    # solver-specific shaping
+    low = t.lower()
+    if solver == 'hol':
+        if re.search(r"forall\s+([a-zA-Z_]\w*)\s*:\s*(.+)", low):
+            notes.append('hol:typed-quantifier-preserve')
+    elif solver == 'smt':
+        # Normalize "x between a and b" into inequalities
+        m = re.search(r"([a-zA-Z_]\w*)\s+between\s+(-?\d+)\s+and\s+(-?\d+)", low)
+        if m:
+            v,a,b=m.group(1),m.group(2),m.group(3)
+            t = re.sub(r""+re.escape(v)+r"\s+between\s+"+re.escape(a)+r"\s+and\s+"+re.escape(b)+r"", f"({v} >= {a} and {v} <= {b})", t, flags=re.I)
+            notes.append('smt:between-template')
+    elif solver == 'sat':
+        if ' iff ' in low and '<->' not in low:
+            t = re.sub(r"iff", "<->", t, flags=re.I)
+            notes.append('sat:iff-template')
+
+    return " ".join(t.split()).strip(), notes
 def _parse_smt_lite(expr: str) -> tuple[dict[str, tuple[int, int]], str]:
     s, _ = _normalize_logic_multilingual(expr)
     if "formula:" in s and "vars:" in s:
@@ -747,7 +805,9 @@ def solve_smt_optional(expr: str) -> dict[str, Any]:
     try:
         expr_norm, norm_notes = _normalize_logic_multilingual(expr)
         linguistic_trace = _detect_language_family(expr_norm)
-        doms, formula = _parse_smt_lite(expr_norm)
+        expr_norm2, fam_notes = _apply_family_grammar_templates(expr_norm, linguistic_trace.get('language_family','unknown'), 'smt')
+        norm_notes = (norm_notes or []) + (fam_notes or [])
+        doms, formula = _parse_smt_lite(expr_norm2)
         if not doms:
             r = solve_constraint_lite(expr_norm)
             r["solver"] = "smt-kq-native-fallback"
@@ -905,7 +965,9 @@ def solve_sat_lite(expr: str, _internal: bool = False) -> dict[str, Any]:
     try:
         expr_norm, norm_notes = _normalize_logic_multilingual(expr)
         linguistic_trace = _detect_language_family(expr_norm)
-        s = (expr_norm or "").strip().lower()
+        expr_norm2, fam_notes = _apply_family_grammar_templates(expr_norm, linguistic_trace.get('language_family','unknown'), 'sat')
+        norm_notes = (norm_notes or []) + (fam_notes or [])
+        s = (expr_norm2 or "").strip().lower()
         clause_txts = [x.strip() for x in re.split(r"\)\s*and\s*\(", s.strip().strip("()")) if x.strip()]
         clauses: list[list[tuple[str, bool]]] = []
         vars_set: set[str] = set()
@@ -1898,6 +1960,8 @@ def solve_hol_lite(expr: str) -> dict[str, Any]:
     """
     s, norm_notes = _normalize_logic_multilingual(expr)
     linguistic_trace = _detect_language_family(s)
+    s, fam_notes = _apply_family_grammar_templates(s, linguistic_trace.get('language_family','unknown'), 'hol')
+    norm_notes = (norm_notes or []) + (fam_notes or [])
     try:
         if s.lower().startswith('formula='):
             s = s.split('=', 1)[1].strip()
