@@ -64,6 +64,26 @@ jobs:
       - name: Run IUT core subset scaffold
         run: python3 inf-Coding/inf-Coding-Assist/iut_subset_scaffold.py
 
+  rust-hotpath-check:
+    name: Rust Hotpath Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Install maturin
+        run: python3 -m pip install --upgrade pip maturin
+      - name: Build Rust extension
+        run: maturin develop --release --manifest-path rust/katala_rust_hotpath/Cargo.toml
+      - name: Enforce rust-only no-fallback
+        env:
+          KQ_RUST_ONLY: "1"
+        run: python3 inf-Coding/inf-Coding-Assist/rust_no_fallback_check.py
+      - name: Rust/Python parity (1000 cases)
+        run: python3 inf-Coding/inf-Coding-Assist/rust_hotpath_parity_check.py
+
   build:
     name: Build
     runs-on: ubuntu-latest
