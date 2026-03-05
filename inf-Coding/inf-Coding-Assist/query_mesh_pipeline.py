@@ -44,6 +44,7 @@ from katala_samurai.kq_symbolic_bridge import (
     solve_sat_lite,
     solve_smt_optional,
 )
+from katala_samurai.kq_pdf_reader import extract_pdf_text_kq
 
 TIMEOUT = 12
 UA = "KQ-inf-QueryMesh/1.0"
@@ -452,10 +453,23 @@ class ParallelPaperReader:
             if r.status_code != 200:
                 out["read_status"] = f"http_{r.status_code}"
                 return out
+
+            is_pdf = ("application/pdf" in ctype) or url.lower().endswith(".pdf")
+            if is_pdf:
+                rr = extract_pdf_text_kq(r.content or b"")
+                out["text"] = str(rr.get("text") or "")[:8000]
+                out["pdf_read_meta"] = {
+                    "method": rr.get("method"),
+                    "confidence": rr.get("confidence"),
+                    "ocr_used": rr.get("ocr_used", False),
+                    "engine": rr.get("engine"),
+                }
+                out["read_status"] = "ok" if out["text"] else "empty"
+                return out
+
             if "text/html" in ctype or "xml" in ctype:
                 txt = self._strip_html(r.text)
             else:
-                # keep conservative for non-html payloads
                 txt = (r.text or "")[:20000]
             out["text"] = txt[:8000]
             out["read_status"] = "ok" if out["text"] else "empty"
@@ -480,6 +494,51 @@ class ParallelPaperReader:
             "ok_count": ok_n,
             "total": len(out_items),
             "items": out_items,
+        }
+
+    def read_parallel_split(self, items: list[dict[str, Any]], cpu_workers: int = 12, gpu_workers: int = 4) -> dict[str, Any]:
+        """Split execution queues: lightweight CPU lane and OCR/PDF-heavy GPU lane."""
+        def _is_heavy(it: dict[str, Any]) -> bool:
+            u = str(it.get("url") or "").lower()
+            return (".pdf" in u) or ("preparedownload" in u) or ("contentno=" in u)
+
+        cpu_items = [it for it in items if not _is_heavy(it)]
+        gpu_items = [it for it in items if _is_heavy(it)]
+
+        out: list[dict[str, Any]] = []
+        t0 = time.perf_counter()
+
+        if cpu_items:
+            with cf.ThreadPoolExecutor(max_workers=min(max(2, cpu_workers), max(2, len(cpu_items)))) as ex:
+                futs = [ex.submit(self._read_one, it) for it in cpu_items]
+                for fu in cf.as_completed(futs):
+                    try:
+                        out.append(fu.result())
+                    except Exception:
+                        pass
+
+        if gpu_items:
+            # OCR/PDF lane (uses OCR engine auto-selection in kq_pdf_reader)
+            with cf.ThreadPoolExecutor(max_workers=min(max(1, gpu_workers), max(1, len(gpu_items)))) as ex:
+                futs = [ex.submit(self._read_one, it) for it in gpu_items]
+                for fu in cf.as_completed(futs):
+                    try:
+                        out.append(fu.result())
+                    except Exception:
+                        pass
+
+        ok_n = sum(1 for x in out if x.get("read_status") == "ok")
+        return {
+            "elapsed_ms": round((time.perf_counter() - t0) * 1000.0, 3),
+            "ok_count": ok_n,
+            "total": len(out),
+            "items": out,
+            "queue_split": {
+                "cpu_queue": len(cpu_items),
+                "gpu_queue": len(gpu_items),
+                "cpu_workers": int(cpu_workers),
+                "gpu_workers": int(gpu_workers),
+            },
         }
 
 
@@ -898,7 +957,10 @@ def run_pipeline(query: str, per_source_limit: int = 8) -> dict[str, Any]:
         merged = normalizer.merge_dedup(raw_items)
 
         read_cap = int(rt.get("read_cap", 200))
-        step5 = reader.read_parallel(merged[:read_cap], max_workers=int(rt.get("read_workers", 16)))
+        # full queue separation: CPU(light) and GPU/OCR(heavy)
+        cpu_w = int(rt.get("read_workers", 16))
+        gpu_w = max(1, int(rt.get("read_workers", 16)) // 3)
+        step5 = reader.read_parallel_split(merged[:read_cap], cpu_workers=cpu_w, gpu_workers=gpu_w)
         read_items = step5.get("items") or []
 
         step6 = mesh.run_parallel(read_items, max_workers=int(rt.get("mesh_workers", 12)))
