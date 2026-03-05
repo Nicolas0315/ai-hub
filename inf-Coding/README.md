@@ -24,6 +24,7 @@
 - `assist-exec.sh` : Assist層経由の実行ラッパー（ログ/ハッシュ保存なし、既定はPython/shell主軸）
 - `inf-Coding-Assist/assist-cycle.sh` : KS+KCS必須の3サイクル（test/build/fix）実行
 - `inf-Coding-Assist/assist-rustize.sh` : 重い処理のRust化候補抽出
+- `inf-Coding-Assist/semantic_scholar_free.py` : Semantic Scholarの無料枠向け検索CLI（APIキーなし可、`S2_API_KEY`あれば自動付与）
 - `order-set.sh` : 命令発行（clean / katala-off / katala-on / assist-off / assist-on）
 - `order-show.sh` : 命令状態確認
 
