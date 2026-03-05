@@ -861,6 +861,40 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
             },
         }
 
+    def _complementary_5loop_plan(
+        self,
+        linguistic_trace: dict[str, Any],
+        paradigm_map: dict[str, Any],
+        creativity: dict[str, Any],
+        consistency: dict[str, Any],
+        formal_summary: dict[str, Any],
+    ) -> dict[str, Any]:
+        """Fixed 5-loop complementary orchestration (no early-stop)."""
+        loop_defs = [
+            {"loop": 1, "tier": "main", "focus": ["linguistic-extraction", "paradigm-mapping", "creative-selection"]},
+            {"loop": 2, "tier": "main", "focus": ["linguistic-extraction", "paradigm-mapping", "creative-selection"]},
+            {"loop": 3, "tier": "main", "focus": ["linguistic-extraction", "paradigm-mapping", "creative-selection"]},
+            {"loop": 4, "tier": "validation", "focus": ["formal-consistency", "contradiction-check", "evidence-gap-audit"]},
+            {"loop": 5, "tier": "integration", "focus": ["consensus-build", "trace-compression", "final-coherence"]},
+        ]
+        return {
+            "enabled": True,
+            "policy": "fixed-5-no-early-stop",
+            "total_loops": 5,
+            "early_stop": False,
+            "main_loops": 3,
+            "validation_loops": 1,
+            "integration_loops": 1,
+            "loops": loop_defs,
+            "state_snapshot": {
+                "linguistic_family": (linguistic_trace or {}).get("language_family", "unknown"),
+                "paradigm_keys": sorted(list((paradigm_map or {}).keys()))[:12],
+                "creativity_score": float((creativity or {}).get("score", 0.0) or 0.0),
+                "consistency_score": float((consistency or {}).get("consistency_score", 0.0) or 0.0),
+                "machine_verified_ratio": float((formal_summary or {}).get("machine_verified_ratio", 0.0) or 0.0),
+            },
+        }
+
     def _l8_final_5axis(
         self,
         result: dict[str, Any],
@@ -1788,6 +1822,21 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
             r.get("spml") or {},
             r.get("creativity_score_v1") or {},
             (tl.get("cross_paradigm_context_explorer") or {}),
+        )
+        symbolic_eval = r.get("symbolic_expression_eval") or {}
+        ltrace = {}
+        for k in ("sat_items", "smt_items", "hol_items"):
+            items = symbolic_eval.get(k) or []
+            if items and isinstance(items[0], dict) and isinstance(items[0].get("linguistic_trace"), dict):
+                ltrace = items[0].get("linguistic_trace") or {}
+                break
+        formal_summary = ((r.get("claim_ir_v2") or {}).get("formal") or {}).get("proof_status_summary") or {}
+        r["complementary_5loop_control"] = self._complementary_5loop_plan(
+            ltrace,
+            r.get("spm_mapping") or {},
+            r.get("creativity_score_v1") or {},
+            mlc,
+            formal_summary,
         )
         r["why_this_solver_set"] = {
             "spm_driven": True,
