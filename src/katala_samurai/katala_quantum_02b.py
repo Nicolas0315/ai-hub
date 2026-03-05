@@ -1308,15 +1308,22 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
         )
         quality = self._clamp(1.0 - float((spml or {}).get("mapping_fidelity_loss", 0.5) or 0.5) * 0.7)
 
-        sym_items = ((symbolic_eval or {}).get("items") or []) if isinstance(symbolic_eval, dict) else []
+        sym_items = []
+        if isinstance(symbolic_eval, dict):
+            for k in ("items", "modal_items", "predicate_items", "constraint_items"):
+                sym_items.extend((symbolic_eval.get(k) or []))
         sym_refutations = []
         sym_fail = 0
+        sym_undec = 0
         for it in sym_items:
             if not isinstance(it, dict):
                 continue
             expr = str(it.get("expr", "") or "")
             ok = bool(it.get("ok"))
-            if not ok:
+            proof_status = str(it.get("proof_status", "") or "")
+            if proof_status in {"undecidable", "inconclusive"}:
+                sym_undec += 1
+            if not ok or proof_status == "failed":
                 sym_fail += 1
                 sym_refutations.append({
                     "expr": expr,
@@ -1338,12 +1345,18 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
                     "status": "SENSITIVITY_TEST",
                 })
 
-        quality = self._clamp(quality - min(0.25, sym_fail * 0.08))
+        total_sym = max(1, len(sym_items))
+        failed_ratio = sym_fail / total_sym
+        undec_ratio = sym_undec / total_sym
+        proof_penalty = min(0.12, failed_ratio * 0.08 + undec_ratio * 0.04)
+        quality = self._clamp(quality - proof_penalty)
         return {
             "enabled": True,
             "focus_components": focus,
             "counter_hypothesis": contra,
             "symbolic_refutations": sym_refutations,
+            "proof_penalty_policy": {"failed": 0.08, "undecidable_or_inconclusive": 0.04, "cap": 0.12},
+            "proof_penalty": round(proof_penalty, 4),
             "quality_score": round(quality, 4),
             "verdict": "PASS" if quality >= 0.55 else "CAUTION",
         }
@@ -1599,7 +1612,7 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
                 "persistent_cache": False,
             }
 
-        r["kq_revision"] = "02b-r26"
+        r["kq_revision"] = "02b-r27"
         r["model"] = self.SYSTEM_MODEL
         r["alias"] = self.ALIAS
         return r
