@@ -1481,6 +1481,18 @@ def _apply_subst_type(t: str, subst: dict[str, str]) -> str:
     return cur
 
 
+def _occurs_in_type(var_t: str, target_t: str, subst: dict[str, str]) -> bool:
+    v = _apply_subst_type(var_t, subst)
+    t = _apply_subst_type(target_t, subst)
+    if v == t:
+        return True
+    sp = _split_fn_type(t)
+    if not sp:
+        return False
+    a, b = sp
+    return _occurs_in_type(v, a, subst) or _occurs_in_type(v, b, subst)
+
+
 def _unify_type_lite(a: str | None, b: str | None, subst: dict[str, str]) -> bool:
     aa = _apply_subst_type((a or 'unknown').lower(), subst)
     bb = _apply_subst_type((b or 'unknown').lower(), subst)
@@ -1488,19 +1500,36 @@ def _unify_type_lite(a: str | None, b: str | None, subst: dict[str, str]) -> boo
         return True
     if aa == 'unknown' or bb == 'unknown':
         return True
+
+    # variable binding with occurs-check (higher-order safety)
     if _is_type_var(aa):
+        if _occurs_in_type(aa, bb, subst):
+            return False
         subst[aa] = bb
         return True
     if _is_type_var(bb):
+        if _occurs_in_type(bb, aa, subst):
+            return False
         subst[bb] = aa
         return True
+
     if {aa, bb} <= {'int', 'real'}:
         return True
+
     fa = _split_fn_type(aa)
     fb = _split_fn_type(bb)
     if fa and fb:
         return _unify_type_lite(fa[0], fb[0], subst) and _unify_type_lite(fa[1], fb[1], subst)
+
+    # allow function-vs-nonfunction only through var mediation; otherwise reject
     return False
+
+
+def _normalize_subst(subst: dict[str, str]) -> dict[str, str]:
+    out: dict[str, str] = {}
+    for k, v in (subst or {}).items():
+        out[str(k)] = _apply_subst_type(str(v), subst)
+    return out
 
 
 def _infer_hol_type(node, tenv: dict[str, str], subst: dict[str, str] | None = None) -> str:
@@ -1745,7 +1774,7 @@ def solve_hol_lite(expr: str) -> dict[str, Any]:
             'ast_normalized': str(astn_norm),
             'mode': 'general-formula+typecheck+unification+proofsearch',
             'inferred_type': inferred_type,
-            'typecheck': {'ok': True, 'unification': {'enabled': True, 'substitutions': subst, 'count': len(subst)}, 'strict_function_application': True},
+            'typecheck': {'ok': True, 'unification': {'enabled': True, 'substitutions': _normalize_subst(subst), 'count': len(subst)}, 'strict_function_application': True},
             'proof_search': proof_search,
             'proof_certificate': _proof_fingerprint({'solver': 'hol-lite', 'ast': str(astn_norm), 'result': out_val, 'type': inferred_type, 'proof_search': proof_search}),
         }
