@@ -511,29 +511,74 @@ class FormalClaimRouter:
 
         return {"normalized": low.strip(), "notes": notes}
 
+    @staticmethod
+    def _formalize_for_solver(norm: str) -> dict[str, Any]:
+        s = (norm or "").strip()
+        low = s.lower()
+        notes: list[str] = []
+
+        # lexical math normalization
+        swaps = {
+            ' greater than or equal to ': ' >= ',
+            ' less than or equal to ': ' <= ',
+            ' greater than ': ' > ',
+            ' less than ': ' < ',
+            ' equals ': ' == ',
+            ' equal to ': ' == ',
+        }
+        for a, b in swaps.items():
+            if a in low:
+                low = low.replace(a, b)
+                notes.append(f'lex:{a.strip()}->{b.strip()}')
+
+        # If quantifier with a simple predicate body, route to HOL directly
+        if low.startswith('forall ') or low.startswith('exists '):
+            return {'kind_hint': 'hol', 'expr': low, 'notes': notes}
+
+        # Build SMT-lite when explicit variable-domain exists and math body found
+        m_dom = re.search(r'([a-zA-Z_]\w*)\s+in\s*(\[[^\]]+\]|\([^\)]+\))', low)
+        m_cmp = re.findall(r'([a-zA-Z_]\w*)\s*(==|!=|<=|>=|<|>)\s*(-?\d+(?:\.\d+)?)', low)
+        if m_dom and m_cmp:
+            v, dom = m_dom.group(1), m_dom.group(2)
+            body_atoms = [f"{a} {op} {b}" for a, op, b in m_cmp if a == v]
+            if body_atoms:
+                expr = f"vars: {v} in {dom}; formula: and(" + ", ".join(body_atoms) + ")"
+                notes.append('shape:smt-lite')
+                return {'kind_hint': 'smt', 'expr': expr, 'notes': notes}
+
+        # If boolean implication-like, force SAT skeleton
+        if '->' in low or (' and ' in low) or (' or ' in low) or low.startswith('not '):
+            notes.append('shape:sat-lite')
+            return {'kind_hint': 'sat', 'expr': low, 'notes': notes}
+
+        return {'kind_hint': 'symbolic', 'expr': low, 'notes': notes}
+
     def _route_one(self, claim: str) -> dict[str, Any]:
         c = (claim or "").strip()
         n = self._normalize_claim(c)
         norm = n["normalized"]
-        low = norm.lower()
+        fz = self._formalize_for_solver(norm)
+        norm2 = str(fz.get('expr') or norm)
+        low = norm2.lower()
 
+        merged_notes = (n["notes"] or []) + (fz.get("notes") or [])
         if "ctl" in low or any(x in f" {low} " for x in [" ag ", " ef ", " ax ", " ex "]):
-            r = solve_ctl_lite(norm)
-            return {"claim": c, "normalized_claim": norm, "normalization_notes": n["notes"], "kind": "ctl", "formal": r}
+            r = solve_ctl_lite(norm2)
+            return {"claim": c, "normalized_claim": norm2, "normalization_notes": merged_notes, "kind": "ctl", "formal": r}
         if "ltl" in low or any(x in f" {low} " for x in [" g ", " f ", " x ", " u ", " r ", " w ", " s ", " t "]):
-            r = eval_ltl_lite(norm) if "@" in norm else {"ok": False, "proof_status": "failed", "error": "ltl trace missing"}
-            return {"claim": c, "normalized_claim": norm, "normalization_notes": n["notes"], "kind": "ltl", "formal": r}
+            r = eval_ltl_lite(norm2) if "@" in norm2 else {"ok": False, "proof_status": "failed", "error": "ltl trace missing"}
+            return {"claim": c, "normalized_claim": norm2, "normalization_notes": merged_notes, "kind": "ltl", "formal": r}
         if "forall" in low or "exists" in low or "lambda" in low:
-            r = solve_hol_lite(norm)
-            return {"claim": c, "normalized_claim": norm, "normalization_notes": n["notes"], "kind": "hol", "formal": r}
-        if "vars:" in low or "formula:" in low:
-            r = solve_smt_optional(norm)
-            return {"claim": c, "normalized_claim": norm, "normalization_notes": n["notes"], "kind": "smt", "formal": r}
-        if " and " in low or " or " in low or "not " in low or "->" in low:
-            r = solve_sat_lite(norm)
-            return {"claim": c, "normalized_claim": norm, "normalization_notes": n["notes"], "kind": "sat", "formal": r}
-        r = eval_symbolic(norm)
-        return {"claim": c, "normalized_claim": norm, "normalization_notes": n["notes"], "kind": "symbolic", "formal": r}
+            r = solve_hol_lite(norm2)
+            return {"claim": c, "normalized_claim": norm2, "normalization_notes": merged_notes, "kind": "hol", "formal": r}
+        if "vars:" in low or "formula:" in low or str(fz.get('kind_hint')) == 'smt':
+            r = solve_smt_optional(norm2)
+            return {"claim": c, "normalized_claim": norm2, "normalization_notes": merged_notes, "kind": "smt", "formal": r}
+        if " and " in low or " or " in low or "not " in low or "->" in low or str(fz.get('kind_hint')) == 'sat':
+            r = solve_sat_lite(norm2)
+            return {"claim": c, "normalized_claim": norm2, "normalization_notes": merged_notes, "kind": "sat", "formal": r}
+        r = eval_symbolic(norm2)
+        return {"claim": c, "normalized_claim": norm2, "normalization_notes": merged_notes, "kind": "symbolic", "formal": r}
 
     def route_parallel(self, rows: list[dict[str, Any]], max_workers: int = 16) -> dict[str, Any]:
         claims = []
