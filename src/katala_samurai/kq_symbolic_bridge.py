@@ -328,7 +328,7 @@ def _ltl_norm_trace(trace_raw: Any) -> list[set[str]]:
 
 
 def _tok_formula(s: str) -> list[str]:
-    return [t for t in re.findall(r"EX|AX|EF|AF|EG|AG|->|\(|\)|\!|\&|\||U|[A-Za-z_][A-Za-z0-9_]*", (s or '').upper()) if t]
+    return [t for t in re.findall(r"EX|AX|EF|AF|EG|AG|->|\(|\)|\!|\&|\||U|R|W|[A-Za-z_][A-Za-z0-9_]*", (s or '').upper()) if t]
 
 
 def _parse_temporal_formula(s: str):
@@ -369,9 +369,14 @@ def _parse_temporal_formula(s: str):
 
     def parse_until():
         n = parse_unary()
-        while peek() == 'U':
-            take('U')
-            n = ('u', n, parse_unary())
+        while peek() in {'U', 'R', 'W'}:
+            op = take(peek())
+            if op == 'U':
+                n = ('u', n, parse_unary())
+            elif op == 'R':
+                n = ('r', n, parse_unary())
+            else:
+                n = ('w', n, parse_unary())
         return n
 
     def parse_unary():
@@ -426,6 +431,19 @@ def _eval_temporal_ast(node, trace: list[set[str]], i: int = 0) -> bool:
             if _eval_temporal_ast(b, trace, j):
                 return all(_eval_temporal_ast(a, trace, t) for t in range(i, j))
         return False
+    if k == 'r':
+        # release: b must hold until (and including) a, or forever if a never occurs
+        a, b = node[1], node[2]
+        for j in range(i, len(trace)):
+            if _eval_temporal_ast(a, trace, j):
+                return all(_eval_temporal_ast(b, trace, t) for t in range(i, j + 1))
+        return all(_eval_temporal_ast(b, trace, t) for t in range(i, len(trace)))
+    if k == 'w':
+        # weak until: either a U b or globally a
+        a, b = node[1], node[2]
+        if _eval_temporal_ast(('u', a, b), trace, i):
+            return True
+        return all(_eval_temporal_ast(a, trace, t) for t in range(i, len(trace)))
     raise ValueError(f'unsupported node: {k}')
 
 
@@ -1003,7 +1021,7 @@ def _parse_hol_expr(s: str):
     low = t.lower()
 
     # quantifiers
-    m = re.match(r'^(forall|exists)\s+([A-Za-z_]\w*)\s+in\s*(\[[^\]]*\]|\([^\)]*\))\s*\.\s*(.+)$', t, re.I)
+    m = re.match(r'^(forall|exists)\s+([A-Za-z_]\w*)(?::[A-Za-z_][A-Za-z0-9_]*)?\s+in\s*(\[[^\]]*\]|\([^\)]*\))\s*\.\s*(.+)$', t, re.I)
     if m:
         q, var, dom_txt, body = m.group(1).lower(), m.group(2), m.group(3), m.group(4)
         dom = ast.literal_eval(dom_txt)
@@ -1012,7 +1030,7 @@ def _parse_hol_expr(s: str):
         return ('quant', q, var, list(dom), _parse_hol_expr(body))
 
     # lambda abstraction
-    m = re.match(r'^lambda\s+([A-Za-z_]\w*)\s*\.\s*(.+)$', t, re.I)
+    m = re.match(r'^lambda\s+([A-Za-z_]\w*)(?::[A-Za-z_][A-Za-z0-9_]*)?\s*\.\s*(.+)$', t, re.I)
     if m:
         return ('lambda', m.group(1), _parse_hol_expr(m.group(2)))
 
