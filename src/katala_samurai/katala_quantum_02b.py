@@ -91,6 +91,7 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
             "solver_exposure_extended": True,
             "rust_kernel_bridge": True,
             "rust_kernel_available": bool(getattr(self.RUST_BRIDGE, "available", False)),
+            "rust_kernel_backend": getattr(self.RUST_BRIDGE, "backend", "none"),
         })
         return s
 
@@ -1300,7 +1301,7 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
         fw["solver_complement_boost_sum"] = round(sum(float(v or 0.0) for v in ((complement.get("family_boost") or {}).values())), 4)
         r["fusion_weights"] = fw
 
-        r["kq_revision"] = "02b-r18"
+        r["kq_revision"] = "02b-r19"
         r["model"] = self.SYSTEM_MODEL
         r["alias"] = self.ALIAS
         return r
