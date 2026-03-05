@@ -142,6 +142,13 @@ def isabelle_kernel(payload: dict[str, Any]) -> dict[str, Any]:
     return verify_isabelle_proof(script)
 
 
+def sat_kernel(payload: dict[str, Any]) -> dict[str, Any]:
+    from katala_samurai.kq_symbolic_bridge import solve_sat_lite
+
+    expr = str(payload.get("expr", "") or "")
+    return solve_sat_lite(expr)
+
+
 def spml_kernel(payload: dict[str, Any]) -> dict[str, Any]:
     # scaffold only; deterministic pass-through aggregation
     w = payload.get("weights") or {}

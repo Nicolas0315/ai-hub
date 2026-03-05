@@ -144,6 +144,7 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
             "ltl_kernel": True,
             "smt_kernel": True,
             "smt_kq_native": True,
+            "sat_lite_kernel": True,
             "lean_coq_proof_bridge": True,
             "isabelle_proof_bridge": True,
             "claim_ir_v1": True,
@@ -1102,7 +1103,7 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
 
     def _proof_status_summary(self, symbolic_eval: dict[str, Any]) -> dict[str, Any]:
         statuses: list[str] = []
-        for k in ("items", "modal_items", "predicate_items", "constraint_items", "ltl_items", "smt_items", "proof_items"):
+        for k in ("items", "modal_items", "predicate_items", "constraint_items", "ltl_items", "smt_items", "sat_items", "proof_items"):
             for it in (symbolic_eval or {}).get(k, []) or []:
                 if isinstance(it, dict):
                     statuses.append(str(it.get("proof_status", "unknown") or "unknown"))
@@ -1320,7 +1321,7 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
 
         sym_items = []
         if isinstance(symbolic_eval, dict):
-            for k in ("items", "modal_items", "predicate_items", "constraint_items", "ltl_items", "smt_items", "proof_items"):
+            for k in ("items", "modal_items", "predicate_items", "constraint_items", "ltl_items", "smt_items", "sat_items", "proof_items"):
                 sym_items.extend((symbolic_eval.get(k) or []))
         sym_refutations = []
         sym_fail = 0
@@ -1409,7 +1410,7 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
         return out[:5]
 
     def _extract_formal_candidates(self, text: str) -> dict[str, list[str]]:
-        modal, pred, cons, ltl, smt, lean, coq, isabelle = [], [], [], [], [], [], [], []
+        modal, pred, cons, ltl, smt, sat, lean, coq, isabelle = [], [], [], [], [], [], [], [], []
         for line in (text or "").splitlines():
             s = line.strip()
             low = s.lower()
@@ -1423,13 +1424,15 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
                 ltl.append(s.split(":", 1)[1].strip())
             elif low.startswith("smt:"):
                 smt.append(s.split(":", 1)[1].strip())
+            elif low.startswith("sat:"):
+                sat.append(s.split(":", 1)[1].strip())
             elif low.startswith("lean:"):
                 lean.append(s.split(":", 1)[1].strip())
             elif low.startswith("coq:"):
                 coq.append(s.split(":", 1)[1].strip())
             elif low.startswith("isabelle:"):
                 isabelle.append(s.split(":", 1)[1].strip())
-        return {"modal": modal[:5], "predicate": pred[:5], "constraint": cons[:5], "ltl": ltl[:5], "smt": smt[:5], "lean": lean[:3], "coq": coq[:3], "isabelle": isabelle[:3]}
+        return {"modal": modal[:5], "predicate": pred[:5], "constraint": cons[:5], "ltl": ltl[:5], "smt": smt[:5], "sat": sat[:5], "lean": lean[:3], "coq": coq[:3], "isabelle": isabelle[:3]}
 
     def verify(self, *args, **kwargs):
         r = super().verify(*args, **kwargs)
@@ -1476,6 +1479,10 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
             "smt_items": [
                 {"expr": e, **(self.RUST_BRIDGE.smt_kernel(e) or {})}
                 for e in formal.get("smt", [])
+            ],
+            "sat_items": [
+                {"expr": e, **(self.RUST_BRIDGE.sat_kernel(e) or {})}
+                for e in formal.get("sat", [])
             ],
             "proof_items": [
                 *[{"assistant": "lean", "script": e, **(self.RUST_BRIDGE.lean_kernel(e) or {})} for e in formal.get("lean", [])],
@@ -1656,7 +1663,7 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
                 "persistent_cache": False,
             }
 
-        r["kq_revision"] = "02b-r31"
+        r["kq_revision"] = "02b-r32"
         r["model"] = self.SYSTEM_MODEL
         r["alias"] = self.ALIAS
         return r

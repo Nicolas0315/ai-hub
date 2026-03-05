@@ -497,3 +497,85 @@ def verify_isabelle_proof(script: str) -> dict[str, Any]:
         }
     except Exception as e:
         return {"ok": False, "proof_status": "failed", "assistant": "isabelle", "error": str(e)}
+
+
+def solve_sat_lite(expr: str) -> dict[str, Any]:
+    """SAT-lite (DPLL-ish brute force for small CNF) + UNSAT core-lite.
+
+    Syntax:
+    - (a or b) and (not a or c)
+    """
+    try:
+        s = (expr or "").strip().lower()
+        clause_txts = [x.strip() for x in re.split(r"\)\s*and\s*\(", s.strip().strip("()")) if x.strip()]
+        clauses: list[list[tuple[str, bool]]] = []
+        vars_set: set[str] = set()
+        for c in clause_txts:
+            lits = [x.strip() for x in re.split(r"\s+or\s+", c) if x.strip()]
+            row = []
+            for lit in lits:
+                neg = lit.startswith("not ")
+                v = lit.replace("not ", "", 1).strip().strip("()")
+                if not re.match(r"^[a-z_]\w*$", v):
+                    return {"ok": False, "proof_status": "failed", "error": f"invalid literal: {lit}", "solver": "sat-lite"}
+                vars_set.add(v)
+                row.append((v, not neg))
+            if row:
+                clauses.append(row)
+        vars_list = sorted(vars_set)
+        if not vars_list:
+            return {"ok": False, "proof_status": "failed", "error": "no variables", "solver": "sat-lite"}
+
+        def sat_clause(cl, env):
+            return any((env.get(v, False) is sign) for v, sign in cl)
+
+        sat_model = None
+        checks = 0
+        for bits in product([False, True], repeat=len(vars_list)):
+            env = {k: b for k, b in zip(vars_list, bits)}
+            checks += 1
+            if all(sat_clause(cl, env) for cl in clauses):
+                sat_model = env
+                break
+
+        if sat_model is not None:
+            return {
+                "ok": True,
+                "proof_status": "checked",
+                "solver": "sat-lite",
+                "satisfiable": True,
+                "model": sat_model,
+                "proof_trace": {"variables": vars_list, "checked_points": checks},
+            }
+
+        # UNSAT core-lite: greedy remove test
+        core = clauses[:]
+        changed = True
+        while changed and len(core) > 1:
+            changed = False
+            i = 0
+            while i < len(core):
+                trial = core[:i] + core[i + 1 :]
+                sat = False
+                for bits in product([False, True], repeat=len(vars_list)):
+                    env = {k: b for k, b in zip(vars_list, bits)}
+                    if all(sat_clause(cl, env) for cl in trial):
+                        sat = True
+                        break
+                if not sat:
+                    core = trial
+                    changed = True
+                else:
+                    i += 1
+
+        core_txt = [" or ".join([(v if sign else f"not {v}") for v, sign in cl]) for cl in core]
+        return {
+            "ok": True,
+            "proof_status": "checked",
+            "solver": "sat-lite",
+            "satisfiable": False,
+            "unsat_core_lite": core_txt,
+            "proof_trace": {"variables": vars_list, "checked_points": checks, "core_size": len(core_txt)},
+        }
+    except Exception as e:
+        return {"ok": False, "proof_status": "failed", "error": str(e), "solver": "sat-lite"}
