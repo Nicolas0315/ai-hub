@@ -31,10 +31,21 @@ jobs:
       - run: npm ci
       - run: npm run test
 
+  deep-grammar-regression:
+    name: Deep Grammar Regression
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Run KQ deep grammar regression
+        run: python3 inf-Coding/inf-Coding-Assist/kq_deep_grammar_regression.py
+
   build:
     name: Build
     runs-on: ubuntu-latest
-    needs: [lint, test]
+    needs: [lint, test, deep-grammar-regression]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
