@@ -269,7 +269,17 @@ def extract_pdf_text_kq(raw: bytes) -> dict[str, Any]:
     elif pref == "paddleocr":
         engines = ["paddleocr"]
     else:
-        engines = ["tesseract", "paddleocr"]
+        gpu_available = False
+        try:
+            p = subprocess.run([
+                "nvidia-smi",
+                "--query-gpu=utilization.gpu",
+                "--format=csv,noheader,nounits",
+            ], capture_output=True, text=True, check=False)
+            gpu_available = (p.returncode == 0)
+        except Exception:
+            gpu_available = False
+        engines = ["paddleocr", "tesseract"] if gpu_available else ["tesseract", "paddleocr"]
 
     last_meta: dict[str, Any] = {"ocr_used": False, "reason": "no_ocr_engine"}
     for eg in engines:

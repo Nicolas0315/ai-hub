@@ -115,6 +115,50 @@ class TaskScheduler:
             degrade = False
         return {"lane": lane, "degrade": degrade, "resource": snap}
 
+    def runtime_plan(self) -> dict[str, Any]:
+        snap = self.governor.snapshot()
+        cpu_ratio = float(snap.get("cpu_ratio", 0.0) or 0.0)
+        gpu_ratio = float(snap.get("gpu_ratio", 0.0) or 0.0)
+        pressure = max(cpu_ratio / max(1e-6, self.governor.cpu_budget), gpu_ratio / max(1e-6, self.governor.gpu_budget if snap.get("gpu_known") else 1.0))
+
+        # backpressure policy
+        if pressure >= 1.2:
+            mode = "high-pressure"
+            fetch_workers = 8
+            read_workers = 6
+            mesh_workers = 6
+            route_workers = 8
+            read_cap = 120
+            per_source_limit = 5
+        elif pressure >= 1.0:
+            mode = "budget-edge"
+            fetch_workers = 12
+            read_workers = 10
+            mesh_workers = 10
+            route_workers = 12
+            read_cap = 160
+            per_source_limit = 7
+        else:
+            mode = "normal"
+            fetch_workers = 18
+            read_workers = 16
+            mesh_workers = 12
+            route_workers = 16
+            read_cap = 220
+            per_source_limit = 8
+
+        return {
+            "mode": mode,
+            "pressure": round(float(pressure), 4),
+            "fetch_workers": fetch_workers,
+            "read_workers": read_workers,
+            "mesh_workers": mesh_workers,
+            "route_workers": route_workers,
+            "read_cap": read_cap,
+            "per_source_limit": per_source_limit,
+            "resource": snap,
+        }
+
 
 class QueryDecomposer:
     REFUTE_LEX = {
@@ -347,7 +391,7 @@ class MultiSourceFetcher:
             )
         return out
 
-    def fetch_all(self, queries: list[str], per_source_limit: int = 8) -> dict[str, Any]:
+    def fetch_all(self, queries: list[str], per_source_limit: int = 8, max_workers: int | None = None) -> dict[str, Any]:
         jobs = []
         for q in queries:
             qq = q.strip()
@@ -365,7 +409,8 @@ class MultiSourceFetcher:
 
         raw_items: list[dict[str, Any]] = []
         t0 = time.perf_counter()
-        with cf.ThreadPoolExecutor(max_workers=min(24, max(6, len(jobs)))) as ex:
+        workers = max_workers if isinstance(max_workers, int) and max_workers > 0 else min(24, max(6, len(jobs)))
+        with cf.ThreadPoolExecutor(max_workers=workers) as ex:
             futs = [ex.submit(fn, q, per_source_limit) for _, q, fn in jobs]
             for fu in cf.as_completed(futs):
                 try:
@@ -841,17 +886,25 @@ def run_pipeline(query: str, per_source_limit: int = 8) -> dict[str, Any]:
     routed_items: list[dict[str, Any]] = []
     try:
         dq = decomposer.decompose(query)
-        fetched = fetcher.fetch_all(dq.generated_queries, per_source_limit=per_source_limit)
+        rt = scheduler.runtime_plan()
+        eff_per_source_limit = int(min(max(1, per_source_limit), rt.get("per_source_limit", per_source_limit)))
+
+        fetched = fetcher.fetch_all(
+            dq.generated_queries,
+            per_source_limit=eff_per_source_limit,
+            max_workers=int(rt.get("fetch_workers", 12)),
+        )
         raw_items = fetched.get("items") or []
         merged = normalizer.merge_dedup(raw_items)
 
-        step5 = reader.read_parallel(merged[:200])
+        read_cap = int(rt.get("read_cap", 200))
+        step5 = reader.read_parallel(merged[:read_cap], max_workers=int(rt.get("read_workers", 16)))
         read_items = step5.get("items") or []
 
-        step6 = mesh.run_parallel(read_items)
+        step6 = mesh.run_parallel(read_items, max_workers=int(rt.get("mesh_workers", 12)))
         mesh_rows = step6.get("rows") or []
 
-        step7 = router.route_parallel(mesh_rows)
+        step7 = router.route_parallel(mesh_rows, max_workers=int(rt.get("route_workers", 16)))
         routed_items = step7.get("items") or []
 
         step8 = scorer.score(read_items, routed_items)
@@ -864,9 +917,12 @@ def run_pipeline(query: str, per_source_limit: int = 8) -> dict[str, Any]:
             "pipeline": "query-mesh-v2",
             "resource_governor": governor.snapshot(),
             "task_scheduler": {
+                "runtime_plan": rt,
                 "network_fetch": sched_fetch,
                 "paper_read": sched_read,
                 "ocr": sched_ocr,
+                "effective_per_source_limit": eff_per_source_limit,
+                "effective_read_cap": read_cap,
             },
             "step1_query_decomposer": {
                 "search_terms": dq.search_terms,
