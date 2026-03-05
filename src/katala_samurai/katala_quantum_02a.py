@@ -384,6 +384,66 @@ class Katala_Quantum_02a(Katala_Quantum_01a):
             "html_hits": html_hits[:10],
         }
 
+    @staticmethod
+    def _math_logic_priority(text: str) -> dict[str, Any]:
+        t = (text or "").lower()
+        hits = {
+            "symbolic_formula": bool(re.search(r"(vars\s*:|formula\s*:|\bforall\b|\bexists\b|\bmu\b|\bnu\b)", t)),
+            "equational_claim": bool(re.search(r"(==|!=|<=|>=|\bx\b\s*\*\s*\bx\b|\bproof\b|\btheorem\b)", t)),
+            "logic_keywords": bool(re.search(r"(logic|論理|数学|数理|model\s*check|smt|sat|ctl|ltl)", t)),
+        }
+        score = sum(1 for v in hits.values() if v) / 3.0
+        return {
+            "enabled": True,
+            "signals": hits,
+            "priority_score": round(score, 3),
+            "priority": "high" if score >= 0.67 else ("medium" if score >= 0.34 else "normal"),
+        }
+
+    @staticmethod
+    def _search_result_scrutiny(refs: dict[str, Any], html_pipeline: dict[str, Any]) -> dict[str, Any]:
+        items = (refs or {}).get("items") or []
+        total = len(items)
+        doi_count = 0
+        journal_count = 0
+        title_seen = set()
+        dup = 0
+        trusted_domains = {"doi.org", "arxiv.org", "nature.com", "science.org", "springer.com", "wiley.com", "sciencedirect.com", "jstor.org"}
+        trusted_hits = 0
+
+        for it in items:
+            if not isinstance(it, dict):
+                continue
+            title = (it.get("title") or "").strip().lower()
+            if title:
+                if title in title_seen:
+                    dup += 1
+                title_seen.add(title)
+            if (it.get("doi") or "").strip():
+                doi_count += 1
+            if (it.get("journal") or "").strip():
+                journal_count += 1
+            u = (it.get("url") or "").lower()
+            if any(d in u for d in trusted_domains):
+                trusted_hits += 1
+
+        doi_ratio = (doi_count / total) if total else 0.0
+        journal_ratio = (journal_count / total) if total else 0.0
+        dup_ratio = (dup / total) if total else 0.0
+        trusted_ratio = (trusted_hits / total) if total else 0.0
+        html_hits = float((html_pipeline or {}).get("html_hit_count", 0) or 0)
+
+        scrutiny_score = max(0.0, min(1.0, (doi_ratio * 0.35) + (journal_ratio * 0.25) + (trusted_ratio * 0.25) + min(0.15, html_hits * 0.01) - (dup_ratio * 0.2)))
+        return {
+            "refs_total": total,
+            "doi_ratio": round(doi_ratio, 3),
+            "journal_ratio": round(journal_ratio, 3),
+            "trusted_domain_ratio": round(trusted_ratio, 3),
+            "duplicate_ratio": round(dup_ratio, 3),
+            "html_hit_count": int(html_hits),
+            "scrutiny_score": round(scrutiny_score, 3),
+        }
+
     def verify(self, *args, **kwargs):
         r = super().verify(*args, **kwargs)
         if not isinstance(r, dict):
@@ -410,8 +470,14 @@ class Katala_Quantum_02a(Katala_Quantum_01a):
         html_bonus = min(0.08, float(html_pipeline.get("html_hit_count", 0)) * 0.003)
         sweep_bonus = min(0.12, (sweep["pdf_read_count"] + sweep["text_read_count"]) * 0.002)
 
-        # baseline 0.82, literature/readability contributes up to +0.30
-        fused = self._clamp(kq_score * 0.82 + (0.5 + ref_bonus + pdf_bonus + sweep_bonus + html_bonus) * 0.18)
+        # Priority dimensions: math/logical reasoning and peer-reviewed scrutiny
+        logic_priority = self._math_logic_priority(text)
+        scrutiny = self._search_result_scrutiny(refs, html_pipeline)
+        logic_bonus = min(0.10, float(logic_priority.get("priority_score", 0.0)) * 0.10)
+        scrutiny_bonus = min(0.12, float(scrutiny.get("scrutiny_score", 0.0)) * 0.12)
+
+        # baseline 0.78, literature+logic scrutiny contributes up to +0.34
+        fused = self._clamp(kq_score * 0.78 + (0.5 + ref_bonus + pdf_bonus + sweep_bonus + html_bonus + logic_bonus + scrutiny_bonus) * 0.22)
 
         r["final_score"] = fused
         r["confidence"] = fused
@@ -473,6 +539,8 @@ class Katala_Quantum_02a(Katala_Quantum_01a):
         r["paper_stats"] = p
         r["paper_read_sweep"] = sweep
         r["html_first_pipeline"] = html_pipeline
+        r["math_logic_priority"] = logic_priority
+        r["search_result_scrutiny"] = scrutiny
         r["new_issues"] = [
             "Landing pages now explored for PDF links, but paywalled hosts still block full text",
             "Some DOI redirects require JavaScript/session cookies and cannot be resolved via lightweight fetch",
@@ -480,12 +548,14 @@ class Katala_Quantum_02a(Katala_Quantum_01a):
             "40-PDF target may still require provider-level OA filters and multi-hop retries",
         ]
         r["fusion_weights"] = {
-            "kq_base_weight": 0.82,
-            "literature_weight": 0.18,
+            "kq_base_weight": 0.78,
+            "literature_weight": 0.22,
             "ref_bonus": round(ref_bonus, 3),
             "pdf_bonus": round(pdf_bonus, 3),
             "sweep_bonus": round(sweep_bonus, 3),
             "html_bonus": round(html_bonus, 3),
+            "logic_bonus": round(logic_bonus, 3),
+            "scrutiny_bonus": round(scrutiny_bonus, 3),
         }
 
         return r

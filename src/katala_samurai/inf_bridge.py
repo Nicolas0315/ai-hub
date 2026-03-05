@@ -158,11 +158,17 @@ def external_signals(payload: dict[str, Any]) -> dict[str, Any]:
         "deadline_signal": any(k in txt for k in ["today", "今日", "urgent", "至急", "締切"]),
         "research_signal": any(k in txt for k in ["paper", "doi", "査読", "論文"]),
         "security_signal": any(k in txt for k in ["security", "権限", "token", "鍵", "安全"]),
+        "math_logic_signal": any(k in txt for k in ["logic", "論理", "数学", "数理", "proof", "theorem", "smt", "sat", "ctl", "ltl", "mu"]),
+        "peer_review_priority_signal": any(k in txt for k in ["peer review", "査読", "doi", "journal", "impact factor"]),
     }
     strength = sum(1 for v in signal_hits.values() if v)
     goal_hint = "stability"
     if signal_hits["security_signal"]:
         goal_hint = "risk-reduction"
+    elif signal_hits["math_logic_signal"] and signal_hits["peer_review_priority_signal"]:
+        goal_hint = "formal-evidence-priority"
+    elif signal_hits["math_logic_signal"]:
+        goal_hint = "formal-reasoning-priority"
     elif signal_hits["research_signal"]:
         goal_hint = "evidence-strengthening"
     elif signal_hits["deadline_signal"]:
@@ -346,6 +352,11 @@ def run_inf_bridge(command: str) -> dict[str, Any]:
 
     plan["goal_hint"] = ext.get("goal_hint")
     plan["route_hint"] = adv.get("route_hint", plan.get("route_hint"))
+
+    # math+peer-review requests should prefer strict path for deeper verification
+    s = (ext.get("signals") or {})
+    if s.get("math_logic_signal") or s.get("peer_review_priority_signal"):
+        plan["route_hint"] = "strict"
     ab_eval = route_ab_evaluation(payload, plan, adv, hw)
     payload["route_ab_evaluation"] = ab_eval
     if ab_eval.get("recommended") == "strict":
