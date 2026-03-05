@@ -153,6 +153,42 @@ def _rank_envs_quantum_emu(names: list[str], candidates: list[dict[str, Any]]) -
     return [e for _, e in ranked]
 
 
+def _nn_qemu_score_env(names: list[str], env: dict[str, Any], feature_bias: dict[str, float] | None = None) -> float:
+    """Tiny standalone neural-like scorer (no external deps).
+
+    This is intentionally lightweight: a single-layer logistic scoring over booleanized features,
+    designed to prioritize promising assignments before strict solver checks.
+    """
+    if not names:
+        return 0.0
+    fb = feature_bias or {}
+    z = -0.15
+    for i, k in enumerate(names):
+        v = 1.0 if bool(env.get(k, False)) else 0.0
+        w = 0.55 + ((i % 5) * 0.07) + float(fb.get(k, 0.0))
+        z += w * v
+    # logistic
+    try:
+        import math
+        return 1.0 / (1.0 + math.exp(-z))
+    except Exception:
+        return max(0.0, min(1.0, z / (1.0 + abs(z))))
+
+
+def _rank_envs_nn_qemu(names: list[str], candidates: list[dict[str, Any]], feature_bias: dict[str, float] | None = None) -> list[dict[str, Any]]:
+    if not names or not candidates:
+        return candidates
+
+    # First, quantum-emu ordering (if available), then neural re-score.
+    base = _rank_envs_quantum_emu(names, candidates)
+    ranked: list[tuple[float, dict[str, Any]]] = []
+    for env in base:
+        s = _nn_qemu_score_env(names, env, feature_bias=feature_bias)
+        ranked.append((s, env))
+    ranked.sort(key=lambda x: x[0], reverse=True)
+    return [e for _, e in ranked]
+
+
 def _smt_prefix_to_infix(formula: str) -> str:
     s = (formula or "").strip()
     low = s.lower()
@@ -500,7 +536,7 @@ def solve_smt_optional(expr: str) -> dict[str, Any]:
         sols: list[dict[str, int]] = []
         checks = 0
         cand_envs = [{k: int(v) for k, v in zip(names, values)} for values in product(*ranges)]
-        cand_envs = _rank_envs_quantum_emu(names, cand_envs)
+        cand_envs = _rank_envs_nn_qemu(names, cand_envs)
 
         for env in cand_envs:
             if total_space > exhaustive_limit and checks >= exhaustive_limit:
@@ -517,12 +553,12 @@ def solve_smt_optional(expr: str) -> dict[str, Any]:
         status = "checked" if exhaustive else "inconclusive"
         return {
             "ok": True,
-            "solver": "smt-kq-native-qemu" if _HAS_QEMU else "smt-kq-native",
+            "solver": "smt-kq-native-nn-qemu" if _HAS_QEMU else "smt-kq-native-nn",
             "proof_status": status,
             "solutions": sols,
             "solution_count": len(sols),
             "proof_trace": {
-                "mode": "quantum-emu-priority+standalone-enumeration+interval-propagation+env-safe-eval" if _HAS_QEMU else "standalone-enumeration+interval-propagation+env-safe-eval",
+                "mode": "nn-qemu-priority+standalone-enumeration+interval-propagation+env-safe-eval" if _HAS_QEMU else "nn-priority+standalone-enumeration+interval-propagation+env-safe-eval",
                 "variables": names,
                 "search_space": int(total_space),
                 "checked_points": int(checks),
@@ -646,10 +682,10 @@ def solve_sat_lite(expr: str) -> dict[str, Any]:
             return updated
 
         ranked_vars = vars_list[:]
-        if _HAS_QEMU:
-            probe = [{k: False for k in vars_list}, {k: True for k in vars_list}]
-            ranked_env = _rank_envs_quantum_emu(vars_list, probe)
-            ranked_vars = [k for k in vars_list if ranked_env and ranked_env[0].get(k, False)] + [k for k in vars_list if not (ranked_env and ranked_env[0].get(k, False))]
+        # NN-QEMU assisted variable salience estimate
+        probe = [{k: False for k in vars_list}, {k: True for k in vars_list}]
+        ranked_env = _rank_envs_nn_qemu(vars_list, probe)
+        ranked_vars = [k for k in vars_list if ranked_env and ranked_env[0].get(k, False)] + [k for k in vars_list if not (ranked_env and ranked_env[0].get(k, False))]
 
         # frequency/activity heuristic (CDCL-lite flavor)
         var_activity = {v: 0 for v in vars_list}
@@ -730,12 +766,12 @@ def solve_sat_lite(expr: str) -> dict[str, Any]:
             return {
                 "ok": True,
                 "proof_status": "checked",
-                "solver": "sat-lite-qemu" if _HAS_QEMU else "sat-lite",
+                "solver": "sat-lite-nn-qemu" if _HAS_QEMU else "sat-lite-nn",
                 "satisfiable": True,
                 "model": sat_model,
                 "proof_trace": {
                     "variables": vars_list,
-                    "mode": "cdcl-lite+qemu-priority" if _HAS_QEMU else "cdcl-lite",
+                    "mode": "cdcl-lite+nn-qemu-priority" if _HAS_QEMU else "cdcl-lite+nn-priority",
                     "watched_literals_init": watched_literals,
                     "learned_clauses": learned_clauses,
                     **trace,
@@ -799,13 +835,13 @@ def solve_sat_lite(expr: str) -> dict[str, Any]:
         return {
             "ok": True,
             "proof_status": "checked",
-            "solver": "sat-lite-qemu" if _HAS_QEMU else "sat-lite",
+            "solver": "sat-lite-nn-qemu" if _HAS_QEMU else "sat-lite-nn",
             "satisfiable": False,
             "unsat_core_lite": core_txt,
             "proof_trace": {
                 "variables": vars_list,
                 "core_size": len(core_txt),
-                "mode": "cdcl-lite+qemu-priority" if _HAS_QEMU else "cdcl-lite",
+                "mode": "cdcl-lite+nn-qemu-priority" if _HAS_QEMU else "cdcl-lite+nn-priority",
                 "watched_literals_init": watched_literals,
                 "learned_clauses": learned_clauses,
                 "unsat_core_exact_minimized": exact_min_applied,
