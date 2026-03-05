@@ -145,6 +145,7 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
             "smt_kernel": True,
             "smt_kq_native": True,
             "lean_coq_proof_bridge": True,
+            "isabelle_proof_bridge": True,
             "claim_ir_v1": True,
             "claim_ir_v2": True,
             "proof_status_gate_link": True,
@@ -1109,14 +1110,19 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
         failed = sum(1 for s in statuses if s == "failed")
         undec = sum(1 for s in statuses if s in {"undecidable", "inconclusive"})
         checked = sum(1 for s in statuses if s in {"checked", "derived"})
+        machine_verified = sum(1 for s in statuses if s == "machine-verified")
+        proof_items_total = len((symbolic_eval or {}).get("proof_items", []) or [])
         return {
             "total": n,
             "checked": checked,
             "failed": failed,
             "undecidable_or_inconclusive": undec,
+            "machine_verified": machine_verified,
+            "proof_items_total": proof_items_total,
             "checked_ratio": round((checked / n) if n else 1.0, 4),
             "failed_ratio": round((failed / n) if n else 0.0, 4),
             "undecidable_ratio": round((undec / n) if n else 0.0, 4),
+            "machine_verified_ratio": round((machine_verified / proof_items_total) if proof_items_total else 0.0, 4),
         }
 
     def _claim_ir_v1(self, text: str, spm: dict[str, Any], spml: dict[str, Any]) -> dict[str, Any]:
@@ -1403,7 +1409,7 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
         return out[:5]
 
     def _extract_formal_candidates(self, text: str) -> dict[str, list[str]]:
-        modal, pred, cons, ltl, smt, lean, coq = [], [], [], [], [], [], []
+        modal, pred, cons, ltl, smt, lean, coq, isabelle = [], [], [], [], [], [], [], []
         for line in (text or "").splitlines():
             s = line.strip()
             low = s.lower()
@@ -1421,7 +1427,9 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
                 lean.append(s.split(":", 1)[1].strip())
             elif low.startswith("coq:"):
                 coq.append(s.split(":", 1)[1].strip())
-        return {"modal": modal[:5], "predicate": pred[:5], "constraint": cons[:5], "ltl": ltl[:5], "smt": smt[:5], "lean": lean[:3], "coq": coq[:3]}
+            elif low.startswith("isabelle:"):
+                isabelle.append(s.split(":", 1)[1].strip())
+        return {"modal": modal[:5], "predicate": pred[:5], "constraint": cons[:5], "ltl": ltl[:5], "smt": smt[:5], "lean": lean[:3], "coq": coq[:3], "isabelle": isabelle[:3]}
 
     def verify(self, *args, **kwargs):
         r = super().verify(*args, **kwargs)
@@ -1472,6 +1480,7 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
             "proof_items": [
                 *[{"assistant": "lean", "script": e, **(self.RUST_BRIDGE.lean_kernel(e) or {})} for e in formal.get("lean", [])],
                 *[{"assistant": "coq", "script": e, **(self.RUST_BRIDGE.coq_kernel(e) or {})} for e in formal.get("coq", [])],
+                *[{"assistant": "isabelle", "script": e, **(self.RUST_BRIDGE.isabelle_kernel(e) or {})} for e in formal.get("isabelle", [])],
             ],
         }
 
@@ -1564,8 +1573,12 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
         proof = ((r.get("claim_ir_v2") or {}).get("formal") or {}).get("proof_status_summary") or {}
         failed_ratio = float(proof.get("failed_ratio", 0.0) or 0.0)
         undecidable_ratio = float(proof.get("undecidable_ratio", 0.0) or 0.0)
-        # weak penalty policy (user preference)
-        proof_penalty = min(0.12, failed_ratio * 0.08 + undecidable_ratio * 0.04)
+        mv_ratio = float(proof.get("machine_verified_ratio", 0.0) or 0.0)
+        proof_items_total = int(proof.get("proof_items_total", 0) or 0)
+        # weak penalty policy (user preference) + machine-verified linkage
+        base_penalty = min(0.12, failed_ratio * 0.08 + undecidable_ratio * 0.04)
+        mv_penalty = 0.0 if proof_items_total == 0 else max(0.0, 0.06 * (0.5 - mv_ratio))
+        proof_penalty = min(0.16, base_penalty + mv_penalty)
         loss_score_adj = self._clamp(loss_score + proof_penalty)
         consistency_adj = self._clamp(consistency_score - proof_penalty)
 
@@ -1589,7 +1602,14 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
             "spml_fidelity_threshold": 0.46,
             "counter_hypothesis_required": True,
             "schema_guard_required": True,
-            "proof_penalty_policy": {"failed": 0.08, "undecidable_or_inconclusive": 0.04, "cap": 0.12},
+            "proof_penalty_policy": {
+                "failed": 0.08,
+                "undecidable_or_inconclusive": 0.04,
+                "machine_verified_gap_weight": 0.06,
+                "target_machine_verified_ratio": 0.5,
+                "cap": 0.16,
+            },
+            "machine_verified_ratio": round(mv_ratio, 4),
             "proof_penalty": round(proof_penalty, 4),
             "loss_score_adjusted": round(loss_score_adj, 4),
             "consistency_score_adjusted": round(consistency_adj, 4),
@@ -1636,7 +1656,7 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
                 "persistent_cache": False,
             }
 
-        r["kq_revision"] = "02b-r30"
+        r["kq_revision"] = "02b-r31"
         r["model"] = self.SYSTEM_MODEL
         r["alias"] = self.ALIAS
         return r

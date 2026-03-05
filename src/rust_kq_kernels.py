@@ -135,6 +135,13 @@ def coq_kernel(payload: dict[str, Any]) -> dict[str, Any]:
     return verify_coq_proof(script)
 
 
+def isabelle_kernel(payload: dict[str, Any]) -> dict[str, Any]:
+    from katala_samurai.kq_symbolic_bridge import verify_isabelle_proof
+
+    script = str(payload.get("script", "") or "")
+    return verify_isabelle_proof(script)
+
+
 def spml_kernel(payload: dict[str, Any]) -> dict[str, Any]:
     # scaffold only; deterministic pass-through aggregation
     w = payload.get("weights") or {}

@@ -480,3 +480,20 @@ def verify_lean_proof(script: str) -> dict[str, Any]:
 
 def verify_coq_proof(script: str) -> dict[str, Any]:
     return _verify_external_proof(script, "coqc", [])
+
+
+def verify_isabelle_proof(script: str) -> dict[str, Any]:
+    if shutil.which("isabelle") is None:
+        return {"ok": False, "proof_status": "unavailable", "assistant": "isabelle", "error": "binary not found"}
+    try:
+        proc = subprocess.run(["isabelle", "process", "-q"], input=(script or ""), capture_output=True, text=True, timeout=20)
+        ok = proc.returncode == 0
+        return {
+            "ok": ok,
+            "proof_status": "machine-verified" if ok else "failed",
+            "assistant": "isabelle",
+            "stdout": (proc.stdout or "")[:400],
+            "stderr": (proc.stderr or "")[:400],
+        }
+    except Exception as e:
+        return {"ok": False, "proof_status": "failed", "assistant": "isabelle", "error": str(e)}
