@@ -83,18 +83,53 @@ def default_iut_core_subset_v1() -> list[IUTLemmaNode]:
     return _apply_precision_templates(nodes)
 
 
+def _infer_dense_dependencies(nodes: list[IUTLemmaNode], explicit: set[tuple[str, str]]) -> set[tuple[str, str]]:
+    by_id = {n.id: n for n in nodes}
+    out: set[tuple[str, str]] = set(explicit)
+
+    def _layer_num(layer: str) -> int:
+        try:
+            return int(str(layer or "L0").replace("L", ""))
+        except Exception:
+            return 0
+
+    for n in nodes:
+        ln = _layer_num(n.layer)
+        for m in nodes:
+            if n.id == m.id:
+                continue
+            lm = _layer_num(m.layer)
+            if lm >= ln:
+                continue
+
+            # high-density heuristics: same morphism, same invariant, or direct previous-layer bridge
+            same_morphism = bool(m.formal_morphism and n.formal_morphism and m.formal_morphism == n.formal_morphism)
+            same_invariant = bool(m.formal_invariant and n.formal_invariant and m.formal_invariant == n.formal_invariant)
+            prev_layer_bridge = (ln - lm) == 1 and (m.layer in {"L1", "L2", "L3", "L4"})
+
+            if same_morphism or same_invariant or prev_layer_bridge:
+                out.add((m.id, n.id))
+
+    # remove self loops if any
+    out = {(a, b) for (a, b) in out if a != b and a in by_id and b in by_id}
+    return out
+
+
 def build_dependency_graph(nodes: list[IUTLemmaNode]) -> dict[str, Any]:
     ids = {n.id for n in nodes}
-    edges: list[tuple[str, str]] = []
-    indeg: dict[str, int] = {n.id: 0 for n in nodes}
-    succ: dict[str, list[str]] = {n.id: [] for n in nodes}
-
+    explicit_edges: set[tuple[str, str]] = set()
     for n in nodes:
         for d in (n.depends_on or []):
             if d in ids:
-                edges.append((d, n.id))
-                indeg[n.id] += 1
-                succ[d].append(n.id)
+                explicit_edges.add((d, n.id))
+
+    dense_edges = _infer_dense_dependencies(nodes, explicit_edges)
+
+    indeg: dict[str, int] = {n.id: 0 for n in nodes}
+    succ: dict[str, list[str]] = {n.id: [] for n in nodes}
+    for a, b in dense_edges:
+        indeg[b] += 1
+        succ[a].append(b)
 
     # Kahn topological order
     q = [nid for nid, deg in indeg.items() if deg == 0]
@@ -108,11 +143,25 @@ def build_dependency_graph(nodes: list[IUTLemmaNode]) -> dict[str, Any]:
                 q.append(nx)
 
     has_cycle = len(topo) != len(nodes)
+
+    # transitive depth summary
+    depth: dict[str, int] = {nid: 0 for nid in ids}
+    if not has_cycle:
+        for nid in topo:
+            for nx in succ.get(nid, []):
+                depth[nx] = max(depth.get(nx, 0), depth.get(nid, 0) + 1)
+
     return {
         "nodes": sorted(list(ids)),
-        "edges": [{"from": a, "to": b} for a, b in edges],
+        "edges": [{"from": a, "to": b, "type": ("explicit" if (a, b) in explicit_edges else "inferred")} for a, b in sorted(list(dense_edges))],
         "topological_order": topo,
         "has_cycle": has_cycle,
+        "edge_stats": {
+            "explicit": len(explicit_edges),
+            "inferred": max(0, len(dense_edges) - len(explicit_edges)),
+            "total": len(dense_edges),
+        },
+        "node_depth": depth,
     }
 
 
@@ -130,8 +179,16 @@ def evaluate_iut_core_subset_v1(nodes: list[IUTLemmaNode] | None = None) -> dict
     out: list[dict[str, Any]] = []
     passed: set[str] = set()
 
+    deps_map: dict[str, list[str]] = {n.id: [] for n in nodes}
+    for e in (graph.get("edges") or []):
+        a = str(e.get("from") or "")
+        b = str(e.get("to") or "")
+        if a and b and b in deps_map:
+            deps_map[b].append(a)
+
     for n in exec_order:
-        deps_ok = all(d in passed for d in n.depends_on)
+        req = deps_map.get(n.id, n.depends_on)
+        deps_ok = all(d in passed for d in req)
         if not deps_ok:
             out.append({
                 "id": n.id,
@@ -141,7 +198,7 @@ def evaluate_iut_core_subset_v1(nodes: list[IUTLemmaNode] | None = None) -> dict
                 "source_note": n.source_note,
                 "ok": False,
                 "status": "blocked",
-                "missing_dependencies": [d for d in n.depends_on if d not in passed],
+                "missing_dependencies": [d for d in req if d not in passed],
             })
             continue
 
