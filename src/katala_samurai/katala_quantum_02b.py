@@ -81,6 +81,7 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
             "spm_layer": True,
             "spml_layer": True,
             "spm_solver_complement_link": True,
+            "triadic_complement_matrix": True,
         })
         return s
 
@@ -197,6 +198,23 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
             "enabled": True,
             "family_boost": family_boost,
             "rationale": rationale,
+        }
+
+    def _triadic_complement_matrix(self, spm: dict[str, Any], dpack: dict[str, Any], mini: dict[str, Any]) -> dict[str, Any]:
+        dom = str((dpack or {}).get("domain", ""))
+        spm_tags = {x.get("tag") for x in (spm.get("category") or []) if isinstance(x, dict)}
+        mini_ratio = float((mini or {}).get("activation_ratio", 0.0) or 0.0)
+
+        pair_scores = {
+            "spm_x_28plus": self._clamp(0.45 + min(0.30, len(spm_tags) * 0.08) + (0.10 if dom else 0.0)),
+            "spm_x_mini": self._clamp(0.42 + min(0.35, mini_ratio * 0.6)),
+            "28plus_x_mini": self._clamp(0.40 + min(0.30, float((dpack or {}).get("activation_ratio", 0.0) or 0.0) * 0.8) + min(0.20, mini_ratio * 0.4)),
+        }
+        triadic = self._clamp(sum(pair_scores.values()) / 3.0)
+        return {
+            "pair_scores": {k: round(v, 4) for k, v in pair_scores.items()},
+            "triadic_score": round(triadic, 4),
+            "recommended_mode": "triadic" if triadic >= 0.62 else "pairwise",
         }
 
     def _mini_solver_parallel_pack(self, text: str, complement: dict[str, Any] | None = None) -> dict[str, Any]:
@@ -549,6 +567,10 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
         sweep: dict[str, Any],
         mlc: dict[str, Any],
         l8: dict[str, Any],
+        dpack: dict[str, Any] | None = None,
+        spm: dict[str, Any] | None = None,
+        spml: dict[str, Any] | None = None,
+        complement: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         refs_count = float((paper_stats or {}).get("refs_count", 0) or 0)
         html_hits = float((html_pipe or {}).get("html_hit_count", 0) or 0)
@@ -581,14 +603,53 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
         }
         overall = self._clamp(sum(solver_results[k] * weights[k] for k in weights))
 
+        axis_details = {
+            "query_coverage": {
+                "refs_count": int(refs_count),
+                "token_count": len((text or "").split()),
+            },
+            "search_depth": {
+                "html_hits": int(html_hits),
+                "pdf_read": int(pdf_read),
+                "text_read": int(text_read),
+            },
+            "synthesis_quality": {
+                "consistency_score": float((mlc or {}).get("consistency_score", 0.0) or 0.0),
+                "l8_overall": float((l8 or {}).get("overall_score", 0.0) or 0.0),
+            },
+            "citation_verify": {
+                "refs_count": int(refs_count),
+                "html_hits": int(html_hits),
+            },
+            "orchestration": {
+                "mini_activation_ratio": round(act_ratio, 4),
+                "adversarial_risk": round(adv, 4),
+                "complement_boost_sum": round(sum(float(v or 0.0) for v in ((complement or {}).get("family_boost", {}) or {}).values()), 4),
+            },
+        }
+
         return {
-            "version": "ks47-compatible-kq-v1",
+            "version": "ks47-compatible-kq-v2",
             "mode": "kq-adapted-compatible",
             "overall_score": round(overall, 4),
             "grade": self._grade_from_score(overall),
             "weights": weights,
             "solver_results": solver_results,
-            "compatibility_note": "KS47 five-axis schema mapped to KQ-native signals",
+            "axis_details": axis_details,
+            "spm_link": {
+                "category_tags": [x.get("tag") for x in ((spm or {}).get("category") or [])],
+                "paradigm_tags": [x.get("tag") for x in ((spm or {}).get("paradigm") or [])],
+                "perspective_tags": [x.get("tag") for x in ((spm or {}).get("perspective") or [])],
+            },
+            "spml_link": {
+                "mapping_completeness_loss": float((spml or {}).get("mapping_completeness_loss", 0.0) or 0.0),
+                "mapping_fidelity_loss": float((spml or {}).get("mapping_fidelity_loss", 0.0) or 0.0),
+            },
+            "domain_link": {
+                "domain": (dpack or {}).get("domain"),
+                "activation_ratio": float((dpack or {}).get("activation_ratio", 0.0) or 0.0),
+            },
+            "compatibility_note": "KS47 five-axis schema mapped to KQ-native signals with detailed trace",
         }
 
     def _l1_l7_solver_visualization(
@@ -1014,17 +1075,32 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
         r["bias_detection"] = bias
         r["htlf_loss_vector"] = htlf
         r["kq_final_l8"] = self._l8_final_5axis(r, tl, htlf, bias, mlc)
-        r["ks47_compatible_output"] = self._ks47_compatible_axis_output(text, r, p, htmlp, sweep, mlc, r["kq_final_l8"])
         r["multi_layer_consistency"] = mlc
         r["kq_domain_solver_pack"] = dpack
         r["solver_complement_link"] = complement
         r["kq_parallel_mini_solvers"] = mini
+        triadic = self._triadic_complement_matrix(r.get("spm_mapping") or {}, dpack, mini)
+        r["triadic_complement_matrix"] = triadic
         r["why_this_solver_set"] = {
             "spm_driven": True,
             "domain": dpack.get("domain"),
             "complement_rationale": complement.get("rationale", []),
             "mini_activation_ratio": mini.get("activation_ratio", 0.0),
+            "triadic_mode": triadic.get("recommended_mode"),
         }
+        r["ks47_compatible_output"] = self._ks47_compatible_axis_output(
+            text,
+            r,
+            p,
+            htmlp,
+            sweep,
+            mlc,
+            r["kq_final_l8"],
+            dpack=dpack,
+            spm=r.get("spm_mapping") or {},
+            spml=r.get("spml") or {},
+            complement=complement,
+        )
         r["kq_solver_l1_l7"] = self._l1_l7_solver_visualization(text, r, p, htmlp, sweep, dpack, mlc, tl, mini)
         r["self_other_boundary"] = self._self_other_boundary(text, r, bias)
         r["creativity_detection"] = self._creativity_detection(text, mlc, htlf)
@@ -1096,7 +1172,7 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
         fw["solver_complement_boost_sum"] = round(sum(float(v or 0.0) for v in ((complement.get("family_boost") or {}).values())), 4)
         r["fusion_weights"] = fw
 
-        r["kq_revision"] = "02b-r15"
+        r["kq_revision"] = "02b-r16"
         r["model"] = self.SYSTEM_MODEL
         r["alias"] = self.ALIAS
         return r
