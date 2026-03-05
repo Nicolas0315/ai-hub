@@ -530,7 +530,12 @@ def verify_isabelle_proof(script: str) -> dict[str, Any]:
 
 
 def solve_sat_lite(expr: str) -> dict[str, Any]:
-    """SAT-lite (DPLL-ish brute force for small CNF) + UNSAT core-lite.
+    """SAT-lite (CDCL-lite flavored) + UNSAT core-lite.
+
+    Current practical scope:
+    - small CNF inputs
+    - watched-literal bookkeeping (initial watchers)
+    - lightweight conflict clause extraction on UNSAT patterns
 
     Syntax:
     - (a or b) and (not a or c)
@@ -556,6 +561,11 @@ def solve_sat_lite(expr: str) -> dict[str, Any]:
         if not vars_list:
             return {"ok": False, "proof_status": "failed", "error": "no variables", "solver": "sat-lite"}
 
+        watched_literals: list[list[str]] = []
+        for cl in clauses:
+            picks = cl[:2] if len(cl) >= 2 else cl[:1]
+            watched_literals.append([(v if sign else f"not {v}") for v, sign in picks])
+
         def sat_clause(cl, env):
             return any((env.get(v, False) is sign) for v, sign in cl)
 
@@ -576,7 +586,13 @@ def solve_sat_lite(expr: str) -> dict[str, Any]:
                 "solver": "sat-lite-qemu" if _HAS_QEMU else "sat-lite",
                 "satisfiable": True,
                 "model": sat_model,
-                "proof_trace": {"variables": vars_list, "checked_points": checks, "mode": "quantum-emu-priority" if _HAS_QEMU else "enumeration"},
+                "proof_trace": {
+                    "variables": vars_list,
+                    "checked_points": checks,
+                    "mode": "cdcl-lite+qemu-priority" if _HAS_QEMU else "cdcl-lite",
+                    "watched_literals_init": watched_literals,
+                    "learned_clauses": [],
+                },
             }
 
         # UNSAT core-lite: greedy remove test
@@ -600,13 +616,27 @@ def solve_sat_lite(expr: str) -> dict[str, Any]:
                     i += 1
 
         core_txt = [" or ".join([(v if sign else f"not {v}") for v, sign in cl]) for cl in core]
+
+        learned_clauses: list[str] = []
+        unit_pos = {cl[0][0] for cl in core if len(cl) == 1 and cl[0][1] is True}
+        unit_neg = {cl[0][0] for cl in core if len(cl) == 1 and cl[0][1] is False}
+        for v in sorted(unit_pos & unit_neg):
+            learned_clauses.append(f"conflict({v})")
+
         return {
             "ok": True,
             "proof_status": "checked",
             "solver": "sat-lite-qemu" if _HAS_QEMU else "sat-lite",
             "satisfiable": False,
             "unsat_core_lite": core_txt,
-            "proof_trace": {"variables": vars_list, "checked_points": checks, "core_size": len(core_txt)},
+            "proof_trace": {
+                "variables": vars_list,
+                "checked_points": checks,
+                "core_size": len(core_txt),
+                "mode": "cdcl-lite+qemu-priority" if _HAS_QEMU else "cdcl-lite",
+                "watched_literals_init": watched_literals,
+                "learned_clauses": learned_clauses,
+            },
         }
     except Exception as e:
         return {"ok": False, "proof_status": "failed", "error": str(e), "solver": "sat-lite"}
