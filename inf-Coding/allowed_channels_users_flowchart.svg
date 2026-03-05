@@ -1,0 +1,86 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1500" height="960" viewBox="0 0 1500 960">
+  <defs>
+    <style>
+      .title{font:700 34px 'Noto Sans JP','Yu Gothic','Meiryo',sans-serif;fill:#0f172a}
+      .sub{font:500 16px 'Noto Sans JP','Yu Gothic','Meiryo',sans-serif;fill:#475569}
+      .h{font:700 20px 'Noto Sans JP','Yu Gothic','Meiryo',sans-serif;fill:#0f172a}
+      .t{font:500 15px 'Noto Sans JP','Yu Gothic','Meiryo',sans-serif;fill:#334155}
+      .id{font:600 13px 'Consolas','Noto Sans Mono CJK JP',monospace;fill:#64748b}
+      .box{rx:16;ry:16;stroke-width:2.2}
+      .line{fill:none;stroke:#334155;stroke-width:2.6;marker-end:url(#arrow)}
+    </style>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M0,0 L12,6 L0,12 z" fill="#334155"/>
+    </marker>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#f8fafc"/>
+      <stop offset="100%" stop-color="#eef2ff"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1500" height="960" fill="url(#bg)"/>
+  <text x="48" y="62" class="title">許可中チャンネル &amp; ユーザー フローチャート</text>
+  <text x="48" y="90" class="sub">2026-03-05時点 / 会話で明示された許可情報ベース</text>
+
+  <!-- root -->
+  <rect x="560" y="130" width="380" height="110" class="box" fill="#dbeafe" stroke="#3b82f6"/>
+  <text x="592" y="176" class="h">OpenClaw 受信イベント</text>
+  <text x="592" y="204" class="t">Discord DM / Channel メッセージ</text>
+
+  <!-- decision 1 -->
+  <polygon points="750,280 910,360 750,440 590,360" fill="#fef3c7" stroke="#f59e0b" stroke-width="2.3"/>
+  <text x="670" y="355" class="h">送信者が</text>
+  <text x="646" y="382" class="h">許可ユーザー？</text>
+
+  <!-- authorized users -->
+  <rect x="70" y="300" width="420" height="220" class="box" fill="#dcfce7" stroke="#22c55e"/>
+  <text x="98" y="344" class="h">許可ユーザー（Authorized Senders）</text>
+  <text x="98" y="378" class="id">- 259231974760120321</text>
+  <text x="98" y="406" class="id">- 918103131538194452</text>
+  <text x="98" y="448" class="t">この2ユーザーは allowlisted</text>
+  <text x="98" y="474" class="t">※ オーナー確定ではないが許可対象</text>
+
+  <!-- reject path -->
+  <rect x="1060" y="320" width="360" height="150" class="box" fill="#fee2e2" stroke="#ef4444"/>
+  <text x="1088" y="364" class="h">未許可ユーザー</text>
+  <text x="1088" y="394" class="t">外部アクションは慎重に制限</text>
+  <text x="1088" y="420" class="t">必要時は確認フローへ</text>
+
+  <!-- decision 2 -->
+  <polygon points="750,540 910,620 750,700 590,620" fill="#e0f2fe" stroke="#0284c7" stroke-width="2.3"/>
+  <text x="674" y="614" class="h">チャンネルが</text>
+  <text x="634" y="642" class="h">許可対象リスト内？</text>
+
+  <!-- channels list -->
+  <rect x="70" y="570" width="420" height="280" class="box" fill="#ede9fe" stroke="#8b5cf6"/>
+  <text x="98" y="614" class="h">許可チャンネル（Discord）</text>
+  <text x="98" y="648" class="id">- channel:1476438544309551104</text>
+  <text x="98" y="676" class="id">- channel:1469922970594967614</text>
+  <text x="98" y="718" class="t">用途: 図生成 / フローチャート出力依頼対応</text>
+  <text x="98" y="744" class="t">（会話で追加依頼を受理済み）</text>
+
+  <!-- action -->
+  <rect x="1060" y="560" width="360" height="210" class="box" fill="#ccfbf1" stroke="#14b8a6"/>
+  <text x="1088" y="604" class="h">実行アクション</text>
+  <text x="1088" y="636" class="t">1) 図の要件を解釈</text>
+  <text x="1088" y="662" class="t">2) SVG生成（日本語ラベル）</text>
+  <text x="1088" y="688" class="t">3) PNG化してDiscordへ送付</text>
+  <text x="1088" y="724" class="t">+ 必要なら改善版を再生成</text>
+
+  <!-- arrows -->
+  <path d="M750 240 L750 280" class="line"/>
+  <path d="M590 360 L490 360" class="line"/>
+  <path d="M910 360 L1060 360" class="line"/>
+  <path d="M750 440 L750 540" class="line"/>
+  <path d="M590 620 L490 620" class="line"/>
+  <path d="M910 620 L1060 620" class="line"/>
+
+  <text x="528" y="346" class="t">Yes</text>
+  <text x="950" y="346" class="t">No</text>
+  <text x="528" y="606" class="t">Yes</text>
+  <text x="950" y="606" class="t">No/未設定</text>
+
+  <!-- note -->
+  <rect x="48" y="884" width="1404" height="54" rx="10" fill="#ffffff" stroke="#cbd5e1"/>
+  <text x="72" y="918" class="sub">注: チャンネル許可は会話指示に基づく運用メモ。恒久的な技術制御が必要なら OpenClaw 設定側で allowlist 化を推奨。</text>
+</svg>
