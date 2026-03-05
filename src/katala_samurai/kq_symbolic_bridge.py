@@ -328,6 +328,20 @@ def _apply_family_grammar_templates(expr: str, family: str, solver: str) -> tupl
     # deeper grammar shaping (scope / subordination / anaphora-lite)
     low = t.lower()
 
+    # multilingual surface normalization for quantifier scope
+    for a, b in [
+        (" すべての ", " forall "), (" 全ての ", " forall "), (" 任意の ", " forall "),
+        (" 모든 ", " forall "), (" 모든것 ", " forall "),
+        (" 所有 ", " forall "), (" 任意 ", " forall "),
+        (" 任一 ", " forall "), (" 对所有 ", " forall "),
+        (" 存在する ", " exists "), (" ある ", " exists "),
+        (" 存在する ", " exists "), (" 存在 ", " exists "),
+    ]:
+        if a in t:
+            t = t.replace(a, b)
+            notes.append(f"grammar:surface:{a.strip()}->{b.strip()}")
+    low = t.lower()
+
     # not all x ...  => exists x ... not(...)
     m_not_all = re.search(r"\bnot\s+all\s+([a-zA-Z_]\w*)\s+in\s*(\[[^\]]+\]|\([^\)]+\))\s*[:\.,]?\s*(.+)", low)
     if m_not_all:
@@ -350,8 +364,8 @@ def _apply_family_grammar_templates(expr: str, family: str, solver: str) -> tupl
         notes.append("grammar:quantifier:canonical")
         low = t.lower()
 
-    # subordinate clauses: although/while/because -> conjunction skeleton
-    for kw in [" although ", " while ", " because ", " since "]:
+    # subordinate clauses: multilingual markers -> conjunction skeleton
+    for kw in [" although ", " while ", " because ", " since ", " しかし ", " だが ", " なので ", " から ", " 但是 ", " 因为 ", " 하지만 ", " 때문에 "]:
         if kw in low and " and " not in low:
             parts = low.split(kw, 1)
             t = f"({parts[0].strip()}) and ({parts[1].strip()})"
@@ -393,7 +407,7 @@ def _apply_family_grammar_templates(expr: str, family: str, solver: str) -> tupl
     mq = re.search(r"\b(forall|exists)\s+([a-zA-Z_]\w*)\s+in\s*(\[[^\]]+\]|\([^\)]+\))\s*:\s*(.+)", low)
     if mq:
         q, v, dom, body = mq.group(1), mq.group(2), mq.group(3), mq.group(4)
-        body2 = re.sub(r"\b(it|they|them|this|that)\b", v, body)
+        body2 = re.sub(r"\b(it|they|them|this|that|he|she|him|her)\b|それ|これ|あれ|彼|彼女|它|他|她|그것|그녀|그", v, body)
         if body2 != body:
             t = f"{q} {v} in {dom}: {body2}"
             notes.append("grammar:anaphora-lite")
