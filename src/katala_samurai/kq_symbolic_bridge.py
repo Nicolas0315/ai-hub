@@ -2602,3 +2602,61 @@ def solve_uf_lite(expr: str) -> dict[str, Any]:
         return {'ok': True, 'proof_status': 'checked', 'solver': 'smt-uf-lite', 'consistent': True, 'mapping': fun_map}
     except Exception as e:
         return {'ok': False, 'proof_status': 'failed', 'solver': 'smt-uf-lite', 'error': str(e)}
+
+
+def solve_math_logic_unified(expr: str) -> dict[str, Any]:
+    """Unified math+logic coverage runner (KQ-native)."""
+    registry = [
+        ("symbolic", eval_symbolic),
+        ("constraint", solve_constraint_lite),
+        ("predicate", eval_predicate_lite),
+        ("modal", eval_modal),
+        ("sat", solve_sat_lite),
+        ("smt", solve_smt_optional),
+        ("hol", solve_hol_lite),
+        ("ctl", solve_ctl_lite),
+        ("mu", solve_mu_lite),
+        ("nra", solve_nra_lite),
+        ("bitvec", solve_bitvec_lite),
+        ("array", solve_array_lite),
+        ("uf", solve_uf_lite),
+    ]
+
+    rows: list[dict[str, Any]] = []
+    ok_rows: list[dict[str, Any]] = []
+    for name, fn in registry:
+        try:
+            r = fn(expr)
+        except Exception as e:
+            r = {"ok": False, "proof_status": "failed", "error": str(e), "solver": name}
+        ok = bool(r.get("ok")) and str(r.get("proof_status", "")).lower() != "failed"
+        row = {"solver": name, "ok": ok, "proof_status": r.get("proof_status"), "result": r}
+        rows.append(row)
+        if ok:
+            ok_rows.append(row)
+
+    pref = ["hol", "smt", "sat", "ctl", "mu", "predicate", "constraint", "symbolic"]
+    primary = None
+    for p in pref:
+        primary = next((x for x in ok_rows if x.get("solver") == p), None)
+        if primary is not None:
+            break
+    if primary is None and ok_rows:
+        primary = ok_rows[0]
+
+    coverage = {
+        "total_solvers": len(rows),
+        "passed_solvers": len(ok_rows),
+        "pass_ratio": round(len(ok_rows) / max(1, len(rows)), 4),
+        "passed": [x.get("solver") for x in ok_rows],
+        "failed": [x.get("solver") for x in rows if not x.get("ok")],
+    }
+
+    return {
+        "ok": len(ok_rows) > 0,
+        "proof_status": "checked" if len(ok_rows) > 0 else "failed",
+        "solver": "math-logic-unified",
+        "coverage": coverage,
+        "primary": primary,
+        "results": rows,
+    }
