@@ -697,7 +697,7 @@ def verify_isabelle_proof(script: str) -> dict[str, Any]:
         return {"ok": False, "proof_status": "failed", "assistant": "isabelle", "error": str(e)}
 
 
-def solve_sat_lite(expr: str) -> dict[str, Any]:
+def solve_sat_lite(expr: str, _internal: bool = False) -> dict[str, Any]:
     """SAT-lite (CDCL-lite flavored) + UNSAT core-lite."""
     sat_cache: dict[str, bool] = {}
     try:
@@ -814,6 +814,80 @@ def solve_sat_lite(expr: str) -> dict[str, Any]:
             vivified.append([(v, sgn) for v, sgn in sorted(lit_map.items(), key=lambda x: x[0])])
         vivified.sort(key=len)
         clauses = vivified
+
+        # decomposition step (close to very-large SAT): solve independent variable components separately
+        if (not _internal) and clauses:
+            adj: dict[str, set[str]] = {v: set() for v in vars_list}
+            for cl in clauses:
+                vs = [v for v, _ in cl]
+                for i in range(len(vs)):
+                    for j in range(i + 1, len(vs)):
+                        a, b = vs[i], vs[j]
+                        adj.setdefault(a, set()).add(b)
+                        adj.setdefault(b, set()).add(a)
+
+            seen: set[str] = set()
+            comps: list[set[str]] = []
+            for v in vars_list:
+                if v in seen:
+                    continue
+                st = [v]
+                seen.add(v)
+                comp = set([v])
+                while st:
+                    cur = st.pop()
+                    for nx in adj.get(cur, set()):
+                        if nx not in seen:
+                            seen.add(nx)
+                            comp.add(nx)
+                            st.append(nx)
+                comps.append(comp)
+
+            if len(comps) > 1:
+                merged_model: dict[str, bool] = dict(pre_env)
+                sub_traces = []
+                for idx, comp in enumerate(comps, start=1):
+                    sub = [cl for cl in clauses if any(v in comp for v, _ in cl)]
+                    if not sub:
+                        continue
+                    sub_expr = " and ".join(
+                        ["(" + " or ".join([(v if sgn else f"not {v}") for v, sgn in cl]) + ")" for cl in sub]
+                    )
+                    rr = solve_sat_lite(sub_expr, _internal=True)
+                    sub_traces.append({"component": idx, "vars": len(comp), "clauses": len(sub), "ok": bool(rr.get("ok")), "satisfiable": rr.get("satisfiable")})
+                    if not rr.get("ok"):
+                        return rr
+                    if rr.get("satisfiable") is False:
+                        return {
+                            "ok": True,
+                            "proof_status": "checked",
+                            "solver": "sat-lite-nn-qemu" if _HAS_QEMU else "sat-lite-nn",
+                            "satisfiable": False,
+                            "unsat_core_lite": rr.get("unsat_core_lite") or [],
+                            "proof_trace": {
+                                "mode": "component-decomposition",
+                                "components": len(comps),
+                                "sub_traces": sub_traces,
+                            },
+                            "proof_certificate": _proof_fingerprint({"solver": "sat-lite", "status": "unsat-component", "sub": sub_traces}),
+                        }
+                    mm = rr.get("model") or {}
+                    if isinstance(mm, dict):
+                        merged_model.update(mm)
+
+                return {
+                    "ok": True,
+                    "proof_status": "checked",
+                    "solver": "sat-lite-nn-qemu" if _HAS_QEMU else "sat-lite-nn",
+                    "satisfiable": True,
+                    "model": merged_model,
+                    "proof_trace": {
+                        "mode": "component-decomposition",
+                        "components": len(comps),
+                        "sub_traces": sub_traces,
+                    },
+                    "proof_certificate": _proof_fingerprint({"solver": "sat-lite", "status": "sat-component", "sub": sub_traces}),
+                }
 
         watched_literals = [[(v if sign else f"not {v}") for v, sign in (cl[:2] if len(cl) >= 2 else cl[:1])] for cl in clauses]
 
