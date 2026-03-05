@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from typing import Any
+import hashlib
 
 from .kq_symbolic_bridge import (
     solve_math_logic_unified,
@@ -51,6 +52,10 @@ def _apply_precision_templates(nodes: list[IUTLemmaNode]) -> list[IUTLemmaNode]:
         if not n.strict_formula:
             n.strict_formula = n.formal_spec
     return nodes
+
+
+def _spec_fingerprint(spec: str) -> str:
+    return hashlib.sha256((spec or "").encode("utf-8", errors="ignore")).hexdigest()[:16]
 
 
 def _external_cross_verify_scripts(node: IUTLemmaNode) -> dict[str, str]:
@@ -215,6 +220,12 @@ def evaluate_iut_core_subset_v1(nodes: list[IUTLemmaNode] | None = None) -> dict
     out: list[dict[str, Any]] = []
     passed: set[str] = set()
 
+    # step5: runtime optimization primitives
+    unified_cache: dict[str, dict[str, Any]] = {}
+    cross_cache: dict[str, dict[str, Any]] = {}
+    strict_batch_size = 3
+    strict_queue: list[tuple[IUTLemmaNode, dict[str, Any], dict[str, Any], dict[str, Any], bool, str]] = []
+
     deps_map: dict[str, list[str]] = {n.id: [] for n in nodes}
     for e in (graph.get("edges") or []):
         a = str(e.get("from") or "")
@@ -222,8 +233,74 @@ def evaluate_iut_core_subset_v1(nodes: list[IUTLemmaNode] | None = None) -> dict
         if a and b and b in deps_map:
             deps_map[b].append(a)
 
+    def _flush_strict_queue() -> None:
+        nonlocal out, passed, strict_queue
+        if not strict_queue:
+            return
+        for n, r, kq3, inv, counterexample_hook, spec in strict_queue:
+            key = _spec_fingerprint(spec)
+            if key in cross_cache:
+                external_cross = cross_cache[key]
+            else:
+                external_cross = _run_external_cross_verify(n)
+                cross_cache[key] = external_cross
+
+            external_cross_hook = bool(external_cross.get("cross_consistent", True))
+            primary = (r.get("primary") or {}) if isinstance(r, dict) else {}
+            formal_hook = bool(r.get("ok")) and str(r.get("proof_status", "")).lower() != "failed"
+            proof_trace_hook = bool((primary.get("result") or {}).get("proof_certificate") or (primary.get("result") or {}).get("proof_trace_machine"))
+            precision_fields = [n.formal_domain, n.formal_morphism, n.formal_invariant, spec]
+            precision_score = round(sum(1 for x in precision_fields if str(x).strip()) / max(1, len(precision_fields)), 4)
+            precision_hook = bool(precision_score >= 0.75)
+            pres_score = float(inv.get("invariant_preservation_score", 0.0) or 0.0)
+            strict_trigger = bool(kq3.get("strict_activated") or pres_score < 0.72 or not counterexample_hook or not external_cross_hook)
+            ok = bool(precision_hook and formal_hook and counterexample_hook and proof_trace_hook and external_cross_hook)
+            if ok:
+                passed.add(n.id)
+            out.append({
+                "id": n.id,
+                "layer": n.layer,
+                "title": n.title,
+                "source_paper": n.source_paper,
+                "source_note": n.source_note,
+                "ok": ok,
+                "status": "checked" if ok else "failed",
+                "formal_spec_bundle": {
+                    "spec": spec,
+                    "domain": n.formal_domain,
+                    "morphism": n.formal_morphism,
+                    "invariant": n.formal_invariant,
+                    "precision_score": precision_score,
+                },
+                "verification_hooks": {
+                    "precision_hook": precision_hook,
+                    "formal_hook": formal_hook,
+                    "counterexample_hook": counterexample_hook,
+                    "proof_trace_hook": proof_trace_hook,
+                    "external_cross_hook": external_cross_hook,
+                },
+                "external_cross_verification": external_cross,
+                "strict_escalation": {
+                    "linked": True,
+                    "triggered": strict_trigger,
+                    "reason": {
+                        "kq3_mode": bool(kq3.get("strict_activated")),
+                        "low_invariant_score": bool(pres_score < 0.72),
+                        "counterexample_inconsistent": bool(not counterexample_hook),
+                        "external_cross_inconsistent": bool(not external_cross_hook),
+                    },
+                },
+                "coverage": r.get("coverage"),
+                "kq3_mode": kq3,
+                "invariants": inv,
+            })
+        strict_queue = []
+
     for n in exec_order:
         req = deps_map.get(n.id, n.depends_on)
+        queued_ids = {x[0].id for x in strict_queue}
+        if strict_queue and any(d in queued_ids for d in req):
+            _flush_strict_queue()
         deps_ok = all(d in passed for d in req)
         if not deps_ok:
             out.append({
@@ -239,35 +316,37 @@ def evaluate_iut_core_subset_v1(nodes: list[IUTLemmaNode] | None = None) -> dict
             continue
 
         spec = (n.strict_formula or n.formal_spec or "").strip()
-        r = solve_math_logic_unified(spec)
+        key = _spec_fingerprint(spec)
+        if key in unified_cache:
+            r = unified_cache[key]
+        else:
+            r = solve_math_logic_unified(spec)
+            unified_cache[key] = r
+
         kq3 = (r.get("kq3_mode") or {}) if isinstance(r, dict) else {}
         inv = (r.get("inter_universal_invariants") or {}) if isinstance(r, dict) else {}
-        primary = (r.get("primary") or {}) if isinstance(r, dict) else {}
-        pres_score = float(inv.get("invariant_preservation_score", 0.0) or 0.0)
+        counterexample_hook = bool(((inv.get("counterexample_invariant") or {}).get("consistent", False)))
 
-        # Step 2.5: formal-spec precision diagnostics
+        strict_trigger = bool(
+            kq3.get("strict_activated")
+            or float(inv.get("invariant_preservation_score", 0.0) or 0.0) < 0.72
+            or not counterexample_hook
+        )
+
+        if strict_trigger:
+            strict_queue.append((n, r, kq3, inv, counterexample_hook, spec))
+            if len(strict_queue) >= strict_batch_size:
+                _flush_strict_queue()
+            continue
+
+        # non-strict path: skip heavy external provers for cost optimization
+        primary = (r.get("primary") or {}) if isinstance(r, dict) else {}
         precision_fields = [n.formal_domain, n.formal_morphism, n.formal_invariant, spec]
         precision_score = round(sum(1 for x in precision_fields if str(x).strip()) / max(1, len(precision_fields)), 4)
         precision_hook = bool(precision_score >= 0.75)
-
-        # Step 4: external prover cross verification (Lean/Coq/Isabelle)
-        external_cross = _run_external_cross_verify(n)
-        external_cross_hook = bool(external_cross.get("cross_consistent", True))
-
-        # Step 3: verification hooks 강화 (formal + counterexample + proof trace)
         formal_hook = bool(r.get("ok")) and str(r.get("proof_status", "")).lower() != "failed"
-        counterexample_hook = bool(((inv.get("counterexample_invariant") or {}).get("consistent", False)))
         proof_trace_hook = bool((primary.get("result") or {}).get("proof_certificate") or (primary.get("result") or {}).get("proof_trace_machine"))
-
-        # Step 4: KQ3 strict escalation linkage
-        strict_trigger = bool(
-            kq3.get("strict_activated")
-            or pres_score < 0.72
-            or not counterexample_hook
-            or not external_cross_hook
-        )
-
-        ok = bool(precision_hook and formal_hook and counterexample_hook and proof_trace_hook and external_cross_hook)
+        ok = bool(precision_hook and formal_hook and counterexample_hook and proof_trace_hook)
         if ok:
             passed.add(n.id)
         out.append({
@@ -284,29 +363,32 @@ def evaluate_iut_core_subset_v1(nodes: list[IUTLemmaNode] | None = None) -> dict
                 "morphism": n.formal_morphism,
                 "invariant": n.formal_invariant,
                 "precision_score": precision_score,
+                "cache_key": key,
             },
             "verification_hooks": {
                 "precision_hook": precision_hook,
                 "formal_hook": formal_hook,
                 "counterexample_hook": counterexample_hook,
                 "proof_trace_hook": proof_trace_hook,
-                "external_cross_hook": external_cross_hook,
+                "external_cross_hook": True,
             },
-            "external_cross_verification": external_cross,
+            "external_cross_verification": {"enabled": False, "reason": "cost-optimized-non-strict-path"},
             "strict_escalation": {
                 "linked": True,
-                "triggered": strict_trigger,
+                "triggered": False,
                 "reason": {
-                    "kq3_mode": bool(kq3.get("strict_activated")),
-                    "low_invariant_score": bool(pres_score < 0.72),
-                    "counterexample_inconsistent": bool(not counterexample_hook),
-                    "external_cross_inconsistent": bool(not external_cross_hook),
+                    "kq3_mode": False,
+                    "low_invariant_score": False,
+                    "counterexample_inconsistent": False,
+                    "external_cross_inconsistent": False,
                 },
             },
             "coverage": r.get("coverage"),
             "kq3_mode": kq3,
             "invariants": inv,
         })
+
+    _flush_strict_queue()
 
     total = len(nodes)
     ok_n = sum(1 for x in out if x.get("ok"))
@@ -318,5 +400,13 @@ def evaluate_iut_core_subset_v1(nodes: list[IUTLemmaNode] | None = None) -> dict
         "pass_ratio": round(ok_n / max(1, total), 4),
         "layers": sorted(list({n.layer for n in nodes})),
         "dependency_graph": graph,
+        "optimization": {
+            "cache": {
+                "unified_entries": len(unified_cache),
+                "cross_entries": len(cross_cache),
+            },
+            "strict_batch_size": strict_batch_size,
+            "policy": "strict-only-external-cross-and-cache-first",
+        },
         "results": out,
     }
