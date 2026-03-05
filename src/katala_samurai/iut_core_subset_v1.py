@@ -485,3 +485,69 @@ def evaluate_iut_core_subset_v1(nodes: list[IUTLemmaNode] | None = None) -> dict
         },
         "results": out,
     }
+
+
+def evaluate_iut_core_subset_v1_staged(nodes: list[IUTLemmaNode] | None = None) -> dict[str, Any]:
+    """Stage-wise machine-check: L1 -> L5 with gate per layer.
+
+    If a layer fails to fully pass, later layers are marked skipped.
+    """
+    nodes = nodes or default_iut_core_subset_v1()
+    layer_order = ["L1", "L2", "L3", "L4", "L5"]
+
+    by_layer: dict[str, list[IUTLemmaNode]] = {k: [] for k in layer_order}
+    for n in nodes:
+        by_layer.setdefault(n.layer, []).append(n)
+
+    aggregate_results: list[dict[str, Any]] = []
+    layer_reports: list[dict[str, Any]] = []
+    blocked_after: str | None = None
+
+    for layer in layer_order:
+        layer_nodes = by_layer.get(layer, [])
+        if not layer_nodes:
+            layer_reports.append({"layer": layer, "total": 0, "passed": 0, "ok": True, "status": "empty"})
+            continue
+
+        if blocked_after is not None:
+            for n in layer_nodes:
+                aggregate_results.append({
+                    "id": n.id,
+                    "layer": n.layer,
+                    "title": n.title,
+                    "ok": False,
+                    "status": "skipped",
+                    "reason": f"previous layer failed: {blocked_after}",
+                })
+            layer_reports.append({"layer": layer, "total": len(layer_nodes), "passed": 0, "ok": False, "status": "skipped"})
+            continue
+
+        sub = evaluate_iut_core_subset_v1(layer_nodes)
+        sub_rows = list(sub.get("results") or [])
+        aggregate_results.extend(sub_rows)
+        passed = sum(1 for r in sub_rows if bool(r.get("ok")))
+        ok = passed == len(sub_rows)
+        layer_reports.append({
+            "layer": layer,
+            "total": len(sub_rows),
+            "passed": passed,
+            "ok": ok,
+            "status": "passed" if ok else "failed",
+        })
+        if not ok:
+            blocked_after = layer
+
+    total = len(aggregate_results)
+    passed_total = sum(1 for r in aggregate_results if bool(r.get("ok")))
+    return {
+        "ok": blocked_after is None,
+        "subset": "iut_core_subset_v1",
+        "mode": "staged-machine-check",
+        "layers": layer_order,
+        "layer_reports": layer_reports,
+        "blocked_after_layer": blocked_after,
+        "total": total,
+        "passed": passed_total,
+        "pass_ratio": round(passed_total / max(1, total), 4),
+        "results": aggregate_results,
+    }
