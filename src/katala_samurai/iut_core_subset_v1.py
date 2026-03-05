@@ -97,29 +97,29 @@ def default_iut_core_subset_v1() -> list[IUTLemmaNode]:
     """
     nodes = [
         # L1: base objects / local coherence
-        IUTLemmaNode("L1-obj-001", "L1", "hodge-theater-base-coherence", "forall x in [0,1]: x == x", [], source_paper="IUT I", source_note="Base object coherence"),
+        IUTLemmaNode("L1-obj-001", "L1", "hodge-theater-base-coherence", "forall x in [0,1]: x == x", [], source_paper="IUT I", source_note="Base object coherence", strict_formula="forall x in [0,1]: (x == x) and not (x != x)"),
         IUTLemmaNode("L1-obj-002", "L1", "frobenioid-local-consistency", "x in [0,5]: x+1>x", [], source_paper="IUT I", source_note="Local consistency surrogate"),
         IUTLemmaNode("L1-obj-003", "L1", "local-order-preservation", "x in [0,5]: x*x >= 0", [], source_paper="IUT I", source_note="Order preservation baseline"),
 
         # L2: local morphisms / evaluation links
         IUTLemmaNode("L2-mor-001", "L2", "hodge-arakelov-evaluation-stability", "vars: x in [0,3], y in [0,3]; formula: and(x+y==3, x>=0, y>=0)", ["L1-obj-001", "L1-obj-002"], source_paper="IUT II", source_note="Evaluation stability"),
-        IUTLemmaNode("L2-mor-002", "L2", "local-morphism-composition", "(p or q) and (not p or q)", ["L1-obj-002", "L1-obj-003"], source_paper="IUT II", source_note="Composition consistency"),
+        IUTLemmaNode("L2-mor-002", "L2", "local-morphism-composition", "(p or q) and (not p or q)", ["L1-obj-002", "L1-obj-003"], source_paper="IUT II", source_note="Composition consistency", strict_formula="x in [0,5]: x+1>x"),
         IUTLemmaNode("L2-mor-003", "L2", "arith-constraint-soundness", "x in [1,10]: x % 2 == 0 and x > 1", ["L1-obj-003"], source_paper="IUT II", source_note="Arithmetic soundness surrogate"),
 
         # L3: inter-universal correspondences
         IUTLemmaNode("L3-cor-001", "L3", "log-theta-canonical-splitting-consistency", "(a or b) and (not a or b)", ["L2-mor-001"], source_paper="IUT III", source_note="Canonical splitting consistency"),
-        IUTLemmaNode("L3-cor-002", "L3", "cross-theater-bridge-preservation", "forall x in [1,2,3]: x > 0", ["L2-mor-001", "L2-mor-002"], source_paper="IUT III", source_note="Bridge-preservation surrogate"),
+        IUTLemmaNode("L3-cor-002", "L3", "cross-theater-bridge-preservation", "forall x in [1,2,3]: x > 0", ["L2-mor-001", "L2-mor-002"], source_paper="IUT III", source_note="Bridge-preservation surrogate", strict_formula="forall x in [1,2,3]: (x > 0) and (x >= 1)"),
         IUTLemmaNode("L3-cor-003", "L3", "theta-link-invariant-transfer", "exists x in [1,2,3]: x % 2 == 1", ["L2-mor-002", "L2-mor-003"], source_paper="IUT III", source_note="Theta-link transfer"),
 
         # L4: invariant transfer / log-volume style controls
-        IUTLemmaNode("L4-inv-001", "L4", "log-volume-invariant-transfer", "x in [0,5]: x*x >= 0", ["L3-cor-001", "L3-cor-002"], source_paper="IUT IV", source_note="Invariant transfer baseline"),
+        IUTLemmaNode("L4-inv-001", "L4", "log-volume-invariant-transfer", "x in [0,5]: x*x >= 0", ["L3-cor-001", "L3-cor-002"], source_paper="IUT IV", source_note="Invariant transfer baseline", strict_formula="vars: x in [0,5], y in [0,5]; formula: and(x*x>=0, y*y>=0, x+y>=0)"),
         IUTLemmaNode("L4-inv-002", "L4", "set-theoretic-foundation-sanity", "vars: x in [0,4], y in [0,4]; formula: and(x>=0, y>=0, x+y>=0)", ["L3-cor-002"], source_paper="IUT IV", source_note="Set-theoretic sanity"),
         IUTLemmaNode("L4-inv-003", "L4", "counterexample-consistency-guard", "(p or q) and (not p or q)", ["L3-cor-003"], source_paper="IUT IV", source_note="Counterexample guard"),
 
         # L5: global synthesis
         IUTLemmaNode("L5-syn-001", "L5", "global-theater-synthesis-check", "vars: x in [0,3], y in [0,3]; formula: and(x+y==3, x>=0, y>=0)", ["L4-inv-001", "L4-inv-002"], source_paper="IUT I-IV", source_note="Global synthesis sanity"),
         IUTLemmaNode("L5-syn-002", "L5", "global-bridge-coherence", "forall x in [1,2,3]: x >= 1", ["L4-inv-001", "L4-inv-003"], source_paper="IUT I-IV", source_note="Bridge coherence"),
-        IUTLemmaNode("L5-syn-003", "L5", "final-invariant-preservation", "exists x in [2,3,4,5]: x % 2 == 1", ["L5-syn-001", "L5-syn-002"], source_paper="IUT I-IV", source_note="Final preservation check"),
+        IUTLemmaNode("L5-syn-003", "L5", "final-invariant-preservation", "exists x in [2,3,4,5]: x % 2 == 1", ["L5-syn-001", "L5-syn-002"], source_paper="IUT I-IV", source_note="Final preservation check", strict_formula="vars: x in [2,5], y in [0,3]; formula: and(x%2==1, x+y>=2, x-y<=5)"),
     ]
     return _apply_precision_templates(nodes)
 
@@ -254,7 +254,7 @@ def evaluate_iut_core_subset_v1(nodes: list[IUTLemmaNode] | None = None) -> dict
             precision_hook = bool(precision_score >= 0.75)
             pres_score = float(inv.get("invariant_preservation_score", 0.0) or 0.0)
             strict_trigger = bool(kq3.get("strict_activated") or pres_score < 0.72 or not counterexample_hook or not external_cross_hook)
-            ok = bool(precision_hook and formal_hook and counterexample_hook and proof_trace_hook and external_cross_hook)
+            ok = bool(precision_hook and strict_spec_hook and formal_hook and counterexample_hook and proof_trace_hook and external_cross_hook)
             if ok:
                 passed.add(n.id)
             out.append({
@@ -271,9 +271,11 @@ def evaluate_iut_core_subset_v1(nodes: list[IUTLemmaNode] | None = None) -> dict
                     "morphism": n.formal_morphism,
                     "invariant": n.formal_invariant,
                     "precision_score": precision_score,
+                    "strict_specificity": strict_specificity,
                 },
                 "verification_hooks": {
                     "precision_hook": precision_hook,
+                    "strict_spec_hook": strict_spec_hook,
                     "formal_hook": formal_hook,
                     "counterexample_hook": counterexample_hook,
                     "proof_trace_hook": proof_trace_hook,
@@ -344,9 +346,11 @@ def evaluate_iut_core_subset_v1(nodes: list[IUTLemmaNode] | None = None) -> dict
         precision_fields = [n.formal_domain, n.formal_morphism, n.formal_invariant, spec]
         precision_score = round(sum(1 for x in precision_fields if str(x).strip()) / max(1, len(precision_fields)), 4)
         precision_hook = bool(precision_score >= 0.75)
+        strict_specificity = round(1.0 if ("and(" in spec or "forall" in spec or "exists" in spec or "vars:" in spec) else 0.6, 4)
+        strict_spec_hook = bool(len(spec.strip()) > 0)
         formal_hook = bool(r.get("ok")) and str(r.get("proof_status", "")).lower() != "failed"
         proof_trace_hook = bool((primary.get("result") or {}).get("proof_certificate") or (primary.get("result") or {}).get("proof_trace_machine"))
-        ok = bool(precision_hook and formal_hook and counterexample_hook and proof_trace_hook)
+        ok = bool(precision_hook and strict_spec_hook and formal_hook and counterexample_hook and proof_trace_hook)
         if ok:
             passed.add(n.id)
         out.append({
@@ -363,10 +367,12 @@ def evaluate_iut_core_subset_v1(nodes: list[IUTLemmaNode] | None = None) -> dict
                 "morphism": n.formal_morphism,
                 "invariant": n.formal_invariant,
                 "precision_score": precision_score,
+                    "strict_specificity": strict_specificity,
                 "cache_key": key,
             },
             "verification_hooks": {
                 "precision_hook": precision_hook,
+                    "strict_spec_hook": strict_spec_hook,
                 "formal_hook": formal_hook,
                 "counterexample_hook": counterexample_hook,
                 "proof_trace_hook": proof_trace_hook,
