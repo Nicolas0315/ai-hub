@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import os
 import re
+from collections import deque
 from typing import Any
 
 from .katala_quantum_02a import Katala_Quantum_02a
@@ -50,6 +51,7 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
     }
     SYSTEM_MODEL: str = "Katala_Quantum_02b"
     ALIAS: str = "KQ02b"
+    ORCHESTRATION_HISTORY: deque = deque(maxlen=48)
 
     def bridge_status(self) -> dict:
         s = super().bridge_status()
@@ -82,6 +84,9 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
             "spml_layer": True,
             "spm_solver_complement_link": True,
             "triadic_complement_matrix": True,
+            "orchestration_detail": True,
+            "orchestration_history": True,
+            "solver_exposure_extended": True,
         })
         return s
 
@@ -215,6 +220,81 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
             "pair_scores": {k: round(v, 4) for k, v in pair_scores.items()},
             "triadic_score": round(triadic, 4),
             "recommended_mode": "triadic" if triadic >= 0.62 else "pairwise",
+        }
+
+    def _orchestration_detail(self, triadic: dict[str, Any], mini: dict[str, Any], mlc: dict[str, Any], sweep: dict[str, Any], adv_risk: float) -> dict[str, Any]:
+        pair = triadic.get("pair_scores") or {}
+        triadic_score = float(triadic.get("triadic_score", 0.0) or 0.0)
+        consistency = float((mlc or {}).get("consistency_score", 0.0) or 0.0)
+        mini_ratio = float((mini or {}).get("activation_ratio", 0.0) or 0.0)
+        read_count = float((sweep or {}).get("pdf_read_count", 0) or 0) + float((sweep or {}).get("text_read_count", 0) or 0)
+
+        completion_rate = self._clamp(0.40 + triadic_score * 0.35 + min(0.20, read_count / 120.0) + consistency * 0.05)
+        recovery_events = max(0, int(round((1.0 - consistency) * 5 + adv_risk * 3)))
+        parallelism_degree = self._clamp(0.35 + mini_ratio * 0.55)
+        execution_time_s = round(1.2 + (1.0 - mini_ratio) * 2.8 + max(0.0, adv_risk) * 1.6, 4)
+        agent_consistency = self._clamp(consistency * 0.7 + triadic_score * 0.3)
+
+        return {
+            "completion_rate": round(completion_rate, 4),
+            "recovery_events": recovery_events,
+            "parallelism_degree": round(parallelism_degree, 4),
+            "execution_time_s": execution_time_s,
+            "agent_consistency": round(agent_consistency, 4),
+            "recommended_mode": triadic.get("recommended_mode", "pairwise"),
+            "pair_scores": {k: round(float(v or 0.0), 4) for k, v in pair.items()},
+        }
+
+    def _append_orchestration_history(self, orchestration: dict[str, Any]) -> dict[str, Any]:
+        rec = {
+            "completion_rate": float(orchestration.get("completion_rate", 0.0) or 0.0),
+            "recovery_events": int(orchestration.get("recovery_events", 0) or 0),
+            "parallelism_degree": float(orchestration.get("parallelism_degree", 0.0) or 0.0),
+            "execution_time_s": float(orchestration.get("execution_time_s", 0.0) or 0.0),
+            "agent_consistency": float(orchestration.get("agent_consistency", 0.0) or 0.0),
+        }
+        self.ORCHESTRATION_HISTORY.append(rec)
+        hist = list(self.ORCHESTRATION_HISTORY)
+        n = len(hist)
+        avg_completion = sum(x["completion_rate"] for x in hist) / max(1, n)
+        avg_parallel = sum(x["parallelism_degree"] for x in hist) / max(1, n)
+        avg_consistency = sum(x["agent_consistency"] for x in hist) / max(1, n)
+        avg_exec_time = sum(x["execution_time_s"] for x in hist) / max(1, n)
+        total_recovery = sum(x["recovery_events"] for x in hist)
+        return {
+            "window": n,
+            "avg_completion_rate": round(avg_completion, 4),
+            "avg_parallelism_degree": round(avg_parallel, 4),
+            "avg_agent_consistency": round(avg_consistency, 4),
+            "avg_execution_time_s": round(avg_exec_time, 4),
+            "total_recovery_events": int(total_recovery),
+            "history_tail": hist[-8:],
+        }
+
+    def _solver_exposure_extended(self, dpack: dict[str, Any], mini: dict[str, Any], complement: dict[str, Any]) -> dict[str, Any]:
+        families = (mini or {}).get("families") or {}
+        fam_sorted = sorted(
+            [{"family": k, **(v or {})} for k, v in families.items()],
+            key=lambda x: float(x.get("activated", 0)) / max(1.0, float(x.get("total", 64) or 64)),
+            reverse=True,
+        )
+        return {
+            "solver_28plus": {
+                "domain": dpack.get("domain"),
+                "available": dpack.get("available", []),
+                "activated": dpack.get("activated", []),
+                "activation_ratio": dpack.get("activation_ratio", 0.0),
+            },
+            "mini_solver_512": {
+                "count": mini.get("count", 0),
+                "activated_count": mini.get("activated_count", 0),
+                "activation_ratio": mini.get("activation_ratio", 0.0),
+                "top_families": fam_sorted[:6],
+            },
+            "complement_link": {
+                "family_boost": (complement or {}).get("family_boost", {}),
+                "rationale": (complement or {}).get("rationale", []),
+            },
         }
 
     def _mini_solver_parallel_pack(self, text: str, complement: dict[str, Any] | None = None) -> dict[str, Any]:
@@ -649,6 +729,7 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
                 "domain": (dpack or {}).get("domain"),
                 "activation_ratio": float((dpack or {}).get("activation_ratio", 0.0) or 0.0),
             },
+            "orchestration_detail": result.get("orchestration_detail") or {},
             "compatibility_note": "KS47 five-axis schema mapped to KQ-native signals with detailed trace",
         }
 
@@ -1081,6 +1162,10 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
         r["kq_parallel_mini_solvers"] = mini
         triadic = self._triadic_complement_matrix(r.get("spm_mapping") or {}, dpack, mini)
         r["triadic_complement_matrix"] = triadic
+        adv_risk_now = float((self._adversarial_pretest_kq(text) or {}).get("risk_score", 0.0) or 0.0)
+        r["orchestration_detail"] = self._orchestration_detail(triadic, mini, mlc, sweep, adv_risk_now)
+        r["orchestration_history"] = self._append_orchestration_history(r["orchestration_detail"])
+        r["solver_exposure_extended"] = self._solver_exposure_extended(dpack, mini, complement)
         r["why_this_solver_set"] = {
             "spm_driven": True,
             "domain": dpack.get("domain"),
@@ -1172,7 +1257,7 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
         fw["solver_complement_boost_sum"] = round(sum(float(v or 0.0) for v in ((complement.get("family_boost") or {}).values())), 4)
         r["fusion_weights"] = fw
 
-        r["kq_revision"] = "02b-r16"
+        r["kq_revision"] = "02b-r17"
         r["model"] = self.SYSTEM_MODEL
         r["alias"] = self.ALIAS
         return r
