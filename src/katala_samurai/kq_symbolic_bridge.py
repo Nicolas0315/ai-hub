@@ -532,6 +532,20 @@ def solve_smt_optional(expr: str) -> dict[str, Any]:
         doms2, prune_notes = _interval_propagate(formula, doms)
         names = list(doms2.keys())
         ranges = [range(lo, hi + 1) for (lo, hi) in doms2.values()]
+        if any(len(r) <= 0 for r in ranges):
+            return {
+                "ok": True,
+                "solver": "smt-kq-native-nn",
+                "proof_status": "checked",
+                "solutions": [],
+                "solution_count": 0,
+                "proof_trace": {
+                    "mode": "interval-propagation-pruned-empty",
+                    "variables": names,
+                    "interval_pruning": prune_notes,
+                },
+            }
+
         total_space = 1
         for r in ranges:
             total_space *= len(r)
@@ -539,11 +553,17 @@ def solve_smt_optional(expr: str) -> dict[str, Any]:
         # Standalone-complete mode on bounded problems; partial mode only for very large spaces.
         exhaustive_limit = int(os.getenv("KQ_SMT_EXHAUSTIVE_LIMIT", "200000"))
         max_solutions = int(os.getenv("KQ_SMT_MAX_SOLUTIONS", "512"))
+        nn_rank_limit = int(os.getenv("KQ_SMT_NN_RANK_LIMIT", "120000"))
 
         sols: list[dict[str, int]] = []
         checks = 0
-        cand_envs = [{k: int(v) for k, v in zip(names, values)} for values in product(*ranges)]
-        cand_envs = _rank_envs_nn_qemu(names, cand_envs)
+
+        if total_space <= nn_rank_limit:
+            cand_envs = [{k: int(v) for k, v in zip(names, values)} for values in product(*ranges)]
+            cand_envs = _rank_envs_nn_qemu(names, cand_envs)
+        else:
+            # memory-efficient stream mode for huge spaces
+            cand_envs = ({k: int(v) for k, v in zip(names, values)} for values in product(*ranges))
 
         for env in cand_envs:
             if total_space > exhaustive_limit and checks >= exhaustive_limit:
@@ -558,6 +578,7 @@ def solve_smt_optional(expr: str) -> dict[str, Any]:
         exhaustive = (total_space <= exhaustive_limit and checks >= total_space)
         coverage = min(1.0, checks / max(1, total_space))
         status = "checked" if exhaustive else "inconclusive"
+        mode_prefix = "nn-ranked" if total_space <= nn_rank_limit else "stream"
         return {
             "ok": True,
             "solver": "smt-kq-native-nn-qemu" if _HAS_QEMU else "smt-kq-native-nn",
@@ -565,7 +586,7 @@ def solve_smt_optional(expr: str) -> dict[str, Any]:
             "solutions": sols,
             "solution_count": len(sols),
             "proof_trace": {
-                "mode": "nn-qemu-priority+standalone-enumeration+interval-propagation+env-safe-eval" if _HAS_QEMU else "nn-priority+standalone-enumeration+interval-propagation+env-safe-eval",
+                "mode": (f"{mode_prefix}+nn-qemu-priority+standalone-enumeration+interval-propagation+env-safe-eval" if _HAS_QEMU else f"{mode_prefix}+nn-priority+standalone-enumeration+interval-propagation+env-safe-eval"),
                 "variables": names,
                 "search_space": int(total_space),
                 "checked_points": int(checks),
