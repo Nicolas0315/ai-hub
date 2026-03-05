@@ -2670,7 +2670,7 @@ def _inter_universal_invariant_checks(rows: list[dict[str, Any]]) -> dict[str, A
 
 
 def solve_math_logic_unified(expr: str) -> dict[str, Any]:
-    """Unified math+logic coverage runner (KQ-native)."""
+    """Unified math+logic coverage runner (KQ3 balanced+strict unified mode)."""
     registry = [
         ("symbolic", eval_symbolic),
         ("constraint", solve_constraint_lite),
@@ -2717,11 +2717,26 @@ def solve_math_logic_unified(expr: str) -> dict[str, Any]:
         "failed": [x.get("solver") for x in rows if not x.get("ok")],
     }
     invariants = _inter_universal_invariant_checks(rows)
+    inv_score = float((invariants.get("invariant_preservation_score") or 0.0))
+    truth_conflict = bool(((invariants.get("truth_invariant") or {}).get("conflict")))
+    cx_consistent = bool(((invariants.get("counterexample_invariant") or {}).get("consistent", True)))
+    strict_activated = bool(inv_score < 0.72 or truth_conflict or (not cx_consistent))
 
     return {
         "ok": len(ok_rows) > 0,
         "proof_status": "checked" if len(ok_rows) > 0 else "failed",
         "solver": "math-logic-unified",
+        "kq3_mode": {
+            "name": "KQ3",
+            "public_mode": "balanced+strict",
+            "stage": "strict" if strict_activated else "balanced",
+            "strict_activated": strict_activated,
+            "strict_triggers": {
+                "invariant_preservation_score_lt_0_72": bool(inv_score < 0.72),
+                "truth_conflict": truth_conflict,
+                "counterexample_inconsistency": bool(not cx_consistent),
+            },
+        },
         "coverage": coverage,
         "inter_universal_invariants": invariants,
         "primary": primary,
