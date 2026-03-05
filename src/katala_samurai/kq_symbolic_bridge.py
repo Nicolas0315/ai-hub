@@ -1381,18 +1381,18 @@ def _parse_hol_expr(s: str):
     low = t.lower()
 
     # quantifiers
-    m = re.match(r'^(forall|exists)\s+([A-Za-z_]\w*)(?::[A-Za-z_][A-Za-z0-9_]*)?\s+in\s*(\[[^\]]*\]|\([^\)]*\))\s*\.\s*(.+)$', t, re.I)
+    m = re.match(r'^(forall|exists)\s+([A-Za-z_]\w*)(?::([A-Za-z_][A-Za-z0-9_]*))?\s+in\s*(\[[^\]]*\]|\([^\)]*\))\s*\.\s*(.+)$', t, re.I)
     if m:
-        q, var, dom_txt, body = m.group(1).lower(), m.group(2), m.group(3), m.group(4)
+        q, var, ann, dom_txt, body = m.group(1).lower(), m.group(2), m.group(3), m.group(4), m.group(5)
         dom = ast.literal_eval(dom_txt)
         if not isinstance(dom, (list, tuple)):
             raise ValueError('quantifier domain must be list/tuple')
-        return ('quant', q, var, list(dom), _parse_hol_expr(body))
+        return ('quant', q, var, list(dom), _parse_hol_expr(body), (ann.lower() if ann else None))
 
     # lambda abstraction
-    m = re.match(r'^lambda\s+([A-Za-z_]\w*)(?::[A-Za-z_][A-Za-z0-9_]*)?\s*\.\s*(.+)$', t, re.I)
+    m = re.match(r'^lambda\s+([A-Za-z_]\w*)(?::([A-Za-z_][A-Za-z0-9_]*))?\s*\.\s*(.+)$', t, re.I)
     if m:
-        return ('lambda', m.group(1), _parse_hol_expr(m.group(2)))
+        return ('lambda', m.group(1), _parse_hol_expr(m.group(3)), (m.group(2).lower() if m.group(2) else None))
 
     # implication
     sp = _split_top_expr(t, '->')
@@ -1419,10 +1419,94 @@ def _parse_hol_expr(s: str):
     return ('leaf', t)
 
 
+def _type_from_dom(dom: list[Any]) -> str:
+    if not dom:
+        return 'unknown'
+    if all(isinstance(x, bool) for x in dom):
+        return 'bool'
+    if all(isinstance(x, int) and not isinstance(x, bool) for x in dom):
+        return 'int'
+    if all(isinstance(x, (int, float)) and not isinstance(x, bool) for x in dom):
+        return 'real'
+    return 'unknown'
+
+
+def _type_compatible(a: str | None, b: str | None) -> bool:
+    aa = (a or 'unknown').lower()
+    bb = (b or 'unknown').lower()
+    if aa == 'unknown' or bb == 'unknown':
+        return True
+    if aa == bb:
+        return True
+    if {aa, bb} <= {'int', 'real'}:
+        return True
+    return False
+
+
+def _infer_hol_type(node, tenv: dict[str, str]) -> str:
+    k = node[0]
+    if k == 'quant':
+        _, _q, var, dom, body, ann = node
+        dt = _type_from_dom(dom)
+        if ann and not _type_compatible(ann, dt):
+            raise ValueError(f'type mismatch for {var}: ann={ann} domain={dt}')
+        tenv2 = dict(tenv)
+        tenv2[var] = ann or dt
+        bt = _infer_hol_type(body, tenv2)
+        if not _type_compatible(bt, 'bool'):
+            raise ValueError('quantifier body must be bool')
+        return 'bool'
+    if k == 'lambda':
+        _, var, body, ann = node
+        tenv2 = dict(tenv)
+        tenv2[var] = ann or 'unknown'
+        bt = _infer_hol_type(body, tenv2)
+        return f'fn({tenv2[var]}->{bt})'
+    if k == 'app':
+        _k, fn, arg = node
+        ft = _infer_hol_type(fn, tenv)
+        at = _infer_hol_type(arg, tenv)
+        m = re.match(r'^fn\(([^\-]+)->(.+)\)$', ft)
+        if not m:
+            return 'unknown'
+        in_t, out_t = m.group(1), m.group(2)
+        if not _type_compatible(in_t.strip(), at):
+            raise ValueError(f'function input type mismatch: expected {in_t}, got {at}')
+        return out_t.strip()
+    if k in {'and', 'or'}:
+        lt = _infer_hol_type(node[1], tenv)
+        rt = _infer_hol_type(node[2], tenv)
+        if not _type_compatible(lt, 'bool') or not _type_compatible(rt, 'bool'):
+            raise ValueError(f'boolean operator type mismatch: {lt}, {rt}')
+        return 'bool'
+    if k == 'not':
+        tt = _infer_hol_type(node[1], tenv)
+        if not _type_compatible(tt, 'bool'):
+            raise ValueError('not operand must be bool')
+        return 'bool'
+    if k == 'leaf':
+        t = str(node[1]).strip()
+        if re.fullmatch(r'-?\d+', t):
+            return 'int'
+        if re.fullmatch(r'-?\d+\.\d+', t):
+            return 'real'
+        tl = t.lower()
+        if tl in {'true', 'false'}:
+            return 'bool'
+        if t in tenv:
+            return tenv[t]
+        if any(op in t for op in ['==', '!=', '<=', '>=', '<', '>', ' and ', ' or ', ' not ']):
+            return 'bool'
+        if any(op in t for op in ['+', '-', '*', '/', '%']):
+            return 'real'
+        return 'unknown'
+    return 'unknown'
+
+
 def _eval_hol_ast(node, env: dict[str, Any]):
     k = node[0]
     if k == 'quant':
-        _, q, var, dom, body = node
+        _, q, var, dom, body, _ann = node
         vals = []
         for v in dom:
             e2 = dict(env)
@@ -1431,15 +1515,15 @@ def _eval_hol_ast(node, env: dict[str, Any]):
         return all(vals) if q == 'forall' else any(vals)
 
     if k == 'lambda':
-        _, var, body = node
-        return ('closure', var, body, dict(env))
+        _, var, body, ann = node
+        return ('closure', var, body, dict(env), ann)
 
     if k == 'app':
         _, fn, arg = node
         fv = _eval_hol_ast(fn, env)
         av = _eval_hol_ast(arg, env)
-        if isinstance(fv, tuple) and len(fv) == 4 and fv[0] == 'closure':
-            _, var, body, cenv = fv
+        if isinstance(fv, tuple) and len(fv) >= 5 and fv[0] == 'closure':
+            _, var, body, cenv, _ann = fv
             e2 = dict(cenv)
             e2[var] = av
             return _eval_hol_ast(body, e2)
@@ -1487,6 +1571,7 @@ def solve_hol_lite(expr: str) -> dict[str, Any]:
         if s.lower().startswith('formula='):
             s = s.split('=', 1)[1].strip()
         astn = _parse_hol_expr(s)
+        inferred_type = _infer_hol_type(astn, {})
         val = _eval_hol_ast(astn, {})
         out_val = val if not (isinstance(val, tuple) and val and val[0] == 'closure') else '<lambda>'
         return {
@@ -1495,8 +1580,10 @@ def solve_hol_lite(expr: str) -> dict[str, Any]:
             'solver': 'hol-lite',
             'result': out_val,
             'ast': str(astn),
-            'mode': 'general-formula',
-            'proof_certificate': _proof_fingerprint({'solver': 'hol-lite', 'ast': str(astn), 'result': out_val}),
+            'mode': 'general-formula+typecheck',
+            'inferred_type': inferred_type,
+            'typecheck': {'ok': True},
+            'proof_certificate': _proof_fingerprint({'solver': 'hol-lite', 'ast': str(astn), 'result': out_val, 'type': inferred_type}),
         }
     except Exception as e:
         return {'ok': False, 'proof_status': 'failed', 'solver': 'hol-lite', 'error': str(e)}
