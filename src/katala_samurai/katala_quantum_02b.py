@@ -80,6 +80,7 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
             "ks47_compatible_output_standard": True,
             "spm_layer": True,
             "spml_layer": True,
+            "spm_solver_complement_link": True,
         })
         return s
 
@@ -150,7 +151,55 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
             "activation_ratio": round(len(hits) / max(1, len(solvers)), 3),
         }
 
-    def _mini_solver_parallel_pack(self, text: str) -> dict[str, Any]:
+    def _spm_solver_complement_link(self, spm: dict[str, Any]) -> dict[str, Any]:
+        cats = {x.get("tag") for x in (spm.get("category") or []) if isinstance(x, dict)}
+        paradigms = {x.get("tag") for x in (spm.get("paradigm") or []) if isinstance(x, dict)}
+        perspectives = {x.get("tag") for x in (spm.get("perspective") or []) if isinstance(x, dict)}
+
+        family_boost = {
+            "lexical": 0.0,
+            "grounding": 0.0,
+            "logic": 0.0,
+            "coding": 0.0,
+            "creativity": 0.0,
+            "safety": 0.0,
+            "routing": 0.0,
+            "stability": 0.0,
+        }
+        rationale = []
+
+        if "medical" in cats or "social" in cats:
+            family_boost["grounding"] += 0.08
+            family_boost["safety"] += 0.05
+            rationale.append("medical/social -> grounding+safety")
+        if "engineering" in cats or "security" in cats:
+            family_boost["coding"] += 0.08
+            family_boost["logic"] += 0.05
+            rationale.append("engineering/security -> coding+logic")
+        if "empiricism" in paradigms or "statistical" in paradigms:
+            family_boost["grounding"] += 0.06
+            family_boost["logic"] += 0.04
+            rationale.append("empiricism/statistical -> grounding+logic")
+        if "interpretive" in paradigms:
+            family_boost["creativity"] += 0.06
+            family_boost["lexical"] += 0.04
+            rationale.append("interpretive -> creativity+lexical")
+        if "regulator" in perspectives or "institution" in perspectives:
+            family_boost["safety"] += 0.07
+            family_boost["routing"] += 0.05
+            rationale.append("regulator/institution -> safety+routing")
+        if "author" in perspectives and "participant" in perspectives:
+            family_boost["stability"] += 0.05
+            rationale.append("author+participant -> stability")
+
+        family_boost = {k: round(v, 4) for k, v in family_boost.items()}
+        return {
+            "enabled": True,
+            "family_boost": family_boost,
+            "rationale": rationale,
+        }
+
+    def _mini_solver_parallel_pack(self, text: str, complement: dict[str, Any] | None = None) -> dict[str, Any]:
         t = (text or "").lower()
         tokens = re.findall(r"[\w\-\u3040-\u30ff\u4e00-\u9fff]+", t)
         tok_n = max(1, len(tokens))
@@ -173,6 +222,11 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
             "routing": self._clamp(0.35 + min(0.35, (logic_hits + refs_hits) * 0.05) - min(0.20, risk_hits * 0.04)),
             "stability": self._clamp(0.45 + min(0.25, tok_n / 180.0) - min(0.20, risk_hits * 0.03)),
         }
+        boosts = (complement or {}).get("family_boost") if isinstance(complement, dict) else None
+        if isinstance(boosts, dict):
+            for k, v in boosts.items():
+                if k in families:
+                    families[k] = self._clamp(float(families[k]) + float(v or 0.0))
 
         # 8 families x 64 lanes = 512 parallel mini-solvers
         names: list[str] = []
@@ -199,6 +253,7 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
             "activated_count": len(activated),
             "activation_ratio": round(len(activated) / len(names), 4),
             "families": {k: {"base": round(v, 4), "activated": int(family_counts[k]), "total": 64} for k, v in families.items()},
+            "complement_applied": complement or {},
             "scores": scores,
             "activated": activated,
         }
@@ -946,7 +1001,8 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
         tl = self._compute_translation_loss(text, r, p, htmlp, sweep)
         mlc = self._check_multilayer_consistency(text)
         dpack = self._domain_solver_pack(text)
-        mini = self._mini_solver_parallel_pack(text)
+        complement = self._spm_solver_complement_link(tl.get("spm_mapping") or {})
+        mini = self._mini_solver_parallel_pack(text, complement)
         bias = self._bias_detection(text, {**r, "paper_stats": p})
         htlf = self._htlf_loss_vector((tl.get("components") or {}), float(bias.get("risk_score", 0.0) or 0.0))
 
@@ -961,7 +1017,14 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
         r["ks47_compatible_output"] = self._ks47_compatible_axis_output(text, r, p, htmlp, sweep, mlc, r["kq_final_l8"])
         r["multi_layer_consistency"] = mlc
         r["kq_domain_solver_pack"] = dpack
+        r["solver_complement_link"] = complement
         r["kq_parallel_mini_solvers"] = mini
+        r["why_this_solver_set"] = {
+            "spm_driven": True,
+            "domain": dpack.get("domain"),
+            "complement_rationale": complement.get("rationale", []),
+            "mini_activation_ratio": mini.get("activation_ratio", 0.0),
+        }
         r["kq_solver_l1_l7"] = self._l1_l7_solver_visualization(text, r, p, htmlp, sweep, dpack, mlc, tl, mini)
         r["self_other_boundary"] = self._self_other_boundary(text, r, bias)
         r["creativity_detection"] = self._creativity_detection(text, mlc, htlf)
@@ -986,13 +1049,25 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
         consistency_score = float(mlc.get("consistency_score", 0.5) or 0.5)
         bias_risk = float(bias.get("risk_score", 0.0) or 0.0)
         adv_risk = float((r.get("adversarial_pretest") or {}).get("risk_score", 0.0) or 0.0)
-        assertive_allowed = (loss_score <= 0.24) and (consistency_score >= 0.72) and (bias_risk <= 0.32) and (adv_risk <= 0.35)
+        spml_obj = r.get("spml") or {}
+        completeness_loss = float(spml_obj.get("mapping_completeness_loss", 0.0) or 0.0)
+        fidelity_loss = float(spml_obj.get("mapping_fidelity_loss", 0.0) or 0.0)
+        assertive_allowed = (
+            (loss_score <= 0.24)
+            and (consistency_score >= 0.72)
+            and (bias_risk <= 0.32)
+            and (adv_risk <= 0.35)
+            and (completeness_loss <= 0.42)
+            and (fidelity_loss <= 0.46)
+        )
         r["translation_loss_gate"] = {
             "enabled": True,
             "threshold": 0.24,
             "consistency_threshold": 0.72,
             "bias_threshold": 0.32,
             "adversarial_threshold": 0.35,
+            "spml_completeness_threshold": 0.42,
+            "spml_fidelity_threshold": 0.46,
             "assertive_allowed": assertive_allowed,
         }
 
@@ -1016,9 +1091,12 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
         fw["translation_loss_penalty"] = round(min(0.10, loss_score * 0.12), 4)
         fw["calibration_score"] = round(calib_score, 4)
         fw["mini_solver_activation_ratio"] = float((mini or {}).get("activation_ratio", 0.0) or 0.0)
+        fw["spml_completeness_loss"] = round(completeness_loss, 4)
+        fw["spml_fidelity_loss"] = round(fidelity_loss, 4)
+        fw["solver_complement_boost_sum"] = round(sum(float(v or 0.0) for v in ((complement.get("family_boost") or {}).values())), 4)
         r["fusion_weights"] = fw
 
-        r["kq_revision"] = "02b-r14"
+        r["kq_revision"] = "02b-r15"
         r["model"] = self.SYSTEM_MODEL
         r["alias"] = self.ALIAS
         return r
