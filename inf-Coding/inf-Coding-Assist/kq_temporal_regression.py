@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import json
 import sys
+import time
 from pathlib import Path
 
 ROOT = Path('/mnt/c/Users/ogosh/Documents/NICOLAS/Katala/src')
@@ -17,6 +18,24 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from katala_samurai.kq_symbolic_bridge import eval_ltl_lite, solve_ctl_lite
+
+
+def _long_trace_perf() -> dict:
+    trace = ['p'] * 2200
+    expr = f"G p @ {trace}"
+    t0 = time.perf_counter()
+    r = eval_ltl_lite(expr)
+    ms = (time.perf_counter() - t0) * 1000.0
+    mode = str(r.get("mode") or "")
+    ok = bool(r.get("ok")) and bool(r.get("result")) and ("windowed" in mode)
+    return {
+        "name": "long-trace-auto-window",
+        "ok": ok,
+        "mode": mode,
+        "elapsed_ms": round(ms, 3),
+        "memo_entries": int(r.get("memo_entries") or 0),
+        "windowed": bool(r.get("windowed")),
+    }
 
 
 def run_suite() -> dict:
@@ -65,14 +84,19 @@ def run_suite() -> dict:
         passed += 1 if ok else 0
         results.append({"family": "CTL", "op": op, "ok": ok, "expected": expected, "got": got, "mode": r.get("mode")})
 
+    perf = _long_trace_perf()
+    results.append({"family": "PERF", "op": perf["name"], "ok": perf["ok"], "expected": True, "got": perf["ok"], "mode": perf.get("mode")})
+    passed += 1 if perf["ok"] else 0
+
     total = len(results)
     return {
-        "suite": "kq-temporal-regression-v1",
+        "suite": "kq-temporal-regression-v2",
         "total": total,
         "passed": passed,
         "failed": total - passed,
         "pass_ratio": round((passed / total) if total else 0.0, 4),
         "results": results,
+        "perf": perf,
     }
 
 
