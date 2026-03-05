@@ -82,23 +82,11 @@ def normalize_iut_terms(text: str) -> dict[str, Any]:
 
 
 def suggest_iut_interpretation(text: str) -> dict[str, Any]:
-    n = normalize_iut_terms(text)
-    keys = set(n.get("detected_concepts") or [])
-    suggestions: list[str] = []
-
-    if "hodge_theater" in keys:
-        suggestions.append("こういうことですか？: 対象を層化空間として扱い、基底整合を保ったまま比較したい。")
-    if "frobenioid" in keys:
-        suggestions.append("こういうことですか？: 算術的な圏構造として写像の一貫性を重視している。")
-    if "log_theta_link" in keys:
-        suggestions.append("こういうことですか？: 層間の対応写像で不変量を保ったまま橋渡ししたい。")
-    if "arakelov_evaluation" in keys:
-        suggestions.append("こういうことですか？: 評価写像の歪みを制御しつつ比較したい。")
-    if "log_volume" in keys:
-        suggestions.append("こういうことですか？: 不変量的な測度で全体比較をしたい。")
-
+    # User policy: run this feature outside KQ only.
     return {
-        "normalized": n,
-        "suggestions": suggestions,
-        "style": "subjective-confirmation",
+        "enabled": False,
+        "reason": "moved-to-external-layer",
+        "normalized": normalize_iut_terms(text),
+        "suggestions": [],
+        "style": "disabled-in-kq",
     }
