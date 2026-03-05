@@ -220,8 +220,52 @@ def _smt_prefix_to_infix(formula: str) -> str:
     return s
 
 
+def _normalize_logic_multilingual(expr: str) -> tuple[str, list[str]]:
+    s = f" {(expr or '').strip()} "
+    notes: list[str] = []
+    rep = {
+        # major modern
+        " ならば ": " -> ", " かつ ": " and ", " または ": " or ", " もしくは ": " or ",
+        " si ": " if ", " entonces ": " then ", " y ": " and ",
+        " se ": " if ", " então ": " then ", " ou ": " or ",
+        " alors ": " then ", " et ": " and ",
+        " wenn ": " if ", " dann ": " then ", " und ": " and ", " oder ": " or ",
+        " если ": " if ", " то ": " then ", " и ": " and ", " или ": " or ",
+        " اذا ": " if ", " فإن ": " then ", " أو ": " or ",
+        " यदि ": " if ", " तो ": " then ", " और ": " and ", " या ": " or ",
+        " 如果 ": " if ", " 那么 ": " then ", " 且 ": " and ", " 或 ": " or ",
+        # classical / conlang first-pass
+        " igitur ": " then ", " ergo ": " then ", " aut ": " or ",
+        " εἰ ": " if ", " καί ": " and ", " ἤ ": " or ",
+        " sace ": " if ", " ca ": " and ", " vā ": " or ",
+        " ܐܢ ": " if ", " ܗܝܕܝܢ ": " then ",
+        " chugh ": " if ", " vaj ": " then ",
+    }
+    for a, b in rep.items():
+        if a in s:
+            s = s.replace(a, b)
+            notes.append(f"replace:{a.strip()}->{b.strip()}")
+
+    # quantifier aliases
+    s = re.sub(r"\b(todos?|todas|alle|all|omnis|omnes|πᾶς|sarva|すべて|모든)\b", "forall", s, flags=re.I)
+    s = re.sub(r"\b(existe|existem|exists?|existit|ἐστίν|存在|ある|يوجد)\b", "exists", s, flags=re.I)
+
+    # if-then skeleton
+    low = s.lower()
+    if " if " in low and " then " in low and "->" not in low:
+        try:
+            a = low.split(" if ", 1)[1].split(" then ", 1)[0].strip()
+            b = low.split(" then ", 1)[1].strip()
+            s = f"({a}) -> ({b})"
+            notes.append("template:if-then")
+        except Exception:
+            pass
+
+    return " ".join(s.split()).strip(), notes
+
+
 def _parse_smt_lite(expr: str) -> tuple[dict[str, tuple[int, int]], str]:
-    s = (expr or "").strip()
+    s, _ = _normalize_logic_multilingual(expr)
     if "formula:" in s and "vars:" in s:
         left = s.split("formula:", 1)
         vars_part = left[0].split("vars:", 1)[1].strip().rstrip(";")
@@ -680,11 +724,12 @@ def solve_smt_optional(expr: str) -> dict[str, Any]:
     - vars: x in [-3,3], y in [0,3]; formula: and(x+y==2, x>=0, y>=0)
     """
     try:
-        doms, formula = _parse_smt_lite(expr)
+        expr_norm, norm_notes = _normalize_logic_multilingual(expr)
+        doms, formula = _parse_smt_lite(expr_norm)
         if not doms:
-            r = solve_constraint_lite(expr)
+            r = solve_constraint_lite(expr_norm)
             r["solver"] = "smt-kq-native-fallback"
-            r["proof_trace"] = {"mode": "fallback", "reason": "no_domain_declaration"}
+            r["proof_trace"] = {"mode": "fallback", "reason": "no_domain_declaration", "normalization_notes": norm_notes}
             return r
 
         doms2, prune_notes = _interval_propagate(formula, doms)
@@ -750,6 +795,7 @@ def solve_smt_optional(expr: str) -> dict[str, Any]:
         proof_trace = {
             "mode": (f"{mode_prefix}+nn-qemu-priority+standalone-enumeration+interval-propagation+env-safe-eval" if _HAS_QEMU else f"{mode_prefix}+nn-priority+standalone-enumeration+interval-propagation+env-safe-eval"),
             "variables": names,
+            "normalization_notes": norm_notes,
             "strategy": smt_strategy,
             "search_space": int(total_space),
             "checked_points": int(checks),
@@ -773,7 +819,7 @@ def solve_smt_optional(expr: str) -> dict[str, Any]:
             "solver": "smt-kq-native",
             "proof_status": "failed",
             "error": str(e),
-            "proof_trace": {"mode": "error"},
+            "proof_trace": {"mode": "error", "normalization_notes": norm_notes if 'norm_notes' in locals() else []},
         }
 
 
@@ -834,7 +880,8 @@ def solve_sat_lite(expr: str, _internal: bool = False) -> dict[str, Any]:
     """SAT-lite (CDCL-lite flavored) + UNSAT core-lite."""
     sat_cache: dict[str, bool] = {}
     try:
-        s = (expr or "").strip().lower()
+        expr_norm, norm_notes = _normalize_logic_multilingual(expr)
+        s = (expr_norm or "").strip().lower()
         clause_txts = [x.strip() for x in re.split(r"\)\s*and\s*\(", s.strip().strip("()")) if x.strip()]
         clauses: list[list[tuple[str, bool]]] = []
         vars_set: set[str] = set()
@@ -885,7 +932,7 @@ def solve_sat_lite(expr: str, _internal: bool = False) -> dict[str, Any]:
                 "solver": "sat-lite-nn-qemu" if _HAS_QEMU else "sat-lite-nn",
                 "satisfiable": True,
                 "model": {},
-                "proof_trace": {"mode": "preprocess-only", "removed_tautologies": removed_taut, "subsumed": subsumed_count},
+                "proof_trace": {"mode": "preprocess-only", "removed_tautologies": removed_taut, "subsumed": subsumed_count, "normalization_notes": norm_notes},
                 "proof_certificate": _proof_fingerprint({"solver": "sat-lite", "status": "sat-empty-after-preprocess", "removed_tautologies": removed_taut}),
             }
 
@@ -906,7 +953,7 @@ def solve_sat_lite(expr: str, _internal: bool = False) -> dict[str, Any]:
                         "solver": "sat-lite-nn-qemu" if _HAS_QEMU else "sat-lite-nn",
                         "satisfiable": False,
                         "unsat_core_lite": core_txt,
-                        "proof_trace": {"mode": "preprocess-unit-unsat", "removed_tautologies": removed_taut, "pre_units": pre_env},
+                        "proof_trace": {"mode": "preprocess-unit-unsat", "removed_tautologies": removed_taut, "pre_units": pre_env, "normalization_notes": norm_notes},
                         "proof_certificate": _proof_fingerprint({"solver": "sat-lite", "status": "unsat-preprocess", "core": core_txt}),
                     }
                 if len(un) == 1:
@@ -919,7 +966,7 @@ def solve_sat_lite(expr: str, _internal: bool = False) -> dict[str, Any]:
                             "solver": "sat-lite-nn-qemu" if _HAS_QEMU else "sat-lite-nn",
                             "satisfiable": False,
                             "unsat_core_lite": core_txt,
-                            "proof_trace": {"mode": "preprocess-unit-conflict", "removed_tautologies": removed_taut, "pre_units": pre_env},
+                            "proof_trace": {"mode": "preprocess-unit-conflict", "removed_tautologies": removed_taut, "pre_units": pre_env, "normalization_notes": norm_notes},
                             "proof_certificate": _proof_fingerprint({"solver": "sat-lite", "status": "unsat-preprocess-conflict", "core": core_txt}),
                         }
                     if v not in pre_env:
@@ -1170,6 +1217,7 @@ def solve_sat_lite(expr: str, _internal: bool = False) -> dict[str, Any]:
         if sat_model is not None:
             proof_trace = {
                 "variables": vars_list,
+                "normalization_notes": norm_notes,
                 "mode": "cdcl-lite+nn-qemu-priority" if _HAS_QEMU else "cdcl-lite+nn-priority",
                 "watched_literals_init": watched_literals,
                 "learned_clauses": learned_clauses,
@@ -1257,6 +1305,7 @@ def solve_sat_lite(expr: str, _internal: bool = False) -> dict[str, Any]:
 
         proof_trace = {
             "variables": vars_list,
+            "normalization_notes": norm_notes,
             "core_size": len(core_txt),
             "mode": "cdcl-lite+nn-qemu-priority" if _HAS_QEMU else "cdcl-lite+nn-priority",
             "watched_literals_init": watched_literals,
@@ -1278,7 +1327,7 @@ def solve_sat_lite(expr: str, _internal: bool = False) -> dict[str, Any]:
             "proof_certificate": _proof_fingerprint({"solver": "sat-lite", "status": "unsat", "trace": proof_trace, "core": core_txt}),
         }
     except Exception as e:
-        return {"ok": False, "proof_status": "failed", "error": str(e), "solver": "sat-lite"}
+        return {"ok": False, "proof_status": "failed", "error": str(e), "solver": "sat-lite", "normalization_notes": norm_notes if 'norm_notes' in locals() else []}
     finally:
         # strict no-residual policy: clear all run-local caches/memory
         sat_cache.clear()
@@ -1821,7 +1870,7 @@ def solve_hol_lite(expr: str) -> dict[str, Any]:
     - forall x in [1,2,3]. ((lambda z. z>0) @ x)
     - formula=(forall x in [1,2,3]. x > 0)
     """
-    s = (expr or '').strip()
+    s, norm_notes = _normalize_logic_multilingual(expr)
     try:
         if s.lower().startswith('formula='):
             s = s.split('=', 1)[1].strip()
@@ -1842,13 +1891,14 @@ def solve_hol_lite(expr: str) -> dict[str, Any]:
             'ast': str(astn),
             'ast_normalized': str(astn_norm),
             'mode': 'general-formula+typecheck+unification+proofsearch',
+            'normalization_notes': norm_notes,
             'inferred_type': inferred_type,
             'typecheck': {'ok': True, 'unification': {'enabled': True, 'substitutions': _normalize_subst(subst), 'count': len(subst)}, 'strict_function_application': True},
             'proof_search': proof_search,
             'proof_certificate': _proof_fingerprint({'solver': 'hol-lite', 'ast': str(astn_norm), 'result': out_val, 'type': inferred_type, 'proof_search': proof_search}),
         }
     except Exception as e:
-        return {'ok': False, 'proof_status': 'failed', 'solver': 'hol-lite', 'error': str(e)}
+        return {'ok': False, 'proof_status': 'failed', 'solver': 'hol-lite', 'error': str(e), 'normalization_notes': norm_notes}
 
 
 def solve_ctl_lite(expr: str) -> dict[str, Any]:
