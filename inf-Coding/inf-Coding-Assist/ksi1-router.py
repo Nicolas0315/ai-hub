@@ -11,7 +11,7 @@ import sys
 
 sys.path.insert(0, '/mnt/c/Users/ogosh/Documents/NICOLAS/Katala/src')
 
-from katala_samurai.katala_quantum_02a import Katala_Quantum_02a, KQ02a
+from katala_samurai.katala_quantum_03a import Katala_Quantum_03a, KQ03a
 from katala_samurai.inf_bridge import (
     run_inf_bridge,
     make_ephemeral_audit_file,
@@ -66,17 +66,17 @@ def _matches(patterns: list[str], command: str) -> bool:
 
 
 def _select_model(command: str):
-    """KQ-only policy: always use Katala_Quantum_02a unless explicitly disabled."""
+    """KQ-only policy: always use Katala_Quantum_03a unless explicitly disabled."""
     kq_only = os.getenv("KQ_ONLY", "1").strip().lower()
     if kq_only in {"1", "true", "yes", "on"}:
-        return KQ02a()
+        return KQ03a()
 
     # compatibility path (when KQ_ONLY=0): allow explicit KS47 only
     requested = os.getenv("KSI_MODEL", "").strip().lower()
     c = command.lower()
     if requested in {"ks47"} or "ks47" in c:
         return "KS47"
-    return KQ02a()
+    return KQ03a()
 
 
 def _formal_probe(command: str) -> dict:
