@@ -1,0 +1,124 @@
+{
+  "schema": "figure-read-report-v1",
+  "image": "kq-flowir-r41-cycles.png",
+  "chart_type": "line_or_scatter_lite",
+  "axes": {
+    "x_axis": {
+      "x1": 0,
+      "y1": 1399,
+      "x2": 2199,
+      "y2": 1399
+    },
+    "y_axis": {
+      "x1": 779,
+      "y1": 0,
+      "x2": 779,
+      "y2": 1399
+    }
+  },
+  "series_count": 1,
+  "digitize_confidence": 0.65,
+  "extracted_points_sample": [
+    {
+      "x_px": 784,
+      "y_px": 394
+    },
+    {
+      "x_px": 842,
+      "y_px": 391
+    },
+    {
+      "x_px": 900,
+      "y_px": 288
+    },
+    {
+      "x_px": 958,
+      "y_px": 288
+    },
+    {
+      "x_px": 1016,
+      "y_px": 288
+    },
+    {
+      "x_px": 1074,
+      "y_px": 288
+    },
+    {
+      "x_px": 1132,
+      "y_px": 371
+    },
+    {
+      "x_px": 1190,
+      "y_px": 367
+    },
+    {
+      "x_px": 1248,
+      "y_px": 363
+    },
+    {
+      "x_px": 1306,
+      "y_px": 310
+    },
+    {
+      "x_px": 1364,
+      "y_px": 310
+    },
+    {
+      "x_px": 1422,
+      "y_px": 310
+    },
+    {
+      "x_px": 1480,
+      "y_px": 310
+    },
+    {
+      "x_px": 1538,
+      "y_px": 334
+    },
+    {
+      "x_px": 1596,
+      "y_px": 330
+    },
+    {
+      "x_px": 1654,
+      "y_px": 290
+    },
+    {
+      "x_px": 1712,
+      "y_px": 288
+    },
+    {
+      "x_px": 1770,
+      "y_px": 288
+    },
+    {
+      "x_px": 1828,
+      "y_px": 288
+    },
+    {
+      "x_px": 1886,
+      "y_px": 321
+    },
+    {
+      "x_px": 1944,
+      "y_px": 317
+    },
+    {
+      "x_px": 2002,
+      "y_px": 313
+    },
+    {
+      "x_px": 2060,
+      "y_px": 288
+    },
+    {
+      "x_px": 2118,
+      "y_px": 288
+    }
+  ],
+  "limits": [
+    "OCR labels/ticks not yet integrated",
+    "single-series assumption in lite mode",
+    "pixel coordinate only (no physical unit calibration)"
+  ]
+}

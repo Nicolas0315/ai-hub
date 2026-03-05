@@ -1,0 +1,118 @@
+{
+  "schema": "formal-upgrade-report-v1",
+  "added_rule_families": [
+    "sat-cdcl-lite",
+    "smt-lite",
+    "zfc-lite",
+    "hol-lite",
+    "ctl-lite",
+    "mu-lite"
+  ],
+  "success_cases": 10,
+  "failed_cases": 0,
+  "total_cases": 10,
+  "total_infer_ms": 1.645,
+  "improvement_note": "operational-lite coverage expanded across SAT/SMT/foundation logic",
+  "cases": [
+    {
+      "name": "sat",
+      "ok": true,
+      "ms": 0.222,
+      "solver": "sat-lite-qemu",
+      "brief": {
+        "satisfiable": true,
+        "proof_status": "checked"
+      }
+    },
+    {
+      "name": "smt",
+      "ok": true,
+      "ms": 0.509,
+      "solver": "smt-kq-native-qemu",
+      "brief": {
+        "solution_count": 3,
+        "proof_status": "checked"
+      }
+    },
+    {
+      "name": "bitvec",
+      "ok": true,
+      "ms": 0.006,
+      "solver": "smt-bitvec-lite",
+      "brief": {
+        "result": 4,
+        "proof_status": "checked"
+      }
+    },
+    {
+      "name": "array",
+      "ok": true,
+      "ms": 0.006,
+      "solver": "smt-array-lite",
+      "brief": {
+        "result": 9,
+        "proof_status": "checked"
+      }
+    },
+    {
+      "name": "uf",
+      "ok": true,
+      "ms": 0.051,
+      "solver": "smt-uf-lite",
+      "brief": {
+        "consistent": false,
+        "proof_status": "checked"
+      }
+    },
+    {
+      "name": "nra",
+      "ok": true,
+      "ms": 0.778,
+      "solver": "smt-nra-lite",
+      "brief": {
+        "solution_count": 12,
+        "proof_status": "checked"
+      }
+    },
+    {
+      "name": "zfc",
+      "ok": true,
+      "ms": 0.022,
+      "solver": "zfc-lite",
+      "brief": {
+        "result": true,
+        "proof_status": "checked"
+      }
+    },
+    {
+      "name": "hol",
+      "ok": true,
+      "ms": 0.022,
+      "solver": "hol-lite",
+      "brief": {
+        "result": true,
+        "proof_status": "checked"
+      }
+    },
+    {
+      "name": "ctl",
+      "ok": true,
+      "ms": 0.006,
+      "solver": "ctl-lite",
+      "brief": {
+        "result": true,
+        "proof_status": "checked"
+      }
+    },
+    {
+      "name": "mu",
+      "ok": true,
+      "ms": 0.003,
+      "solver": "mu-lite",
+      "brief": {
+        "result": true,
+        "proof_status": "checked"
+      }
+    }
+  ]
+}
