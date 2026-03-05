@@ -296,6 +296,75 @@ def route_ab_evaluation(payload: dict[str, Any], plan: dict[str, Any], adv: dict
     }
 
 
+def select_compute_meta_router(payload: dict[str, Any], plan: dict[str, Any], adv: dict[str, Any], hw: dict[str, Any]) -> dict[str, Any]:
+    txt = ((payload.get("kq_payload") or {}).get("text") or "")
+    ext = payload.get("external_signals") or {}
+    signals = ext.get("signals") or {}
+
+    adv_risk = float((adv or {}).get("risk_score", 0.0) or 0.0)
+    cpu_load = float(((hw.get("cpu_load") or {}).get("1m", 0.0) or 0.0))
+    text_len = len(txt)
+
+    classical_score = 0.55
+    quantum_emu_score = 0.25
+    neuromorphic_emu_score = 0.20
+
+    if signals.get("math_logic_signal"):
+        classical_score += 0.20
+    if signals.get("multilingual_logic_signal"):
+        neuromorphic_emu_score += 0.18
+    if signals.get("peer_review_priority_signal"):
+        classical_score += 0.08
+
+    # broad/ambiguous contexts benefit from exploratory emulation lanes
+    if text_len >= 900:
+        neuromorphic_emu_score += 0.12
+        quantum_emu_score += 0.10
+
+    # high risk => authoritative classical lane
+    if adv_risk >= 0.45:
+        classical_score += 0.18
+        quantum_emu_score -= 0.05
+
+    # high host load => avoid excessive hybrid fanout
+    if cpu_load >= max(1.0, (os.cpu_count() or 4) * 0.75):
+        neuromorphic_emu_score -= 0.08
+        quantum_emu_score -= 0.08
+
+    scores = {
+        "classical": round(max(0.0, classical_score), 4),
+        "neuromorphic-emu": round(max(0.0, neuromorphic_emu_score), 4),
+        "quantum-emu": round(max(0.0, quantum_emu_score), 4),
+    }
+
+    ordered = sorted(scores.items(), key=lambda kv: kv[1], reverse=True)
+    primary = ordered[0][0]
+
+    # complementarity-first: use hybrid when uncertainty is high and risk is manageable
+    spread = ordered[0][1] - ordered[1][1] if len(ordered) > 1 else 1.0
+    use_hybrid = (spread <= 0.14 and adv_risk < 0.45)
+    selected = "hybrid" if use_hybrid else primary
+
+    lanes = [primary]
+    if use_hybrid:
+        lanes = [k for k, _ in ordered[:3]]
+
+    return {
+        "enabled": True,
+        "selected": selected,
+        "primary": primary,
+        "lanes": lanes,
+        "scores": scores,
+        "reason": {
+            "adv_risk": round(adv_risk, 4),
+            "cpu_load_1m": round(cpu_load, 4),
+            "text_len": text_len,
+            "math_logic": bool(signals.get("math_logic_signal")),
+            "multilingual_logic": bool(signals.get("multilingual_logic_signal")),
+        },
+    }
+
+
 def build_meta_visualization(payload: dict[str, Any], plan: dict[str, Any]) -> dict[str, Any]:
     c = payload.get("context_binding") or {}
     pd = plan.get("pattern_detection") or {}
@@ -309,6 +378,7 @@ def build_meta_visualization(payload: dict[str, Any], plan: dict[str, Any]) -> d
             "risk_score": pd.get("risk_score", 0.0),
             "pattern_groups": pd.get("groups", []),
             "source_trust": ((payload.get("input") or {}).get("source_trust") or "untrusted"),
+            "compute_path": ((payload.get("compute_meta_router") or {}).get("selected") or "classical"),
         },
         "flow": [
             "collect:input",
@@ -319,6 +389,7 @@ def build_meta_visualization(payload: dict[str, Any], plan: dict[str, Any]) -> d
             "pretest:adversarial",
             "observe:hardware_batch",
             "evaluate:route_ab",
+            "select:compute_meta_router",
             "plan:route_hint+goal_hint",
             "emit:kq_payload",
         ],
@@ -420,6 +491,15 @@ def run_inf_bridge(command: str) -> dict[str, Any]:
     payload["route_ab_evaluation"] = ab_eval
     if ab_eval.get("recommended") == "strict":
         plan["route_hint"] = "strict"
+
+    compute_meta = select_compute_meta_router(payload, plan, adv, hw)
+    payload["compute_meta_router"] = compute_meta
+    try:
+        payload["kq_payload"]["meta"]["compute_path"] = compute_meta.get("selected")
+        payload["kq_payload"]["meta"]["compute_lanes"] = compute_meta.get("lanes")
+    except Exception:
+        pass
+
     payload["plan"] = plan
 
     payload["goal_loop_state"] = {
