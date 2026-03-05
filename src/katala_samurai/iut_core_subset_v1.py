@@ -11,6 +11,7 @@ from .kq_symbolic_bridge import (
     verify_isabelle_proof,
 )
 from .rust_hotpath_bridge import dense_dependency_edges as _rust_dense_dependency_edges
+from .iut_formal_dictionary import IUT_FORMAL_DICTIONARY, normalize_iut_terms
 
 
 @dataclass
@@ -408,6 +409,14 @@ def evaluate_iut_core_subset_v1(nodes: list[IUTLemmaNode] | None = None) -> dict
 
     total = len(nodes)
     ok_n = sum(1 for x in out if x.get("ok"))
+    dictionary_hits = []
+    for n in nodes:
+        dictionary_hits.append({
+            "id": n.id,
+            "title": n.title,
+            "detected": normalize_iut_terms(f"{n.title} {n.source_note}").get("detected_concepts", []),
+        })
+
     return {
         "ok": ok_n == total,
         "subset": "iut_core_subset_v1",
@@ -415,6 +424,10 @@ def evaluate_iut_core_subset_v1(nodes: list[IUTLemmaNode] | None = None) -> dict
         "passed": ok_n,
         "pass_ratio": round(ok_n / max(1, total), 4),
         "layers": sorted(list({n.layer for n in nodes})),
+        "formal_dictionary": {
+            "concepts": [c.key for c in IUT_FORMAL_DICTIONARY],
+            "node_hits": dictionary_hits,
+        },
         "dependency_graph": graph,
         "optimization": {
             "cache": {
