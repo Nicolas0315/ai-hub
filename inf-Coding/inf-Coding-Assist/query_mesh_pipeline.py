@@ -905,12 +905,28 @@ class EvidenceScorer:
             n = sum(1 for w in words if w in txt)
             return min(1.0, n / max(1.0, len(words) * 0.35))
         return {
-            "formal_math_logic": round(hit(["theorem", "proof", "lemma", "logic", "formal", "axiom", "証明", "定理"]), 4),
+            "formal_math_logic": round(hit(["theorem", "proof", "lemma", "logic", "formal", "axiom", "証明", "定理", "logicism", "formalism", "intuitionism", "constructive"]), 4),
             "empirical_experimental": round(hit(["experiment", "dataset", "participant", "measurement", "trial", "実験"]), 4),
             "computational_simulation": round(hit(["simulation", "algorithm", "model", "compute", "benchmark", "計算"]), 4),
             "clinical_social": round(hit(["clinical", "patient", "intervention", "survey", "社会", "臨床"]), 4),
-            "philosophical_conceptual": round(hit(["epistem", "ontology", "ethics", "concept", "argument", "哲学", "概念"]), 4),
+            "philosophical_conceptual": round(hit(["epistem", "ontology", "ethics", "concept", "argument", "哲学", "概念", "分析哲学", "数理哲学", "philosophy of mathematics"]), 4),
         }
+
+    @staticmethod
+    def _philosophy_stance_tags(p: dict[str, Any]) -> list[str]:
+        txt = f"{p.get('title') or ''} {p.get('text') or ''}".lower()
+        tags: list[str] = []
+        rules = {
+            "formalism": ["formalism", "hilbert", "符号主義", "形式主義"],
+            "logicism": ["logicism", "frege", "russell", "論理主義"],
+            "intuitionism": ["intuitionism", "constructive", "brouwer", "直観主義", "構成的"],
+            "analytic_philosophy": ["analytic philosophy", "analysis", "分析哲学"],
+            "philosophy_of_mathematics": ["philosophy of mathematics", "数理哲学", "数学の哲学"],
+        }
+        for tag, kws in rules.items():
+            if any(k in txt for k in kws):
+                tags.append(tag)
+        return tags
 
     @staticmethod
     def _citation_trust_score(p: dict[str, Any]) -> float:
@@ -945,6 +961,7 @@ class EvidenceScorer:
         paper_map = {str(p.get("canonical_id") or p.get("url") or p.get("title") or i): p for i, p in enumerate(papers)}
         # per-paper quality
         scores = []
+        stance_acc: dict[str, int] = {}
         paradigm_acc = {
             "formal_math_logic": 0.0,
             "empirical_experimental": 0.0,
@@ -959,14 +976,18 @@ class EvidenceScorer:
             read = 1.0 if p.get("read_status") == "ok" else 0.3
             citation_trust = self._citation_trust_score(p)
             pmap = self._paradigm_map(p)
+            stance_tags = self._philosophy_stance_tags(p)
             for kk in paradigm_acc.keys():
                 paradigm_acc[kk] += float(pmap.get(kk, 0.0) or 0.0)
+            for st in stance_tags:
+                stance_acc[st] = int(stance_acc.get(st, 0)) + 1
             s = min(1.0, peer * 0.3 + doi * 0.25 + read * 0.2 + citation_trust * 0.25)
             scores.append({
                 "canonical_id": k,
                 "paper_score": round(s, 4),
                 "citation_trust_score": citation_trust,
                 "paradigm_map": pmap,
+                "philosophy_stance_tags": stance_tags,
             })
 
         # formal claim evidence
@@ -987,6 +1008,7 @@ class EvidenceScorer:
                 **provisional,
                 "version": "pmap-v0",
                 "confidence": round(min(1.0, 0.35 + len(scores) / 500.0), 4),
+                "philosophy_stance_distribution": stance_acc,
             },
             "math_logic_reference_policy": {
                 "base_mode": "optional-db-reference",
