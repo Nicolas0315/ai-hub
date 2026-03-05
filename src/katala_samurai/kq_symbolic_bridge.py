@@ -2093,13 +2093,41 @@ def _hol_collect_free_vars(node, bound: set[str] | None = None) -> set[str]:
     return set()
 
 
+def _hol_collect_literals(node) -> set[Any]:
+    k = node[0]
+    if k == 'leaf':
+        t = node[1]
+        tl = str(t).lower()
+        if tl == 'true':
+            return {True}
+        if tl == 'false':
+            return {False}
+        if re.fullmatch(r'-?\d+', str(t)):
+            return {int(t)}
+        return set()
+    if k in {'quant', 'lambda'}:
+        return _hol_collect_literals(node[4] if k == 'quant' else node[2])
+    if k in {'and', 'or', 'app'}:
+        return _hol_collect_literals(node[1]) | _hol_collect_literals(node[2])
+    if k == 'not':
+        return _hol_collect_literals(node[1])
+    return set()
+
+
 def _hol_proof_search_lite(astn, max_models: int = 256) -> dict[str, Any]:
     free = sorted(_hol_collect_free_vars(astn))
     if not free:
         return {'checked_models': 1, 'counterexample': None, 'theorem_like': None}
 
-    domain = [False, True, -1, 0, 1]
+    lits = _hol_collect_literals(astn)
+    seed_domain = [False, True, 0, 1, -1]
+    for v in sorted(lits, key=lambda x: (str(type(x)), str(x))):
+        if v not in seed_domain and isinstance(v, (bool, int)):
+            seed_domain.append(v)
+    domain = seed_domain[:9]
+
     checked = 0
+    cap = max(32, int(max_models))
     from itertools import product as _prod
     for vals in _prod(domain, repeat=len(free)):
         env = {k: v for k, v in zip(free, vals)}
@@ -2109,10 +2137,10 @@ def _hol_proof_search_lite(astn, max_models: int = 256) -> dict[str, Any]:
         except Exception:
             r = False
         if not r:
-            return {'checked_models': checked, 'counterexample': env, 'theorem_like': False}
-        if checked >= max_models:
+            return {'checked_models': checked, 'counterexample': env, 'theorem_like': False, 'domain_seed': domain}
+        if checked >= cap:
             break
-    return {'checked_models': checked, 'counterexample': None, 'theorem_like': True}
+    return {'checked_models': checked, 'counterexample': None, 'theorem_like': True, 'domain_seed': domain}
 
 
 def _eval_hol_ast(node, env: dict[str, Any]):
@@ -2204,7 +2232,9 @@ def solve_hol_lite(expr: str) -> dict[str, Any]:
         inferred_type = _apply_subst_type(inferred_type, subst)
         val = _eval_hol_ast(astn_norm, {})
         out_val = val if not (isinstance(val, tuple) and val and val[0] == 'closure') else '<lambda>'
-        proof_search = _hol_proof_search_lite(astn_norm) if inferred_type == 'bool' else {'checked_models': 0, 'counterexample': None, 'theorem_like': None}
+        hol_max_models = int(os.getenv('KQ_HOL_MAX_MODELS', '512'))
+        hol_adaptive_cap = min(2048, max(64, hol_max_models // max(1, len(_hol_collect_free_vars(astn_norm))) ))
+        proof_search = _hol_proof_search_lite(astn_norm, max_models=hol_adaptive_cap) if inferred_type == 'bool' else {'checked_models': 0, 'counterexample': None, 'theorem_like': None}
         return {
             'ok': True,
             'proof_status': 'checked',

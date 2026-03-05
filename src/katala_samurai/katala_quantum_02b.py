@@ -772,23 +772,32 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
         cons = float((consistency or {}).get("consistency_score", 0.0) or 0.0)
         mvr = float((formal_summary or {}).get("machine_verified_ratio", 0.0) or 0.0)
 
+        failed_ratio = float((formal_summary or {}).get("failed_ratio", 0.0) or 0.0)
+        undecidable_ratio = float((formal_summary or {}).get("undecidable_ratio", 0.0) or 0.0)
+        contradiction_penalty = self._clamp(failed_ratio * 0.6 + undecidable_ratio * 0.4)
+
+        # weight optimization for complementary loop
+        w_main = self._clamp(0.85 + cons * 0.25 - contradiction_penalty * 0.18)
+        w_validation = self._clamp(0.80 + mvr * 0.40 + contradiction_penalty * 0.30)
+        w_integration = self._clamp(0.78 + cons * 0.22 + mvr * 0.18)
+
         cur_c, cur_v, cur_n = c0, v0, n0
         steps: list[dict[str, Any]] = []
         for lp in loops:
             tier = str(lp.get("tier", "main"))
             dc = dv = dn = 0.0
             if tier == "main":
-                dn += 0.012
-                dv += 0.006 + cons * 0.004
-                dc += 0.010
+                dn += (0.012 + contradiction_penalty * 0.002) * w_main
+                dv += (0.006 + cons * 0.004) * w_main
+                dc += 0.010 * w_main
             elif tier == "validation":
-                dv += 0.020 + mvr * 0.010
-                dc += 0.008
-                dn -= 0.004
+                dv += (0.020 + mvr * 0.010) * w_validation
+                dc += 0.008 * w_validation
+                dn -= 0.004 * (0.7 + contradiction_penalty * 0.6)
             elif tier == "integration":
-                dc += 0.012
-                dv += 0.008
-                dn += 0.004
+                dc += 0.012 * w_integration
+                dv += 0.008 * w_integration
+                dn += 0.004 * w_integration
 
             prev_c, prev_v, prev_n = cur_c, cur_v, cur_n
             cur_c = self._clamp(cur_c + dc)
@@ -814,6 +823,12 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
         return {
             "enabled": True,
             "mode": "incremental-delta-reflection",
+            "weight_optimization": {
+                "main": round(w_main, 4),
+                "validation": round(w_validation, 4),
+                "integration": round(w_integration, 4),
+                "contradiction_penalty": round(contradiction_penalty, 4),
+            },
             "steps": steps,
             "initial": {
                 "CreativityScore": round(c0, 4),
