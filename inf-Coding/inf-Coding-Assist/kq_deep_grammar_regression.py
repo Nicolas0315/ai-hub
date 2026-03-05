@@ -33,6 +33,8 @@ SOLVER_CASES = [
     {"solver": "sat", "expr": "(p) and (not p)", "expect_ok": True},
     {"solver": "smt", "expr": "x in [0,5]: x between 2 and 4", "expect_ok": True},
     {"solver": "smt", "expr": "vars: x in [0,5], y in [0,5]; formula: and(x+y==4, x>=1)", "expect_ok": True},
+    {"solver": "hol", "expr": "forall x in [1,2,3]: x > 0", "expect_ok": True},
+    {"solver": "hol", "expr": "exists x in [1,2,3]: x % 2 == 0", "expect_ok": True},
 ]
 
 

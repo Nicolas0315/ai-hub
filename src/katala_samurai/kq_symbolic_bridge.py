@@ -1753,10 +1753,16 @@ def _split_top_expr(s: str, token: str) -> tuple[str, str] | None:
 
 def _parse_hol_expr(s: str):
     t = _strip_outer_paren((s or '').strip())
+    # symbol normalization for HOL parsing
+    t = (t.replace('⇒', '->')
+           .replace('=>', '->')
+           .replace('∧', ' and ')
+           .replace('∨', ' or ')
+           .replace('¬', 'not '))
     low = t.lower()
 
-    # quantifiers
-    m = re.match(r'^(forall|exists)\s+([A-Za-z_]\w*)(?::([A-Za-z_][A-Za-z0-9_]*))?\s+in\s*(\[[^\]]*\]|\([^\)]*\))\s*\.\s*(.+)$', t, re.I)
+    # quantifiers (accept both '.' and ':')
+    m = re.match(r'^(forall|exists)\s+([A-Za-z_]\w*)(?::([A-Za-z_][A-Za-z0-9_]*))?\s+in\s*(\[[^\]]*\]|\([^\)]*\))\s*[\.:]\s*(.+)$', t, re.I)
     if m:
         q, var, ann, dom_txt, body = m.group(1).lower(), m.group(2), m.group(3), m.group(4), m.group(5)
         dom = ast.literal_eval(dom_txt)
