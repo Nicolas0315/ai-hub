@@ -28,6 +28,7 @@ class IUTLemmaNode:
     formal_morphism: str = ""
     formal_invariant: str = ""
     strict_formula: str = ""
+    lemma_id: str = ""
 
 
 def _apply_precision_templates(nodes: list[IUTLemmaNode]) -> list[IUTLemmaNode]:
@@ -100,23 +101,23 @@ def default_iut_core_subset_v1() -> list[IUTLemmaNode]:
     """
     nodes = [
         # L1: base objects / local coherence
-        IUTLemmaNode("L1-obj-001", "L1", "hodge-theater-base-coherence", "forall x in [0,1]: x == x", [], source_paper="IUT I", source_note="Base object coherence", strict_formula="forall x in [0,1]: (x == x) and not (x != x)"),
-        IUTLemmaNode("L1-obj-002", "L1", "frobenioid-local-consistency", "x in [0,5]: x+1>x", [], source_paper="IUT I", source_note="Local consistency surrogate"),
+        IUTLemmaNode("L1-obj-001", "L1", "hodge-theater-base-coherence", "forall x in [0,1]: x == x", [], source_paper="IUT I", source_note="Base object coherence", strict_formula="forall x in [0,1]: (x == x) and not (x != x)", lemma_id="I-L1-001"),
+        IUTLemmaNode("L1-obj-002", "L1", "frobenioid-local-consistency", "x in [0,5]: x+1>x", [], source_paper="IUT I", source_note="Local consistency surrogate", lemma_id="I-L1-002"),
         IUTLemmaNode("L1-obj-003", "L1", "local-order-preservation", "x in [0,5]: x*x >= 0", [], source_paper="IUT I", source_note="Order preservation baseline"),
 
         # L2: local morphisms / evaluation links
-        IUTLemmaNode("L2-mor-001", "L2", "hodge-arakelov-evaluation-stability", "vars: x in [0,3], y in [0,3]; formula: and(x+y==3, x>=0, y>=0)", ["L1-obj-001", "L1-obj-002"], source_paper="IUT II", source_note="Evaluation stability"),
-        IUTLemmaNode("L2-mor-002", "L2", "local-morphism-composition", "(p or q) and (not p or q)", ["L1-obj-002", "L1-obj-003"], source_paper="IUT II", source_note="Composition consistency", strict_formula="x in [0,5]: x+1>x"),
+        IUTLemmaNode("L2-mor-001", "L2", "hodge-arakelov-evaluation-stability", "vars: x in [0,3], y in [0,3]; formula: and(x+y==3, x>=0, y>=0)", ["L1-obj-001", "L1-obj-002"], source_paper="IUT II", source_note="Evaluation stability", lemma_id="II-L2-001"),
+        IUTLemmaNode("L2-mor-002", "L2", "local-morphism-composition", "(p or q) and (not p or q)", ["L1-obj-002", "L1-obj-003"], source_paper="IUT II", source_note="Composition consistency", strict_formula="x in [0,5]: x+1>x", lemma_id="II-L2-002"),
         IUTLemmaNode("L2-mor-003", "L2", "arith-constraint-soundness", "x in [1,10]: x % 2 == 0 and x > 1", ["L1-obj-003"], source_paper="IUT II", source_note="Arithmetic soundness surrogate"),
 
         # L3: inter-universal correspondences
-        IUTLemmaNode("L3-cor-001", "L3", "log-theta-canonical-splitting-consistency", "(a or b) and (not a or b)", ["L2-mor-001"], source_paper="IUT III", source_note="Canonical splitting consistency"),
-        IUTLemmaNode("L3-cor-002", "L3", "cross-theater-bridge-preservation", "forall x in [1,2,3]: x > 0", ["L2-mor-001", "L2-mor-002"], source_paper="IUT III", source_note="Bridge-preservation surrogate", strict_formula="forall x in [1,2,3]: (x > 0) and (x >= 1)"),
+        IUTLemmaNode("L3-cor-001", "L3", "log-theta-canonical-splitting-consistency", "(a or b) and (not a or b)", ["L2-mor-001"], source_paper="IUT III", source_note="Canonical splitting consistency", lemma_id="III-L3-001"),
+        IUTLemmaNode("L3-cor-002", "L3", "cross-theater-bridge-preservation", "forall x in [1,2,3]: x > 0", ["L2-mor-001", "L2-mor-002"], source_paper="IUT III", source_note="Bridge-preservation surrogate", strict_formula="forall x in [1,2,3]: (x > 0) and (x >= 1)", lemma_id="III-L3-002"),
         IUTLemmaNode("L3-cor-003", "L3", "theta-link-invariant-transfer", "exists x in [1,2,3]: x % 2 == 1", ["L2-mor-002", "L2-mor-003"], source_paper="IUT III", source_note="Theta-link transfer"),
 
         # L4: invariant transfer / log-volume style controls
-        IUTLemmaNode("L4-inv-001", "L4", "log-volume-invariant-transfer", "x in [0,5]: x*x >= 0", ["L3-cor-001", "L3-cor-002"], source_paper="IUT IV", source_note="Invariant transfer baseline", strict_formula="vars: x in [0,5], y in [0,5]; formula: and(x*x>=0, y*y>=0, x+y>=0)"),
-        IUTLemmaNode("L4-inv-002", "L4", "set-theoretic-foundation-sanity", "vars: x in [0,4], y in [0,4]; formula: and(x>=0, y>=0, x+y>=0)", ["L3-cor-002"], source_paper="IUT IV", source_note="Set-theoretic sanity"),
+        IUTLemmaNode("L4-inv-001", "L4", "log-volume-invariant-transfer", "x in [0,5]: x*x >= 0", ["L3-cor-001", "L3-cor-002"], source_paper="IUT IV", source_note="Invariant transfer baseline", strict_formula="vars: x in [0,5], y in [0,5]; formula: and(x*x>=0, y*y>=0, x+y>=0)", lemma_id="IV-L4-001"),
+        IUTLemmaNode("L4-inv-002", "L4", "set-theoretic-foundation-sanity", "vars: x in [0,4], y in [0,4]; formula: and(x>=0, y>=0, x+y>=0)", ["L3-cor-002"], source_paper="IUT IV", source_note="Set-theoretic sanity", lemma_id="IV-L4-002"),
         IUTLemmaNode("L4-inv-003", "L4", "counterexample-consistency-guard", "(p or q) and (not p or q)", ["L3-cor-003"], source_paper="IUT IV", source_note="Counterexample guard"),
 
         # L5: global synthesis
@@ -125,6 +126,24 @@ def default_iut_core_subset_v1() -> list[IUTLemmaNode]:
         IUTLemmaNode("L5-syn-003", "L5", "final-invariant-preservation", "exists x in [2,3,4,5]: x % 2 == 1", ["L5-syn-001", "L5-syn-002"], source_paper="IUT I-IV", source_note="Final preservation check", strict_formula="vars: x in [2,5], y in [0,3]; formula: and(x%2==1, x+y>=2, x-y<=5)"),
     ]
     return _apply_precision_templates(nodes)
+
+
+def _apply_catalog_fixed_dependencies(nodes: list[IUTLemmaNode]) -> list[IUTLemmaNode]:
+    catalog = build_iut_lemma_catalog_v1()
+    by_lemma = {c.lemma_id: c for c in catalog}
+    node_by_lemma = {n.lemma_id: n.id for n in nodes if n.lemma_id}
+
+    for n in nodes:
+        if not n.lemma_id:
+            continue
+        ce = by_lemma.get(n.lemma_id)
+        if ce is None:
+            continue
+        mapped = [node_by_lemma[d] for d in ce.dependency_ids if d in node_by_lemma]
+        if mapped:
+            # fixed, paper-anchored dependency replaces heuristic depends_on
+            n.depends_on = sorted(list(dict.fromkeys(mapped)))
+    return nodes
 
 
 def _infer_dense_dependencies(nodes: list[IUTLemmaNode], explicit: set[tuple[str, str]]) -> set[tuple[str, str]]:
@@ -220,6 +239,7 @@ def build_dependency_graph(nodes: list[IUTLemmaNode]) -> dict[str, Any]:
 
 def evaluate_iut_core_subset_v1(nodes: list[IUTLemmaNode] | None = None) -> dict[str, Any]:
     nodes = nodes or default_iut_core_subset_v1()
+    nodes = _apply_catalog_fixed_dependencies(nodes)
     graph = build_dependency_graph(nodes)
 
     id_map = {n.id: n for n in nodes}
@@ -436,6 +456,8 @@ def evaluate_iut_core_subset_v1(nodes: list[IUTLemmaNode] | None = None) -> dict
             "size": len(catalog),
             "ids": [c.lemma_id for c in catalog],
             "papers": sorted(list({c.paper for c in catalog})),
+            "dependency_mode": "paper-anchored-fixed",
+            "mapped_nodes": [{"node": n.id, "lemma_id": n.lemma_id, "depends_on": n.depends_on} for n in nodes if n.lemma_id],
         },
         "dependency_graph": graph,
         "optimization": {
