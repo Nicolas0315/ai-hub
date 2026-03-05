@@ -1,10 +1,14 @@
 #!/usr/bin/env python3
-"""Query Mesh Pipeline (1 -> 3 -> 2)
+"""Query Mesh Pipeline (1 -> 3 -> 2 -> 5 -> 6 -> 7 -> 8)
 
 Implements:
 1) Query Decomposer
 3) DOI/ID Normalizer
 2) Multi-Source Fetcher (parallel adapters)
+5) Parallel Paper Reader
+6) Reasoning Mesh Executor
+7) Formal Claim Router
+8) Evidence Scorer
 
 Design notes:
 - Stateless by default (no file cache)
@@ -18,10 +22,27 @@ import json
 import re
 import time
 from dataclasses import dataclass
+from html import unescape
 from typing import Any
 from urllib.parse import quote
 
 import requests
+
+import sys
+from pathlib import Path
+
+ROOT = Path('/mnt/c/Users/ogosh/Documents/NICOLAS/Katala/src')
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
+from katala_samurai.kq_symbolic_bridge import (
+    eval_ltl_lite,
+    eval_symbolic,
+    solve_ctl_lite,
+    solve_hol_lite,
+    solve_sat_lite,
+    solve_smt_optional,
+)
 
 TIMEOUT = 12
 UA = "KQ-inf-QueryMesh/1.0"
@@ -300,21 +321,214 @@ class MultiSourceFetcher:
         }
 
 
+class ParallelPaperReader:
+    def __init__(self, timeout: int = TIMEOUT):
+        self.timeout = timeout
+        self._session = requests.Session()
+        self._session.headers.update({"User-Agent": UA})
+
+    @staticmethod
+    def _strip_html(html: str) -> str:
+        x = re.sub(r"(?is)<(script|style).*?>.*?</\1>", " ", html or "")
+        x = re.sub(r"(?s)<[^>]+>", " ", x)
+        x = unescape(x)
+        x = re.sub(r"\s+", " ", x).strip()
+        return x
+
+    def _read_one(self, item: dict[str, Any]) -> dict[str, Any]:
+        url = str(item.get("url") or "").strip()
+        out = dict(item)
+        out["read_status"] = "unread"
+        out["text"] = ""
+        if not url:
+            return out
+        try:
+            r = self._session.get(url, timeout=self.timeout)
+            ctype = (r.headers.get("content-type") or "").lower()
+            if r.status_code != 200:
+                out["read_status"] = f"http_{r.status_code}"
+                return out
+            if "text/html" in ctype or "xml" in ctype:
+                txt = self._strip_html(r.text)
+            else:
+                # keep conservative for non-html payloads
+                txt = (r.text or "")[:20000]
+            out["text"] = txt[:8000]
+            out["read_status"] = "ok" if out["text"] else "empty"
+            return out
+        except Exception:
+            out["read_status"] = "error"
+            return out
+
+    def read_parallel(self, items: list[dict[str, Any]], max_workers: int = 16) -> dict[str, Any]:
+        out_items: list[dict[str, Any]] = []
+        t0 = time.perf_counter()
+        with cf.ThreadPoolExecutor(max_workers=min(max_workers, max(4, len(items) or 4))) as ex:
+            futs = [ex.submit(self._read_one, it) for it in items]
+            for fu in cf.as_completed(futs):
+                try:
+                    out_items.append(fu.result())
+                except Exception:
+                    pass
+        ok_n = sum(1 for x in out_items if x.get("read_status") == "ok")
+        return {
+            "elapsed_ms": round((time.perf_counter() - t0) * 1000.0, 3),
+            "ok_count": ok_n,
+            "total": len(out_items),
+            "items": out_items,
+        }
+
+
+class ReasoningMeshExecutor:
+    CLAIM_PAT = re.compile(r"\b(therefore|thus|show|demonstrate|prove|implies|suggests|indicates|結論|示す|証明|示唆)\b", re.I)
+
+    def extract_claims(self, text: str) -> list[str]:
+        sents = [s.strip() for s in re.split(r"[。.!?\n]+", text or "") if s.strip()]
+        claims = []
+        for s in sents:
+            if self.CLAIM_PAT.search(s) or len(s.split()) >= 10:
+                claims.append(s[:300])
+        return claims[:12]
+
+    def run_parallel(self, items: list[dict[str, Any]], max_workers: int = 12) -> dict[str, Any]:
+        def _one(it: dict[str, Any]) -> dict[str, Any]:
+            txt = str(it.get("text") or "")
+            claims = self.extract_claims(txt)
+            return {
+                "canonical_id": it.get("canonical_id"),
+                "title": it.get("title"),
+                "claims": claims,
+                "claim_count": len(claims),
+            }
+
+        rows: list[dict[str, Any]] = []
+        t0 = time.perf_counter()
+        with cf.ThreadPoolExecutor(max_workers=min(max_workers, max(4, len(items) or 4))) as ex:
+            futs = [ex.submit(_one, it) for it in items]
+            for fu in cf.as_completed(futs):
+                try:
+                    rows.append(fu.result())
+                except Exception:
+                    pass
+
+        total_claims = sum(int(x.get("claim_count") or 0) for x in rows)
+        return {
+            "elapsed_ms": round((time.perf_counter() - t0) * 1000.0, 3),
+            "papers": len(rows),
+            "total_claims": total_claims,
+            "rows": rows,
+        }
+
+
+class FormalClaimRouter:
+    LOGIC_PAT = re.compile(r"(forall|exists|\bSAT\b|\bSMT\b|\bCTL\b|\bLTL\b|\bmu\b|\bnu\b|->|<->|\band\b|\bor\b|=|<=|>=)", re.I)
+
+    def _route_one(self, claim: str) -> dict[str, Any]:
+        c = (claim or "").strip()
+        low = c.lower()
+        if "ctl" in low or " ag " in f" {low} " or " ef " in f" {low} ":
+            r = solve_ctl_lite(c)
+            return {"claim": c, "kind": "ctl", "formal": r}
+        if "ltl" in low or any(x in low for x in [" g ", " f ", " x ", " u "]):
+            # allow direct temporal style by mapping to ltl syntax when trace exists
+            r = eval_ltl_lite(c) if "@" in c else {"ok": False, "proof_status": "failed", "error": "ltl trace missing"}
+            return {"claim": c, "kind": "ltl", "formal": r}
+        if "forall" in low or "exists" in low or "lambda" in low:
+            r = solve_hol_lite(c)
+            return {"claim": c, "kind": "hol", "formal": r}
+        if "vars:" in low or "formula:" in low:
+            r = solve_smt_optional(c)
+            return {"claim": c, "kind": "smt", "formal": r}
+        if " and " in low or " or " in low or "not " in low:
+            r = solve_sat_lite(c)
+            return {"claim": c, "kind": "sat", "formal": r}
+        r = eval_symbolic(c)
+        return {"claim": c, "kind": "symbolic", "formal": r}
+
+    def route_parallel(self, rows: list[dict[str, Any]], max_workers: int = 16) -> dict[str, Any]:
+        claims = []
+        for row in rows:
+            for c in (row.get("claims") or []):
+                if self.LOGIC_PAT.search(c):
+                    claims.append(c)
+        claims = claims[:200]
+
+        routed = []
+        with cf.ThreadPoolExecutor(max_workers=min(max_workers, max(4, len(claims) or 4))) as ex:
+            futs = [ex.submit(self._route_one, c) for c in claims]
+            for fu in cf.as_completed(futs):
+                try:
+                    routed.append(fu.result())
+                except Exception:
+                    pass
+
+        ok_n = sum(1 for x in routed if bool((x.get("formal") or {}).get("ok")))
+        return {"total": len(routed), "ok": ok_n, "items": routed}
+
+
+class EvidenceScorer:
+    TRUSTED = {"openalex", "crossref", "pubmed"}
+
+    def score(self, papers: list[dict[str, Any]], routed: list[dict[str, Any]]) -> dict[str, Any]:
+        paper_map = {str(p.get("canonical_id") or p.get("url") or p.get("title") or i): p for i, p in enumerate(papers)}
+        # per-paper quality
+        scores = []
+        for k, p in paper_map.items():
+            src = set(p.get("sources") or [])
+            peer = 1.0 if (src & self.TRUSTED) else 0.5
+            doi = 1.0 if p.get("doi_normalized") else 0.4
+            read = 1.0 if p.get("read_status") == "ok" else 0.3
+            s = min(1.0, peer * 0.4 + doi * 0.35 + read * 0.25)
+            scores.append({"canonical_id": k, "paper_score": round(s, 4)})
+
+        # formal claim evidence
+        formal_ok = sum(1 for it in routed if bool((it.get("formal") or {}).get("ok")))
+        formal_total = len(routed)
+        formal_ratio = (formal_ok / formal_total) if formal_total else 0.0
+
+        global_score = min(1.0, (sum(x["paper_score"] for x in scores) / max(1, len(scores))) * 0.7 + formal_ratio * 0.3)
+        return {
+            "papers": scores[:200],
+            "formal_total": formal_total,
+            "formal_ok": formal_ok,
+            "formal_ok_ratio": round(formal_ratio, 4),
+            "global_evidence_score": round(global_score, 4),
+        }
+
+
 def run_pipeline(query: str, per_source_limit: int = 8) -> dict[str, Any]:
     decomposer = QueryDecomposer()
     normalizer = DoiIdNormalizer()
     fetcher = MultiSourceFetcher()
+    reader = ParallelPaperReader()
+    mesh = ReasoningMeshExecutor()
+    router = FormalClaimRouter()
+    scorer = EvidenceScorer()
 
     # ephemeral run memory
     raw_items: list[dict[str, Any]] = []
+    read_items: list[dict[str, Any]] = []
+    mesh_rows: list[dict[str, Any]] = []
+    routed_items: list[dict[str, Any]] = []
     try:
         dq = decomposer.decompose(query)
         fetched = fetcher.fetch_all(dq.generated_queries, per_source_limit=per_source_limit)
         raw_items = fetched.get("items") or []
         merged = normalizer.merge_dedup(raw_items)
 
+        step5 = reader.read_parallel(merged[:200])
+        read_items = step5.get("items") or []
+
+        step6 = mesh.run_parallel(read_items)
+        mesh_rows = step6.get("rows") or []
+
+        step7 = router.route_parallel(mesh_rows)
+        routed_items = step7.get("items") or []
+
+        step8 = scorer.score(read_items, routed_items)
+
         return {
-            "pipeline": "query-mesh-v1",
+            "pipeline": "query-mesh-v2",
             "step1_query_decomposer": {
                 "search_terms": dq.search_terms,
                 "refutation_terms": dq.refutation_terms,
@@ -330,11 +544,30 @@ def run_pipeline(query: str, per_source_limit: int = 8) -> dict[str, Any]:
                 "elapsed_ms": fetched.get("elapsed_ms", 0.0),
                 "sources": ["openalex", "crossref", "pubmed", "arxiv", "semantic_scholar"],
             },
-            "items": merged[:200],
+            "step5_parallel_paper_reader": {
+                "total": step5.get("total", 0),
+                "ok_count": step5.get("ok_count", 0),
+                "elapsed_ms": step5.get("elapsed_ms", 0.0),
+            },
+            "step6_reasoning_mesh_executor": {
+                "papers": step6.get("papers", 0),
+                "total_claims": step6.get("total_claims", 0),
+                "elapsed_ms": step6.get("elapsed_ms", 0.0),
+            },
+            "step7_formal_claim_router": {
+                "total": step7.get("total", 0),
+                "ok": step7.get("ok", 0),
+            },
+            "step8_evidence_scorer": step8,
+            "items": read_items[:200],
+            "claims_routed": routed_items[:200],
         }
     finally:
         # strict no-residual policy for this run
         raw_items.clear()
+        read_items.clear()
+        mesh_rows.clear()
+        routed_items.clear()
 
 
 def main() -> int:
