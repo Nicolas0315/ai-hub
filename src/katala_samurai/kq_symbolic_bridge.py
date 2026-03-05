@@ -2604,6 +2604,71 @@ def solve_uf_lite(expr: str) -> dict[str, Any]:
         return {'ok': False, 'proof_status': 'failed', 'solver': 'smt-uf-lite', 'error': str(e)}
 
 
+def _inter_universal_invariant_checks(rows: list[dict[str, Any]]) -> dict[str, Any]:
+    ok_rows = [x for x in (rows or []) if bool(x.get("ok"))]
+
+    bool_vals: list[bool] = []
+    for r in ok_rows:
+        rr = r.get("result") or {}
+        v = rr.get("result")
+        if isinstance(v, bool):
+            bool_vals.append(v)
+    truth_consensus = 1.0
+    truth_conflict = False
+    if bool_vals:
+        agree = max(bool_vals.count(True), bool_vals.count(False))
+        truth_consensus = round(agree / len(bool_vals), 4)
+        truth_conflict = truth_consensus < 1.0
+
+    checked_like = 0
+    for r in ok_rows:
+        ps = str((r.get("result") or {}).get("proof_status", "")).lower()
+        if ps in {"checked", "machine-verified"}:
+            checked_like += 1
+    provability_ratio = round(checked_like / max(1, len(ok_rows)), 4)
+
+    theorem_like_true = any(bool(((r.get("result") or {}).get("proof_search") or {}).get("theorem_like")) for r in ok_rows)
+    has_counterexample = any(
+        ((r.get("result") or {}).get("counterexample_trace") is not None)
+        or ((((r.get("result") or {}).get("proof_search") or {}).get("counterexample") is not None))
+        for r in ok_rows
+    )
+    counterexample_consistent = not (theorem_like_true and has_counterexample)
+
+    morphism = {
+        "linguistic_to_formal": round(sum(1 for r in ok_rows if isinstance((r.get("result") or {}).get("linguistic_trace"), dict)) / max(1, len(ok_rows)), 4),
+        "formal_to_proof": round(sum(1 for r in ok_rows if (r.get("result") or {}).get("proof_certificate")) / max(1, len(ok_rows)), 4),
+        "proof_to_human": round(sum(1 for r in ok_rows if isinstance((r.get("result") or {}).get("proof_trace_human"), dict)) / max(1, len(ok_rows)), 4),
+    }
+
+    preservation = round(
+        0.45 * (1.0 - (1.0 if truth_conflict else 0.0))
+        + 0.30 * provability_ratio
+        + 0.15 * (1.0 if counterexample_consistent else 0.0)
+        + 0.10 * ((morphism["linguistic_to_formal"] + morphism["formal_to_proof"] + morphism["proof_to_human"]) / 3.0),
+        4,
+    )
+
+    return {
+        "truth_invariant": {
+            "conflict": truth_conflict,
+            "consensus": truth_consensus,
+            "samples": len(bool_vals),
+        },
+        "provability_invariant": {
+            "checked_ratio": provability_ratio,
+            "samples": len(ok_rows),
+        },
+        "counterexample_invariant": {
+            "consistent": counterexample_consistent,
+            "theorem_like_true": theorem_like_true,
+            "has_counterexample": has_counterexample,
+        },
+        "universe_morphism_checks": morphism,
+        "invariant_preservation_score": preservation,
+    }
+
+
 def solve_math_logic_unified(expr: str) -> dict[str, Any]:
     """Unified math+logic coverage runner (KQ-native)."""
     registry = [
@@ -2651,12 +2716,14 @@ def solve_math_logic_unified(expr: str) -> dict[str, Any]:
         "passed": [x.get("solver") for x in ok_rows],
         "failed": [x.get("solver") for x in rows if not x.get("ok")],
     }
+    invariants = _inter_universal_invariant_checks(rows)
 
     return {
         "ok": len(ok_rows) > 0,
         "proof_status": "checked" if len(ok_rows) > 0 else "failed",
         "solver": "math-logic-unified",
         "coverage": coverage,
+        "inter_universal_invariants": invariants,
         "primary": primary,
         "results": rows,
     }
