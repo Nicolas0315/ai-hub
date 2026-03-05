@@ -421,29 +421,77 @@ class ReasoningMeshExecutor:
 
 
 class FormalClaimRouter:
-    LOGIC_PAT = re.compile(r"(forall|exists|\bSAT\b|\bSMT\b|\bCTL\b|\bLTL\b|\bmu\b|\bnu\b|->|<->|\band\b|\bor\b|=|<=|>=)", re.I)
+    LOGIC_PAT = re.compile(r"(forall|exists|\bSAT\b|\bSMT\b|\bCTL\b|\bLTL\b|\bmu\b|\bnu\b|->|<->|\band\b|\bor\b|=|<=|>=|ならば|すべて|存在)", re.I)
+
+    @staticmethod
+    def _normalize_claim(claim: str) -> dict[str, Any]:
+        c = (claim or "").strip()
+        low = c.lower()
+        notes: list[str] = []
+
+        # JP/EN logic connective normalization
+        rep = {
+            " ならば ": " -> ",
+            " implies ": " -> ",
+            " iff ": " <-> ",
+            " かつ ": " and ",
+            " または ": " or ",
+            " もしくは ": " or ",
+            " ではない": " not ",
+        }
+        for a, b in rep.items():
+            if a in low:
+                low = low.replace(a, b)
+                notes.append(f"replace:{a.strip()}->{b.strip()}")
+
+        # quantifier phrase templates
+        m_forall = re.search(r"all\s+([a-zA-Z_]\w*)\s+in\s*(\[[^\]]+\]|\([^\)]+\))\s*,?\s*(.+)", low)
+        if m_forall and "forall" not in low:
+            v, dom, body = m_forall.group(1), m_forall.group(2), m_forall.group(3)
+            low = f"forall {v} in {dom}. {body}"
+            notes.append("template:all->forall")
+
+        m_exists = re.search(r"there\s+exists\s+([a-zA-Z_]\w*)\s+in\s*(\[[^\]]+\]|\([^\)]+\))\s*,?\s*(.+)", low)
+        if m_exists and "exists" not in low:
+            v, dom, body = m_exists.group(1), m_exists.group(2), m_exists.group(3)
+            low = f"exists {v} in {dom}. {body}"
+            notes.append("template:exists")
+
+        # SAT-like natural sentence to formula skeleton
+        if " if " in low and " then " in low and "->" not in low:
+            try:
+                a = low.split(" if ", 1)[1].split(" then ", 1)[0].strip()
+                b = low.split(" then ", 1)[1].strip()
+                low = f"({a}) -> ({b})"
+                notes.append("template:if-then")
+            except Exception:
+                pass
+
+        return {"normalized": low.strip(), "notes": notes}
 
     def _route_one(self, claim: str) -> dict[str, Any]:
         c = (claim or "").strip()
-        low = c.lower()
-        if "ctl" in low or " ag " in f" {low} " or " ef " in f" {low} ":
-            r = solve_ctl_lite(c)
-            return {"claim": c, "kind": "ctl", "formal": r}
-        if "ltl" in low or any(x in low for x in [" g ", " f ", " x ", " u "]):
-            # allow direct temporal style by mapping to ltl syntax when trace exists
-            r = eval_ltl_lite(c) if "@" in c else {"ok": False, "proof_status": "failed", "error": "ltl trace missing"}
-            return {"claim": c, "kind": "ltl", "formal": r}
+        n = self._normalize_claim(c)
+        norm = n["normalized"]
+        low = norm.lower()
+
+        if "ctl" in low or any(x in f" {low} " for x in [" ag ", " ef ", " ax ", " ex "]):
+            r = solve_ctl_lite(norm)
+            return {"claim": c, "normalized_claim": norm, "normalization_notes": n["notes"], "kind": "ctl", "formal": r}
+        if "ltl" in low or any(x in f" {low} " for x in [" g ", " f ", " x ", " u ", " r ", " w ", " s ", " t "]):
+            r = eval_ltl_lite(norm) if "@" in norm else {"ok": False, "proof_status": "failed", "error": "ltl trace missing"}
+            return {"claim": c, "normalized_claim": norm, "normalization_notes": n["notes"], "kind": "ltl", "formal": r}
         if "forall" in low or "exists" in low or "lambda" in low:
-            r = solve_hol_lite(c)
-            return {"claim": c, "kind": "hol", "formal": r}
+            r = solve_hol_lite(norm)
+            return {"claim": c, "normalized_claim": norm, "normalization_notes": n["notes"], "kind": "hol", "formal": r}
         if "vars:" in low or "formula:" in low:
-            r = solve_smt_optional(c)
-            return {"claim": c, "kind": "smt", "formal": r}
-        if " and " in low or " or " in low or "not " in low:
-            r = solve_sat_lite(c)
-            return {"claim": c, "kind": "sat", "formal": r}
-        r = eval_symbolic(c)
-        return {"claim": c, "kind": "symbolic", "formal": r}
+            r = solve_smt_optional(norm)
+            return {"claim": c, "normalized_claim": norm, "normalization_notes": n["notes"], "kind": "smt", "formal": r}
+        if " and " in low or " or " in low or "not " in low or "->" in low:
+            r = solve_sat_lite(norm)
+            return {"claim": c, "normalized_claim": norm, "normalization_notes": n["notes"], "kind": "sat", "formal": r}
+        r = eval_symbolic(norm)
+        return {"claim": c, "normalized_claim": norm, "normalization_notes": n["notes"], "kind": "symbolic", "formal": r}
 
     def route_parallel(self, rows: list[dict[str, Any]], max_workers: int = 16) -> dict[str, Any]:
         claims = []
