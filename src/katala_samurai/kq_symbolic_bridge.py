@@ -80,6 +80,106 @@ def eval_symbolic(expr: str) -> dict[str, Any]:
     try:
         tree = ast.parse(expr, mode="eval")
         val = _SafeEval().visit(tree)
-        return {"ok": True, "result": val, "type": type(val).__name__}
+        return {"ok": True, "result": val, "type": type(val).__name__, "proof_status": "derived"}
     except Exception as e:
-        return {"ok": False, "error": str(e)}
+        return {"ok": False, "error": str(e), "proof_status": "failed"}
+
+
+def eval_modal(expr: str) -> dict[str, Any]:
+    """Very small modal logic kernel.
+
+    Supported surface syntax:
+    - box(A -> B)
+    - diamond(A)
+    - atoms as booleans or simple symbolic names with assignment map omitted (unknown -> undecidable)
+    """
+    s = (expr or "").strip().lower()
+    try:
+        if s.startswith("box(") and s.endswith(")"):
+            inner = s[4:-1].strip()
+            if "->" in inner:
+                a, b = [x.strip() for x in inner.split("->", 1)]
+                # conservative: implication tautology check only for literals True/False
+                if a in {"true", "false"} and b in {"true", "false"}:
+                    av = a == "true"
+                    bv = b == "true"
+                    return {"ok": True, "result": ((not av) or bv), "modal": "box", "proof_status": "checked"}
+                return {"ok": True, "result": None, "modal": "box", "proof_status": "undecidable"}
+        if s.startswith("diamond(") and s.endswith(")"):
+            inner = s[8:-1].strip()
+            if inner in {"true", "false"}:
+                return {"ok": True, "result": (inner == "true"), "modal": "diamond", "proof_status": "checked"}
+            return {"ok": True, "result": None, "modal": "diamond", "proof_status": "undecidable"}
+        return {"ok": False, "error": "unsupported modal syntax", "proof_status": "failed"}
+    except Exception as e:
+        return {"ok": False, "error": str(e), "proof_status": "failed"}
+
+
+def eval_predicate_lite(expr: str) -> dict[str, Any]:
+    """Predicate-lite kernel with finite quantifier syntax.
+
+    Syntax:
+    - forall x in [1,2,3]: x > 0
+    - exists x in [1,2,3]: x % 2 == 0
+    """
+    s = (expr or "").strip()
+    try:
+        low = s.lower()
+        if not (low.startswith("forall ") or low.startswith("exists ")):
+            return {"ok": False, "error": "unsupported predicate syntax", "proof_status": "failed"}
+        quant = "forall" if low.startswith("forall ") else "exists"
+        body = s[len(quant):].strip()
+        var, rest = body.split(" in ", 1)
+        var = var.strip()
+        dom_txt, pred_txt = rest.split(":", 1)
+        dom = ast.literal_eval(dom_txt.strip())
+        if not isinstance(dom, (list, tuple)):
+            return {"ok": False, "error": "domain must be list/tuple", "proof_status": "failed"}
+
+        def _check(v):
+            safe = pred_txt.replace(var, str(v))
+            r = eval_symbolic(safe)
+            return bool(r.get("ok") and bool(r.get("result")))
+
+        vals = [_check(v) for v in dom]
+        result = all(vals) if quant == "forall" else any(vals)
+        return {
+            "ok": True,
+            "result": result,
+            "quantifier": quant,
+            "domain_size": len(dom),
+            "proof_status": "checked",
+        }
+    except Exception as e:
+        return {"ok": False, "error": str(e), "proof_status": "failed"}
+
+
+def solve_constraint_lite(expr: str) -> dict[str, Any]:
+    """Constraint-lite kernel.
+
+    Syntax:
+    - x in [-5,5]: x*x - 4 == 0
+    - x in [0,10]: x + 3 >= 7 and x % 2 == 0
+    """
+    s = (expr or "").strip()
+    try:
+        var, rest = s.split(" in ", 1)
+        var = var.strip()
+        dom_txt, cons_txt = rest.split(":", 1)
+        lo, hi = ast.literal_eval(dom_txt.strip())
+        lo = int(lo)
+        hi = int(hi)
+        sols = []
+        for v in range(lo, hi + 1):
+            safe = cons_txt.replace(var, str(v))
+            r = eval_symbolic(safe)
+            if r.get("ok") and bool(r.get("result")):
+                sols.append(v)
+        return {
+            "ok": True,
+            "solutions": sols[:128],
+            "solution_count": len(sols),
+            "proof_status": "checked" if sols else "inconclusive",
+        }
+    except Exception as e:
+        return {"ok": False, "error": str(e), "proof_status": "failed"}

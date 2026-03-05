@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from .kq_symbolic_bridge import eval_symbolic
+from .kq_symbolic_bridge import eval_symbolic, eval_modal, eval_predicate_lite, solve_constraint_lite
 
 
 class RustKQBridge:
@@ -63,3 +63,27 @@ class RustKQBridge:
             except Exception:
                 pass
         return eval_symbolic(expr)
+
+    def modal_kernel(self, expr: str) -> dict[str, Any]:
+        if self.available and self._mod is not None and hasattr(self._mod, "modal_kernel"):
+            try:
+                return self._mod.modal_kernel({"expr": expr})
+            except Exception:
+                pass
+        return eval_modal(expr)
+
+    def predicate_lite_kernel(self, expr: str) -> dict[str, Any]:
+        if self.available and self._mod is not None and hasattr(self._mod, "predicate_lite_kernel"):
+            try:
+                return self._mod.predicate_lite_kernel({"expr": expr})
+            except Exception:
+                pass
+        return eval_predicate_lite(expr)
+
+    def constraint_kernel(self, expr: str) -> dict[str, Any]:
+        if self.available and self._mod is not None and hasattr(self._mod, "constraint_kernel"):
+            try:
+                return self._mod.constraint_kernel({"expr": expr})
+            except Exception:
+                pass
+        return solve_constraint_lite(expr)

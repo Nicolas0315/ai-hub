@@ -86,6 +86,27 @@ def symbolic_kernel(payload: dict[str, Any]) -> dict[str, Any]:
     return eval_symbolic(expr)
 
 
+def modal_kernel(payload: dict[str, Any]) -> dict[str, Any]:
+    from katala_samurai.kq_symbolic_bridge import eval_modal
+
+    expr = str(payload.get("expr", "") or "")
+    return eval_modal(expr)
+
+
+def predicate_lite_kernel(payload: dict[str, Any]) -> dict[str, Any]:
+    from katala_samurai.kq_symbolic_bridge import eval_predicate_lite
+
+    expr = str(payload.get("expr", "") or "")
+    return eval_predicate_lite(expr)
+
+
+def constraint_kernel(payload: dict[str, Any]) -> dict[str, Any]:
+    from katala_samurai.kq_symbolic_bridge import solve_constraint_lite
+
+    expr = str(payload.get("expr", "") or "")
+    return solve_constraint_lite(expr)
+
+
 def spml_kernel(payload: dict[str, Any]) -> dict[str, Any]:
     # scaffold only; deterministic pass-through aggregation
     w = payload.get("weights") or {}

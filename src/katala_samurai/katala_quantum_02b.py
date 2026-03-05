@@ -138,6 +138,9 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
             "rust_kernel_available": bool(getattr(self.RUST_BRIDGE, "available", False)),
             "rust_kernel_backend": getattr(self.RUST_BRIDGE, "backend", "none"),
             "symbolic_expression_kernel": True,
+            "modal_kernel": True,
+            "predicate_lite_kernel": True,
+            "constraint_kernel": True,
             "claim_ir_v1": True,
             "spml_information_loss_ratio": True,
         })
@@ -1342,6 +1345,19 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
                 out.append(s.split(":", 1)[1].strip())
         return out[:5]
 
+    def _extract_formal_candidates(self, text: str) -> dict[str, list[str]]:
+        modal, pred, cons = [], [], []
+        for line in (text or "").splitlines():
+            s = line.strip()
+            low = s.lower()
+            if low.startswith("modal:"):
+                modal.append(s.split(":", 1)[1].strip())
+            elif low.startswith("pred:"):
+                pred.append(s.split(":", 1)[1].strip())
+            elif low.startswith("constraint:"):
+                cons.append(s.split(":", 1)[1].strip())
+        return {"modal": modal[:5], "predicate": pred[:5], "constraint": cons[:5]}
+
     def verify(self, *args, **kwargs):
         r = super().verify(*args, **kwargs)
         if not isinstance(r, dict):
@@ -1360,21 +1376,27 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
         sweep = r.get("paper_read_sweep") or {}
 
         symbolic_candidates = self._extract_symbolic_candidates(text)
-        if symbolic_candidates:
-            r["symbolic_expression_eval"] = {
-                "enabled": True,
-                "backend": getattr(self.RUST_BRIDGE, "backend", "none"),
-                "items": [
-                    {"expr": e, **(self.RUST_BRIDGE.symbolic_kernel(e) or {})}
-                    for e in symbolic_candidates
-                ],
-            }
-        else:
-            r["symbolic_expression_eval"] = {
-                "enabled": True,
-                "backend": getattr(self.RUST_BRIDGE, "backend", "none"),
-                "items": [],
-            }
+        formal = self._extract_formal_candidates(text)
+        r["symbolic_expression_eval"] = {
+            "enabled": True,
+            "backend": getattr(self.RUST_BRIDGE, "backend", "none"),
+            "items": [
+                {"expr": e, **(self.RUST_BRIDGE.symbolic_kernel(e) or {})}
+                for e in symbolic_candidates
+            ],
+            "modal_items": [
+                {"expr": e, **(self.RUST_BRIDGE.modal_kernel(e) or {})}
+                for e in formal.get("modal", [])
+            ],
+            "predicate_items": [
+                {"expr": e, **(self.RUST_BRIDGE.predicate_lite_kernel(e) or {})}
+                for e in formal.get("predicate", [])
+            ],
+            "constraint_items": [
+                {"expr": e, **(self.RUST_BRIDGE.constraint_kernel(e) or {})}
+                for e in formal.get("constraint", [])
+            ],
+        }
 
         tl = self._compute_translation_loss(text, r, p, htmlp, sweep)
         mlc = self._check_multilayer_consistency(text)
@@ -1524,7 +1546,7 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
                 "persistent_cache": False,
             }
 
-        r["kq_revision"] = "02b-r24"
+        r["kq_revision"] = "02b-r25"
         r["model"] = self.SYSTEM_MODEL
         r["alias"] = self.ALIAS
         return r
