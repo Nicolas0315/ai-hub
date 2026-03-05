@@ -15,6 +15,7 @@ from collections import deque
 from typing import Any
 
 from .katala_quantum_02a import Katala_Quantum_02a
+from .rust_kq_bridge import RustKQBridge
 
 # Ported from ks44-style constants (not imported at runtime)
 PRETRANSLATION_ACCURACY_LOSS_PCT = 10.0
@@ -52,6 +53,7 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
     SYSTEM_MODEL: str = "Katala_Quantum_02b"
     ALIAS: str = "KQ02b"
     ORCHESTRATION_HISTORY: deque = deque(maxlen=48)
+    RUST_BRIDGE = RustKQBridge()
 
     def bridge_status(self) -> dict:
         s = super().bridge_status()
@@ -87,6 +89,8 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
             "orchestration_detail": True,
             "orchestration_history": True,
             "solver_exposure_extended": True,
+            "rust_kernel_bridge": True,
+            "rust_kernel_available": bool(getattr(self.RUST_BRIDGE, "available", False)),
         })
         return s
 
@@ -210,6 +214,23 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
         spm_tags = {x.get("tag") for x in (spm.get("category") or []) if isinstance(x, dict)}
         mini_ratio = float((mini or {}).get("activation_ratio", 0.0) or 0.0)
 
+        if getattr(self.RUST_BRIDGE, "available", False):
+            try:
+                rk = self.RUST_BRIDGE.triadic_kernel({
+                    "spmTagCount": len(spm_tags),
+                    "domainActivationRatio": float((dpack or {}).get("activation_ratio", 0.0) or 0.0),
+                    "miniActivationRatio": mini_ratio,
+                })
+                if isinstance(rk, dict) and "pairScores" in rk:
+                    return {
+                        "pair_scores": {k: round(float(v or 0.0), 4) for k, v in (rk.get("pairScores") or {}).items()},
+                        "triadic_score": round(float(rk.get("triadicScore", 0.0) or 0.0), 4),
+                        "recommended_mode": str(rk.get("recommendedMode", "pairwise")),
+                        "kernel": "rust",
+                    }
+            except Exception:
+                pass
+
         pair_scores = {
             "spm_x_28plus": self._clamp(0.45 + min(0.30, len(spm_tags) * 0.08) + (0.10 if dom else 0.0)),
             "spm_x_mini": self._clamp(0.42 + min(0.35, mini_ratio * 0.6)),
@@ -220,6 +241,7 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
             "pair_scores": {k: round(v, 4) for k, v in pair_scores.items()},
             "triadic_score": round(triadic, 4),
             "recommended_mode": "triadic" if triadic >= 0.62 else "pairwise",
+            "kernel": "python",
         }
 
     def _orchestration_detail(self, triadic: dict[str, Any], mini: dict[str, Any], mlc: dict[str, Any], sweep: dict[str, Any], adv_risk: float) -> dict[str, Any]:
@@ -326,6 +348,26 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
                 if k in families:
                     families[k] = self._clamp(float(families[k]) + float(v or 0.0))
 
+        if getattr(self.RUST_BRIDGE, "available", False):
+            try:
+                rk = self.RUST_BRIDGE.mini_solver_kernel({
+                    "text": text or "",
+                    "complementFamilyBoost": (complement or {}).get("family_boost", {}),
+                })
+                if isinstance(rk, dict) and "activationRatio" in rk:
+                    return {
+                        "count": int(rk.get("count", 512) or 512),
+                        "activated_count": int(rk.get("activatedCount", 0) or 0),
+                        "activation_ratio": round(float(rk.get("activationRatio", 0.0) or 0.0), 4),
+                        "families": rk.get("families", {}),
+                        "complement_applied": complement or {},
+                        "scores": rk.get("scores", {}),
+                        "activated": rk.get("activated", []),
+                        "kernel": "rust",
+                    }
+            except Exception:
+                pass
+
         # 8 families x 64 lanes = 512 parallel mini-solvers
         names: list[str] = []
         for fam in ["lexical", "grounding", "logic", "coding", "creativity", "safety", "routing", "stability"]:
@@ -354,6 +396,7 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
             "complement_applied": complement or {},
             "scores": scores,
             "activated": activated,
+            "kernel": "python",
         }
 
     def _internal_calibration_e1_e7(self, result: dict[str, Any], tl: dict[str, Any], bias: dict[str, Any]) -> dict[str, Any]:
@@ -1257,7 +1300,7 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
         fw["solver_complement_boost_sum"] = round(sum(float(v or 0.0) for v in ((complement.get("family_boost") or {}).values())), 4)
         r["fusion_weights"] = fw
 
-        r["kq_revision"] = "02b-r17"
+        r["kq_revision"] = "02b-r18"
         r["model"] = self.SYSTEM_MODEL
         r["alias"] = self.ALIAS
         return r
