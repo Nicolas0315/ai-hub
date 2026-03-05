@@ -1,0 +1,706 @@
+{
+  "meta": {
+    "schema": "openalex-fast-precision-v1",
+    "cache_ttl_sec": 3600,
+    "mode": "bulk+page-parallel+batch-summary",
+    "elapsed_sec": 1.588
+  },
+  "summaries": {
+    "neuro_recent": {
+      "n": 40,
+      "year_range": [
+        2022,
+        2025
+      ],
+      "top_journals": [
+        [
+          "IEEE Access",
+          4
+        ],
+        [
+          "Nature Neuroscience",
+          3
+        ],
+        [
+          "Nature",
+          3
+        ],
+        [
+          "Computational Visual Media",
+          2
+        ],
+        [
+          "Proceedings of the IEEE",
+          2
+        ],
+        [
+          "Nature Medicine",
+          2
+        ],
+        [
+          "Journal of Ambient Intelligence and Humanized Computing",
+          1
+        ],
+        [
+          "Applied Sciences",
+          1
+        ]
+      ],
+      "top_terms": [
+        [
+          "learning",
+          52
+        ],
+        [
+          "artificial",
+          44
+        ],
+        [
+          "intelligence",
+          40
+        ],
+        [
+          "sup",
+          32
+        ],
+        [
+          "these",
+          31
+        ],
+        [
+          "deep",
+          29
+        ],
+        [
+          "can",
+          25
+        ],
+        [
+          "brain",
+          25
+        ],
+        [
+          "also",
+          24
+        ],
+        [
+          "disease",
+          24
+        ],
+        [
+          "their",
+          22
+        ],
+        [
+          "spatial",
+          21
+        ],
+        [
+          "which",
+          21
+        ],
+        [
+          "such",
+          20
+        ],
+        [
+          "applications",
+          20
+        ],
+        [
+          "data",
+          20
+        ],
+        [
+          "attention",
+          19
+        ],
+        [
+          "development",
+          19
+        ],
+        [
+          "has",
+          18
+        ],
+        [
+          "how",
+          18
+        ]
+      ],
+      "examples": [
+        {
+          "title": "Attention mechanisms in computer vision: A survey",
+          "year": 2022,
+          "journal": "Computational Visual Media",
+          "cites": 2205
+        },
+        {
+          "title": "A Metaverse: Taxonomy, Components, Applications, and Open Challenges",
+          "year": 2022,
+          "journal": "IEEE Access",
+          "cites": 1682
+        },
+        {
+          "title": "Artificial intelligence in disease diagnosis: a systematic literature review, synthesizing framework and future research agenda",
+          "year": 2022,
+          "journal": "Journal of Ambient Intelligence and Humanized Computing",
+          "cites": 936
+        },
+        {
+          "title": "Visual attention network",
+          "year": 2023,
+          "journal": "Computational Visual Media",
+          "cites": 888
+        },
+        {
+          "title": "Deep Residual Learning for Image Recognition: A Survey",
+          "year": 2022,
+          "journal": "Applied Sciences",
+          "cites": 844
+        }
+      ]
+    },
+    "neuro_old": {
+      "n": 40,
+      "year_range": [
+        1973,
+        1977
+      ],
+      "top_journals": [
+        [
+          "Canadian Journal of Neurological Sciences / Journal Canadien des Sciences Neurologiques",
+          5
+        ],
+        [
+          "American Zoologist",
+          4
+        ],
+        [
+          "The Journal of Comparative Neurology",
+          3
+        ],
+        [
+          "The Journal of General Physiology",
+          3
+        ],
+        [
+          "The Journal of Cell Biology",
+          2
+        ],
+        [
+          "Journal of Neurology Neurosurgery & Psychiatry",
+          2
+        ],
+        [
+          "annales de biologie animale biochimie biophysique",
+          2
+        ],
+        [
+          "Theory of Probability and Its Applications",
+          1
+        ]
+      ],
+      "top_terms": [
+        [
+          "cross",
+          96
+        ],
+        [
+          "ref",
+          96
+        ],
+        [
+          "stochastic",
+          46
+        ],
+        [
+          "brain",
+          34
+        ],
+        [
+          "differential",
+          32
+        ],
+        [
+          "cells",
+          32
+        ],
+        [
+          "which",
+          27
+        ],
+        [
+          "may",
+          23
+        ],
+        [
+          "equations",
+          22
+        ],
+        [
+          "have",
+          22
+        ],
+        [
+          "cell",
+          21
+        ],
+        [
+          "retinal",
+          21
+        ],
+        [
+          "these",
+          21
+        ],
+        [
+          "neurons",
+          19
+        ],
+        [
+          "other",
+          19
+        ],
+        [
+          "not",
+          19
+        ],
+        [
+          "during",
+          17
+        ],
+        [
+          "activity",
+          16
+        ],
+        [
+          "than",
+          16
+        ],
+        [
+          "behavior",
+          16
+        ]
+      ],
+      "examples": [
+        {
+          "title": "Approximate Integration of Stochastic Differential Equations",
+          "year": 1975,
+          "journal": "Theory of Probability and Its Applications",
+          "cites": 487
+        },
+        {
+          "title": "Growth of the adult goldfish eye. III. Source of the new retinal cells",
+          "year": 1977,
+          "journal": "The Journal of Comparative Neurology",
+          "cites": 462
+        },
+        {
+          "title": "THE DISTRIBUTION OF METHIONINE‐ENKEPHALIN AND LEUCINE‐ENKEPHALIN IN THE BRAIN AND PERIPHERAL TISSUES",
+          "year": 1977,
+          "journal": "British Journal of Pharmacology",
+          "cites": 449
+        },
+        {
+          "title": "Growth of the adult goldfish eye. II. Increase in retinal cell number",
+          "year": 1977,
+          "journal": "The Journal of Comparative Neurology",
+          "cites": 433
+        },
+        {
+          "title": "Principles Underlying New Methods for Chronic Neural Recording",
+          "year": 1975,
+          "journal": "Canadian Journal of Neurological Sciences / Journal Canadien des Sciences Neurologiques",
+          "cites": 211
+        }
+      ]
+    },
+    "ai_recent": {
+      "n": 40,
+      "year_range": [
+        2022,
+        2024
+      ],
+      "top_journals": [
+        [
+          "Computational Visual Media",
+          3
+        ],
+        [
+          "Nature",
+          2
+        ],
+        [
+          "IEEE Access",
+          2
+        ],
+        [
+          "Applied Sciences",
+          2
+        ],
+        [
+          "Artificial Intelligence Review",
+          2
+        ],
+        [
+          "ACM Transactions on Graphics",
+          1
+        ],
+        [
+          "PLOS Digital Health",
+          1
+        ],
+        [
+          "Proceedings of the AAAI Conference on Artificial Intelligence",
+          1
+        ]
+      ],
+      "top_terms": [
+        [
+          "learning",
+          79
+        ],
+        [
+          "chatgpt",
+          36
+        ],
+        [
+          "intelligence",
+          33
+        ],
+        [
+          "language",
+          32
+        ],
+        [
+          "machine",
+          30
+        ],
+        [
+          "artificial",
+          30
+        ],
+        [
+          "can",
+          29
+        ],
+        [
+          "networks",
+          25
+        ],
+        [
+          "education",
+          25
+        ],
+        [
+          "has",
+          25
+        ],
+        [
+          "neural",
+          24
+        ],
+        [
+          "potential",
+          22
+        ],
+        [
+          "have",
+          22
+        ],
+        [
+          "their",
+          22
+        ],
+        [
+          "data",
+          22
+        ],
+        [
+          "how",
+          22
+        ],
+        [
+          "survey",
+          21
+        ],
+        [
+          "review",
+          21
+        ],
+        [
+          "also",
+          21
+        ],
+        [
+          "deep",
+          21
+        ]
+      ],
+      "examples": [
+        {
+          "title": "Instant neural graphics primitives with a multiresolution hash encoding",
+          "year": 2022,
+          "journal": "ACM Transactions on Graphics",
+          "cites": 3378
+        },
+        {
+          "title": "Performance of ChatGPT on USMLE: Potential for AI-assisted medical education using large language models",
+          "year": 2023,
+          "journal": "PLOS Digital Health",
+          "cites": 3293
+        },
+        {
+          "title": "Large language models encode clinical knowledge",
+          "year": 2023,
+          "journal": "Nature",
+          "cites": 2654
+        },
+        {
+          "title": "Attention mechanisms in computer vision: A survey",
+          "year": 2022,
+          "journal": "Computational Visual Media",
+          "cites": 2205
+        },
+        {
+          "title": "Are Transformers Effective for Time Series Forecasting?",
+          "year": 2023,
+          "journal": "Proceedings of the AAAI Conference on Artificial Intelligence",
+          "cites": 2201
+        }
+      ]
+    },
+    "ai_old": {
+      "n": 40,
+      "year_range": [
+        1973,
+        1977
+      ],
+      "top_journals": [
+        [
+          "Communications of the ACM",
+          7
+        ],
+        [
+          "ACM SIGART Bulletin",
+          4
+        ],
+        [
+          "NASA STI Repository (National Aeronautics and Space Administration)",
+          3
+        ],
+        [
+          "Cognitive Science",
+          2
+        ],
+        [
+          "Illinois Digital Environment for Access to Learning and Scholarship (University of Illinois at Urbana-Champaign)",
+          2
+        ],
+        [
+          "ACM SIGGRAPH Computer Graphics",
+          2
+        ],
+        [
+          "OhioLink ETD Center (Ohio Library and Information Network)",
+          1
+        ],
+        [
+          "ETS Research Bulletin Series",
+          1
+        ]
+      ],
+      "top_terms": [
+        [
+          "system",
+          36
+        ],
+        [
+          "which",
+          33
+        ],
+        [
+          "has",
+          27
+        ],
+        [
+          "process",
+          22
+        ],
+        [
+          "been",
+          22
+        ],
+        [
+          "computer",
+          22
+        ],
+        [
+          "these",
+          20
+        ],
+        [
+          "knowledge",
+          20
+        ],
+        [
+          "language",
+          18
+        ],
+        [
+          "used",
+          17
+        ],
+        [
+          "structure",
+          17
+        ],
+        [
+          "data",
+          17
+        ],
+        [
+          "have",
+          16
+        ],
+        [
+          "problem",
+          15
+        ],
+        [
+          "recognition",
+          14
+        ],
+        [
+          "can",
+          13
+        ],
+        [
+          "such",
+          13
+        ],
+        [
+          "intelligence",
+          12
+        ],
+        [
+          "systems",
+          12
+        ],
+        [
+          "about",
+          11
+        ]
+      ],
+      "examples": [
+        {
+          "title": "Convex hulls of finite sets of points in two and three dimensions",
+          "year": 1977,
+          "journal": "Communications of the ACM",
+          "cites": 704
+        },
+        {
+          "title": "An application of heuristic search methods to edge and contour detection",
+          "year": 1976,
+          "journal": "Communications of the ACM",
+          "cites": 257
+        },
+        {
+          "title": "The navigation system of the JPL robot",
+          "year": 1977,
+          "journal": "NASA STI Repository (National Aeronautics and Space Administration)",
+          "cites": 127
+        },
+        {
+          "title": "Decision Theory and Artificial Intelligence II: The Hungry Monkey*",
+          "year": 1977,
+          "journal": "Cognitive Science",
+          "cites": 117
+        },
+        {
+          "title": "An empirical study of list structure in Lisp",
+          "year": 1977,
+          "journal": "Communications of the ACM",
+          "cites": 110
+        }
+      ]
+    }
+  },
+  "comparisons": {
+    "neuro": {
+      "emerging": [
+        "also",
+        "applications",
+        "artificial",
+        "attention",
+        "can",
+        "data",
+        "deep",
+        "development",
+        "disease",
+        "has",
+        "how",
+        "intelligence",
+        "learning",
+        "spatial",
+        "such",
+        "sup",
+        "their"
+      ],
+      "declining": [
+        "activity",
+        "behavior",
+        "cell",
+        "cells",
+        "cross",
+        "differential",
+        "during",
+        "equations",
+        "have",
+        "may",
+        "neurons",
+        "not",
+        "other",
+        "ref",
+        "retinal",
+        "stochastic",
+        "than"
+      ]
+    },
+    "ai": {
+      "emerging": [
+        "also",
+        "artificial",
+        "chatgpt",
+        "deep",
+        "education",
+        "how",
+        "learning",
+        "machine",
+        "networks",
+        "neural",
+        "potential",
+        "review",
+        "survey",
+        "their"
+      ],
+      "declining": [
+        "about",
+        "been",
+        "computer",
+        "knowledge",
+        "problem",
+        "process",
+        "recognition",
+        "structure",
+        "such",
+        "system",
+        "systems",
+        "these",
+        "used",
+        "which"
+      ]
+    }
+  }
+}
