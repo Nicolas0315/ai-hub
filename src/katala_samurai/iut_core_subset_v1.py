@@ -126,7 +126,24 @@ def evaluate_iut_core_subset_v1(nodes: list[IUTLemmaNode] | None = None) -> dict
             continue
 
         r = solve_math_logic_unified(n.formal_spec)
-        ok = bool(r.get("ok")) and str(r.get("proof_status", "")).lower() != "failed"
+        kq3 = (r.get("kq3_mode") or {}) if isinstance(r, dict) else {}
+        inv = (r.get("inter_universal_invariants") or {}) if isinstance(r, dict) else {}
+        primary = (r.get("primary") or {}) if isinstance(r, dict) else {}
+        pres_score = float(inv.get("invariant_preservation_score", 0.0) or 0.0)
+
+        # Step 3: verification hooks 강화 (formal + counterexample + proof trace)
+        formal_hook = bool(r.get("ok")) and str(r.get("proof_status", "")).lower() != "failed"
+        counterexample_hook = bool(((inv.get("counterexample_invariant") or {}).get("consistent", False)))
+        proof_trace_hook = bool((primary.get("result") or {}).get("proof_certificate") or (primary.get("result") or {}).get("proof_trace_machine"))
+
+        # Step 4: KQ3 strict escalation linkage
+        strict_trigger = bool(
+            kq3.get("strict_activated")
+            or pres_score < 0.72
+            or not counterexample_hook
+        )
+
+        ok = bool(formal_hook and counterexample_hook and proof_trace_hook)
         if ok:
             passed.add(n.id)
         out.append({
@@ -137,9 +154,23 @@ def evaluate_iut_core_subset_v1(nodes: list[IUTLemmaNode] | None = None) -> dict
             "source_note": n.source_note,
             "ok": ok,
             "status": "checked" if ok else "failed",
+            "verification_hooks": {
+                "formal_hook": formal_hook,
+                "counterexample_hook": counterexample_hook,
+                "proof_trace_hook": proof_trace_hook,
+            },
+            "strict_escalation": {
+                "linked": True,
+                "triggered": strict_trigger,
+                "reason": {
+                    "kq3_mode": bool(kq3.get("strict_activated")),
+                    "low_invariant_score": bool(pres_score < 0.72),
+                    "counterexample_inconsistent": bool(not counterexample_hook),
+                },
+            },
             "coverage": r.get("coverage"),
-            "kq3_mode": r.get("kq3_mode"),
-            "invariants": r.get("inter_universal_invariants"),
+            "kq3_mode": kq3,
+            "invariants": inv,
         })
 
     total = len(nodes)
