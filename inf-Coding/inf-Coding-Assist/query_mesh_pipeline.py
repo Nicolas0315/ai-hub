@@ -703,6 +703,35 @@ class FormalClaimRouter:
 class EvidenceScorer:
     TRUSTED = {"openalex", "crossref", "pubmed"}
 
+    @staticmethod
+    def _citation_trust_score(p: dict[str, Any]) -> float:
+        # citation count aliases across providers
+        c = p.get("cited_by_count")
+        if c is None:
+            c = p.get("citation_count")
+        if c is None:
+            c = p.get("cites")
+        try:
+            c = max(0.0, float(c or 0.0))
+        except Exception:
+            c = 0.0
+
+        year = p.get("year") or p.get("publication_year")
+        try:
+            year = int(year)
+        except Exception:
+            year = None
+
+        # age normalization: avoid penalizing recent papers too hard
+        age_norm = 1.0
+        if year is not None:
+            age = max(0, 2026 - int(year))
+            age_norm = min(1.0, 0.35 + age / 10.0)
+
+        # saturating citation transform (rough log-like)
+        cite_sat = min(1.0, (c / 50.0) ** 0.5) if c > 0 else 0.0
+        return round(max(0.0, min(1.0, 0.7 * cite_sat + 0.3 * age_norm)), 4)
+
     def score(self, papers: list[dict[str, Any]], routed: list[dict[str, Any]]) -> dict[str, Any]:
         paper_map = {str(p.get("canonical_id") or p.get("url") or p.get("title") or i): p for i, p in enumerate(papers)}
         # per-paper quality
@@ -712,8 +741,13 @@ class EvidenceScorer:
             peer = 1.0 if (src & self.TRUSTED) else 0.5
             doi = 1.0 if p.get("doi_normalized") else 0.4
             read = 1.0 if p.get("read_status") == "ok" else 0.3
-            s = min(1.0, peer * 0.4 + doi * 0.35 + read * 0.25)
-            scores.append({"canonical_id": k, "paper_score": round(s, 4)})
+            citation_trust = self._citation_trust_score(p)
+            s = min(1.0, peer * 0.3 + doi * 0.25 + read * 0.2 + citation_trust * 0.25)
+            scores.append({
+                "canonical_id": k,
+                "paper_score": round(s, 4),
+                "citation_trust_score": citation_trust,
+            })
 
         # formal claim evidence
         formal_ok = sum(1 for it in routed if bool((it.get("formal") or {}).get("ok")))
