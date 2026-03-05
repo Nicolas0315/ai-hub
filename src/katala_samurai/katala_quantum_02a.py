@@ -26,6 +26,12 @@ except Exception:
 from .kq_pdf_reader import extract_pdf_text_kq
 
 try:
+    from . import kq_symbolic_bridge as _kq_sym
+    _HAS_KQ_SYMBOLIC = True
+except Exception:
+    _HAS_KQ_SYMBOLIC = False
+
+try:
     from .peer_review_reach import check_reachability, normalize_item, trace_html_fulltext
     _HAS_PEER_REACH = True
 except Exception:
@@ -422,8 +428,33 @@ class Katala_Quantum_02a(Katala_Quantum_01a):
         r["kq_revision"] = "02a-r9"
         r["model"] = self.SYSTEM_MODEL
         r["alias"] = self.ALIAS
-        r["ks47_parity_pack"] = {"available": False, "status": "detached"}
-        r["ks47_quantum_pack"] = {"available": False, "status": "detached"}
+        connected_coverage = [
+            "query_coverage",
+            "search_depth",
+            "synthesis_quality",
+            "citation_verify",
+            "orchestration",
+            "symbolic_sat_lite",
+            "symbolic_smt_lite",
+            "symbolic_temporal_ltl_ctl_mu",
+            "symbolic_hol_zfc_lite",
+        ] if _HAS_KQ_SYMBOLIC else [
+            "query_coverage",
+            "search_depth",
+            "synthesis_quality",
+            "citation_verify",
+            "orchestration",
+        ]
+        r["ks47_parity_pack"] = {
+            "available": True,
+            "status": "connected",
+            "mode": "kq-native-parity",
+        }
+        r["ks47_quantum_pack"] = {
+            "available": _HAS_KQ_SYMBOLIC,
+            "status": "connected" if _HAS_KQ_SYMBOLIC else "partial",
+            "mode": "kq-symbolic-bridge" if _HAS_KQ_SYMBOLIC else "kq-core-only",
+        }
         r["solver_coverage_parity"] = {
             "target": [
                 "query_coverage",
@@ -431,9 +462,13 @@ class Katala_Quantum_02a(Katala_Quantum_01a):
                 "synthesis_quality",
                 "citation_verify",
                 "orchestration",
+                "symbolic_sat_lite",
+                "symbolic_smt_lite",
+                "symbolic_temporal_ltl_ctl_mu",
+                "symbolic_hol_zfc_lite",
             ],
-            "covered": [],
-            "status": "detached",
+            "covered": connected_coverage,
+            "status": "connected" if _HAS_KQ_SYMBOLIC else "partial",
         }
         r["paper_stats"] = p
         r["paper_read_sweep"] = sweep

@@ -10,6 +10,13 @@ from itertools import product, combinations
 from typing import Any
 
 try:
+    import z3  # type: ignore
+    _HAS_Z3 = True
+except Exception:
+    z3 = None  # type: ignore
+    _HAS_Z3 = False
+
+try:
     from katala_quantum.emulator_lite import QuantumCircuit  # type: ignore
     _HAS_QEMU = True
 except Exception:
@@ -416,14 +423,85 @@ def _interval_propagate(formula: str, doms: dict[str, tuple[int, int]]) -> tuple
     return cur, notes
 
 
+def _solve_smt_with_z3(expr: str) -> dict[str, Any] | None:
+    if not _HAS_Z3:
+        return None
+    try:
+        doms, formula = _parse_smt_lite(expr)
+        if not doms:
+            return None
+
+        # strict safe surface: numbers, names, operators/parens only
+        if not re.fullmatch(r"[A-Za-z0-9_\s\+\-\*\/\%\(\)\<\>\=\!\&\|\.]+", formula):
+            return None
+
+        vars_z3 = {k: z3.Int(k) for k in doms.keys()}
+        env = dict(vars_z3)
+        env.update({"And": z3.And, "Or": z3.Or, "Not": z3.Not})
+
+        f_py = (
+            formula.replace("&&", " and ")
+            .replace("||", " or ")
+            .replace(" and(", " And(")
+            .replace(" or(", " Or(")
+            .replace(" not(", " Not(")
+        )
+        # normalize bare boolean ops to z3 constructors for eval
+        f_py = re.sub(r"\band\b", "And", f_py)
+        f_py = re.sub(r"\bor\b", "Or", f_py)
+        f_py = re.sub(r"\bnot\b", "Not", f_py)
+        zf = eval(f_py, {"__builtins__": {}}, env)
+
+        s = z3.Solver()
+        for k, (lo, hi) in doms.items():
+            s.add(vars_z3[k] >= int(lo), vars_z3[k] <= int(hi))
+        s.add(zf)
+
+        sat = s.check()
+        if sat == z3.sat:
+            m = s.model()
+            sol = {k: m.eval(v, model_completion=True).as_long() for k, v in vars_z3.items()}
+            return {
+                "ok": True,
+                "solver": "z3-strict",
+                "proof_status": "machine-verified",
+                "satisfiable": True,
+                "solutions": [sol],
+                "solution_count": 1,
+                "proof_trace": {"mode": "z3", "variables": list(doms.keys())},
+            }
+        if sat == z3.unsat:
+            return {
+                "ok": True,
+                "solver": "z3-strict",
+                "proof_status": "machine-verified",
+                "satisfiable": False,
+                "solutions": [],
+                "solution_count": 0,
+                "proof_trace": {"mode": "z3", "variables": list(doms.keys())},
+            }
+        return {
+            "ok": False,
+            "solver": "z3-strict",
+            "proof_status": "inconclusive",
+            "error": "unknown",
+        }
+    except Exception:
+        return None
+
+
 def solve_smt_optional(expr: str) -> dict[str, Any]:
-    """KQ-native SMT-lite solver (z3-independent).
+    """KQ-native SMT-lite solver with strict-solver preference when available.
 
     Supported examples:
     - x in [-3,3]: x*x-1==0
     - vars: x in [-3,3], y in [0,3]; formula: and(x+y==2, x>=0, y>=0)
     """
     try:
+        strict = _solve_smt_with_z3(expr)
+        if strict is not None:
+            return strict
+
         doms, formula = _parse_smt_lite(expr)
         if not doms:
             r = solve_constraint_lite(expr)
