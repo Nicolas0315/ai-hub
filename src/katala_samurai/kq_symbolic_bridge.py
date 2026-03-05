@@ -284,47 +284,116 @@ def _ltl_norm_trace(trace_raw: Any) -> list[set[str]]:
     return out
 
 
-def _ltl_eval_formula(formula: str, trace: list[set[str]], i: int = 0) -> bool:
-    s = (formula or "").strip().lower()
-    if s in {"true", "⊤"}:
-        return True
-    if s in {"false", "⊥"}:
+def _tok_formula(s: str) -> list[str]:
+    return [t for t in re.findall(r"EX|AX|EF|AF|EG|AG|->|\(|\)|\!|\&|\||U|[A-Za-z_][A-Za-z0-9_]*", (s or '').upper()) if t]
+
+
+def _parse_temporal_formula(s: str):
+    toks = _tok_formula(s)
+    i = 0
+
+    def peek():
+        return toks[i] if i < len(toks) else None
+
+    def take(v=None):
+        nonlocal i
+        t = peek()
+        if v is not None and t != v:
+            raise ValueError(f"expected {v}, got {t}")
+        i += 1
+        return t
+
+    def parse_imp():
+        n = parse_or()
+        while peek() == '->':
+            take('->')
+            n = ('or', ('not', n), parse_or())
+        return n
+
+    def parse_or():
+        n = parse_and()
+        while peek() in {'|', 'OR'}:
+            take(peek())
+            n = ('or', n, parse_and())
+        return n
+
+    def parse_and():
+        n = parse_until()
+        while peek() in {'&', 'AND'}:
+            take(peek())
+            n = ('and', n, parse_until())
+        return n
+
+    def parse_until():
+        n = parse_unary()
+        while peek() == 'U':
+            take('U')
+            n = ('u', n, parse_unary())
+        return n
+
+    def parse_unary():
+        t = peek()
+        if t in {'!', 'NOT'}:
+            take(t)
+            return ('not', parse_unary())
+        if t in {'G', 'F', 'X', 'EX', 'AX', 'EF', 'AF', 'EG', 'AG'}:
+            take(t)
+            return (t.lower(), parse_unary())
+        if t == '(':
+            take('(')
+            n = parse_imp()
+            take(')')
+            return n
+        if t is None:
+            raise ValueError('unexpected end of formula')
+        take()
+        if t in {'TRUE', 'TOP'}:
+            return ('const', True)
+        if t in {'FALSE', 'BOT'}:
+            return ('const', False)
+        return ('atom', t.lower())
+
+    astn = parse_imp()
+    if i != len(toks):
+        raise ValueError('trailing tokens')
+    return astn
+
+
+def _eval_temporal_ast(node, trace: list[set[str]], i: int = 0) -> bool:
+    k = node[0]
+    if k == 'const':
+        return bool(node[1])
+    if k == 'atom':
+        return i < len(trace) and node[1] in trace[i]
+    if k == 'not':
+        return not _eval_temporal_ast(node[1], trace, i)
+    if k == 'and':
+        return _eval_temporal_ast(node[1], trace, i) and _eval_temporal_ast(node[2], trace, i)
+    if k == 'or':
+        return _eval_temporal_ast(node[1], trace, i) or _eval_temporal_ast(node[2], trace, i)
+    if k in {'x', 'ex', 'ax'}:
+        return (i + 1 < len(trace)) and _eval_temporal_ast(node[1], trace, i + 1)
+    if k in {'f', 'ef', 'af'}:
+        return any(_eval_temporal_ast(node[1], trace, j) for j in range(i, len(trace)))
+    if k in {'g', 'eg', 'ag'}:
+        return all(_eval_temporal_ast(node[1], trace, j) for j in range(i, len(trace)))
+    if k == 'u':
+        a, b = node[1], node[2]
+        for j in range(i, len(trace)):
+            if _eval_temporal_ast(b, trace, j):
+                return all(_eval_temporal_ast(a, trace, t) for t in range(i, j))
         return False
-    if s.startswith("g(") and s.endswith(")"):
-        inner = s[2:-1]
-        return all(_ltl_eval_formula(inner, trace, k) for k in range(i, len(trace)))
-    if s.startswith("f(") and s.endswith(")"):
-        inner = s[2:-1]
-        return any(_ltl_eval_formula(inner, trace, k) for k in range(i, len(trace)))
-    if s.startswith("x(") and s.endswith(")"):
-        inner = s[2:-1]
-        return (i + 1 < len(trace)) and _ltl_eval_formula(inner, trace, i + 1)
-    if s.startswith("not(") and s.endswith(")"):
-        inner = s[4:-1]
-        return not _ltl_eval_formula(inner, trace, i)
-    if s.startswith("and(") and s.endswith(")"):
-        a, b = _split_top_level(s[4:-1], ",")[:2]
-        return _ltl_eval_formula(a, trace, i) and _ltl_eval_formula(b, trace, i)
-    if s.startswith("or(") and s.endswith(")"):
-        a, b = _split_top_level(s[3:-1], ",")[:2]
-        return _ltl_eval_formula(a, trace, i) or _ltl_eval_formula(b, trace, i)
-    if s.startswith("u(") and s.endswith(")"):
-        a, b = _split_top_level(s[2:-1], ",")[:2]
-        for k in range(i, len(trace)):
-            if _ltl_eval_formula(b, trace, k):
-                return all(_ltl_eval_formula(a, trace, j) for j in range(i, k))
-        return False
-    # atom
-    return i < len(trace) and s in trace[i]
+    raise ValueError(f'unsupported node: {k}')
 
 
 def eval_ltl_lite(expr: str) -> dict[str, Any]:
-    """Finite-trace LTL-lite evaluator (KQ-native).
+    """Finite-trace LTL model checker.
 
-    Supported:
-    - legacy: always p @ ["p","p"]
-    - model-check style: G(p) @ [["p"],["p"]]
-    - operators: G,F,X,U,not,and,or
+    Syntax:
+    - <formula> @ <trace>
+    Example:
+    - G(p -> F q) @ [["p"],["q"]]
+    - X p U q @ ["p","q"]
     """
     s = (expr or "").strip()
     try:
@@ -332,24 +401,9 @@ def eval_ltl_lite(expr: str) -> dict[str, Any]:
             return {"ok": False, "error": "ltl syntax requires '@ trace'", "proof_status": "failed"}
         head, trace_txt = [x.strip() for x in s.split("@", 1)]
         trace = _ltl_norm_trace(ast.literal_eval(trace_txt))
-
-        low = head.lower()
-        if low.startswith("always "):
-            prop = low.replace("always ", "", 1).strip()
-            ok = all(prop in step for step in trace)
-            return {"ok": True, "result": ok, "operator": "G", "proof_status": "checked", "mode": "legacy"}
-        if low.startswith("eventually "):
-            prop = low.replace("eventually ", "", 1).strip()
-            ok = any(prop in step for step in trace)
-            return {"ok": True, "result": ok, "operator": "F", "proof_status": "checked", "mode": "legacy"}
-        if " until " in low:
-            p, q = [x.strip() for x in low.split(" until ", 1)]
-            idx = next((k for k, st in enumerate(trace) if q in st), None)
-            ok = False if idx is None else all(p in trace[j] for j in range(idx))
-            return {"ok": True, "result": ok, "operator": "U", "proof_status": "checked", "mode": "legacy"}
-
-        ok = _ltl_eval_formula(head, trace, 0)
-        return {"ok": True, "result": ok, "operator": "MC", "proof_status": "checked", "mode": "model-check-lite"}
+        astn = _parse_temporal_formula(head)
+        ok = _eval_temporal_ast(astn, trace, 0)
+        return {"ok": True, "result": ok, "operator": "MC", "proof_status": "checked", "mode": "model-check", "ast": str(astn)}
     except Exception as e:
         return {"ok": False, "error": str(e), "proof_status": "failed"}
 
@@ -882,37 +936,44 @@ def solve_hol_lite(expr: str) -> dict[str, Any]:
 
 
 def solve_ctl_lite(expr: str) -> dict[str, Any]:
-    """CTL-lite on a finite linear Kripke path.
+    """CTL-lite finite model checker (linear Kripke path semantics).
 
-    Syntax:
-    - op=EX; atom=p; trace=[q,p,r]
-    - op=AG; atom=p; trace=[p,p,p]
+    Supported inputs:
+    - formula=AG (p -> AF q); trace=[p,q,q]
+    - AG (p -> AF q) @ [p,q,q]
+    - legacy: op=AG; atom=p; trace=[p,p,p]
     """
     try:
-        parts = {k.strip().lower(): v.strip() for k,v in [x.split('=',1) for x in (expr or '').split(';') if '=' in x]}
-        op = parts.get('op','').lower()
-        atom = parts.get('atom', 'p').strip().lower()
-        ttxt = parts.get('trace', parts.get('p', '[]')).strip()
-        if ttxt.startswith('[') and ttxt.endswith(']'):
-            body = ttxt[1:-1].strip()
-            seq = [x.strip().strip('"\'').lower() for x in body.split(',') if x.strip()]
-        else:
-            seq = [x.strip().strip('"\'').lower() for x in ttxt.split(',') if x.strip()]
-        if not isinstance(seq,(list,tuple)) or len(seq) == 0:
-            return {'ok': False, 'proof_status': 'failed', 'solver': 'ctl-lite', 'error': 'trace must be non-empty list'}
+        s = (expr or '').strip()
 
-        sat = [x == atom for x in seq]
-        if op=='ex':
-            r = len(sat) >= 2 and sat[1]
-        elif op=='ax':
-            r = len(sat) >= 2 and sat[1]
-        elif op=='ef':
-            r = any(sat)
-        elif op=='ag':
-            r = all(sat)
+        # legacy compatibility
+        if 'op=' in s and 'trace=' in s:
+            parts = {k.strip().lower(): v.strip() for k, v in [x.split('=', 1) for x in s.split(';') if '=' in x]}
+            op = parts.get('op', '').upper()
+            atom = parts.get('atom', 'p').strip().lower()
+            trace_txt = parts.get('trace', '[]')
+            formula = f"{op} {atom}"
+        elif '@' in s:
+            formula, trace_txt = [x.strip() for x in s.split('@', 1)]
         else:
-            return {'ok': False, 'proof_status': 'failed', 'solver': 'ctl-lite', 'error': 'unsupported op'}
-        return {'ok': True, 'proof_status': 'checked', 'solver': 'ctl-lite', 'result': bool(r), 'op': op.upper(), 'atom': atom}
+            parts = {k.strip().lower(): v.strip() for k, v in [x.split('=', 1) for x in s.split(';') if '=' in x]}
+            formula = parts.get('formula', parts.get('f', '')).strip()
+            trace_txt = parts.get('trace', '[]').strip()
+            if not formula:
+                return {'ok': False, 'proof_status': 'failed', 'solver': 'ctl-lite', 'error': 'missing formula'}
+
+        trace = _ltl_norm_trace(ast.literal_eval(trace_txt))
+        astn = _parse_temporal_formula(formula)
+        r = _eval_temporal_ast(astn, trace, 0)
+        return {
+            'ok': True,
+            'proof_status': 'checked',
+            'solver': 'ctl-lite',
+            'result': bool(r),
+            'formula': formula,
+            'ast': str(astn),
+            'mode': 'model-check',
+        }
     except Exception as e:
         return {'ok': False, 'proof_status': 'failed', 'solver': 'ctl-lite', 'error': str(e)}
 
