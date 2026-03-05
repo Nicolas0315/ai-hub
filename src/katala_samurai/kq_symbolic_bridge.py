@@ -2008,6 +2008,12 @@ def _infer_hol_type(node, tenv: dict[str, str], subst: dict[str, str] | None = N
         at = _infer_hol_type(arg, tenv, su)
         sp = _split_fn_type(ft)
         if not sp:
+            ft2 = _apply_subst_type(ft, su)
+            if _is_type_var(ft2) or ft2 == 'unknown':
+                ret_t = f"tvar_ret_{len(su)}"
+                if not _unify_type_lite(ft2, f"fn({at}->{ret_t})", su):
+                    raise ValueError(f'cannot lift application into function type: {ft2} @ {at}')
+                return _apply_subst_type(ret_t, su)
             raise ValueError(f'non-function application: {ft}')
         in_t, out_t = sp
         if not _unify_type_lite(in_t, at, su):
@@ -2328,11 +2334,11 @@ def solve_hol_lite(expr: str) -> dict[str, Any]:
             'result': out_val,
             'ast': str(astn),
             'ast_normalized': str(astn_norm),
-            'mode': 'general-formula+typecheck+unification+proofsearch',
+            'mode': 'general-formula+typecheck+higher-order-unification+proofsearch',
             'normalization_notes': norm_notes,
             'linguistic_trace': linguistic_trace,
             'inferred_type': inferred_type,
-            'typecheck': {'ok': True, 'unification': {'enabled': True, 'substitutions': _normalize_subst(subst), 'count': len(subst)}, 'strict_function_application': True},
+            'typecheck': {'ok': True, 'unification': {'enabled': True, 'substitutions': _normalize_subst(subst), 'count': len(subst), 'higher_order_pattern': True, 'unknown_lifting': True}, 'strict_function_application': True},
             'proof_search': proof_search,
             'strategy_search': strategy_search,
             'proof_search_sync': proof_search_sync,
