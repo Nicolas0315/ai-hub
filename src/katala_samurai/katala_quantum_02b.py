@@ -858,6 +858,45 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
             },
         }
 
+    def _planner_verifier_independent_eval(
+        self,
+        creativity: dict[str, Any],
+        ab_candidates: dict[str, Any],
+        formal_summary: dict[str, Any],
+        claim_verify: dict[str, Any],
+    ) -> dict[str, Any]:
+        planner = {
+            "creativity_score": float((creativity or {}).get("CreativityScore", 0.0) or 0.0),
+            "structure_novelty": float((creativity or {}).get("StructureNovelty", 0.0) or 0.0),
+            "selected_candidate": str((ab_candidates or {}).get("selected", "A") or "A"),
+            "gate_passed": bool(((creativity or {}).get("gates") or {}).get("passed", False)),
+        }
+        verifier = {
+            "verifiability": float((creativity or {}).get("Verifiability", 0.0) or 0.0),
+            "machine_verified_ratio": float((formal_summary or {}).get("machine_verified_ratio", 0.0) or 0.0),
+            "checked_ratio": float((formal_summary or {}).get("checked_ratio", 0.0) or 0.0),
+            "support_ratio": float((claim_verify or {}).get("support_ratio", 0.0) or 0.0),
+            "failed_ratio": float((formal_summary or {}).get("failed_ratio", 0.0) or 0.0),
+        }
+
+        planner_score = self._clamp(planner["creativity_score"] * 0.55 + planner["structure_novelty"] * 0.45)
+        verifier_score = self._clamp(
+            verifier["verifiability"] * 0.35
+            + verifier["machine_verified_ratio"] * 0.30
+            + verifier["checked_ratio"] * 0.20
+            + verifier["support_ratio"] * 0.15
+            - verifier["failed_ratio"] * 0.15
+        )
+        disagreement = round(abs(planner_score - verifier_score), 4)
+        return {
+            "enabled": True,
+            "planner": {**planner, "score": round(planner_score, 4)},
+            "verifier": {**verifier, "score": round(verifier_score, 4)},
+            "disagreement": disagreement,
+            "consensus_score": round(self._clamp(1.0 - disagreement), 4),
+            "status": "aligned" if disagreement <= 0.2 else "review",
+        }
+
     def _inline_sentence_verify(self, text: str, tl: dict[str, Any], bias: dict[str, Any]) -> dict[str, Any]:
         raw = (text or "").strip()
         if not raw:
@@ -1924,6 +1963,12 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
             r.get("spml") or {},
             r.get("creativity_score_v1") or {},
             (tl.get("cross_paradigm_context_explorer") or {}),
+        )
+        r["planner_verifier_independent_eval"] = self._planner_verifier_independent_eval(
+            r.get("creativity_score_v1") or {},
+            r.get("creative_ab_candidates") or {},
+            ((r.get("claim_ir_v2") or {}).get("formal") or {}).get("proof_status_summary") or {},
+            r.get("claim_level_citation_verify") or {},
         )
         symbolic_eval = r.get("symbolic_expression_eval") or {}
         ltrace = {}
