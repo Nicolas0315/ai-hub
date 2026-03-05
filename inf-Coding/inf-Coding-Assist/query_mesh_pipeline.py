@@ -380,37 +380,50 @@ class ParallelPaperReader:
 
 
 class ReasoningMeshExecutor:
-    CLAIM_PAT = re.compile(r"\b(therefore|thus|show|demonstrate|prove|implies|suggests|indicates|結論|示す|証明|示唆|if|then|all|exists|forall)\b", re.I)
+    CLAIM_PAT = re.compile(r"(therefore|thus|show|demonstrate|prove|implies|suggests|indicates|結論|示す|証明|示唆|if|then|all|exists|forall|si|entonces|se|logo|si\s+ent[aã]o|si\s+alors|wenn|dann|если|то|اذا|فإن|यदि|तो|如果|那么|ถ้า|แล้ว|jika|maka|toki|la|se\s+tiam)", re.I)
 
     @staticmethod
     def _normalize_claim_text(s: str) -> dict[str, Any]:
         t = (s or "").strip()
         low = t.lower()
         notes = []
+
         rep = {
-            " ならば ": " -> ",
-            " implies ": " -> ",
-            " iff ": " <-> ",
-            " かつ ": " and ",
-            " または ": " or ",
-            " もしくは ": " or ",
+            " ならば ": " -> ", " implies ": " -> ", " iff ": " <-> ",
+            " かつ ": " and ", " または ": " or ", " もしくは ": " or ",
+            " si ": " if ", " entonces ": " then ", " y ": " and ", " o ": " or ",  # es
+            " se ": " if ", " então ": " then ", " e ": " and ", " ou ": " or ",  # pt
+            " alors ": " then ", " et ": " and ",  # fr
+            " wenn ": " if ", " dann ": " then ", " und ": " and ", " oder ": " or ",  # de
+            " если ": " if ", " то ": " then ", " и ": " and ", " или ": " or ",  # ru
+            " اذا ": " if ", " فإن ": " then ", " و ": " and ", " أو ": " or ",  # ar
+            " यदि ": " if ", " और ": " and ", " या ": " or ",  # hi
+            " 如果 ": " if ", " 那么 ": " then ", " 且 ": " and ", " 或 ": " or ",  # zh
+            " ถ้า ": " if ", " แล้ว ": " then ", " และ ": " and ", " หรือ ": " or ",  # th
+            " jika ": " if ", " maka ": " then ", " dan ": " and ", " atau ": " or ",  # id
+            " toki ": " if ", " la ": " then ", " en ": " and ", " anu ": " or ",  # toki pona
+            " se ": " if ", " tiam ": " then ", " kaj ": " and ", " aŭ ": " or ",  # eo
         }
         for a, b in rep.items():
             if a in low:
                 low = low.replace(a, b)
                 notes.append(f"replace:{a.strip()}->{b.strip()}")
 
-        m_forall = re.search(r"all\s+([a-zA-Z_]\w*)\s+in\s*(\[[^\]]+\]|\([^\)]+\))\s*,?\s*(.+)", low)
-        if m_forall and "forall" not in low:
-            v, dom, body = m_forall.group(1), m_forall.group(2), m_forall.group(3)
-            low = f"forall {v} in {dom}. {body}"
-            notes.append("template:all->forall")
+        # multilingual quantifier keywords to canonical tokens
+        low = re.sub(r"\b(todos?|todas|todo|toute?s?|alle|all|alles|semua|모든)\b", "forall", low)
+        low = re.sub(r"\b(existe|existen|existem|il\s+existe|gibt\s+es|ada|ある|存在|существует|يوجد|है|有)\b", "exists", low)
 
-        m_exists = re.search(r"there\s+exists\s+([a-zA-Z_]\w*)\s+in\s*(\[[^\]]+\]|\([^\)]+\))\s*,?\s*(.+)", low)
-        if m_exists and "exists" not in low:
-            v, dom, body = m_exists.group(1), m_exists.group(2), m_exists.group(3)
+        m_forall = re.search(r"forall\s+([a-zA-Z_]\w*)\s+(in|en|em|dans|в|في|में|在|ใน|di)\s*(\[[^\]]+\]|\([^\)]+\))\s*,?\s*(.+)", low)
+        if m_forall:
+            v, _, dom, body = m_forall.group(1), m_forall.group(2), m_forall.group(3), m_forall.group(4)
+            low = f"forall {v} in {dom}. {body}"
+            notes.append("template:forall-multi")
+
+        m_exists = re.search(r"exists\s+([a-zA-Z_]\w*)\s+(in|en|em|dans|в|في|में|在|ใน|di)\s*(\[[^\]]+\]|\([^\)]+\))\s*,?\s*(.+)", low)
+        if m_exists:
+            v, _, dom, body = m_exists.group(1), m_exists.group(2), m_exists.group(3), m_exists.group(4)
             low = f"exists {v} in {dom}. {body}"
-            notes.append("template:exists")
+            notes.append("template:exists-multi")
 
         if " if " in low and " then " in low and "->" not in low:
             try:
@@ -463,7 +476,7 @@ class ReasoningMeshExecutor:
 
 
 class FormalClaimRouter:
-    LOGIC_PAT = re.compile(r"(forall|exists|\bSAT\b|\bSMT\b|\bCTL\b|\bLTL\b|\bmu\b|\bnu\b|->|<->|\band\b|\bor\b|=|<=|>=|ならば|すべて|存在)", re.I)
+    LOGIC_PAT = re.compile(r"(forall|exists|\bSAT\b|\bSMT\b|\bCTL\b|\bLTL\b|\bmu\b|\bnu\b|->|<->|\band\b|\bor\b|=|<=|>=|ならば|すべて|存在|si|entonces|y|o|se|ent[aã]o|e|ou|si\s+alors|et|ou|wenn|dann|und|oder|если|то|и|или|اذا|فإن|و|أو|यदि|तो|और|या|如果|那么|且|或|ถ้า|แล้ว|และ|หรือ|jika|maka|dan|atau|toki|la|en|aŭ|se\s+tiam|kaj|aux)", re.I)
 
     @staticmethod
     def _normalize_claim(claim: str) -> dict[str, Any]:
@@ -471,35 +484,42 @@ class FormalClaimRouter:
         low = c.lower()
         notes: list[str] = []
 
-        # JP/EN logic connective normalization
         rep = {
-            " ならば ": " -> ",
-            " implies ": " -> ",
-            " iff ": " <-> ",
-            " かつ ": " and ",
-            " または ": " or ",
-            " もしくは ": " or ",
-            " ではない": " not ",
+            " ならば ": " -> ", " implies ": " -> ", " iff ": " <-> ",
+            " かつ ": " and ", " または ": " or ", " もしくは ": " or ", " ではない": " not ",
+            " si ": " if ", " entonces ": " then ", " y ": " and ", " o ": " or ",
+            " se ": " if ", " então ": " then ", " e ": " and ", " ou ": " or ",
+            " alors ": " then ", " et ": " and ",
+            " wenn ": " if ", " dann ": " then ", " und ": " and ", " oder ": " or ",
+            " если ": " if ", " то ": " then ", " и ": " and ", " или ": " or ",
+            " اذا ": " if ", " فإن ": " then ", " و ": " and ", " أو ": " or ",
+            " यदि ": " if ", " और ": " and ", " या ": " or ",
+            " 如果 ": " if ", " 那么 ": " then ", " 且 ": " and ", " 或 ": " or ",
+            " ถ้า ": " if ", " แล้ว ": " then ", " และ ": " and ", " หรือ ": " or ",
+            " jika ": " if ", " maka ": " then ", " dan ": " and ", " atau ": " or ",
+            " toki ": " if ", " la ": " then ", " en ": " and ", " anu ": " or ",
+            " tiam ": " then ", " kaj ": " and ", " aŭ ": " or ",
         }
         for a, b in rep.items():
             if a in low:
                 low = low.replace(a, b)
                 notes.append(f"replace:{a.strip()}->{b.strip()}")
 
-        # quantifier phrase templates
-        m_forall = re.search(r"all\s+([a-zA-Z_]\w*)\s+in\s*(\[[^\]]+\]|\([^\)]+\))\s*,?\s*(.+)", low)
-        if m_forall and "forall" not in low:
-            v, dom, body = m_forall.group(1), m_forall.group(2), m_forall.group(3)
+        low = re.sub(r"\b(todos?|todas|todo|toute?s?|alle|all|alles|semua|모든)\b", "forall", low)
+        low = re.sub(r"\b(existe|existen|existem|il\s+existe|gibt\s+es|ada|ある|存在|существует|يوجد|है|有)\b", "exists", low)
+
+        m_forall = re.search(r"forall\s+([a-zA-Z_]\w*)\s+(in|en|em|dans|в|في|में|在|ใน|di)\s*(\[[^\]]+\]|\([^\)]+\))\s*,?\s*(.+)", low)
+        if m_forall:
+            v, _, dom, body = m_forall.group(1), m_forall.group(2), m_forall.group(3), m_forall.group(4)
             low = f"forall {v} in {dom}. {body}"
-            notes.append("template:all->forall")
+            notes.append("template:forall-multi")
 
-        m_exists = re.search(r"there\s+exists\s+([a-zA-Z_]\w*)\s+in\s*(\[[^\]]+\]|\([^\)]+\))\s*,?\s*(.+)", low)
-        if m_exists and "exists" not in low:
-            v, dom, body = m_exists.group(1), m_exists.group(2), m_exists.group(3)
+        m_exists = re.search(r"exists\s+([a-zA-Z_]\w*)\s+(in|en|em|dans|в|في|में|在|ใน|di)\s*(\[[^\]]+\]|\([^\)]+\))\s*,?\s*(.+)", low)
+        if m_exists:
+            v, _, dom, body = m_exists.group(1), m_exists.group(2), m_exists.group(3), m_exists.group(4)
             low = f"exists {v} in {dom}. {body}"
-            notes.append("template:exists")
+            notes.append("template:exists-multi")
 
-        # SAT-like natural sentence to formula skeleton
         if " if " in low and " then " in low and "->" not in low:
             try:
                 a = low.split(" if ", 1)[1].split(" then ", 1)[0].strip()
