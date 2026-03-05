@@ -763,6 +763,7 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
         ab_candidates: dict[str, Any],
         consistency: dict[str, Any],
         formal_summary: dict[str, Any],
+        domain_hint: str = "general",
     ) -> dict[str, Any]:
         """Apply fixed 5-loop delta reflection to creativity/selection state."""
         loops = (loop_control or {}).get("loops") or []
@@ -777,9 +778,20 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
         contradiction_penalty = self._clamp(failed_ratio * 0.6 + undecidable_ratio * 0.4)
 
         # weight optimization for complementary loop
-        w_main = self._clamp(0.85 + cons * 0.25 - contradiction_penalty * 0.18)
-        w_validation = self._clamp(0.80 + mvr * 0.40 + contradiction_penalty * 0.30)
-        w_integration = self._clamp(0.78 + cons * 0.22 + mvr * 0.18)
+        d = (domain_hint or "general").lower()
+        domain_boosts = {
+            "math": {"main": 0.03, "validation": 0.06, "integration": -0.01},
+            "logic": {"main": 0.02, "validation": 0.07, "integration": -0.01},
+            "proof": {"main": 0.01, "validation": 0.08, "integration": -0.01},
+            "physics": {"main": 0.04, "validation": 0.03, "integration": 0.01},
+            "psychology": {"main": 0.03, "validation": 0.02, "integration": 0.03},
+            "general": {"main": 0.0, "validation": 0.0, "integration": 0.0},
+        }
+        db = domain_boosts.get(d, domain_boosts["general"])
+
+        w_main = self._clamp(0.85 + cons * 0.25 - contradiction_penalty * 0.18 + float(db.get("main", 0.0)))
+        w_validation = self._clamp(0.80 + mvr * 0.40 + contradiction_penalty * 0.30 + float(db.get("validation", 0.0)))
+        w_integration = self._clamp(0.78 + cons * 0.22 + mvr * 0.18 + float(db.get("integration", 0.0)))
 
         cur_c, cur_v, cur_n = c0, v0, n0
         steps: list[dict[str, Any]] = []
@@ -824,6 +836,7 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
             "enabled": True,
             "mode": "incremental-delta-reflection",
             "weight_optimization": {
+                "domain_hint": d,
                 "main": round(w_main, 4),
                 "validation": round(w_validation, 4),
                 "integration": round(w_integration, 4),
@@ -1933,6 +1946,7 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
             r.get("creative_ab_candidates") or {},
             mlc,
             formal_summary,
+            str((dpack or {}).get("domain", "general") or "general"),
         )
         r["complementary_5loop_delta"] = loop_delta
         try:
