@@ -899,6 +899,20 @@ class EvidenceScorer:
     TRUSTED = {"openalex", "crossref", "pubmed"}
 
     @staticmethod
+    def _paradigm_map(p: dict[str, Any]) -> dict[str, float]:
+        txt = f"{p.get('title') or ''} {p.get('text') or ''}".lower()
+        def hit(words: list[str]) -> float:
+            n = sum(1 for w in words if w in txt)
+            return min(1.0, n / max(1.0, len(words) * 0.35))
+        return {
+            "formal_math_logic": round(hit(["theorem", "proof", "lemma", "logic", "formal", "axiom", "証明", "定理"]), 4),
+            "empirical_experimental": round(hit(["experiment", "dataset", "participant", "measurement", "trial", "実験"]), 4),
+            "computational_simulation": round(hit(["simulation", "algorithm", "model", "compute", "benchmark", "計算"]), 4),
+            "clinical_social": round(hit(["clinical", "patient", "intervention", "survey", "社会", "臨床"]), 4),
+            "philosophical_conceptual": round(hit(["epistem", "ontology", "ethics", "concept", "argument", "哲学", "概念"]), 4),
+        }
+
+    @staticmethod
     def _citation_trust_score(p: dict[str, Any]) -> float:
         # citation count aliases across providers
         c = p.get("cited_by_count")
@@ -931,17 +945,28 @@ class EvidenceScorer:
         paper_map = {str(p.get("canonical_id") or p.get("url") or p.get("title") or i): p for i, p in enumerate(papers)}
         # per-paper quality
         scores = []
+        paradigm_acc = {
+            "formal_math_logic": 0.0,
+            "empirical_experimental": 0.0,
+            "computational_simulation": 0.0,
+            "clinical_social": 0.0,
+            "philosophical_conceptual": 0.0,
+        }
         for k, p in paper_map.items():
             src = set(p.get("sources") or [])
             peer = 1.0 if (src & self.TRUSTED) else 0.5
             doi = 1.0 if p.get("doi_normalized") else 0.4
             read = 1.0 if p.get("read_status") == "ok" else 0.3
             citation_trust = self._citation_trust_score(p)
+            pmap = self._paradigm_map(p)
+            for kk in paradigm_acc.keys():
+                paradigm_acc[kk] += float(pmap.get(kk, 0.0) or 0.0)
             s = min(1.0, peer * 0.3 + doi * 0.25 + read * 0.2 + citation_trust * 0.25)
             scores.append({
                 "canonical_id": k,
                 "paper_score": round(s, 4),
                 "citation_trust_score": citation_trust,
+                "paradigm_map": pmap,
             })
 
         # formal claim evidence
@@ -950,12 +975,23 @@ class EvidenceScorer:
         formal_ratio = (formal_ok / formal_total) if formal_total else 0.0
 
         global_score = min(1.0, (sum(x["paper_score"] for x in scores) / max(1, len(scores))) * 0.7 + formal_ratio * 0.3)
+        n = max(1, len(scores))
+        provisional = {k: round(v / n, 4) for k, v in paradigm_acc.items()}
         return {
             "papers": scores[:200],
             "formal_total": formal_total,
             "formal_ok": formal_ok,
             "formal_ok_ratio": round(formal_ratio, 4),
             "global_evidence_score": round(global_score, 4),
+            "paradigm_weights_provisional": {
+                **provisional,
+                "version": "pmap-v0",
+                "confidence": round(min(1.0, 0.35 + len(scores) / 500.0), 4),
+            },
+            "math_logic_reference_policy": {
+                "base_mode": "optional-db-reference",
+                "frontier_mode": "mandatory-db-reference",
+            },
         }
 
 
