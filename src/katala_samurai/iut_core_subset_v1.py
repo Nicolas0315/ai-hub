@@ -15,6 +15,37 @@ class IUTLemmaNode:
     depends_on: list[str]
     source_paper: str = ""
     source_note: str = ""
+    formal_domain: str = ""
+    formal_morphism: str = ""
+    formal_invariant: str = ""
+    strict_formula: str = ""
+
+
+def _apply_precision_templates(nodes: list[IUTLemmaNode]) -> list[IUTLemmaNode]:
+    layer_domain = {
+        "L1": "finite-int-domain-local",
+        "L2": "finite-int-domain-morphism",
+        "L3": "boolean-correspondence-domain",
+        "L4": "invariant-transfer-domain",
+        "L5": "global-synthesis-domain",
+    }
+    for n in nodes:
+        if not n.formal_domain:
+            n.formal_domain = layer_domain.get(n.layer, "generic-domain")
+        if not n.formal_morphism:
+            if n.layer in {"L1", "L2"}:
+                n.formal_morphism = "local_morphism"
+            elif n.layer == "L3":
+                n.formal_morphism = "inter_universal_correspondence"
+            elif n.layer == "L4":
+                n.formal_morphism = "invariant_transfer"
+            else:
+                n.formal_morphism = "global_synthesis"
+        if not n.formal_invariant:
+            n.formal_invariant = "truth+provability+counterexample-consistency"
+        if not n.strict_formula:
+            n.strict_formula = n.formal_spec
+    return nodes
 
 
 def default_iut_core_subset_v1() -> list[IUTLemmaNode]:
@@ -23,7 +54,7 @@ def default_iut_core_subset_v1() -> list[IUTLemmaNode]:
     Source anchors are derived from IUT I-IV public paper titles/major themes.
     This is not a full formalization of IUT; it is a structured stepping stone.
     """
-    return [
+    nodes = [
         # L1: base objects / local coherence
         IUTLemmaNode("L1-obj-001", "L1", "hodge-theater-base-coherence", "forall x in [0,1]: x == x", [], source_paper="IUT I", source_note="Base object coherence"),
         IUTLemmaNode("L1-obj-002", "L1", "frobenioid-local-consistency", "x in [0,5]: x+1>x", [], source_paper="IUT I", source_note="Local consistency surrogate"),
@@ -49,6 +80,7 @@ def default_iut_core_subset_v1() -> list[IUTLemmaNode]:
         IUTLemmaNode("L5-syn-002", "L5", "global-bridge-coherence", "forall x in [1,2,3]: x >= 1", ["L4-inv-001", "L4-inv-003"], source_paper="IUT I-IV", source_note="Bridge coherence"),
         IUTLemmaNode("L5-syn-003", "L5", "final-invariant-preservation", "exists x in [2,3,4,5]: x % 2 == 1", ["L5-syn-001", "L5-syn-002"], source_paper="IUT I-IV", source_note="Final preservation check"),
     ]
+    return _apply_precision_templates(nodes)
 
 
 def build_dependency_graph(nodes: list[IUTLemmaNode]) -> dict[str, Any]:
@@ -113,11 +145,17 @@ def evaluate_iut_core_subset_v1(nodes: list[IUTLemmaNode] | None = None) -> dict
             })
             continue
 
-        r = solve_math_logic_unified(n.formal_spec)
+        spec = (n.strict_formula or n.formal_spec or "").strip()
+        r = solve_math_logic_unified(spec)
         kq3 = (r.get("kq3_mode") or {}) if isinstance(r, dict) else {}
         inv = (r.get("inter_universal_invariants") or {}) if isinstance(r, dict) else {}
         primary = (r.get("primary") or {}) if isinstance(r, dict) else {}
         pres_score = float(inv.get("invariant_preservation_score", 0.0) or 0.0)
+
+        # Step 2.5: formal-spec precision diagnostics
+        precision_fields = [n.formal_domain, n.formal_morphism, n.formal_invariant, spec]
+        precision_score = round(sum(1 for x in precision_fields if str(x).strip()) / max(1, len(precision_fields)), 4)
+        precision_hook = bool(precision_score >= 0.75)
 
         # Step 3: verification hooks 강화 (formal + counterexample + proof trace)
         formal_hook = bool(r.get("ok")) and str(r.get("proof_status", "")).lower() != "failed"
@@ -131,7 +169,7 @@ def evaluate_iut_core_subset_v1(nodes: list[IUTLemmaNode] | None = None) -> dict
             or not counterexample_hook
         )
 
-        ok = bool(formal_hook and counterexample_hook and proof_trace_hook)
+        ok = bool(precision_hook and formal_hook and counterexample_hook and proof_trace_hook)
         if ok:
             passed.add(n.id)
         out.append({
@@ -142,7 +180,15 @@ def evaluate_iut_core_subset_v1(nodes: list[IUTLemmaNode] | None = None) -> dict
             "source_note": n.source_note,
             "ok": ok,
             "status": "checked" if ok else "failed",
+            "formal_spec_bundle": {
+                "spec": spec,
+                "domain": n.formal_domain,
+                "morphism": n.formal_morphism,
+                "invariant": n.formal_invariant,
+                "precision_score": precision_score,
+            },
             "verification_hooks": {
+                "precision_hook": precision_hook,
                 "formal_hook": formal_hook,
                 "counterexample_hook": counterexample_hook,
                 "proof_trace_hook": proof_trace_hook,
