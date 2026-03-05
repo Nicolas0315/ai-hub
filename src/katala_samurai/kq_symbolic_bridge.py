@@ -9,12 +9,6 @@ import tempfile
 from itertools import product, combinations
 from typing import Any
 
-try:
-    import z3  # type: ignore
-    _HAS_Z3 = True
-except Exception:
-    z3 = None  # type: ignore
-    _HAS_Z3 = False
 
 try:
     from katala_quantum.emulator_lite import QuantumCircuit  # type: ignore
@@ -423,85 +417,14 @@ def _interval_propagate(formula: str, doms: dict[str, tuple[int, int]]) -> tuple
     return cur, notes
 
 
-def _solve_smt_with_z3(expr: str) -> dict[str, Any] | None:
-    if not _HAS_Z3:
-        return None
-    try:
-        doms, formula = _parse_smt_lite(expr)
-        if not doms:
-            return None
-
-        # strict safe surface: numbers, names, operators/parens only
-        if not re.fullmatch(r"[A-Za-z0-9_\s\+\-\*\/\%\(\)\<\>\=\!\&\|\.]+", formula):
-            return None
-
-        vars_z3 = {k: z3.Int(k) for k in doms.keys()}
-        env = dict(vars_z3)
-        env.update({"And": z3.And, "Or": z3.Or, "Not": z3.Not})
-
-        f_py = (
-            formula.replace("&&", " and ")
-            .replace("||", " or ")
-            .replace(" and(", " And(")
-            .replace(" or(", " Or(")
-            .replace(" not(", " Not(")
-        )
-        # normalize bare boolean ops to z3 constructors for eval
-        f_py = re.sub(r"\band\b", "And", f_py)
-        f_py = re.sub(r"\bor\b", "Or", f_py)
-        f_py = re.sub(r"\bnot\b", "Not", f_py)
-        zf = eval(f_py, {"__builtins__": {}}, env)
-
-        s = z3.Solver()
-        for k, (lo, hi) in doms.items():
-            s.add(vars_z3[k] >= int(lo), vars_z3[k] <= int(hi))
-        s.add(zf)
-
-        sat = s.check()
-        if sat == z3.sat:
-            m = s.model()
-            sol = {k: m.eval(v, model_completion=True).as_long() for k, v in vars_z3.items()}
-            return {
-                "ok": True,
-                "solver": "z3-strict",
-                "proof_status": "machine-verified",
-                "satisfiable": True,
-                "solutions": [sol],
-                "solution_count": 1,
-                "proof_trace": {"mode": "z3", "variables": list(doms.keys())},
-            }
-        if sat == z3.unsat:
-            return {
-                "ok": True,
-                "solver": "z3-strict",
-                "proof_status": "machine-verified",
-                "satisfiable": False,
-                "solutions": [],
-                "solution_count": 0,
-                "proof_trace": {"mode": "z3", "variables": list(doms.keys())},
-            }
-        return {
-            "ok": False,
-            "solver": "z3-strict",
-            "proof_status": "inconclusive",
-            "error": "unknown",
-        }
-    except Exception:
-        return None
-
-
 def solve_smt_optional(expr: str) -> dict[str, Any]:
-    """KQ-native SMT-lite solver with strict-solver preference when available.
+    """KQ-native standalone SMT solver (external solver independent).
 
     Supported examples:
     - x in [-3,3]: x*x-1==0
     - vars: x in [-3,3], y in [0,3]; formula: and(x+y==2, x>=0, y>=0)
     """
     try:
-        strict = _solve_smt_with_z3(expr)
-        if strict is not None:
-            return strict
-
         doms, formula = _parse_smt_lite(expr)
         if not doms:
             r = solve_constraint_lite(expr)
@@ -512,23 +435,32 @@ def solve_smt_optional(expr: str) -> dict[str, Any]:
         doms2, prune_notes = _interval_propagate(formula, doms)
         names = list(doms2.keys())
         ranges = [range(lo, hi + 1) for (lo, hi) in doms2.values()]
+        total_space = 1
+        for r in ranges:
+            total_space *= len(r)
+
+        # Standalone-complete mode on bounded problems; partial mode only for very large spaces.
+        exhaustive_limit = int(os.getenv("KQ_SMT_EXHAUSTIVE_LIMIT", "200000"))
+        max_solutions = int(os.getenv("KQ_SMT_MAX_SOLUTIONS", "512"))
+
         sols: list[dict[str, int]] = []
         checks = 0
         cand_envs = [{k: int(v) for k, v in zip(names, values)} for values in product(*ranges)]
         cand_envs = _rank_envs_quantum_emu(names, cand_envs)
+
         for env in cand_envs:
+            if total_space > exhaustive_limit and checks >= exhaustive_limit:
+                break
             checks += 1
             ev = _eval_symbolic_env(formula, env)
             if ev.get("ok") and bool(ev.get("result")):
                 sols.append(env)
-                if len(sols) >= 128:
+                if len(sols) >= max_solutions:
                     break
 
-        total_space = 1
-        for r in ranges:
-            total_space *= len(r)
+        exhaustive = (total_space <= exhaustive_limit and checks >= total_space)
         coverage = min(1.0, checks / max(1, total_space))
-        status = "checked" if coverage >= 0.999 else "inconclusive"
+        status = "checked" if exhaustive else "inconclusive"
         return {
             "ok": True,
             "solver": "smt-kq-native-qemu" if _HAS_QEMU else "smt-kq-native",
@@ -536,11 +468,13 @@ def solve_smt_optional(expr: str) -> dict[str, Any]:
             "solutions": sols,
             "solution_count": len(sols),
             "proof_trace": {
-                "mode": "quantum-emu-priority+enumeration+interval-propagation+env-safe-eval" if _HAS_QEMU else "enumeration+interval-propagation+env-safe-eval",
+                "mode": "quantum-emu-priority+standalone-enumeration+interval-propagation+env-safe-eval" if _HAS_QEMU else "standalone-enumeration+interval-propagation+env-safe-eval",
                 "variables": names,
                 "search_space": int(total_space),
                 "checked_points": int(checks),
                 "coverage": round(float(coverage), 4),
+                "exhaustive": bool(exhaustive),
+                "exhaustive_limit": int(exhaustive_limit),
                 "interval_pruning": prune_notes,
             },
         }

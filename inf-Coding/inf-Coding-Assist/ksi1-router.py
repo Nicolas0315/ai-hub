@@ -321,6 +321,9 @@ def main() -> int:
         # cache-only audit/history: always remove at task completion
         cleanup_ephemeral_audit(audit_path)
         cleanup_goal_history(goal_history_path)
+        # strict zero-residual policy: purge any stale audit/history artifacts immediately
+        purge_stale_ephemeral_audit(max_age_sec=0.0)
+        purge_stale_goal_history(max_age_sec=0.0)
         _post_response_cleanup()
 
 
