@@ -1019,8 +1019,10 @@ def solve_smt_optional(expr: str) -> dict[str, Any]:
             return r
 
         doms2, prune_notes = _interval_propagate(formula, doms)
-        names = list(doms2.keys())
-        ranges = [range(lo, hi + 1) for (lo, hi) in doms2.values()]
+        # math stability: search narrow domains first (branch pruning effect)
+        ordered = sorted(doms2.items(), key=lambda kv: (kv[1][1] - kv[1][0], kv[0]))
+        names = [k for k, _ in ordered]
+        ranges = [range(lo, hi + 1) for _, (lo, hi) in ordered]
         if any(len(r) <= 0 for r in ranges):
             return {
                 "ok": True,
@@ -1057,12 +1059,15 @@ def solve_smt_optional(expr: str) -> dict[str, Any]:
             cand_envs = _rank_envs_nn_qemu(names, cand_envs)
         else:
             # memory-efficient stream mode for huge spaces
-            cand_envs = ({k: int(v) for k, v in zip(names, values)} for values in product(*ranges))
+            step = 1
             if smt_strategy == 'sampled-stream':
-                import random
-                # Very simple sampling for huge spaces
-                # islice can't easily sample, but we can skip
-                pass
+                step = max(2, int(total_space // max(1, exhaustive_limit)))
+            def _stream():
+                for idx, values in enumerate(product(*ranges)):
+                    if step > 1 and (idx % step) != 0:
+                        continue
+                    yield {k: int(v) for k, v in zip(names, values)}
+            cand_envs = _stream()
 
         for env in cand_envs:
             if total_space > exhaustive_limit and checks >= exhaustive_limit:
@@ -2254,6 +2259,10 @@ def solve_hol_lite(expr: str) -> dict[str, Any]:
         hol_max_models = int(os.getenv('KQ_HOL_MAX_MODELS', '512'))
         hol_adaptive_cap = min(2048, max(64, hol_max_models // max(1, len(_hol_collect_free_vars(astn_norm))) ))
         proof_search = _hol_proof_search_lite(astn_norm, max_models=hol_adaptive_cap, strategy=hol_strategy) if inferred_type == 'bool' else {'checked_models': 0, 'counterexample': None, 'theorem_like': None, 'strategy': hol_strategy.get('name', 'general')}
+        proof_search_sync = None
+        if inferred_type == 'bool':
+            sync_cap = max(32, hol_adaptive_cap // 2)
+            proof_search_sync = _hol_proof_search_lite(astn_norm, max_models=sync_cap, strategy={'name': 'sync-general', 'seed_domain': [False, True, 0, 1, -1]})
         proof_trace_machine = {
             'ast': str(astn_norm),
             'inferred_type': inferred_type,
@@ -2279,9 +2288,13 @@ def solve_hol_lite(expr: str) -> dict[str, Any]:
             'inferred_type': inferred_type,
             'typecheck': {'ok': True, 'unification': {'enabled': True, 'substitutions': _normalize_subst(subst), 'count': len(subst)}, 'strict_function_application': True},
             'proof_search': proof_search,
+            'proof_search_sync': proof_search_sync,
+            'proof_sync_consistency': (
+                None if proof_search_sync is None else bool((proof_search_sync or {}).get('theorem_like') == (proof_search or {}).get('theorem_like'))
+            ),
             'proof_trace_machine': proof_trace_machine,
             'proof_trace_human': proof_trace_human,
-            'proof_certificate': _proof_fingerprint({'solver': 'hol-lite', 'ast': str(astn_norm), 'result': out_val, 'type': inferred_type, 'proof_search': proof_search, 'strategy': hol_strategy.get('name', 'general')}),
+            'proof_certificate': _proof_fingerprint({'solver': 'hol-lite', 'ast': str(astn_norm), 'result': out_val, 'type': inferred_type, 'proof_search': proof_search, 'proof_search_sync': proof_search_sync, 'strategy': hol_strategy.get('name', 'general')}),
         }
     except Exception as e:
         return {'ok': False, 'proof_status': 'failed', 'solver': 'hol-lite', 'error': str(e), 'normalization_notes': norm_notes, 'linguistic_trace': linguistic_trace}
@@ -2349,6 +2362,16 @@ def solve_ctl_lite(expr: str) -> dict[str, Any]:
             memo_entries = len(memo)
             mode = 'model-check+memo'
 
+        witness = None
+        if not bool(r):
+            for i in range(len(trace)):
+                try:
+                    if not bool(_eval_temporal_ast(astn, trace, i, {})):
+                        witness = {'index': i, 'state': trace[i] if i < len(trace) else None}
+                        break
+                except Exception:
+                    continue
+
         out = {
             'ok': True,
             'proof_status': 'checked',
@@ -2359,7 +2382,11 @@ def solve_ctl_lite(expr: str) -> dict[str, Any]:
             'mode': mode,
             'supported_ops': ["!", "&", "|", "->", "<->", "X", "Y", "F", "G", "O", "H", "U", "R", "W", "S", "T", "EX", "AX", "EF", "AF", "EG", "AG"],
             'memo_entries': memo_entries,
-            'proof_certificate': _proof_fingerprint({'solver': 'ctl-mc', 'ast': str(astn), 'result': bool(r), 'trace_len': len(trace), 'memo': memo_entries}),
+            'counterexample_trace': witness,
+            'counterexample_human': (
+                None if witness is None else f"Formula failed at trace index {witness.get('index')} (state={witness.get('state')})."
+            ),
+            'proof_certificate': _proof_fingerprint({'solver': 'ctl-mc', 'ast': str(astn), 'result': bool(r), 'trace_len': len(trace), 'memo': memo_entries, 'witness': witness}),
         }
         if seg is not None:
             out['windowed'] = {
