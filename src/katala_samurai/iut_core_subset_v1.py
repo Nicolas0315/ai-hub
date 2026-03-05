@@ -12,7 +12,10 @@ from .kq_symbolic_bridge import (
     verify_coq_proof,
     verify_isabelle_proof,
 )
-from .rust_hotpath_bridge import dense_dependency_edges as _rust_dense_dependency_edges
+from .rust_hotpath_bridge import (
+    dense_dependency_edges as _rust_dense_dependency_edges,
+    strict_specificity_score as _rust_strict_specificity_score,
+)
 from .iut_formal_dictionary import IUT_FORMAL_DICTIONARY, normalize_iut_terms
 from .iut_lemma_catalog import build_iut_lemma_catalog_v1
 
@@ -343,7 +346,7 @@ def evaluate_iut_core_subset_v1(nodes: list[IUTLemmaNode] | None = None) -> dict
             precision_fields = [n.formal_domain, n.formal_morphism, n.formal_invariant, spec]
             precision_score = round(sum(1 for x in precision_fields if str(x).strip()) / max(1, len(precision_fields)), 4)
             precision_hook = bool(precision_score >= 0.75)
-            strict_specificity = round(1.0 if ("and(" in spec or "forall" in spec or "exists" in spec or "vars:" in spec) else 0.6, 4)
+            strict_specificity = round(float(_rust_strict_specificity_score(spec)), 4)
             strict_spec_hook = bool(len(spec.strip()) > 0 and strict_specificity >= 0.6)
             pres_score = float(inv.get("invariant_preservation_score", 0.0) or 0.0)
             strict_trigger = bool(kq3.get("strict_activated") or pres_score < 0.72 or not counterexample_hook or not external_cross_hook)
@@ -480,7 +483,7 @@ def evaluate_iut_core_subset_v1(nodes: list[IUTLemmaNode] | None = None) -> dict
         precision_fields = [n.formal_domain, n.formal_morphism, n.formal_invariant, spec]
         precision_score = round(sum(1 for x in precision_fields if str(x).strip()) / max(1, len(precision_fields)), 4)
         precision_hook = bool(precision_score >= 0.75)
-        strict_specificity = round(1.0 if ("and(" in spec or "forall" in spec or "exists" in spec or "vars:" in spec) else 0.6, 4)
+        strict_specificity = round(float(_rust_strict_specificity_score(spec)), 4)
         strict_spec_hook = bool(len(spec.strip()) > 0)
         formal_hook = bool(r.get("ok")) and str(r.get("proof_status", "")).lower() != "failed"
         proof_trace_hook = bool((primary.get("result") or {}).get("proof_certificate") or (primary.get("result") or {}).get("proof_trace_machine"))

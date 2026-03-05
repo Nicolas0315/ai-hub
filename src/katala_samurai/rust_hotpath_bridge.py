@@ -60,6 +60,24 @@ def invariant_preservation_score(
     return _py_invariant_preservation_score(truth_conflict, provability_ratio, counterexample_consistent, l2f, f2p, p2h)
 
 
+def _py_strict_specificity_score(spec: str) -> float:
+    s = (spec or "").lower()
+    return 1.0 if ("and(" in s or "forall" in s or "exists" in s or "vars:" in s) else 0.6
+
+
+def strict_specificity_score(spec: str) -> float:
+    m = _mod()
+    if m is not None:
+        try:
+            return float(m.strict_specificity_score(str(spec or "")))
+        except Exception:
+            if _rust_only():
+                raise RuntimeError("KQ_RUST_ONLY is enabled and rust strict_specificity_score failed")
+    if _rust_only():
+        raise RuntimeError("KQ_RUST_ONLY is enabled but katala_rust_hotpath is unavailable")
+    return _py_strict_specificity_score(spec)
+
+
 def _py_dense_dependency_edges(
     node_ids: list[str],
     node_layers: list[str],

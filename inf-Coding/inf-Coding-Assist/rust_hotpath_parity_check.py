@@ -37,6 +37,7 @@ def main() -> int:
     rng = random.Random(20260306)
     total = 1000
     mismatch = 0
+    specificity_mismatch = 0
 
     for _ in range(total):
         node_ids, node_layers, morphisms, invariants, edges = _rand_case(rng)
@@ -45,8 +46,21 @@ def main() -> int:
         if sorted(py) != sorted(rs):
             mismatch += 1
 
-    print(json.dumps({"ok": mismatch == 0, "total": total, "mismatch": mismatch}, ensure_ascii=False))
-    return 0 if mismatch == 0 else 1
+        spec = rng.choice([
+            "vars: x in [0,3]; formula: and(x>=0, x<=3)",
+            "forall x in [1,2,3]: x > 0",
+            "x+1>x",
+            "exists x in [1,2,3]: x%2==1",
+            "(p or q)",
+        ])
+        py_s = rhb._py_strict_specificity_score(spec)  # type: ignore[attr-defined]
+        rs_s = float(m.strict_specificity_score(spec))
+        if abs(py_s - rs_s) > 1e-9:
+            specificity_mismatch += 1
+
+    ok = mismatch == 0 and specificity_mismatch == 0
+    print(json.dumps({"ok": ok, "total": total, "mismatch": mismatch, "specificity_mismatch": specificity_mismatch}, ensure_ascii=False))
+    return 0 if ok else 1
 
 
 if __name__ == "__main__":

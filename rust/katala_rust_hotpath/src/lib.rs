@@ -22,6 +22,13 @@ fn invariant_preservation_score(
 }
 
 #[pyfunction]
+fn strict_specificity_score(spec: String) -> f64 {
+    let s = spec.to_lowercase();
+    let has_struct = s.contains("and(") || s.contains("forall") || s.contains("exists") || s.contains("vars:");
+    if has_struct { 1.0 } else { 0.6 }
+}
+
+#[pyfunction]
 fn dense_dependency_edges(
     node_ids: Vec<String>,
     node_layers: Vec<String>,
@@ -63,6 +70,7 @@ fn dense_dependency_edges(
 #[pymodule]
 fn katala_rust_hotpath(_py: Python<'_>, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(invariant_preservation_score, m)?)?;
+    m.add_function(wrap_pyfunction!(strict_specificity_score, m)?)?;
     m.add_function(wrap_pyfunction!(dense_dependency_edges, m)?)?;
     Ok(())
 }
