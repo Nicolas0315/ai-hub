@@ -16,7 +16,7 @@ from typing import Any
 
 BASE = "https://api.openalex.org/works"
 CACHE_DIR = Path("/mnt/c/Users/ogosh/Documents/NICOLAS/Katala/inf-Coding/inf-Coding-run/.tmp-openalex-cache")
-CACHE_TTL_SEC = 3600  # 1 hour
+CACHE_TTL_SEC = 3600  # runtime-use only; cache is purged at end of each run
 
 RECENT_FROM, RECENT_TO = "2022-01-01", "2026-12-31"
 OLD_FROM, OLD_TO = "1973-01-01", "1977-12-31"
@@ -68,6 +68,14 @@ def purge_cache() -> None:
                 p.unlink()
         except Exception:
             pass
+
+
+def purge_cache_all() -> None:
+    """Strict policy: remove all runtime cache artifacts after response."""
+    try:
+        shutil.rmtree(CACHE_DIR, ignore_errors=True)
+    except Exception:
+        pass
 
 
 def fetch_json(url: str) -> dict[str, Any]:
@@ -209,35 +217,35 @@ def main():
     t0 = time.time()
     purge_cache()
 
-    # fixed windows only in-run; not persisted in output
-    with cf.ThreadPoolExecutor(max_workers=4) as ex:
-        fut = {k: ex.submit(collect_group, k, 40) for k in GROUPS.keys()}
-        groups = {k: v.result() for k, v in fut.items()}
+    try:
+        # fixed windows only in-run; not persisted in output
+        with cf.ThreadPoolExecutor(max_workers=4) as ex:
+            fut = {k: ex.submit(collect_group, k, 40) for k in GROUPS.keys()}
+            groups = {k: v.result() for k, v in fut.items()}
 
-    sm = {k: summarize(v) for k, v in groups.items()}
-    comp = {
-        "neuro": compare(sm["neuro_recent"]["top_terms"], sm["neuro_old"]["top_terms"]),
-        "ai": compare(sm["ai_recent"]["top_terms"], sm["ai_old"]["top_terms"]),
-    }
+        sm = {k: summarize(v) for k, v in groups.items()}
+        comp = {
+            "neuro": compare(sm["neuro_recent"]["top_terms"], sm["neuro_old"]["top_terms"]),
+            "ai": compare(sm["ai_recent"]["top_terms"], sm["ai_old"]["top_terms"]),
+        }
 
-    out = {
-        "meta": {
-            "schema": "openalex-fast-precision-v1",
-            "cache_ttl_sec": CACHE_TTL_SEC,
-            "mode": "bulk+page-parallel+batch-summary",
-            "elapsed_sec": round(time.time() - t0, 3),
-        },
-        "summaries": sm,
-        "comparisons": comp,
-    }
+        out = {
+            "meta": {
+                "schema": "openalex-fast-precision-v1",
+                "cache_ttl_sec": CACHE_TTL_SEC,
+                "mode": "bulk+page-parallel+batch-summary",
+                "elapsed_sec": round(time.time() - t0, 3),
+            },
+            "summaries": sm,
+            "comparisons": comp,
+        }
 
-    out_path = Path("/mnt/c/Users/ogosh/Documents/NICOLAS/Katala/inf-Coding/inf-Coding-run/openalex_fast_precision_summary.json")
-    out_path.write_text(json.dumps(out, ensure_ascii=False, indent=2), encoding="utf-8")
-    print(str(out_path))
-
-    # output-time cleanup for fixed-window/runtime artifacts
-    # keep summary file, remove temp cache entries created for this run if requested by policy
-    # Here: preserve cache with TTL policy (1h), no query-window metadata persisted.
+        out_path = Path("/mnt/c/Users/ogosh/Documents/NICOLAS/Katala/inf-Coding/inf-Coding-run/openalex_fast_precision_summary.json")
+        out_path.write_text(json.dumps(out, ensure_ascii=False, indent=2), encoding="utf-8")
+        print(str(out_path))
+    finally:
+        # strict policy: runtime cache does not remain after response
+        purge_cache_all()
 
 
 if __name__ == "__main__":
