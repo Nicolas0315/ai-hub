@@ -1223,7 +1223,7 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
         }
         return tl
 
-    def _counter_hypothesis_from_spml(self, text: str, spm: dict[str, Any], spml: dict[str, Any]) -> dict[str, Any]:
+    def _counter_hypothesis_from_spml(self, text: str, spm: dict[str, Any], spml: dict[str, Any], symbolic_eval: dict[str, Any] | None = None) -> dict[str, Any]:
         comps = (spml or {}).get("components") or {}
         ranked = sorted(comps.items(), key=lambda kv: float(kv[1] or 0.0), reverse=True)
         focus = [k for k, _ in ranked[:2]]
@@ -1239,10 +1239,43 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
             f"Original claim: {claim[:240]}"
         )
         quality = self._clamp(1.0 - float((spml or {}).get("mapping_fidelity_loss", 0.5) or 0.5) * 0.7)
+
+        sym_items = ((symbolic_eval or {}).get("items") or []) if isinstance(symbolic_eval, dict) else []
+        sym_refutations = []
+        sym_fail = 0
+        for it in sym_items:
+            if not isinstance(it, dict):
+                continue
+            expr = str(it.get("expr", "") or "")
+            ok = bool(it.get("ok"))
+            if not ok:
+                sym_fail += 1
+                sym_refutations.append({
+                    "expr": expr,
+                    "counter": "Expression could not be verified; treat claim as ungrounded until formal proof is provided.",
+                    "status": "UNVERIFIED",
+                })
+                continue
+            rv = it.get("result")
+            if isinstance(rv, bool):
+                sym_refutations.append({
+                    "expr": expr,
+                    "counter": f"Boolean negation check suggests considering {'False' if rv else 'True'} as competing hypothesis.",
+                    "status": "NEGATION_TEST",
+                })
+            else:
+                sym_refutations.append({
+                    "expr": expr,
+                    "counter": "Numeric result should be stress-tested under altered assumptions/constraints.",
+                    "status": "SENSITIVITY_TEST",
+                })
+
+        quality = self._clamp(quality - min(0.25, sym_fail * 0.08))
         return {
             "enabled": True,
             "focus_components": focus,
             "counter_hypothesis": contra,
+            "symbolic_refutations": sym_refutations,
             "quality_score": round(quality, 4),
             "verdict": "PASS" if quality >= 0.55 else "CAUTION",
         }
@@ -1374,7 +1407,12 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
         r["hardware_batch_layer"] = self._hardware_batch_layer()
         r["internal_calibration_e1_e7"] = self._internal_calibration_e1_e7(r, tl, bias)
         r["goal_report"] = self._goal_report(text, r, r["kq_final_l8"], r["inline_sentence_verify"])
-        r["counter_hypothesis"] = self._counter_hypothesis_from_spml(text, r.get("spm_mapping") or {}, r.get("spml") or {})
+        r["counter_hypothesis"] = self._counter_hypothesis_from_spml(
+            text,
+            r.get("spm_mapping") or {},
+            r.get("spml") or {},
+            r.get("symbolic_expression_eval") or {},
+        )
         r["schema_guard"] = self._schema_guard(r)
         r["legacy_compatibility"] = {
             "ks_style_fields": [
@@ -1460,7 +1498,7 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
                 "persistent_cache": False,
             }
 
-        r["kq_revision"] = "02b-r22"
+        r["kq_revision"] = "02b-r23"
         r["model"] = self.SYSTEM_MODEL
         r["alias"] = self.ALIAS
         return r
