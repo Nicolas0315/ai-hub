@@ -338,7 +338,7 @@ def _ltl_norm_trace(trace_raw: Any) -> list[set[str]]:
 
 
 def _tok_formula(s: str) -> list[str]:
-    return [t for t in re.findall(r"EX|AX|EF|AF|EG|AG|->|\(|\)|\!|\&|\||U|R|W|[A-Za-z_][A-Za-z0-9_]*", (s or '').upper()) if t]
+    return [t for t in re.findall(r"<->|EX|AX|EF|AF|EG|AG|->|\(|\)|\!|\&|\||U|R|W|Y|O|H|[A-Za-z_][A-Za-z0-9_]*", (s or '').upper()) if t]
 
 
 def _parse_temporal_formula(s: str):
@@ -361,6 +361,14 @@ def _parse_temporal_formula(s: str):
         while peek() == '->':
             take('->')
             n = ('or', ('not', n), parse_or())
+        return n
+
+    def parse_iff():
+        n = parse_imp()
+        while peek() == '<->':
+            take('<->')
+            rhs = parse_imp()
+            n = ('and', ('or', ('not', n), rhs), ('or', ('not', rhs), n))
         return n
 
     def parse_or():
@@ -394,12 +402,12 @@ def _parse_temporal_formula(s: str):
         if t in {'!', 'NOT'}:
             take(t)
             return ('not', parse_unary())
-        if t in {'G', 'F', 'X', 'EX', 'AX', 'EF', 'AF', 'EG', 'AG'}:
+        if t in {'G', 'F', 'X', 'EX', 'AX', 'EF', 'AF', 'EG', 'AG', 'Y', 'O', 'H'}:
             take(t)
             return (t.lower(), parse_unary())
         if t == '(':
             take('(')
-            n = parse_imp()
+            n = parse_iff()
             take(')')
             return n
         if t is None:
@@ -411,50 +419,68 @@ def _parse_temporal_formula(s: str):
             return ('const', False)
         return ('atom', t.lower())
 
-    astn = parse_imp()
+    astn = parse_iff()
     if i != len(toks):
         raise ValueError('trailing tokens')
     return astn
 
 
-def _eval_temporal_ast(node, trace: list[set[str]], i: int = 0) -> bool:
+def _eval_temporal_ast(node, trace: list[set[str]], i: int = 0, _memo: dict[tuple[str, int], bool] | None = None) -> bool:
+    memo = _memo if _memo is not None else {}
+    key = (repr(node), int(i))
+    if key in memo:
+        return bool(memo[key])
+
     k = node[0]
     if k == 'const':
-        return bool(node[1])
-    if k == 'atom':
-        return i < len(trace) and node[1] in trace[i]
-    if k == 'not':
-        return not _eval_temporal_ast(node[1], trace, i)
-    if k == 'and':
-        return _eval_temporal_ast(node[1], trace, i) and _eval_temporal_ast(node[2], trace, i)
-    if k == 'or':
-        return _eval_temporal_ast(node[1], trace, i) or _eval_temporal_ast(node[2], trace, i)
-    if k in {'x', 'ex', 'ax'}:
-        return (i + 1 < len(trace)) and _eval_temporal_ast(node[1], trace, i + 1)
-    if k in {'f', 'ef', 'af'}:
-        return any(_eval_temporal_ast(node[1], trace, j) for j in range(i, len(trace)))
-    if k in {'g', 'eg', 'ag'}:
-        return all(_eval_temporal_ast(node[1], trace, j) for j in range(i, len(trace)))
-    if k == 'u':
+        out = bool(node[1])
+    elif k == 'atom':
+        out = i < len(trace) and node[1] in trace[i]
+    elif k == 'not':
+        out = not _eval_temporal_ast(node[1], trace, i, memo)
+    elif k == 'and':
+        out = _eval_temporal_ast(node[1], trace, i, memo) and _eval_temporal_ast(node[2], trace, i, memo)
+    elif k == 'or':
+        out = _eval_temporal_ast(node[1], trace, i, memo) or _eval_temporal_ast(node[2], trace, i, memo)
+    elif k in {'x', 'ex', 'ax'}:
+        out = (i + 1 < len(trace)) and _eval_temporal_ast(node[1], trace, i + 1, memo)
+    elif k == 'y':
+        out = (i - 1 >= 0) and _eval_temporal_ast(node[1], trace, i - 1, memo)
+    elif k in {'f', 'ef', 'af'}:
+        out = any(_eval_temporal_ast(node[1], trace, j, memo) for j in range(i, len(trace)))
+    elif k in {'g', 'eg', 'ag'}:
+        out = all(_eval_temporal_ast(node[1], trace, j, memo) for j in range(i, len(trace)))
+    elif k == 'o':
+        out = any(_eval_temporal_ast(node[1], trace, j, memo) for j in range(0, i + 1))
+    elif k == 'h':
+        out = all(_eval_temporal_ast(node[1], trace, j, memo) for j in range(0, i + 1))
+    elif k == 'u':
         a, b = node[1], node[2]
+        out = False
         for j in range(i, len(trace)):
-            if _eval_temporal_ast(b, trace, j):
-                return all(_eval_temporal_ast(a, trace, t) for t in range(i, j))
-        return False
-    if k == 'r':
+            if _eval_temporal_ast(b, trace, j, memo):
+                out = all(_eval_temporal_ast(a, trace, t, memo) for t in range(i, j))
+                if out:
+                    break
+    elif k == 'r':
         # release: b must hold until (and including) a, or forever if a never occurs
         a, b = node[1], node[2]
+        out = False
         for j in range(i, len(trace)):
-            if _eval_temporal_ast(a, trace, j):
-                return all(_eval_temporal_ast(b, trace, t) for t in range(i, j + 1))
-        return all(_eval_temporal_ast(b, trace, t) for t in range(i, len(trace)))
-    if k == 'w':
+            if _eval_temporal_ast(a, trace, j, memo):
+                out = all(_eval_temporal_ast(b, trace, t, memo) for t in range(i, j + 1))
+                break
+        else:
+            out = all(_eval_temporal_ast(b, trace, t, memo) for t in range(i, len(trace)))
+    elif k == 'w':
         # weak until: either a U b or globally a
         a, b = node[1], node[2]
-        if _eval_temporal_ast(('u', a, b), trace, i):
-            return True
-        return all(_eval_temporal_ast(a, trace, t) for t in range(i, len(trace)))
-    raise ValueError(f'unsupported node: {k}')
+        out = _eval_temporal_ast(('u', a, b), trace, i, memo) or all(_eval_temporal_ast(a, trace, t, memo) for t in range(i, len(trace)))
+    else:
+        raise ValueError(f'unsupported node: {k}')
+
+    memo[key] = bool(out)
+    return bool(out)
 
 
 def eval_ltl_lite(expr: str) -> dict[str, Any]:
@@ -473,15 +499,18 @@ def eval_ltl_lite(expr: str) -> dict[str, Any]:
         head, trace_txt = [x.strip() for x in s.split("@", 1)]
         trace = _ltl_norm_trace(ast.literal_eval(trace_txt))
         astn = _parse_temporal_formula(head)
-        ok = _eval_temporal_ast(astn, trace, 0)
+        memo: dict[tuple[str, int], bool] = {}
+        ok = _eval_temporal_ast(astn, trace, 0, memo)
         return {
             "ok": True,
             "result": ok,
             "operator": "MC",
             "proof_status": "checked",
-            "mode": "model-check",
+            "mode": "model-check+memo",
             "ast": str(astn),
-            "proof_certificate": _proof_fingerprint({"solver": "ltl-mc", "ast": str(astn), "result": bool(ok), "trace_len": len(trace)}),
+            "supported_ops": ["!", "&", "|", "->", "<->", "X", "Y", "F", "G", "O", "H", "U", "R", "W", "EX", "AX", "EF", "AF", "EG", "AG"],
+            "memo_entries": len(memo),
+            "proof_certificate": _proof_fingerprint({"solver": "ltl-mc", "ast": str(astn), "result": bool(ok), "trace_len": len(trace), "memo": len(memo)}),
         }
     except Exception as e:
         return {"ok": False, "error": str(e), "proof_status": "failed"}
@@ -1409,7 +1438,8 @@ def solve_ctl_lite(expr: str) -> dict[str, Any]:
 
         trace = _ltl_norm_trace(ast.literal_eval(trace_txt))
         astn = _parse_temporal_formula(formula)
-        r = _eval_temporal_ast(astn, trace, 0)
+        memo: dict[tuple[str, int], bool] = {}
+        r = _eval_temporal_ast(astn, trace, 0, memo)
         return {
             'ok': True,
             'proof_status': 'checked',
@@ -1417,8 +1447,10 @@ def solve_ctl_lite(expr: str) -> dict[str, Any]:
             'result': bool(r),
             'formula': formula,
             'ast': str(astn),
-            'mode': 'model-check',
-            'proof_certificate': _proof_fingerprint({'solver': 'ctl-mc', 'ast': str(astn), 'result': bool(r), 'trace_len': len(trace)}),
+            'mode': 'model-check+memo',
+            'supported_ops': ["!", "&", "|", "->", "<->", "X", "Y", "F", "G", "O", "H", "U", "R", "W", "EX", "AX", "EF", "AF", "EG", "AG"],
+            'memo_entries': len(memo),
+            'proof_certificate': _proof_fingerprint({'solver': 'ctl-mc', 'ast': str(astn), 'result': bool(r), 'trace_len': len(trace), 'memo': len(memo)}),
         }
     except Exception as e:
         return {'ok': False, 'proof_status': 'failed', 'solver': 'ctl-lite', 'error': str(e)}
