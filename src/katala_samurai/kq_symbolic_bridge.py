@@ -740,6 +740,88 @@ def solve_bitvec_lite(expr: str) -> dict[str, Any]:
         return {'ok': False, 'proof_status': 'failed', 'solver': 'smt-bitvec-lite', 'error': str(e)}
 
 
+def solve_zfc_lite(expr: str) -> dict[str, Any]:
+    """ZFC-lite set reasoning checks.
+
+    Syntax:
+    - A={1,2}; B={2,3}; check=subset(A,A)
+    - A={1,2}; B={2,3}; check=member(2,A)
+    - A={1,2}; B={2,3}; check=union(A,B)
+    """
+    try:
+        parts = [x.strip() for x in (expr or "").split(";") if x.strip()]
+        sets: dict[str, set[Any]] = {}
+        check = ""
+        for p in parts:
+            if p.lower().startswith("check="):
+                check = p.split("=", 1)[1].strip()
+                continue
+            if "=" in p:
+                k, v = p.split("=", 1)
+                k = k.strip()
+                if v.strip().startswith("{"):
+                    vals = ast.literal_eval(v.strip().replace("{", "[").replace("}", "]"))
+                    sets[k] = set(vals)
+        if not check:
+            return {"ok": False, "proof_status": "failed", "solver": "zfc-lite", "error": "missing check"}
+        low = check.lower()
+        if low.startswith("subset(") and low.endswith(")"):
+            a, b = [x.strip() for x in check[7:-1].split(",", 1)]
+            r = sets.get(a, set()).issubset(sets.get(b, set()))
+            return {"ok": True, "proof_status": "checked", "solver": "zfc-lite", "result": r}
+        if low.startswith("member(") and low.endswith(")"):
+            x, a = [x.strip() for x in check[7:-1].split(",", 1)]
+            xv = ast.literal_eval(x) if x[:1].isdigit() or x[:1] in "'-\"" else x
+            r = xv in sets.get(a, set())
+            return {"ok": True, "proof_status": "checked", "solver": "zfc-lite", "result": r}
+        if low.startswith("union(") and low.endswith(")"):
+            a, b = [x.strip() for x in check[6:-1].split(",", 1)]
+            r = sorted(list(sets.get(a, set()) | sets.get(b, set())))
+            return {"ok": True, "proof_status": "checked", "solver": "zfc-lite", "result": r}
+        if low.startswith("inter(") and low.endswith(")"):
+            a, b = [x.strip() for x in check[6:-1].split(",", 1)]
+            r = sorted(list(sets.get(a, set()) & sets.get(b, set())))
+            return {"ok": True, "proof_status": "checked", "solver": "zfc-lite", "result": r}
+        return {"ok": False, "proof_status": "failed", "solver": "zfc-lite", "error": "unsupported check"}
+    except Exception as e:
+        return {"ok": False, "proof_status": "failed", "solver": "zfc-lite", "error": str(e)}
+
+
+def solve_hol_lite(expr: str) -> dict[str, Any]:
+    """HOL-lite parser/evaluator (very limited).
+
+    Syntax:
+    - forall x in [1,2,3]. x > 0
+    - exists x in [1,2,3]. x % 2 == 0
+    - lambda x. x+1 @ 3
+    """
+    s = (expr or "").strip()
+    try:
+        low = s.lower()
+        if low.startswith("forall ") or low.startswith("exists "):
+            q = "forall" if low.startswith("forall ") else "exists"
+            body = s[len(q):].strip()
+            var, rest = body.split(" in ", 1)
+            dom_txt, pred_txt = rest.split(".", 1)
+            dom = ast.literal_eval(dom_txt.strip())
+            vals = []
+            for v in dom:
+                ev = _eval_symbolic_env(pred_txt.strip(), {var.strip(): v})
+                vals.append(bool(ev.get("ok") and ev.get("result")))
+            r = all(vals) if q == "forall" else any(vals)
+            return {"ok": True, "proof_status": "checked", "solver": "hol-lite", "result": r, "quantifier": q}
+        if low.startswith("lambda ") and "@" in s:
+            lam, arg = [x.strip() for x in s.split("@", 1)]
+            head, body = lam.split(".", 1)
+            var = head.replace("lambda", "", 1).strip()
+            av = ast.literal_eval(arg.strip())
+            ev = _eval_symbolic_env(body.strip(), {var: av})
+            return {"ok": bool(ev.get("ok")), "proof_status": "checked" if ev.get("ok") else "failed", "solver": "hol-lite", "result": ev.get("result")}
+        return {"ok": False, "proof_status": "failed", "solver": "hol-lite", "error": "unsupported syntax"}
+    except Exception as e:
+        return {"ok": False, "proof_status": "failed", "solver": "hol-lite", "error": str(e)}
+
+
 def solve_nra_lite(expr: str) -> dict[str, Any]:
     """Non-linear arithmetic lite over bounded integer domains.
 

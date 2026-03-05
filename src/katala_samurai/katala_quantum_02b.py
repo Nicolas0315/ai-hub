@@ -148,6 +148,8 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
             "smt_array_lite": True,
             "smt_nra_lite": True,
             "smt_uf_lite": True,
+            "zfc_lite_kernel": True,
+            "hol_lite_kernel": True,
             "sat_lite_kernel": True,
             "cdcl_lite_watchers": True,
             "cdcl_lite_backjump": True,
@@ -1114,7 +1116,7 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
 
     def _proof_status_summary(self, symbolic_eval: dict[str, Any]) -> dict[str, Any]:
         statuses: list[str] = []
-        for k in ("items", "modal_items", "predicate_items", "constraint_items", "ltl_items", "smt_items", "sat_items", "bitvec_items", "array_items", "nra_items", "uf_items", "proof_items"):
+        for k in ("items", "modal_items", "predicate_items", "constraint_items", "ltl_items", "smt_items", "sat_items", "bitvec_items", "array_items", "nra_items", "uf_items", "zfc_items", "hol_items", "proof_items"):
             for it in (symbolic_eval or {}).get(k, []) or []:
                 if isinstance(it, dict):
                     statuses.append(str(it.get("proof_status", "unknown") or "unknown"))
@@ -1195,6 +1197,8 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
             "quality": v1.get("quality") or {},
             "formal": {
                 "backend": (symbolic_eval or {}).get("backend", "none"),
+                "foundation": "zfc-lite" if len((symbolic_eval or {}).get("zfc_items", []) or []) > 0 else "none",
+                "logic": "hol-lite" if len((symbolic_eval or {}).get("hol_items", []) or []) > 0 else "mixed-lite",
                 "proof_status_summary": proof,
                 "modality_trace": modality_trace,
             },
@@ -1361,7 +1365,7 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
 
         sym_items = []
         if isinstance(symbolic_eval, dict):
-            for k in ("items", "modal_items", "predicate_items", "constraint_items", "ltl_items", "smt_items", "sat_items", "bitvec_items", "array_items", "nra_items", "uf_items", "proof_items"):
+            for k in ("items", "modal_items", "predicate_items", "constraint_items", "ltl_items", "smt_items", "sat_items", "bitvec_items", "array_items", "nra_items", "uf_items", "zfc_items", "hol_items", "proof_items"):
                 sym_items.extend((symbolic_eval.get(k) or []))
         sym_refutations = []
         sym_fail = 0
@@ -1450,7 +1454,7 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
         return out[:5]
 
     def _extract_formal_candidates(self, text: str) -> dict[str, list[str]]:
-        modal, pred, cons, ltl, smt, sat, bitvec, arr, nra, uf, lean, coq, isabelle = [], [], [], [], [], [], [], [], [], [], [], [], []
+        modal, pred, cons, ltl, smt, sat, bitvec, arr, nra, uf, zfc, hol, lean, coq, isabelle = [], [], [], [], [], [], [], [], [], [], [], [], [], [], []
         for line in (text or "").splitlines():
             s = line.strip()
             low = s.lower()
@@ -1474,13 +1478,17 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
                 nra.append(s.split(":", 1)[1].strip())
             elif low.startswith("uf:"):
                 uf.append(s.split(":", 1)[1].strip())
+            elif low.startswith("zfc:"):
+                zfc.append(s.split(":", 1)[1].strip())
+            elif low.startswith("hol:"):
+                hol.append(s.split(":", 1)[1].strip())
             elif low.startswith("lean:"):
                 lean.append(s.split(":", 1)[1].strip())
             elif low.startswith("coq:"):
                 coq.append(s.split(":", 1)[1].strip())
             elif low.startswith("isabelle:"):
                 isabelle.append(s.split(":", 1)[1].strip())
-        return {"modal": modal[:5], "predicate": pred[:5], "constraint": cons[:5], "ltl": ltl[:5], "smt": smt[:5], "sat": sat[:5], "bitvec": bitvec[:5], "array": arr[:5], "nra": nra[:5], "uf": uf[:5], "lean": lean[:3], "coq": coq[:3], "isabelle": isabelle[:3]}
+        return {"modal": modal[:5], "predicate": pred[:5], "constraint": cons[:5], "ltl": ltl[:5], "smt": smt[:5], "sat": sat[:5], "bitvec": bitvec[:5], "array": arr[:5], "nra": nra[:5], "uf": uf[:5], "zfc": zfc[:5], "hol": hol[:5], "lean": lean[:3], "coq": coq[:3], "isabelle": isabelle[:3]}
 
     def verify(self, *args, **kwargs):
         r = super().verify(*args, **kwargs)
@@ -1547,6 +1555,14 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
             "nra_items": [
                 {"expr": e, **(self.RUST_BRIDGE.nra_kernel(e) or {})}
                 for e in formal.get("nra", [])
+            ],
+            "zfc_items": [
+                {"expr": e, **(self.RUST_BRIDGE.zfc_kernel(e) or {})}
+                for e in formal.get("zfc", [])
+            ],
+            "hol_items": [
+                {"expr": e, **(self.RUST_BRIDGE.hol_kernel(e) or {})}
+                for e in formal.get("hol", [])
             ],
             "proof_items": [
                 *[{"assistant": "lean", "script": e, **(self.RUST_BRIDGE.lean_kernel(e) or {})} for e in formal.get("lean", [])],
@@ -1657,6 +1673,13 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
         undecidable_ratio = float(proof.get("undecidable_ratio", 0.0) or 0.0)
         mv_ratio = float(proof.get("machine_verified_ratio", 0.0) or 0.0)
         proof_items_total = int(proof.get("proof_items_total", 0) or 0)
+        zfc_items = (r.get("symbolic_expression_eval") or {}).get("zfc_items", []) or []
+        hol_items = (r.get("symbolic_expression_eval") or {}).get("hol_items", []) or []
+        foundation_verified = True
+        if zfc_items:
+            foundation_verified = foundation_verified and all(str(it.get("proof_status", "")) in {"checked", "machine-verified"} for it in zfc_items if isinstance(it, dict))
+        if hol_items:
+            foundation_verified = foundation_verified and all(str(it.get("proof_status", "")) in {"checked", "machine-verified"} for it in hol_items if isinstance(it, dict))
         # weak penalty policy (user preference) + machine-verified linkage
         base_penalty = min(0.12, failed_ratio * 0.08 + undecidable_ratio * 0.04)
         mv_penalty = 0.0 if proof_items_total == 0 else max(0.0, 0.06 * (0.5 - mv_ratio))
@@ -1673,6 +1696,7 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
             and (fidelity_loss <= 0.46)
             and counter_ok
             and schema_ok
+            and foundation_verified
         )
         r["translation_loss_gate"] = {
             "enabled": True,
@@ -1697,6 +1721,7 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
             "consistency_score_adjusted": round(consistency_adj, 4),
             "counter_hypothesis_pass": counter_ok,
             "schema_guard_pass": schema_ok,
+            "foundation_verified": foundation_verified,
             "assertive_allowed": assertive_allowed,
         }
 
@@ -1738,7 +1763,7 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
                 "persistent_cache": False,
             }
 
-        r["kq_revision"] = "02b-r39"
+        r["kq_revision"] = "02b-r40"
         r["model"] = self.SYSTEM_MODEL
         r["alias"] = self.ALIAS
         return r

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from .kq_symbolic_bridge import eval_symbolic, eval_modal, eval_predicate_lite, solve_constraint_lite, eval_ltl_lite, solve_smt_optional, verify_lean_proof, verify_coq_proof, verify_isabelle_proof, solve_sat_lite, solve_bitvec_lite, solve_array_lite, solve_uf_lite, solve_nra_lite
+from .kq_symbolic_bridge import eval_symbolic, eval_modal, eval_predicate_lite, solve_constraint_lite, eval_ltl_lite, solve_smt_optional, verify_lean_proof, verify_coq_proof, verify_isabelle_proof, solve_sat_lite, solve_bitvec_lite, solve_array_lite, solve_uf_lite, solve_nra_lite, solve_zfc_lite, solve_hol_lite
 
 
 class RustKQBridge:
@@ -167,3 +167,19 @@ class RustKQBridge:
             except Exception:
                 pass
         return solve_nra_lite(expr)
+
+    def zfc_kernel(self, expr: str) -> dict[str, Any]:
+        if self.available and self._mod is not None and hasattr(self._mod, "zfc_kernel"):
+            try:
+                return self._mod.zfc_kernel({"expr": expr})
+            except Exception:
+                pass
+        return solve_zfc_lite(expr)
+
+    def hol_kernel(self, expr: str) -> dict[str, Any]:
+        if self.available and self._mod is not None and hasattr(self._mod, "hol_kernel"):
+            try:
+                return self._mod.hol_kernel({"expr": expr})
+            except Exception:
+                pass
+        return solve_hol_lite(expr)

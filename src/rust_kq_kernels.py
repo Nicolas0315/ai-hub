@@ -177,6 +177,20 @@ def nra_kernel(payload: dict[str, Any]) -> dict[str, Any]:
     return solve_nra_lite(expr)
 
 
+def zfc_kernel(payload: dict[str, Any]) -> dict[str, Any]:
+    from katala_samurai.kq_symbolic_bridge import solve_zfc_lite
+
+    expr = str(payload.get("expr", "") or "")
+    return solve_zfc_lite(expr)
+
+
+def hol_kernel(payload: dict[str, Any]) -> dict[str, Any]:
+    from katala_samurai.kq_symbolic_bridge import solve_hol_lite
+
+    expr = str(payload.get("expr", "") or "")
+    return solve_hol_lite(expr)
+
+
 def spml_kernel(payload: dict[str, Any]) -> dict[str, Any]:
     # scaffold only; deterministic pass-through aggregation
     w = payload.get("weights") or {}
