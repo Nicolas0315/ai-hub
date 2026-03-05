@@ -61,8 +61,8 @@ class DecomposedQuery:
 
 @dataclass
 class ResourceGovernor:
-    cpu_budget: float = float(os.getenv("KQ_CPU_BUDGET", "0.40"))
-    gpu_budget: float = float(os.getenv("KQ_GPU_BUDGET", "0.40"))
+    cpu_budget: float = float(os.getenv("KQ_CPU_BUDGET", "0.60"))
+    gpu_budget: float = float(os.getenv("KQ_GPU_BUDGET", "0.60"))
 
     def snapshot(self) -> dict[str, Any]:
         try:
@@ -88,6 +88,26 @@ class ResourceGovernor:
                     gpu_known = True
         except Exception:
             pass
+        mem_total_gb = 0.0
+        mem_avail_gb = 0.0
+        swap_total_gb = 0.0
+        swap_free_gb = 0.0
+        try:
+            kv = {}
+            with open('/proc/meminfo', 'r', encoding='utf-8') as f:
+                for line in f:
+                    if ':' in line:
+                        k, v = line.split(':', 1)
+                        kv[k.strip()] = int((v.strip().split() or ['0'])[0])
+            mem_total_gb = float(kv.get('MemTotal', 0)) / (1024.0 * 1024.0)
+            mem_avail_gb = float(kv.get('MemAvailable', 0)) / (1024.0 * 1024.0)
+            swap_total_gb = float(kv.get('SwapTotal', 0)) / (1024.0 * 1024.0)
+            swap_free_gb = float(kv.get('SwapFree', 0)) / (1024.0 * 1024.0)
+        except Exception:
+            pass
+
+        swap_used_ratio = 0.0 if swap_total_gb <= 0 else max(0.0, min(1.0, (swap_total_gb - swap_free_gb) / max(1e-6, swap_total_gb)))
+
         return {
             "cpu_ratio": round(cpu_ratio, 4),
             "gpu_ratio": round(gpu_ratio, 4),
@@ -96,6 +116,11 @@ class ResourceGovernor:
             "gpu_ok": (gpu_ratio <= self.gpu_budget) if gpu_known else True,
             "cpu_budget": self.cpu_budget,
             "gpu_budget": self.gpu_budget,
+            "mem_total_gb": round(mem_total_gb, 3),
+            "mem_avail_gb": round(mem_avail_gb, 3),
+            "swap_total_gb": round(swap_total_gb, 3),
+            "swap_free_gb": round(swap_free_gb, 3),
+            "swap_used_ratio": round(swap_used_ratio, 4),
         }
 
 
@@ -121,32 +146,36 @@ class TaskScheduler:
         cpu_ratio = float(snap.get("cpu_ratio", 0.0) or 0.0)
         gpu_ratio = float(snap.get("gpu_ratio", 0.0) or 0.0)
         pressure = max(cpu_ratio / max(1e-6, self.governor.cpu_budget), gpu_ratio / max(1e-6, self.governor.gpu_budget if snap.get("gpu_known") else 1.0))
+        mem_total = float(snap.get("mem_total_gb", 0.0) or 0.0)
+        mem_avail = float(snap.get("mem_avail_gb", 0.0) or 0.0)
+        swap_used = float(snap.get("swap_used_ratio", 0.0) or 0.0)
+        low_mem = (mem_total > 0 and mem_total <= 16.5)
 
-        # backpressure policy
-        if pressure >= 1.2:
+        # backpressure policy (16GB-aware)
+        if pressure >= 1.2 or swap_used >= 0.20 or mem_avail <= 1.6:
             mode = "high-pressure"
-            fetch_workers = 8
-            read_workers = 6
-            mesh_workers = 6
-            route_workers = 8
-            read_cap = 120
-            per_source_limit = 5
-        elif pressure >= 1.0:
+            fetch_workers = 7 if low_mem else 8
+            read_workers = 5 if low_mem else 6
+            mesh_workers = 5 if low_mem else 6
+            route_workers = 7 if low_mem else 8
+            read_cap = 100 if low_mem else 120
+            per_source_limit = 4 if low_mem else 5
+        elif pressure >= 1.0 or swap_used >= 0.08 or mem_avail <= 3.0:
             mode = "budget-edge"
-            fetch_workers = 12
-            read_workers = 10
-            mesh_workers = 10
-            route_workers = 12
-            read_cap = 160
-            per_source_limit = 7
+            fetch_workers = 10 if low_mem else 12
+            read_workers = 8 if low_mem else 10
+            mesh_workers = 8 if low_mem else 10
+            route_workers = 10 if low_mem else 12
+            read_cap = 140 if low_mem else 160
+            per_source_limit = 6 if low_mem else 7
         else:
             mode = "normal"
-            fetch_workers = 18
-            read_workers = 16
-            mesh_workers = 12
-            route_workers = 16
-            read_cap = 220
-            per_source_limit = 8
+            fetch_workers = 14 if low_mem else 18
+            read_workers = 12 if low_mem else 16
+            mesh_workers = 10 if low_mem else 12
+            route_workers = 14 if low_mem else 16
+            read_cap = 180 if low_mem else 220
+            per_source_limit = 7 if low_mem else 8
 
         return {
             "mode": mode,
@@ -157,6 +186,11 @@ class TaskScheduler:
             "route_workers": route_workers,
             "read_cap": read_cap,
             "per_source_limit": per_source_limit,
+            "memory_profile": "16gb" if low_mem else "standard",
+            "swap_guard": {
+                "swap_used_ratio": round(swap_used, 4),
+                "mem_avail_gb": round(mem_avail, 3),
+            },
             "resource": snap,
         }
 
