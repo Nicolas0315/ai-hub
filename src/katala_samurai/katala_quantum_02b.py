@@ -756,6 +756,80 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
             "selection_reason": "verifiability_gate" if selected == "A" else "novelty_verified",
         }
 
+    def _apply_complementary_loop_deltas(
+        self,
+        loop_control: dict[str, Any],
+        creativity: dict[str, Any],
+        ab_candidates: dict[str, Any],
+        consistency: dict[str, Any],
+        formal_summary: dict[str, Any],
+    ) -> dict[str, Any]:
+        """Apply fixed 5-loop delta reflection to creativity/selection state."""
+        loops = (loop_control or {}).get("loops") or []
+        c0 = float((creativity or {}).get("CreativityScore", 0.0) or 0.0)
+        v0 = float((creativity or {}).get("Verifiability", 0.0) or 0.0)
+        n0 = float((creativity or {}).get("StructureNovelty", 0.0) or 0.0)
+        cons = float((consistency or {}).get("consistency_score", 0.0) or 0.0)
+        mvr = float((formal_summary or {}).get("machine_verified_ratio", 0.0) or 0.0)
+
+        cur_c, cur_v, cur_n = c0, v0, n0
+        steps: list[dict[str, Any]] = []
+        for lp in loops:
+            tier = str(lp.get("tier", "main"))
+            dc = dv = dn = 0.0
+            if tier == "main":
+                dn += 0.012
+                dv += 0.006 + cons * 0.004
+                dc += 0.010
+            elif tier == "validation":
+                dv += 0.020 + mvr * 0.010
+                dc += 0.008
+                dn -= 0.004
+            elif tier == "integration":
+                dc += 0.012
+                dv += 0.008
+                dn += 0.004
+
+            prev_c, prev_v, prev_n = cur_c, cur_v, cur_n
+            cur_c = self._clamp(cur_c + dc)
+            cur_v = self._clamp(cur_v + dv)
+            cur_n = self._clamp(cur_n + dn)
+            steps.append({
+                "loop": int(lp.get("loop", 0) or 0),
+                "tier": tier,
+                "delta": {
+                    "CreativityScore": round(cur_c - prev_c, 4),
+                    "Verifiability": round(cur_v - prev_v, 4),
+                    "StructureNovelty": round(cur_n - prev_n, 4),
+                },
+                "after": {
+                    "CreativityScore": round(cur_c, 4),
+                    "Verifiability": round(cur_v, 4),
+                    "StructureNovelty": round(cur_n, 4),
+                },
+            })
+
+        passed = bool(cur_n >= 0.20 and cur_v >= 0.55)
+        selected = "B" if passed else "A"
+        return {
+            "enabled": True,
+            "mode": "incremental-delta-reflection",
+            "steps": steps,
+            "initial": {
+                "CreativityScore": round(c0, 4),
+                "Verifiability": round(v0, 4),
+                "StructureNovelty": round(n0, 4),
+                "selected": str((ab_candidates or {}).get("selected", "A")),
+            },
+            "final": {
+                "CreativityScore": round(cur_c, 4),
+                "Verifiability": round(cur_v, 4),
+                "StructureNovelty": round(cur_n, 4),
+                "gates_passed": passed,
+                "selected": selected,
+            },
+        }
+
     def _inline_sentence_verify(self, text: str, tl: dict[str, Any], bias: dict[str, Any]) -> dict[str, Any]:
         raw = (text or "").strip()
         if not raw:
@@ -1838,6 +1912,26 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
             mlc,
             formal_summary,
         )
+        loop_delta = self._apply_complementary_loop_deltas(
+            r.get("complementary_5loop_control") or {},
+            r.get("creativity_score_v1") or {},
+            r.get("creative_ab_candidates") or {},
+            mlc,
+            formal_summary,
+        )
+        r["complementary_5loop_delta"] = loop_delta
+        try:
+            final_delta = (loop_delta or {}).get("final") or {}
+            if final_delta:
+                r["creativity_score_v1"]["CreativityScore"] = float(final_delta.get("CreativityScore", r["creativity_score_v1"].get("CreativityScore", 0.0)))
+                r["creativity_score_v1"]["Verifiability"] = float(final_delta.get("Verifiability", r["creativity_score_v1"].get("Verifiability", 0.0)))
+                r["creativity_score_v1"]["StructureNovelty"] = float(final_delta.get("StructureNovelty", r["creativity_score_v1"].get("StructureNovelty", 0.0)))
+                r["creativity_score_v1"]["gates"]["passed"] = bool(final_delta.get("gates_passed", False))
+                r["creativity_score_v1"]["verdict"] = "ACCEPT" if bool(final_delta.get("gates_passed", False)) else "REJECT"
+                r["creative_ab_candidates"]["selected"] = str(final_delta.get("selected", r["creative_ab_candidates"].get("selected", "A")))
+                r["creative_ab_candidates"]["selection_reason"] = "delta-reflection-gate"
+        except Exception:
+            pass
         r["why_this_solver_set"] = {
             "spm_driven": True,
             "domain": dpack.get("domain"),
