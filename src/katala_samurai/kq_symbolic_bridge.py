@@ -2723,7 +2723,12 @@ def _inter_universal_invariant_checks(rows: list[dict[str, Any]]) -> dict[str, A
 
 
 def solve_math_logic_unified(expr: str) -> dict[str, Any]:
-    """Unified math+logic coverage runner (KQ3 balanced+strict unified mode)."""
+    """Unified math+logic coverage runner (KQ3 balanced+strict unified mode).
+
+    Parallel-first, interdependent multi-loop execution:
+    - keeps solver parallelism
+    - feeds loop diagnostics back into next-loop solver priorities
+    """
     registry = [
         ("symbolic", eval_symbolic),
         ("constraint", solve_constraint_lite),
@@ -2740,18 +2745,86 @@ def solve_math_logic_unified(expr: str) -> dict[str, Any]:
         ("uf", solve_uf_lite),
     ]
 
-    rows: list[dict[str, Any]] = []
-    ok_rows: list[dict[str, Any]] = []
-    for name, fn in registry:
+    max_loops = max(1, min(5, int(os.getenv("KQ_UNIFIED_COMPLEMENTARY_LOOPS", "3"))))
+    parallel_workers = max(2, min(len(registry), int(os.getenv("KQ_UNIFIED_MAX_WORKERS", "8"))))
+
+    # interdependent weights evolve across loops
+    solver_weights: dict[str, float] = {name: 1.0 for name, _ in registry}
+    critical = {"smt", "hol", "sat", "ctl", "mu"}
+    last_rows: list[dict[str, Any]] = []
+    loop_trace: list[dict[str, Any]] = []
+
+    def _run_solver(name: str, fn, text: str) -> dict[str, Any]:
         try:
-            r = fn(expr)
+            r = fn(text)
         except Exception as e:
             r = {"ok": False, "proof_status": "failed", "error": str(e), "solver": name}
         ok = bool(r.get("ok")) and str(r.get("proof_status", "")).lower() != "failed"
-        row = {"solver": name, "ok": ok, "proof_status": r.get("proof_status"), "result": r}
-        rows.append(row)
-        if ok:
-            ok_rows.append(row)
+        return {"solver": name, "ok": ok, "proof_status": r.get("proof_status"), "result": r}
+
+    for lp in range(1, max_loops + 1):
+        # select active solvers while preserving broad parallelism
+        if lp == 1:
+            active = list(registry)
+        else:
+            scored = sorted(registry, key=lambda t: solver_weights.get(t[0], 1.0), reverse=True)
+            base_keep = max(8, min(len(registry), 10 + lp))
+            keep = {name for name, _ in scored[:base_keep]}
+            keep.update(critical)
+            active = [(n, fn) for n, fn in registry if n in keep]
+
+        rows: list[dict[str, Any]] = []
+        from concurrent.futures import ThreadPoolExecutor, as_completed
+        with ThreadPoolExecutor(max_workers=parallel_workers) as ex:
+            futs = {ex.submit(_run_solver, n, fn, expr): n for n, fn in active}
+            for fut in as_completed(futs):
+                rows.append(fut.result())
+
+        # keep deterministic order by registry listing
+        order = {n: i for i, (n, _) in enumerate(registry)}
+        rows.sort(key=lambda x: order.get(str(x.get("solver")), 999))
+
+        invariants = _inter_universal_invariant_checks(rows)
+        inv_score = float((invariants.get("invariant_preservation_score") or 0.0))
+        truth_conflict = bool(((invariants.get("truth_invariant") or {}).get("conflict")))
+        cx_consistent = bool(((invariants.get("counterexample_invariant") or {}).get("consistent", True)))
+
+        # feedback: adjust solver weights for next loop
+        for r in rows:
+            name = str(r.get("solver") or "")
+            ok = bool(r.get("ok"))
+            w = float(solver_weights.get(name, 1.0))
+            if ok:
+                w += 0.08
+            else:
+                w -= 0.12
+            if truth_conflict and name in {"sat", "smt", "hol", "ctl", "mu"}:
+                w += 0.10
+            if (not cx_consistent) and name in {"ctl", "mu", "hol"}:
+                w += 0.10
+            if inv_score < 0.72 and name in critical:
+                w += 0.07
+            solver_weights[name] = max(0.2, min(2.5, w))
+
+        ok_rows = [x for x in rows if bool(x.get("ok"))]
+        loop_trace.append({
+            "loop": lp,
+            "active_solver_count": len(active),
+            "passed": len(ok_rows),
+            "total": len(rows),
+            "invariant_preservation_score": round(inv_score, 4),
+            "truth_conflict": truth_conflict,
+            "counterexample_consistent": cx_consistent,
+            "top_weights": sorted(
+                [{"solver": k, "weight": round(v, 4)} for k, v in solver_weights.items()],
+                key=lambda x: x["weight"],
+                reverse=True,
+            )[:6],
+        })
+        last_rows = rows
+
+    rows = last_rows
+    ok_rows = [x for x in rows if bool(x.get("ok"))]
 
     pref = ["hol", "smt", "sat", "ctl", "mu", "predicate", "constraint", "symbolic"]
     primary = None
@@ -2789,6 +2862,12 @@ def solve_math_logic_unified(expr: str) -> dict[str, Any]:
                 "truth_conflict": truth_conflict,
                 "counterexample_inconsistency": bool(not cx_consistent),
             },
+        },
+        "complementary_parallel_loops": {
+            "enabled": True,
+            "loops": max_loops,
+            "workers": parallel_workers,
+            "trace": loop_trace,
         },
         "coverage": coverage,
         "inter_universal_invariants": invariants,
