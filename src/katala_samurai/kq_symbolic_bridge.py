@@ -725,6 +725,38 @@ def solve_bitvec_lite(expr: str) -> dict[str, Any]:
         return {'ok': False, 'proof_status': 'failed', 'solver': 'smt-bitvec-lite', 'error': str(e)}
 
 
+def solve_array_lite(expr: str) -> dict[str, Any]:
+    """Array-lite read/write simulation.
+
+    Syntax:
+    - size=4; store=1:7,2:9; select=2
+    """
+    try:
+        parts = [x.strip() for x in (expr or '').split(';') if x.strip()]
+        kv = {}
+        for p2 in parts:
+            if '=' in p2:
+                k,v = p2.split('=',1)
+                kv[k.strip().lower()] = v.strip()
+        size = int(kv.get('size','8'))
+        arr = [0 for _ in range(max(1,min(1024,size)))]
+        for st in [x.strip() for x in kv.get('store','').split(',') if x.strip()]:
+            if ':' not in st:
+                continue
+            i,v = st.split(':',1)
+            idx = int(i.strip())
+            if 0 <= idx < len(arr):
+                arr[idx] = int(v.strip(),0)
+        if 'select' in kv:
+            idx = int(kv.get('select','0'))
+            if 0 <= idx < len(arr):
+                return {'ok': True, 'proof_status': 'checked', 'solver': 'smt-array-lite', 'result': arr[idx], 'index': idx}
+            return {'ok': False, 'proof_status': 'failed', 'solver': 'smt-array-lite', 'error': 'select out of range'}
+        return {'ok': True, 'proof_status': 'checked', 'solver': 'smt-array-lite', 'array_preview': arr[:16]}
+    except Exception as e:
+        return {'ok': False, 'proof_status': 'failed', 'solver': 'smt-array-lite', 'error': str(e)}
+
+
 def solve_uf_lite(expr: str) -> dict[str, Any]:
     """UF-lite consistency checker.
 

@@ -145,6 +145,7 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
             "smt_kernel": True,
             "smt_kq_native": True,
             "smt_bitvec_lite": True,
+            "smt_array_lite": True,
             "smt_uf_lite": True,
             "sat_lite_kernel": True,
             "cdcl_lite_watchers": True,
@@ -1112,7 +1113,7 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
 
     def _proof_status_summary(self, symbolic_eval: dict[str, Any]) -> dict[str, Any]:
         statuses: list[str] = []
-        for k in ("items", "modal_items", "predicate_items", "constraint_items", "ltl_items", "smt_items", "sat_items", "bitvec_items", "uf_items", "proof_items"):
+        for k in ("items", "modal_items", "predicate_items", "constraint_items", "ltl_items", "smt_items", "sat_items", "bitvec_items", "array_items", "uf_items", "proof_items"):
             for it in (symbolic_eval or {}).get(k, []) or []:
                 if isinstance(it, dict):
                     statuses.append(str(it.get("proof_status", "unknown") or "unknown"))
@@ -1359,7 +1360,7 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
 
         sym_items = []
         if isinstance(symbolic_eval, dict):
-            for k in ("items", "modal_items", "predicate_items", "constraint_items", "ltl_items", "smt_items", "sat_items", "bitvec_items", "uf_items", "proof_items"):
+            for k in ("items", "modal_items", "predicate_items", "constraint_items", "ltl_items", "smt_items", "sat_items", "bitvec_items", "array_items", "uf_items", "proof_items"):
                 sym_items.extend((symbolic_eval.get(k) or []))
         sym_refutations = []
         sym_fail = 0
@@ -1448,7 +1449,7 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
         return out[:5]
 
     def _extract_formal_candidates(self, text: str) -> dict[str, list[str]]:
-        modal, pred, cons, ltl, smt, sat, bitvec, uf, lean, coq, isabelle = [], [], [], [], [], [], [], [], [], [], []
+        modal, pred, cons, ltl, smt, sat, bitvec, arr, uf, lean, coq, isabelle = [], [], [], [], [], [], [], [], [], [], [], []
         for line in (text or "").splitlines():
             s = line.strip()
             low = s.lower()
@@ -1466,6 +1467,8 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
                 sat.append(s.split(":", 1)[1].strip())
             elif low.startswith("bitvec:"):
                 bitvec.append(s.split(":", 1)[1].strip())
+            elif low.startswith("array:"):
+                arr.append(s.split(":", 1)[1].strip())
             elif low.startswith("uf:"):
                 uf.append(s.split(":", 1)[1].strip())
             elif low.startswith("lean:"):
@@ -1474,7 +1477,7 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
                 coq.append(s.split(":", 1)[1].strip())
             elif low.startswith("isabelle:"):
                 isabelle.append(s.split(":", 1)[1].strip())
-        return {"modal": modal[:5], "predicate": pred[:5], "constraint": cons[:5], "ltl": ltl[:5], "smt": smt[:5], "sat": sat[:5], "bitvec": bitvec[:5], "uf": uf[:5], "lean": lean[:3], "coq": coq[:3], "isabelle": isabelle[:3]}
+        return {"modal": modal[:5], "predicate": pred[:5], "constraint": cons[:5], "ltl": ltl[:5], "smt": smt[:5], "sat": sat[:5], "bitvec": bitvec[:5], "array": arr[:5], "uf": uf[:5], "lean": lean[:3], "coq": coq[:3], "isabelle": isabelle[:3]}
 
     def verify(self, *args, **kwargs):
         r = super().verify(*args, **kwargs)
@@ -1533,6 +1536,10 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
             "uf_items": [
                 {"expr": e, **(self.RUST_BRIDGE.uf_kernel(e) or {})}
                 for e in formal.get("uf", [])
+            ],
+            "array_items": [
+                {"expr": e, **(self.RUST_BRIDGE.array_kernel(e) or {})}
+                for e in formal.get("array", [])
             ],
             "proof_items": [
                 *[{"assistant": "lean", "script": e, **(self.RUST_BRIDGE.lean_kernel(e) or {})} for e in formal.get("lean", [])],
@@ -1724,7 +1731,7 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
                 "persistent_cache": False,
             }
 
-        r["kq_revision"] = "02b-r37"
+        r["kq_revision"] = "02b-r38"
         r["model"] = self.SYSTEM_MODEL
         r["alias"] = self.ALIAS
         return r

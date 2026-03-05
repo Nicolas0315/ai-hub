@@ -163,6 +163,13 @@ def uf_kernel(payload: dict[str, Any]) -> dict[str, Any]:
     return solve_uf_lite(expr)
 
 
+def array_kernel(payload: dict[str, Any]) -> dict[str, Any]:
+    from katala_samurai.kq_symbolic_bridge import solve_array_lite
+
+    expr = str(payload.get("expr", "") or "")
+    return solve_array_lite(expr)
+
+
 def spml_kernel(payload: dict[str, Any]) -> dict[str, Any]:
     # scaffold only; deterministic pass-through aggregation
     w = payload.get("weights") or {}
