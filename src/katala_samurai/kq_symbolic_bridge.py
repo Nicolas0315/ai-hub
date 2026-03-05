@@ -954,7 +954,16 @@ def solve_smt_optional(expr: str) -> dict[str, Any]:
         linguistic_trace = _detect_language_family(expr_norm)
         expr_norm2, fam_notes = _apply_family_grammar_templates(expr_norm, linguistic_trace.get('language_family','unknown'), 'smt')
         norm_notes = (norm_notes or []) + (fam_notes or [])
-        linguistic_trace['grammar_quality'] = _grammar_quality_trace(fam_notes or [], linguistic_trace.get('language_family','unknown'), 'smt')
+        gq = _grammar_quality_trace(fam_notes or [], linguistic_trace.get('language_family','unknown'), 'smt')
+        linguistic_trace['grammar_quality'] = gq
+        linguistic_trace['grammar_auto_adjust'] = {
+            'mode': 'conservative' if gq.get('priority') == 'high' else 'balanced',
+            'applied': bool(gq.get('priority') == 'high'),
+            'reason': 'high-misconversion-risk' if gq.get('priority') == 'high' else 'normal-risk',
+        }
+        if gq.get('priority') == 'high':
+            expr_norm2 = expr_norm
+            norm_notes.append('auto-adjust:smt:conservative-skip-family-template')
         doms, formula = _parse_smt_lite(expr_norm2)
         if not doms:
             r = solve_constraint_lite(expr_norm)
@@ -1115,7 +1124,16 @@ def solve_sat_lite(expr: str, _internal: bool = False) -> dict[str, Any]:
         linguistic_trace = _detect_language_family(expr_norm)
         expr_norm2, fam_notes = _apply_family_grammar_templates(expr_norm, linguistic_trace.get('language_family','unknown'), 'sat')
         norm_notes = (norm_notes or []) + (fam_notes or [])
-        linguistic_trace['grammar_quality'] = _grammar_quality_trace(fam_notes or [], linguistic_trace.get('language_family','unknown'), 'sat')
+        gq = _grammar_quality_trace(fam_notes or [], linguistic_trace.get('language_family','unknown'), 'sat')
+        linguistic_trace['grammar_quality'] = gq
+        linguistic_trace['grammar_auto_adjust'] = {
+            'mode': 'conservative' if gq.get('priority') == 'high' else 'balanced',
+            'applied': bool(gq.get('priority') == 'high'),
+            'reason': 'high-misconversion-risk' if gq.get('priority') == 'high' else 'normal-risk',
+        }
+        if gq.get('priority') == 'high':
+            expr_norm2 = expr_norm
+            norm_notes.append('auto-adjust:sat:conservative-skip-family-template')
         s = (expr_norm2 or "").strip().lower()
         clause_txts = [x.strip() for x in re.split(r"\)\s*and\s*\(", s.strip().strip("()")) if x.strip()]
         clauses: list[list[tuple[str, bool]]] = []
@@ -2109,9 +2127,19 @@ def solve_hol_lite(expr: str) -> dict[str, Any]:
     """
     s, norm_notes = _normalize_logic_multilingual(expr)
     linguistic_trace = _detect_language_family(s)
-    s, fam_notes = _apply_family_grammar_templates(s, linguistic_trace.get('language_family','unknown'), 'hol')
+    s2, fam_notes = _apply_family_grammar_templates(s, linguistic_trace.get('language_family','unknown'), 'hol')
     norm_notes = (norm_notes or []) + (fam_notes or [])
-    linguistic_trace['grammar_quality'] = _grammar_quality_trace(fam_notes or [], linguistic_trace.get('language_family','unknown'), 'hol')
+    gq = _grammar_quality_trace(fam_notes or [], linguistic_trace.get('language_family','unknown'), 'hol')
+    linguistic_trace['grammar_quality'] = gq
+    linguistic_trace['grammar_auto_adjust'] = {
+        'mode': 'conservative' if gq.get('priority') == 'high' else 'balanced',
+        'applied': bool(gq.get('priority') == 'high'),
+        'reason': 'high-misconversion-risk' if gq.get('priority') == 'high' else 'normal-risk',
+    }
+    if gq.get('priority') == 'high':
+        norm_notes.append('auto-adjust:hol:conservative-skip-family-template')
+    else:
+        s = s2
     try:
         if s.lower().startswith('formula='):
             s = s.split('=', 1)[1].strip()
