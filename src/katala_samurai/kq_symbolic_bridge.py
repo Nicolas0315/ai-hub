@@ -358,14 +358,46 @@ def _apply_family_grammar_templates(expr: str, family: str, solver: str) -> tupl
             notes.append(f"grammar:subordination:{kw.strip()}")
             low = t.lower()
 
-    # anaphora-lite: if quantified variable exists, replace pronoun 'it' with var in trailing body
+    # implication templates from multilingual surface forms
+    implication_pairs = [
+        (" if ", " then "),
+        (" ならば ", " "),
+        (" もし ", " なら "),
+        (" 如果 ", " 那么 "),
+        (" 若 ", " 则 "),
+        (" 만약 ", " 이면 "),
+    ]
+    if "->" not in low:
+        for a_kw, b_kw in implication_pairs:
+            if a_kw in low and (b_kw.strip() == "" or b_kw in low):
+                try:
+                    a_seg = low.split(a_kw, 1)[1]
+                    if b_kw.strip() == "":
+                        parts = re.split(r"[,。.!?]", a_seg, maxsplit=1)
+                        if len(parts) == 2:
+                            lhs, rhs = parts[0].strip(), parts[1].strip()
+                        else:
+                            continue
+                    else:
+                        lhs = a_seg.split(b_kw, 1)[0].strip()
+                        rhs = a_seg.split(b_kw, 1)[1].strip()
+                    if lhs and rhs:
+                        t = f"({lhs}) -> ({rhs})"
+                        notes.append(f"grammar:implication:{a_kw.strip()}")
+                        low = t.lower()
+                        break
+                except Exception:
+                    pass
+
+    # anaphora-lite: quantified context pronoun replacement
     mq = re.search(r"\b(forall|exists)\s+([a-zA-Z_]\w*)\s+in\s*(\[[^\]]+\]|\([^\)]+\))\s*:\s*(.+)", low)
-    if mq and " it " in low:
+    if mq:
         q, v, dom, body = mq.group(1), mq.group(2), mq.group(3), mq.group(4)
-        body2 = re.sub(r"\bit\b", v, body)
-        t = f"{q} {v} in {dom}: {body2}"
-        notes.append("grammar:anaphora-lite")
-        low = t.lower()
+        body2 = re.sub(r"\b(it|they|them|this|that)\b", v, body)
+        if body2 != body:
+            t = f"{q} {v} in {dom}: {body2}"
+            notes.append("grammar:anaphora-lite")
+            low = t.lower()
 
     # solver-specific shaping
     if solver == 'hol':
