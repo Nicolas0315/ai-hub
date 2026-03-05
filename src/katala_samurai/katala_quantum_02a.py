@@ -10,7 +10,6 @@ from __future__ import annotations
 
 import os
 import re
-import tempfile
 import time
 import urllib.parse
 import urllib.request
@@ -24,11 +23,7 @@ try:
 except Exception:
     _HAS_KS_PAPER_SEARCH = False
 
-try:
-    from .pdf_reader import extract_text_pdfplumber, extract_text_ocr  # KS PDF extraction logic
-    _HAS_KS_PDF_READER = True
-except Exception:
-    _HAS_KS_PDF_READER = False
+from .kq_pdf_reader import extract_pdf_text_kq
 
 try:
     from .peer_review_reach import check_reachability, normalize_item, trace_html_fulltext
@@ -49,7 +44,7 @@ class Katala_Quantum_02a(Katala_Quantum_01a):
             "ks47_dependency": False,
             "literature_weight_tuning": True,
             "ks_paper_search_applied": _HAS_KS_PAPER_SEARCH,
-            "ks_pdf_logic_applied": _HAS_KS_PDF_READER,
+            "kq_pdf_reader_applied": True,
             "peer_db_scope": ["jstor", "springer", "web_of_science"],
             "peer_db_framework": _HAS_PEER_REACH,
         })
@@ -223,6 +218,7 @@ class Katala_Quantum_02a(Katala_Quantum_01a):
         reason_counts: dict[str, int] = {}
         host_failures: dict[str, int] = {}
         batch_summaries = []
+        pdf_method_counts: dict[str, int] = {}
 
         batch_size = 10
         max_retries = 2
@@ -276,29 +272,16 @@ class Katala_Quantum_02a(Katala_Quantum_01a):
 
                         is_pdf = ("pdf" in ct) or resolved_url.lower().endswith(".pdf") or raw.startswith(b"%PDF-")
                         if is_pdf and pdf_ok < pdf_target:
-                            txt = ""
-                            if _HAS_KS_PDF_READER:
-                                tmp_path = None
-                                try:
-                                    with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tf:
-                                        tf.write(raw)
-                                        tmp_path = tf.name
-                                    txt = extract_text_pdfplumber(tmp_path)
-                                    if len((txt or "").strip()) < 120:
-                                        txt = extract_text_ocr(tmp_path)
-                                except Exception:
-                                    txt = ""
-                                finally:
-                                    if tmp_path and os.path.exists(tmp_path):
-                                        try:
-                                            os.unlink(tmp_path)
-                                        except Exception:
-                                            pass
+                            kres = extract_pdf_text_kq(raw)
+                            txt = (kres.get("text") or "")
+                            method = str(kres.get("method", "unknown"))
                             if len((txt or "").strip()) < 120:
                                 txt = self._extract_pdf_text_lite(raw)
+                                method = "lite"
                             if len((txt or "").strip()) >= 120:
                                 pdf_ok += 1
                                 pdf_titles.append(title or url)
+                                pdf_method_counts[method] = pdf_method_counts.get(method, 0) + 1
                                 success = True
                                 break
                             last_reason = "thin_pdf_content"
@@ -349,6 +332,10 @@ class Katala_Quantum_02a(Katala_Quantum_01a):
             "batch_summaries": batch_summaries,
             "reason_counts": reason_counts,
             "host_failures": host_failures,
+            "kq_pdf_reader": {
+                "enabled": True,
+                "method_counts": pdf_method_counts,
+            },
         }
 
     def _html_first_pipeline(self, refs: dict[str, Any], limit: int = 20) -> dict[str, Any]:
@@ -432,7 +419,7 @@ class Katala_Quantum_02a(Katala_Quantum_01a):
         else:
             r["verdict"] = "LEAN_REJECT"
 
-        r["kq_revision"] = "02a-r8"
+        r["kq_revision"] = "02a-r9"
         r["model"] = self.SYSTEM_MODEL
         r["alias"] = self.ALIAS
         r["ks47_parity_pack"] = {"available": False, "status": "detached"}
