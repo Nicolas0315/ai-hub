@@ -325,8 +325,49 @@ def _apply_family_grammar_templates(expr: str, family: str, solver: str) -> tupl
             if a in t:
                 t=t.replace(a,b); notes.append(f"indo-aryan:{a.strip()}->{b.strip()}")
 
-    # solver-specific shaping
+    # deeper grammar shaping (scope / subordination / anaphora-lite)
     low = t.lower()
+
+    # not all x ...  => exists x ... not(...)
+    m_not_all = re.search(r"\bnot\s+all\s+([a-zA-Z_]\w*)\s+in\s*(\[[^\]]+\]|\([^\)]+\))\s*[:\.,]?\s*(.+)", low)
+    if m_not_all:
+        v, dom, body = m_not_all.group(1), m_not_all.group(2), m_not_all.group(3)
+        t = f"exists {v} in {dom}: not ({body})"
+        notes.append("grammar:scope:not-all")
+        low = t.lower()
+
+    # all x in D, ... / exists x in D, ... => canonical colon form
+    m_forall = re.search(r"\bforall\s+([a-zA-Z_]\w*)\s+in\s*(\[[^\]]+\]|\([^\)]+\))\s*[\.,]\s*(.+)", low)
+    if m_forall:
+        v, dom, body = m_forall.group(1), m_forall.group(2), m_forall.group(3)
+        t = f"forall {v} in {dom}: {body}"
+        notes.append("grammar:quantifier:canonical")
+        low = t.lower()
+    m_exists = re.search(r"\bexists\s+([a-zA-Z_]\w*)\s+in\s*(\[[^\]]+\]|\([^\)]+\))\s*[\.,]\s*(.+)", low)
+    if m_exists:
+        v, dom, body = m_exists.group(1), m_exists.group(2), m_exists.group(3)
+        t = f"exists {v} in {dom}: {body}"
+        notes.append("grammar:quantifier:canonical")
+        low = t.lower()
+
+    # subordinate clauses: although/while/because -> conjunction skeleton
+    for kw in [" although ", " while ", " because ", " since "]:
+        if kw in low and " and " not in low:
+            parts = low.split(kw, 1)
+            t = f"({parts[0].strip()}) and ({parts[1].strip()})"
+            notes.append(f"grammar:subordination:{kw.strip()}")
+            low = t.lower()
+
+    # anaphora-lite: if quantified variable exists, replace pronoun 'it' with var in trailing body
+    mq = re.search(r"\b(forall|exists)\s+([a-zA-Z_]\w*)\s+in\s*(\[[^\]]+\]|\([^\)]+\))\s*:\s*(.+)", low)
+    if mq and " it " in low:
+        q, v, dom, body = mq.group(1), mq.group(2), mq.group(3), mq.group(4)
+        body2 = re.sub(r"\bit\b", v, body)
+        t = f"{q} {v} in {dom}: {body2}"
+        notes.append("grammar:anaphora-lite")
+        low = t.lower()
+
+    # solver-specific shaping
     if solver == 'hol':
         if re.search(r"forall\s+([a-zA-Z_]\w*)\s*:\s*(.+)", low):
             notes.append('hol:typed-quantifier-preserve')
