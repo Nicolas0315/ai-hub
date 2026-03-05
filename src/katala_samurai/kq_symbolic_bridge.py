@@ -12,6 +12,14 @@ from itertools import product, combinations
 from typing import Any
 
 
+_DOMAIN_HEURISTIC_MEMORY: dict[str, dict[str, float]] = {
+    "algebra": {},
+    "analysis": {},
+    "number-theory": {},
+    "general": {},
+}
+
+
 try:
     from katala_quantum.emulator_lite import QuantumCircuit  # type: ignore
     _HAS_QEMU = True
@@ -2267,6 +2275,17 @@ def _eval_hol_ast(node, env: dict[str, Any]):
     raise ValueError(f'unsupported hol ast node: {k}')
 
 
+def _domain_hint_from_expr(expr: str) -> str:
+    t = (expr or "").lower()
+    if any(k in t for k in ["prime", "mod", "%", "gcd", "divisible", "素数", "剰余"]):
+        return "number-theory"
+    if any(k in t for k in ["limit", "derivative", "integral", "continu", "収束", "微分", "積分"]):
+        return "analysis"
+    if any(k in t for k in ["group", "ring", "field", "homomorphism", "群", "環", "体"]):
+        return "algebra"
+    return "general"
+
+
 def solve_hol_lite(expr: str) -> dict[str, Any]:
     """HOL-lite general formula evaluator (typed-lambda style surface).
 
@@ -2297,8 +2316,8 @@ def solve_hol_lite(expr: str) -> dict[str, Any]:
         if s.lower().startswith('formula='):
             s = s.split('=', 1)[1].strip()
         astn = _parse_hol_expr(s)
-        # keep normalization conservative to avoid unsafe algebraic text rewrites
-        astn_norm = astn
+        # one-step advancement: beta-reduce before typing/proof search for better HO convergence
+        astn_norm = _hol_beta_reduce(astn, fuel=160)
         subst: dict[str, str] = {}
         inferred_type = _infer_hol_type(astn_norm, {}, subst)
         inferred_type = _apply_subst_type(inferred_type, subst)
@@ -2748,11 +2767,25 @@ def solve_math_logic_unified(expr: str) -> dict[str, Any]:
     max_loops = max(1, min(5, int(os.getenv("KQ_UNIFIED_COMPLEMENTARY_LOOPS", "3"))))
     parallel_workers = max(2, min(len(registry), int(os.getenv("KQ_UNIFIED_MAX_WORKERS", "8"))))
 
+    # domain-aware learning hook (one-step advancement)
+    domain_hint = _domain_hint_from_expr(expr)
+
     # interdependent weights evolve across loops
     solver_weights: dict[str, float] = {name: 1.0 for name, _ in registry}
+    if domain_hint == "number-theory":
+        for k in ["smt", "hol", "sat", "nra"]:
+            solver_weights[k] = 1.15
+    elif domain_hint == "analysis":
+        for k in ["hol", "smt", "nra"]:
+            solver_weights[k] = 1.15
+    elif domain_hint == "algebra":
+        for k in ["hol", "smt", "uf", "array"]:
+            solver_weights[k] = 1.15
     critical = {"smt", "hol", "sat", "ctl", "mu"}
     last_rows: list[dict[str, Any]] = []
     loop_trace: list[dict[str, Any]] = []
+    prev_inv_score: float | None = None
+    stable_count = 0
 
     def _run_solver(name: str, fn, text: str) -> dict[str, Any]:
         try:
@@ -2789,6 +2822,12 @@ def solve_math_logic_unified(expr: str) -> dict[str, Any]:
         truth_conflict = bool(((invariants.get("truth_invariant") or {}).get("conflict")))
         cx_consistent = bool(((invariants.get("counterexample_invariant") or {}).get("consistent", True)))
 
+        if prev_inv_score is not None and abs(inv_score - prev_inv_score) < 0.005:
+            stable_count += 1
+        else:
+            stable_count = 0
+        prev_inv_score = inv_score
+
         # feedback: adjust solver weights for next loop
         for r in rows:
             name = str(r.get("solver") or "")
@@ -2815,6 +2854,7 @@ def solve_math_logic_unified(expr: str) -> dict[str, Any]:
             "invariant_preservation_score": round(inv_score, 4),
             "truth_conflict": truth_conflict,
             "counterexample_consistent": cx_consistent,
+            "stable_count": stable_count,
             "top_weights": sorted(
                 [{"solver": k, "weight": round(v, 4)} for k, v in solver_weights.items()],
                 key=lambda x: x["weight"],
@@ -2822,6 +2862,10 @@ def solve_math_logic_unified(expr: str) -> dict[str, Any]:
             )[:6],
         })
         last_rows = rows
+
+        # convergence stabilization: stop only after minimum 2 loops
+        if lp >= 2 and stable_count >= 2 and not truth_conflict and cx_consistent:
+            break
 
     rows = last_rows
     ok_rows = [x for x in rows if bool(x.get("ok"))]
@@ -2848,6 +2892,16 @@ def solve_math_logic_unified(expr: str) -> dict[str, Any]:
     cx_consistent = bool(((invariants.get("counterexample_invariant") or {}).get("consistent", True)))
     strict_activated = bool(inv_score < 0.72 or truth_conflict or (not cx_consistent))
 
+    # update lightweight domain heuristic memory
+    dm = _DOMAIN_HEURISTIC_MEMORY.setdefault(domain_hint, {})
+    for r in rows:
+        n = str(r.get("solver") or "")
+        if not n:
+            continue
+        prev = float(dm.get(n, 1.0))
+        delta = 0.02 if bool(r.get("ok")) else -0.03
+        dm[n] = max(0.2, min(2.5, round(prev + delta, 4)))
+
     return {
         "ok": len(ok_rows) > 0,
         "proof_status": "checked" if len(ok_rows) > 0 else "failed",
@@ -2867,7 +2921,13 @@ def solve_math_logic_unified(expr: str) -> dict[str, Any]:
             "enabled": True,
             "loops": max_loops,
             "workers": parallel_workers,
+            "domain_hint": domain_hint,
             "trace": loop_trace,
+            "domain_learning_snapshot": sorted(
+                [{"solver": k, "weight": round(v, 4)} for k, v in _DOMAIN_HEURISTIC_MEMORY.get(domain_hint, {}).items()],
+                key=lambda x: x["weight"],
+                reverse=True,
+            )[:8],
         },
         "coverage": coverage,
         "inter_universal_invariants": invariants,
