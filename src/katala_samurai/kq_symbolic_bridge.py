@@ -1443,45 +1443,106 @@ def _type_compatible(a: str | None, b: str | None) -> bool:
     return False
 
 
-def _infer_hol_type(node, tenv: dict[str, str]) -> str:
+def _is_type_var(t: str | None) -> bool:
+    if not t:
+        return False
+    tt = t.strip().lower()
+    return tt.startswith("'") or (len(tt) == 1 and tt.isalpha() and tt not in {'i', 'r', 'b'}) or tt.startswith('tvar_')
+
+
+def _split_fn_type(t: str) -> tuple[str, str] | None:
+    s = (t or '').strip()
+    if not (s.startswith('fn(') and s.endswith(')')):
+        return None
+    body = s[3:-1]
+    depth = 0
+    for i in range(len(body) - 1):
+        ch = body[i]
+        if ch == '(':
+            depth += 1
+        elif ch == ')':
+            depth = max(0, depth - 1)
+        if depth == 0 and body[i:i+2] == '->':
+            return body[:i].strip(), body[i+2:].strip()
+    return None
+
+
+def _apply_subst_type(t: str, subst: dict[str, str]) -> str:
+    tt = (t or 'unknown').strip().lower()
+    prev = None
+    cur = tt
+    while prev != cur and cur in subst:
+        prev = cur
+        cur = subst[cur]
+    sp = _split_fn_type(cur)
+    if sp:
+        a, b = sp
+        return f"fn({_apply_subst_type(a, subst)}->{_apply_subst_type(b, subst)})"
+    return cur
+
+
+def _unify_type_lite(a: str | None, b: str | None, subst: dict[str, str]) -> bool:
+    aa = _apply_subst_type((a or 'unknown').lower(), subst)
+    bb = _apply_subst_type((b or 'unknown').lower(), subst)
+    if aa == bb:
+        return True
+    if aa == 'unknown' or bb == 'unknown':
+        return True
+    if _is_type_var(aa):
+        subst[aa] = bb
+        return True
+    if _is_type_var(bb):
+        subst[bb] = aa
+        return True
+    if {aa, bb} <= {'int', 'real'}:
+        return True
+    fa = _split_fn_type(aa)
+    fb = _split_fn_type(bb)
+    if fa and fb:
+        return _unify_type_lite(fa[0], fb[0], subst) and _unify_type_lite(fa[1], fb[1], subst)
+    return False
+
+
+def _infer_hol_type(node, tenv: dict[str, str], subst: dict[str, str] | None = None) -> str:
+    su = subst if subst is not None else {}
     k = node[0]
     if k == 'quant':
         _, _q, var, dom, body, ann = node
         dt = _type_from_dom(dom)
-        if ann and not _type_compatible(ann, dt):
+        if ann and not _unify_type_lite(ann, dt, su):
             raise ValueError(f'type mismatch for {var}: ann={ann} domain={dt}')
         tenv2 = dict(tenv)
-        tenv2[var] = ann or dt
-        bt = _infer_hol_type(body, tenv2)
-        if not _type_compatible(bt, 'bool'):
+        tenv2[var] = _apply_subst_type(ann or dt, su)
+        bt = _infer_hol_type(body, tenv2, su)
+        if not _unify_type_lite(bt, 'bool', su):
             raise ValueError('quantifier body must be bool')
         return 'bool'
     if k == 'lambda':
         _, var, body, ann = node
         tenv2 = dict(tenv)
-        tenv2[var] = ann or 'unknown'
-        bt = _infer_hol_type(body, tenv2)
-        return f'fn({tenv2[var]}->{bt})'
+        tenv2[var] = _apply_subst_type(ann or f"tvar_{var}", su)
+        bt = _infer_hol_type(body, tenv2, su)
+        return _apply_subst_type(f"fn({tenv2[var]}->{bt})", su)
     if k == 'app':
         _k, fn, arg = node
-        ft = _infer_hol_type(fn, tenv)
-        at = _infer_hol_type(arg, tenv)
-        m = re.match(r'^fn\(([^\-]+)->(.+)\)$', ft)
-        if not m:
-            return 'unknown'
-        in_t, out_t = m.group(1), m.group(2)
-        if not _type_compatible(in_t.strip(), at):
+        ft = _infer_hol_type(fn, tenv, su)
+        at = _infer_hol_type(arg, tenv, su)
+        sp = _split_fn_type(ft)
+        if not sp:
+            raise ValueError(f'non-function application: {ft}')
+        in_t, out_t = sp
+        if not _unify_type_lite(in_t, at, su):
             raise ValueError(f'function input type mismatch: expected {in_t}, got {at}')
-        return out_t.strip()
+        return _apply_subst_type(out_t, su)
     if k in {'and', 'or'}:
-        lt = _infer_hol_type(node[1], tenv)
-        rt = _infer_hol_type(node[2], tenv)
-        if not _type_compatible(lt, 'bool') or not _type_compatible(rt, 'bool'):
+        lt = _infer_hol_type(node[1], tenv, su)
+        rt = _infer_hol_type(node[2], tenv, su)
+        if not _unify_type_lite(lt, 'bool', su) or not _unify_type_lite(rt, 'bool', su):
             raise ValueError(f'boolean operator type mismatch: {lt}, {rt}')
         return 'bool'
     if k == 'not':
-        tt = _infer_hol_type(node[1], tenv)
-        if not _type_compatible(tt, 'bool'):
+        tt = _infer_hol_type(node[1], tenv, su)
+        if not _unify_type_lite(tt, 'bool', su):
             raise ValueError('not operand must be bool')
         return 'bool'
     if k == 'leaf':
@@ -1494,7 +1555,7 @@ def _infer_hol_type(node, tenv: dict[str, str]) -> str:
         if tl in {'true', 'false'}:
             return 'bool'
         if t in tenv:
-            return tenv[t]
+            return _apply_subst_type(tenv[t], su)
         if any(op in t for op in ['==', '!=', '<=', '>=', '<', '>', ' and ', ' or ', ' not ']):
             return 'bool'
         if any(op in t for op in ['+', '-', '*', '/', '%']):
@@ -1571,7 +1632,9 @@ def solve_hol_lite(expr: str) -> dict[str, Any]:
         if s.lower().startswith('formula='):
             s = s.split('=', 1)[1].strip()
         astn = _parse_hol_expr(s)
-        inferred_type = _infer_hol_type(astn, {})
+        subst: dict[str, str] = {}
+        inferred_type = _infer_hol_type(astn, {}, subst)
+        inferred_type = _apply_subst_type(inferred_type, subst)
         val = _eval_hol_ast(astn, {})
         out_val = val if not (isinstance(val, tuple) and val and val[0] == 'closure') else '<lambda>'
         return {
@@ -1582,7 +1645,7 @@ def solve_hol_lite(expr: str) -> dict[str, Any]:
             'ast': str(astn),
             'mode': 'general-formula+typecheck',
             'inferred_type': inferred_type,
-            'typecheck': {'ok': True},
+            'typecheck': {'ok': True, 'unification': {'enabled': True, 'substitutions': subst, 'count': len(subst)}, 'strict_function_application': True},
             'proof_certificate': _proof_fingerprint({'solver': 'hol-lite', 'ast': str(astn), 'result': out_val, 'type': inferred_type}),
         }
     except Exception as e:
