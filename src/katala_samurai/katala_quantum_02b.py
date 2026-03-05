@@ -1062,6 +1062,57 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
             "R_temporal": round(r_temporal, 4),
         }
 
+    def _cross_paradigm_context_explorer(self, text: str, spm: dict[str, Any]) -> dict[str, Any]:
+        """Draft explorer for adjacent paradigms/contexts not dominant in current mapping."""
+        t = (text or "").lower()
+
+        current_paradigms = {x.get("tag") for x in (spm.get("paradigm") or []) if isinstance(x, dict)}
+        current_contexts = {x.get("tag") for x in (spm.get("category") or []) if isinstance(x, dict)}
+
+        paradigm_candidates = []
+        for tag, lex in SPM_PARADIGM_LEX.items():
+            hits = sum(1 for w in lex if w in t)
+            novelty = 1.0 if tag not in current_paradigms else 0.35
+            score = self._clamp((0.40 + min(0.40, hits * 0.15)) * novelty)
+            paradigm_candidates.append({
+                "tag": tag,
+                "in_current": tag in current_paradigms,
+                "hits": hits,
+                "novelty_factor": round(novelty, 4),
+                "exploration_score": round(score, 4),
+            })
+
+        context_candidates = []
+        for tag, lex in SPM_CATEGORY_LEX.items():
+            hits = sum(1 for w in lex if w in t)
+            novelty = 1.0 if tag not in current_contexts else 0.35
+            score = self._clamp((0.38 + min(0.42, hits * 0.16)) * novelty)
+            context_candidates.append({
+                "tag": tag,
+                "in_current": tag in current_contexts,
+                "hits": hits,
+                "novelty_factor": round(novelty, 4),
+                "exploration_score": round(score, 4),
+            })
+
+        paradigm_candidates.sort(key=lambda x: x.get("exploration_score", 0.0), reverse=True)
+        context_candidates.sort(key=lambda x: x.get("exploration_score", 0.0), reverse=True)
+
+        top_alt_paradigms = [x for x in paradigm_candidates if not x.get("in_current")][:3]
+        top_alt_contexts = [x for x in context_candidates if not x.get("in_current")][:3]
+
+        return {
+            "enabled": True,
+            "mode": "draft-heuristic",
+            "top_alternative_paradigms": top_alt_paradigms,
+            "top_alternative_contexts": top_alt_contexts,
+            "search_space": {
+                "paradigm_tags": len(SPM_PARADIGM_LEX),
+                "context_tags": len(SPM_CATEGORY_LEX),
+            },
+            "note": "Exploration module ranks adjacent non-dominant paradigms/contexts for creative branching.",
+        }
+
     def _spm_mapping(self, text: str, paper_stats: dict[str, Any]) -> dict[str, Any]:
         t = text or ""
         low = t.lower()
@@ -1311,6 +1362,7 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
         refs_count = float((paper_stats or {}).get("refs_count", 0))
         spm = self._spm_mapping(text, paper_stats)
         spml = self._spml_from_spm(spm, result, html_pipe, sweep, refs_count)
+        cross_explore = self._cross_paradigm_context_explorer(text, spm)
 
         source_layer = self._detect_layer_from_features(text)
         target_layer = "natural_language"
@@ -1345,6 +1397,7 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
             },
             "spm_mapping": spm,
             "spml": spml,
+            "cross_paradigm_context_explorer": cross_explore,
         }
         return tl
 
