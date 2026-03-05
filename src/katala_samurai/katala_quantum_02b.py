@@ -144,6 +144,8 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
             "ltl_kernel": True,
             "smt_kernel": True,
             "smt_kq_native": True,
+            "smt_bitvec_lite": True,
+            "smt_uf_lite": True,
             "sat_lite_kernel": True,
             "cdcl_lite_watchers": True,
             "cdcl_lite_backjump": True,
@@ -152,7 +154,9 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
             "isabelle_proof_bridge": True,
             "claim_ir_v1": True,
             "claim_ir_v2": True,
+            "claim_ir_modalities_v2": True,
             "proof_status_gate_link": True,
+            "machine_verified_spml_link": True,
             "spml_information_loss_ratio": True,
         })
         return s
@@ -1106,7 +1110,7 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
 
     def _proof_status_summary(self, symbolic_eval: dict[str, Any]) -> dict[str, Any]:
         statuses: list[str] = []
-        for k in ("items", "modal_items", "predicate_items", "constraint_items", "ltl_items", "smt_items", "sat_items", "proof_items"):
+        for k in ("items", "modal_items", "predicate_items", "constraint_items", "ltl_items", "smt_items", "sat_items", "bitvec_items", "uf_items", "proof_items"):
             for it in (symbolic_eval or {}).get(k, []) or []:
                 if isinstance(it, dict):
                     statuses.append(str(it.get("proof_status", "unknown") or "unknown"))
@@ -1128,6 +1132,25 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
             "undecidable_ratio": round((undec / n) if n else 0.0, 4),
             "machine_verified_ratio": round((machine_verified / proof_items_total) if proof_items_total else 0.0, 4),
         }
+
+    def _extract_modal_payloads(self, text: str) -> dict[str, Any]:
+        out = {"code": [], "image": [], "audio": [], "binary": []}
+        for line in (text or "").splitlines():
+            s = line.strip()
+            low = s.lower()
+            if low.startswith("code:"):
+                v = s.split(":",1)[1].strip()
+                out["code"].append({"text": v[:400], "lang_hint": "auto", "trace": f"code:{len(v)}"})
+            elif low.startswith("image:"):
+                v = s.split(":",1)[1].strip()
+                out["image"].append({"caption": v[:300], "trace": f"image:{len(v)}"})
+            elif low.startswith("audio:"):
+                v = s.split(":",1)[1].strip()
+                out["audio"].append({"transcript": v[:300], "trace": f"audio:{len(v)}"})
+            elif low.startswith("binary:"):
+                v = s.split(":",1)[1].strip()
+                out["binary"].append({"blob_hint": v[:120], "trace": f"binary:{len(v)}"})
+        return out
 
     def _claim_ir_v1(self, text: str, spm: dict[str, Any], spml: dict[str, Any]) -> dict[str, Any]:
         return {
@@ -1152,10 +1175,12 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
     def _claim_ir_v2(self, text: str, spm: dict[str, Any], spml: dict[str, Any], symbolic_eval: dict[str, Any]) -> dict[str, Any]:
         v1 = self._claim_ir_v1(text, spm, spml)
         proof = self._proof_status_summary(symbolic_eval or {})
+        payload = v1.get("payload") or {}
+        payload["modalities"] = self._extract_modal_payloads(text)
         return {
             "version": "claim-ir-v2",
             "source_modality": v1.get("source_modality", "text"),
-            "payload": v1.get("payload") or {},
+            "payload": payload,
             "quality": v1.get("quality") or {},
             "formal": {
                 "backend": (symbolic_eval or {}).get("backend", "none"),
@@ -1324,7 +1349,7 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
 
         sym_items = []
         if isinstance(symbolic_eval, dict):
-            for k in ("items", "modal_items", "predicate_items", "constraint_items", "ltl_items", "smt_items", "sat_items", "proof_items"):
+            for k in ("items", "modal_items", "predicate_items", "constraint_items", "ltl_items", "smt_items", "sat_items", "bitvec_items", "uf_items", "proof_items"):
                 sym_items.extend((symbolic_eval.get(k) or []))
         sym_refutations = []
         sym_fail = 0
@@ -1413,7 +1438,7 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
         return out[:5]
 
     def _extract_formal_candidates(self, text: str) -> dict[str, list[str]]:
-        modal, pred, cons, ltl, smt, sat, lean, coq, isabelle = [], [], [], [], [], [], [], [], []
+        modal, pred, cons, ltl, smt, sat, bitvec, uf, lean, coq, isabelle = [], [], [], [], [], [], [], [], [], [], []
         for line in (text or "").splitlines():
             s = line.strip()
             low = s.lower()
@@ -1429,13 +1454,17 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
                 smt.append(s.split(":", 1)[1].strip())
             elif low.startswith("sat:"):
                 sat.append(s.split(":", 1)[1].strip())
+            elif low.startswith("bitvec:"):
+                bitvec.append(s.split(":", 1)[1].strip())
+            elif low.startswith("uf:"):
+                uf.append(s.split(":", 1)[1].strip())
             elif low.startswith("lean:"):
                 lean.append(s.split(":", 1)[1].strip())
             elif low.startswith("coq:"):
                 coq.append(s.split(":", 1)[1].strip())
             elif low.startswith("isabelle:"):
                 isabelle.append(s.split(":", 1)[1].strip())
-        return {"modal": modal[:5], "predicate": pred[:5], "constraint": cons[:5], "ltl": ltl[:5], "smt": smt[:5], "sat": sat[:5], "lean": lean[:3], "coq": coq[:3], "isabelle": isabelle[:3]}
+        return {"modal": modal[:5], "predicate": pred[:5], "constraint": cons[:5], "ltl": ltl[:5], "smt": smt[:5], "sat": sat[:5], "bitvec": bitvec[:5], "uf": uf[:5], "lean": lean[:3], "coq": coq[:3], "isabelle": isabelle[:3]}
 
     def verify(self, *args, **kwargs):
         r = super().verify(*args, **kwargs)
@@ -1487,6 +1516,14 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
                 {"expr": e, **(self.RUST_BRIDGE.sat_kernel(e) or {})}
                 for e in formal.get("sat", [])
             ],
+            "bitvec_items": [
+                {"expr": e, **(self.RUST_BRIDGE.bitvec_kernel(e) or {})}
+                for e in formal.get("bitvec", [])
+            ],
+            "uf_items": [
+                {"expr": e, **(self.RUST_BRIDGE.uf_kernel(e) or {})}
+                for e in formal.get("uf", [])
+            ],
             "proof_items": [
                 *[{"assistant": "lean", "script": e, **(self.RUST_BRIDGE.lean_kernel(e) or {})} for e in formal.get("lean", [])],
                 *[{"assistant": "coq", "script": e, **(self.RUST_BRIDGE.coq_kernel(e) or {})} for e in formal.get("coq", [])],
@@ -1509,6 +1546,16 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
         r["spml"] = tl.get("spml") or {}
         r["claim_ir_v1"] = self._claim_ir_v1(text, r["spm_mapping"], r["spml"])
         r["claim_ir_v2"] = self._claim_ir_v2(text, r["spm_mapping"], r["spml"], r.get("symbolic_expression_eval") or {})
+        mv_ratio0 = float((((r.get("claim_ir_v2") or {}).get("formal") or {}).get("proof_status_summary") or {}).get("machine_verified_ratio", 0.0) or 0.0)
+        spmlx = r.get("spml") or {}
+        base_ilr = float(spmlx.get("information_loss_ratio", 0.0) or 0.0)
+        mv_gap = max(0.0, 0.5 - mv_ratio0)
+        ilr_adj = self._clamp(base_ilr + mv_gap * 0.12)
+        spmlx["information_loss_ratio"] = round(ilr_adj, 4)
+        spmlx["machine_verified_link"] = {"enabled": True, "machine_verified_ratio": round(mv_ratio0, 4), "gap": round(mv_gap, 4), "weight": 0.12}
+        r["spml"] = spmlx
+        r["translation_loss"]["spml"] = spmlx
+        r["kq_translation_loss"]["spml"] = spmlx
         r["transient_session"] = self._transient_session_stamp()
         r["bias_detection"] = bias
         r["htlf_loss_vector"] = htlf
@@ -1666,7 +1713,7 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
                 "persistent_cache": False,
             }
 
-        r["kq_revision"] = "02b-r35"
+        r["kq_revision"] = "02b-r36"
         r["model"] = self.SYSTEM_MODEL
         r["alias"] = self.ALIAS
         return r

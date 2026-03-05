@@ -149,6 +149,20 @@ def sat_kernel(payload: dict[str, Any]) -> dict[str, Any]:
     return solve_sat_lite(expr)
 
 
+def bitvec_kernel(payload: dict[str, Any]) -> dict[str, Any]:
+    from katala_samurai.kq_symbolic_bridge import solve_bitvec_lite
+
+    expr = str(payload.get("expr", "") or "")
+    return solve_bitvec_lite(expr)
+
+
+def uf_kernel(payload: dict[str, Any]) -> dict[str, Any]:
+    from katala_samurai.kq_symbolic_bridge import solve_uf_lite
+
+    expr = str(payload.get("expr", "") or "")
+    return solve_uf_lite(expr)
+
+
 def spml_kernel(payload: dict[str, Any]) -> dict[str, Any]:
     # scaffold only; deterministic pass-through aggregation
     w = payload.get("weights") or {}

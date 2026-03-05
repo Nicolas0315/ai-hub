@@ -670,3 +670,70 @@ def solve_sat_lite(expr: str) -> dict[str, Any]:
         }
     except Exception as e:
         return {"ok": False, "proof_status": "failed", "error": str(e), "solver": "sat-lite"}
+
+
+def solve_bitvec_lite(expr: str) -> dict[str, Any]:
+    """BitVec-lite over fixed width integers.
+
+    Syntax:
+    - width=8; x=250; y=10; op=add
+    - width=8; x=7; y=3; op=and
+    """
+    try:
+        parts = [x.strip() for x in (expr or '').split(';') if x.strip()]
+        kv = {}
+        for p2 in parts:
+            if '=' in p2:
+                k,v = p2.split('=',1)
+                kv[k.strip().lower()] = v.strip().lower()
+        w = int(kv.get('width','8'))
+        mod = 1 << max(1,min(64,w))
+        x = int(kv.get('x','0'),0) % mod
+        y = int(kv.get('y','0'),0) % mod
+        op = kv.get('op','add')
+        if op == 'add': r = (x + y) % mod
+        elif op == 'sub': r = (x - y) % mod
+        elif op == 'and': r = x & y
+        elif op == 'or': r = x | y
+        elif op == 'xor': r = x ^ y
+        elif op == 'shl': r = (x << y) % mod
+        elif op == 'lshr': r = (x >> y) % mod
+        else:
+            return {'ok': False, 'proof_status': 'failed', 'solver': 'smt-bitvec-lite', 'error': f'unsupported op: {op}'}
+        return {'ok': True, 'proof_status': 'checked', 'solver': 'smt-bitvec-lite', 'width': w, 'result': int(r)}
+    except Exception as e:
+        return {'ok': False, 'proof_status': 'failed', 'solver': 'smt-bitvec-lite', 'error': str(e)}
+
+
+def solve_uf_lite(expr: str) -> dict[str, Any]:
+    """UF-lite consistency checker.
+
+    Syntax example:
+    - eq: f(a)=b, f(a)=c, b!=c
+    """
+    try:
+        s = (expr or '').strip().lower()
+        if s.startswith('eq:'):
+            s = s[3:].strip()
+        atoms = [x.strip() for x in s.split(',') if x.strip()]
+        fun_map = {}
+        neq = []
+        for a in atoms:
+            if '!=' in a:
+                l,r = [x.strip() for x in a.split('!=',1)]
+                neq.append((l,r))
+                continue
+            if '=' in a:
+                l,r = [x.strip() for x in a.split('=',1)]
+                m = re.match(r'^([a-z_]\w*)\(([^\)]*)\)$', l)
+                if m:
+                    key = f"{m.group(1)}({m.group(2).strip()})"
+                    if key in fun_map and fun_map[key] != r:
+                        return {'ok': True, 'proof_status': 'checked', 'solver': 'smt-uf-lite', 'consistent': False, 'conflict': f'{key} -> {fun_map[key]} vs {r}'}
+                    fun_map[key] = r
+        for l,r in neq:
+            if l == r:
+                return {'ok': True, 'proof_status': 'checked', 'solver': 'smt-uf-lite', 'consistent': False, 'conflict': f'{l}!={r} impossible'}
+        return {'ok': True, 'proof_status': 'checked', 'solver': 'smt-uf-lite', 'consistent': True, 'mapping': fun_map}
+    except Exception as e:
+        return {'ok': False, 'proof_status': 'failed', 'solver': 'smt-uf-lite', 'error': str(e)}

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from .kq_symbolic_bridge import eval_symbolic, eval_modal, eval_predicate_lite, solve_constraint_lite, eval_ltl_lite, solve_smt_optional, verify_lean_proof, verify_coq_proof, verify_isabelle_proof, solve_sat_lite
+from .kq_symbolic_bridge import eval_symbolic, eval_modal, eval_predicate_lite, solve_constraint_lite, eval_ltl_lite, solve_smt_optional, verify_lean_proof, verify_coq_proof, verify_isabelle_proof, solve_sat_lite, solve_bitvec_lite, solve_uf_lite
 
 
 class RustKQBridge:
@@ -135,3 +135,19 @@ class RustKQBridge:
             except Exception:
                 pass
         return solve_sat_lite(expr)
+
+    def bitvec_kernel(self, expr: str) -> dict[str, Any]:
+        if self.available and self._mod is not None and hasattr(self._mod, "bitvec_kernel"):
+            try:
+                return self._mod.bitvec_kernel({"expr": expr})
+            except Exception:
+                pass
+        return solve_bitvec_lite(expr)
+
+    def uf_kernel(self, expr: str) -> dict[str, Any]:
+        if self.available and self._mod is not None and hasattr(self._mod, "uf_kernel"):
+            try:
+                return self._mod.uf_kernel({"expr": expr})
+            except Exception:
+                pass
+        return solve_uf_lite(expr)
