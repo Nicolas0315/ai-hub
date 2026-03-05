@@ -530,16 +530,7 @@ def verify_isabelle_proof(script: str) -> dict[str, Any]:
 
 
 def solve_sat_lite(expr: str) -> dict[str, Any]:
-    """SAT-lite (CDCL-lite flavored) + UNSAT core-lite.
-
-    Current practical scope:
-    - small CNF inputs
-    - watched-literal bookkeeping (initial watchers)
-    - lightweight conflict clause extraction on UNSAT patterns
-
-    Syntax:
-    - (a or b) and (not a or c)
-    """
+    """SAT-lite (CDCL-lite flavored) + UNSAT core-lite."""
     try:
         s = (expr or "").strip().lower()
         clause_txts = [x.strip() for x in re.split(r"\)\s*and\s*\(", s.strip().strip("()")) if x.strip()]
@@ -561,23 +552,65 @@ def solve_sat_lite(expr: str) -> dict[str, Any]:
         if not vars_list:
             return {"ok": False, "proof_status": "failed", "error": "no variables", "solver": "sat-lite"}
 
-        watched_literals: list[list[str]] = []
-        for cl in clauses:
-            picks = cl[:2] if len(cl) >= 2 else cl[:1]
-            watched_literals.append([(v if sign else f"not {v}") for v, sign in picks])
+        watched_literals = [[(v if sign else f"not {v}") for v, sign in (cl[:2] if len(cl) >= 2 else cl[:1])] for cl in clauses]
 
-        def sat_clause(cl, env):
-            return any((env.get(v, False) is sign) for v, sign in cl)
+        def _clause_state(cl, env):
+            any_unassigned = False
+            for v, sign in cl:
+                if v in env:
+                    if env[v] is sign:
+                        return 1
+                else:
+                    any_unassigned = True
+            return 0 if any_unassigned else -1
 
-        sat_model = None
-        checks = 0
-        cand_envs = [{k: b for k, b in zip(vars_list, bits)} for bits in product([False, True], repeat=len(vars_list))]
-        cand_envs = _rank_envs_quantum_emu(vars_list, cand_envs)
-        for env in cand_envs:
-            checks += 1
-            if all(sat_clause(cl, env) for cl in clauses):
-                sat_model = env
-                break
+        trace = {"decisions": 0, "conflicts": 0, "backjumps": 0, "checked_points": 0}
+        learned_clauses: list[str] = []
+
+        ranked_vars = vars_list[:]
+        if _HAS_QEMU:
+            probe = [{k: False for k in vars_list}, {k: True for k in vars_list}]
+            ranked_env = _rank_envs_quantum_emu(vars_list, probe)
+            ranked_vars = [k for k in vars_list if ranked_env and ranked_env[0].get(k, False)] + [k for k in vars_list if not (ranked_env and ranked_env[0].get(k, False))]
+
+        def dpll(env: dict[str, bool], level: int = 0):
+            trace["checked_points"] += 1
+            # unit propagation
+            changed = True
+            while changed:
+                changed = False
+                for cl in clauses:
+                    st = _clause_state(cl, env)
+                    if st == -1:
+                        trace["conflicts"] += 1
+                        return None
+                    if st == 0:
+                        un = [(v, sign) for v, sign in cl if v not in env]
+                        if len(un) == 1:
+                            v, sign = un[0]
+                            env[v] = sign
+                            changed = True
+
+            if all(_clause_state(cl, env) == 1 for cl in clauses):
+                return dict(env)
+
+            # pick next variable
+            v = next((x for x in ranked_vars if x not in env), None)
+            if v is None:
+                return None
+
+            for val in (True, False):
+                trace["decisions"] += 1
+                env2 = dict(env)
+                env2[v] = val
+                m = dpll(env2, level + 1)
+                if m is not None:
+                    return m
+            trace["backjumps"] += 1
+            learned_clauses.append(f"backjump({v})")
+            return None
+
+        sat_model = dpll({})
 
         if sat_model is not None:
             return {
@@ -588,14 +621,13 @@ def solve_sat_lite(expr: str) -> dict[str, Any]:
                 "model": sat_model,
                 "proof_trace": {
                     "variables": vars_list,
-                    "checked_points": checks,
                     "mode": "cdcl-lite+qemu-priority" if _HAS_QEMU else "cdcl-lite",
                     "watched_literals_init": watched_literals,
-                    "learned_clauses": [],
+                    "learned_clauses": learned_clauses,
+                    **trace,
                 },
             }
 
-        # UNSAT core-lite: greedy remove test
         core = clauses[:]
         changed = True
         while changed and len(core) > 1:
@@ -606,7 +638,7 @@ def solve_sat_lite(expr: str) -> dict[str, Any]:
                 sat = False
                 for bits in product([False, True], repeat=len(vars_list)):
                     env = {k: b for k, b in zip(vars_list, bits)}
-                    if all(sat_clause(cl, env) for cl in trial):
+                    if all(any((env.get(v, False) is sign) for v, sign in cl) for cl in trial):
                         sat = True
                         break
                 if not sat:
@@ -614,10 +646,8 @@ def solve_sat_lite(expr: str) -> dict[str, Any]:
                     changed = True
                 else:
                     i += 1
-
         core_txt = [" or ".join([(v if sign else f"not {v}") for v, sign in cl]) for cl in core]
 
-        learned_clauses: list[str] = []
         unit_pos = {cl[0][0] for cl in core if len(cl) == 1 and cl[0][1] is True}
         unit_neg = {cl[0][0] for cl in core if len(cl) == 1 and cl[0][1] is False}
         for v in sorted(unit_pos & unit_neg):
@@ -631,11 +661,11 @@ def solve_sat_lite(expr: str) -> dict[str, Any]:
             "unsat_core_lite": core_txt,
             "proof_trace": {
                 "variables": vars_list,
-                "checked_points": checks,
                 "core_size": len(core_txt),
                 "mode": "cdcl-lite+qemu-priority" if _HAS_QEMU else "cdcl-lite",
                 "watched_literals_init": watched_literals,
                 "learned_clauses": learned_clauses,
+                **trace,
             },
         }
     except Exception as e:
