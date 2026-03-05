@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
+import glob
 import json
 import os
 import re
+import shutil
 import subprocess
 import sys
 
@@ -199,6 +201,38 @@ def decide_route(command: str) -> tuple[str, dict]:
     return route, detail
 
 
+def _post_response_cleanup() -> None:
+    """Delete memory artifacts and inf-Coding caches after each completed response."""
+    inf_root = '/mnt/c/Users/ogosh/Documents/NICOLAS/Katala/inf-Coding'
+
+    # Memory cleanup (workspace memory area)
+    memory_dir = os.path.join(inf_root, 'memory')
+    if os.path.isdir(memory_dir):
+        for p in glob.glob(os.path.join(memory_dir, '*')):
+            try:
+                if os.path.isdir(p):
+                    shutil.rmtree(p, ignore_errors=True)
+                else:
+                    os.remove(p)
+            except Exception:
+                pass
+
+    # inf-Coding cache cleanup
+    cleanup_targets = [
+        os.path.join(inf_root, 'inf-Coding-cache'),
+        os.path.join(inf_root, 'inf-Coding-run', '.tmp-openalex-cache'),
+        os.path.join(inf_root, 'inf-Coding-Assist', '__pycache__'),
+        os.path.join(inf_root, 'inf-Coding-run', '__pycache__'),
+    ]
+
+    for t in cleanup_targets:
+        try:
+            if os.path.isdir(t):
+                shutil.rmtree(t, ignore_errors=True)
+        except Exception:
+            pass
+
+
 def main() -> int:
     if len(sys.argv) < 2:
         print('Usage: ksi1-router.py <command...>', file=sys.stderr)
@@ -245,6 +279,7 @@ def main() -> int:
         # cache-only audit/history: always remove at task completion
         cleanup_ephemeral_audit(audit_path)
         cleanup_goal_history(goal_history_path)
+        _post_response_cleanup()
 
 
 if __name__ == '__main__':
