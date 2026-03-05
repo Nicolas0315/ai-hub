@@ -121,6 +121,20 @@ def smt_kernel(payload: dict[str, Any]) -> dict[str, Any]:
     return solve_smt_optional(expr)
 
 
+def lean_kernel(payload: dict[str, Any]) -> dict[str, Any]:
+    from katala_samurai.kq_symbolic_bridge import verify_lean_proof
+
+    script = str(payload.get("script", "") or "")
+    return verify_lean_proof(script)
+
+
+def coq_kernel(payload: dict[str, Any]) -> dict[str, Any]:
+    from katala_samurai.kq_symbolic_bridge import verify_coq_proof
+
+    script = str(payload.get("script", "") or "")
+    return verify_coq_proof(script)
+
+
 def spml_kernel(payload: dict[str, Any]) -> dict[str, Any]:
     # scaffold only; deterministic pass-through aggregation
     w = payload.get("weights") or {}

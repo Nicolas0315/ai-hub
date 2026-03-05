@@ -1,7 +1,11 @@
 from __future__ import annotations
 
 import ast
+import os
 import re
+import shutil
+import subprocess
+import tempfile
 from itertools import product
 from typing import Any
 
@@ -236,40 +240,86 @@ def eval_predicate_lite(expr: str) -> dict[str, Any]:
         return {"ok": False, "error": str(e), "proof_status": "failed"}
 
 
-def eval_ltl_lite(expr: str) -> dict[str, Any]:
-    """Very small LTL-lite evaluator on finite traces.
+def _ltl_norm_trace(trace_raw: Any) -> list[set[str]]:
+    if not isinstance(trace_raw, (list, tuple)):
+        raise ValueError("trace must be list")
+    out: list[set[str]] = []
+    for step in trace_raw:
+        if isinstance(step, str):
+            out.append({step.strip().lower()})
+        elif isinstance(step, (list, tuple, set)):
+            out.append({str(x).strip().lower() for x in step})
+        else:
+            out.append({str(step).strip().lower()})
+    return out
 
-    Syntax:
-    - always p @ [p,p,p]
-    - eventually p @ [q,p]
-    where tokens in trace are proposition labels per step (single label per step).
+
+def _ltl_eval_formula(formula: str, trace: list[set[str]], i: int = 0) -> bool:
+    s = (formula or "").strip().lower()
+    if s in {"true", "⊤"}:
+        return True
+    if s in {"false", "⊥"}:
+        return False
+    if s.startswith("g(") and s.endswith(")"):
+        inner = s[2:-1]
+        return all(_ltl_eval_formula(inner, trace, k) for k in range(i, len(trace)))
+    if s.startswith("f(") and s.endswith(")"):
+        inner = s[2:-1]
+        return any(_ltl_eval_formula(inner, trace, k) for k in range(i, len(trace)))
+    if s.startswith("x(") and s.endswith(")"):
+        inner = s[2:-1]
+        return (i + 1 < len(trace)) and _ltl_eval_formula(inner, trace, i + 1)
+    if s.startswith("not(") and s.endswith(")"):
+        inner = s[4:-1]
+        return not _ltl_eval_formula(inner, trace, i)
+    if s.startswith("and(") and s.endswith(")"):
+        a, b = _split_top_level(s[4:-1], ",")[:2]
+        return _ltl_eval_formula(a, trace, i) and _ltl_eval_formula(b, trace, i)
+    if s.startswith("or(") and s.endswith(")"):
+        a, b = _split_top_level(s[3:-1], ",")[:2]
+        return _ltl_eval_formula(a, trace, i) or _ltl_eval_formula(b, trace, i)
+    if s.startswith("u(") and s.endswith(")"):
+        a, b = _split_top_level(s[2:-1], ",")[:2]
+        for k in range(i, len(trace)):
+            if _ltl_eval_formula(b, trace, k):
+                return all(_ltl_eval_formula(a, trace, j) for j in range(i, k))
+        return False
+    # atom
+    return i < len(trace) and s in trace[i]
+
+
+def eval_ltl_lite(expr: str) -> dict[str, Any]:
+    """Finite-trace LTL-lite evaluator (KQ-native).
+
+    Supported:
+    - legacy: always p @ ["p","p"]
+    - model-check style: G(p) @ [["p"],["p"]]
+    - operators: G,F,X,U,not,and,or
     """
-    s = (expr or "").strip().lower()
+    s = (expr or "").strip()
     try:
         if "@" not in s:
             return {"ok": False, "error": "ltl syntax requires '@ trace'", "proof_status": "failed"}
         head, trace_txt = [x.strip() for x in s.split("@", 1)]
-        trace = ast.literal_eval(trace_txt)
-        if not isinstance(trace, (list, tuple)):
-            return {"ok": False, "error": "trace must be list", "proof_status": "failed"}
-        trace = [str(x).strip() for x in trace]
+        trace = _ltl_norm_trace(ast.literal_eval(trace_txt))
 
-        if head.startswith("always "):
-            prop = head.replace("always ", "", 1).strip()
-            ok = all(step == prop for step in trace)
-            return {"ok": True, "result": ok, "operator": "G", "proof_status": "checked"}
-        if head.startswith("eventually "):
-            prop = head.replace("eventually ", "", 1).strip()
-            ok = any(step == prop for step in trace)
-            return {"ok": True, "result": ok, "operator": "F", "proof_status": "checked"}
-        if " until " in head:
-            p, q = [x.strip() for x in head.split(" until ", 1)]
-            idx = next((i for i,t in enumerate(trace) if t == q), None)
-            if idx is None:
-                return {"ok": True, "result": False, "operator": "U", "proof_status": "checked"}
-            ok = all(trace[i] == p for i in range(idx))
-            return {"ok": True, "result": ok, "operator": "U", "proof_status": "checked"}
-        return {"ok": False, "error": "unsupported ltl operator", "proof_status": "failed"}
+        low = head.lower()
+        if low.startswith("always "):
+            prop = low.replace("always ", "", 1).strip()
+            ok = all(prop in step for step in trace)
+            return {"ok": True, "result": ok, "operator": "G", "proof_status": "checked", "mode": "legacy"}
+        if low.startswith("eventually "):
+            prop = low.replace("eventually ", "", 1).strip()
+            ok = any(prop in step for step in trace)
+            return {"ok": True, "result": ok, "operator": "F", "proof_status": "checked", "mode": "legacy"}
+        if " until " in low:
+            p, q = [x.strip() for x in low.split(" until ", 1)]
+            idx = next((k for k, st in enumerate(trace) if q in st), None)
+            ok = False if idx is None else all(p in trace[j] for j in range(idx))
+            return {"ok": True, "result": ok, "operator": "U", "proof_status": "checked", "mode": "legacy"}
+
+        ok = _ltl_eval_formula(head, trace, 0)
+        return {"ok": True, "result": ok, "operator": "MC", "proof_status": "checked", "mode": "model-check-lite"}
     except Exception as e:
         return {"ok": False, "error": str(e), "proof_status": "failed"}
 
@@ -306,6 +356,37 @@ def solve_constraint_lite(expr: str) -> dict[str, Any]:
         return {"ok": False, "error": str(e), "proof_status": "failed", "solver": "constraint-lite"}
 
 
+def _interval_propagate(formula: str, doms: dict[str, tuple[int, int]]) -> tuple[dict[str, tuple[int, int]], list[str]]:
+    cur = dict(doms)
+    notes: list[str] = []
+    parts = _split_top_level((formula or "").strip().strip("()"), ",")
+    atoms = []
+    if (formula or "").strip().lower().startswith("and(") and (formula or "").strip().endswith(")"):
+        atoms = parts
+    else:
+        atoms = re.split(r"\band\b", formula)
+    for a in atoms:
+        t = a.strip().strip("() ")
+        m = re.match(r"^([A-Za-z_]\w*)\s*(<=|>=|<|>)\s*(-?\d+)$", t)
+        if not m:
+            continue
+        v, op, c = m.group(1), m.group(2), int(m.group(3))
+        if v not in cur:
+            continue
+        lo, hi = cur[v]
+        if op == ">=":
+            lo = max(lo, c)
+        elif op == ">":
+            lo = max(lo, c + 1)
+        elif op == "<=":
+            hi = min(hi, c)
+        elif op == "<":
+            hi = min(hi, c - 1)
+        cur[v] = (lo, hi)
+        notes.append(f"{v}{op}{c} -> [{lo},{hi}]")
+    return cur, notes
+
+
 def solve_smt_optional(expr: str) -> dict[str, Any]:
     """KQ-native SMT-lite solver (z3-independent).
 
@@ -321,8 +402,9 @@ def solve_smt_optional(expr: str) -> dict[str, Any]:
             r["proof_trace"] = {"mode": "fallback", "reason": "no_domain_declaration"}
             return r
 
-        names = list(doms.keys())
-        ranges = [range(lo, hi + 1) for (lo, hi) in doms.values()]
+        doms2, prune_notes = _interval_propagate(formula, doms)
+        names = list(doms2.keys())
+        ranges = [range(lo, hi + 1) for (lo, hi) in doms2.values()]
         sols: list[dict[str, int]] = []
         checks = 0
         for values in product(*ranges):
@@ -346,11 +428,12 @@ def solve_smt_optional(expr: str) -> dict[str, Any]:
             "solutions": sols,
             "solution_count": len(sols),
             "proof_trace": {
-                "mode": "enumeration+env-safe-eval",
+                "mode": "enumeration+interval-propagation+env-safe-eval",
                 "variables": names,
                 "search_space": int(total_space),
                 "checked_points": int(checks),
                 "coverage": round(float(coverage), 4),
+                "interval_pruning": prune_notes,
             },
         }
     except Exception as e:
@@ -361,3 +444,39 @@ def solve_smt_optional(expr: str) -> dict[str, Any]:
             "error": str(e),
             "proof_trace": {"mode": "error"},
         }
+
+
+def _verify_external_proof(script: str, bin_name: str, args: list[str]) -> dict[str, Any]:
+    if shutil.which(bin_name) is None:
+        return {"ok": False, "proof_status": "unavailable", "assistant": bin_name, "error": "binary not found"}
+    tmp = None
+    try:
+        suffix = ".lean" if bin_name == "lean" else ".v"
+        with tempfile.NamedTemporaryFile(delete=False, suffix=suffix, mode="w", encoding="utf-8") as f:
+            f.write(script or "")
+            tmp = f.name
+        proc = subprocess.run([bin_name, *args, tmp], capture_output=True, text=True)
+        ok = proc.returncode == 0
+        return {
+            "ok": ok,
+            "proof_status": "machine-verified" if ok else "failed",
+            "assistant": bin_name,
+            "stdout": (proc.stdout or "")[:400],
+            "stderr": (proc.stderr or "")[:400],
+        }
+    except Exception as e:
+        return {"ok": False, "proof_status": "failed", "assistant": bin_name, "error": str(e)}
+    finally:
+        try:
+            if tmp and os.path.exists(tmp):
+                os.unlink(tmp)
+        except Exception:
+            pass
+
+
+def verify_lean_proof(script: str) -> dict[str, Any]:
+    return _verify_external_proof(script, "lean", [])
+
+
+def verify_coq_proof(script: str) -> dict[str, Any]:
+    return _verify_external_proof(script, "coqc", [])
