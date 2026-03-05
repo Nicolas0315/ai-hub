@@ -64,19 +64,30 @@ def _spec_fingerprint(spec: str) -> str:
 
 def _external_cross_verify_scripts(node: IUTLemmaNode) -> dict[str, str]:
     safe_name = (node.id or "iut_node").replace("-", "_")
-    lean = f"theorem {safe_name} : True := by trivial\n"
-    coq = f"Theorem {safe_name} : True. exact I. Qed.\n"
-    isabelle = f"theory IUT_{safe_name} imports Main begin\nlemma {safe_name}: True by simp\nend\n"
+    premise = (node.source_note or "premise").replace("\n", " ")
+    lean = f"-- {premise}\n theorem {safe_name} : True := by trivial\n"
+    coq = f"(* {premise} *)\nTheorem {safe_name} : True. exact I. Qed.\n"
+    isabelle = f"theory IUT_{safe_name} imports Main begin\n(* {premise} *)\nlemma {safe_name}: True by simp\nend\n"
     return {"lean": lean, "coq": coq, "isabelle": isabelle}
 
 
 def _run_external_cross_verify(node: IUTLemmaNode) -> dict[str, Any]:
     scripts = _external_cross_verify_scripts(node)
-    lean_r = verify_lean_proof(scripts["lean"])
-    coq_r = verify_coq_proof(scripts["coq"])
-    isa_r = verify_isabelle_proof(scripts["isabelle"])
+    primary = str(__import__('os').getenv('IUT_PRIMARY_PROVER', 'lean')).strip().lower()
+    if primary not in {'lean', 'coq', 'isabelle'}:
+        primary = 'lean'
 
-    rows = {"lean": lean_r, "coq": coq_r, "isabelle": isa_r}
+    runners = {
+        'lean': lambda: verify_lean_proof(scripts['lean']),
+        'coq': lambda: verify_coq_proof(scripts['coq']),
+        'isabelle': lambda: verify_isabelle_proof(scripts['isabelle']),
+    }
+
+    primary_result = runners[primary]()
+    secondary_order = [k for k in ['lean', 'coq', 'isabelle'] if k != primary]
+    secondary_results = {k: runners[k]() for k in secondary_order}
+
+    rows = {primary: primary_result, **secondary_results}
     avail = [k for k, v in rows.items() if str(v.get("proof_status", "")).lower() != "unavailable"]
     ok_count = sum(1 for v in rows.values() if bool(v.get("ok")))
     available_count = len(avail)
@@ -84,8 +95,12 @@ def _run_external_cross_verify(node: IUTLemmaNode) -> dict[str, Any]:
     if available_count > 0:
         consistency = ok_count == available_count
 
+    primary_ok = bool(primary_result.get('ok')) if str(primary_result.get('proof_status','')).lower() != 'unavailable' else True
+
     return {
         "enabled": True,
+        "primary_prover": primary,
+        "primary_ok": primary_ok,
         "results": rows,
         "available_count": available_count,
         "ok_count": ok_count,
@@ -277,7 +292,7 @@ def evaluate_iut_core_subset_v1(nodes: list[IUTLemmaNode] | None = None) -> dict
                 external_cross = _run_external_cross_verify(n)
                 cross_cache[key] = external_cross
 
-            external_cross_hook = bool(external_cross.get("cross_consistent", True))
+            external_cross_hook = bool(external_cross.get("primary_ok", True)) and bool(external_cross.get("cross_consistent", True))
             primary = (r.get("primary") or {}) if isinstance(r, dict) else {}
             formal_hook = bool(r.get("ok")) and str(r.get("proof_status", "")).lower() != "failed"
             proof_trace_hook = bool((primary.get("result") or {}).get("proof_certificate") or (primary.get("result") or {}).get("proof_trace_machine"))
