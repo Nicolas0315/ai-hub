@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import os
 import re
+import subprocess
 import tempfile
 import time
 from dataclasses import dataclass
@@ -471,27 +472,75 @@ def build_flow_audit_report(payload: dict[str, Any], plan: dict[str, Any]) -> di
 def _build_execution_role_plan(compute_meta: dict[str, Any], hw: dict[str, Any]) -> dict[str, Any]:
     selected = str((compute_meta or {}).get("selected") or "classical")
     lanes = list((compute_meta or {}).get("lanes") or [selected])
+
     cpu_load = float(((hw.get("cpu_load") or {}).get("1m", 0.0) or 0.0))
+    budgets = (hw.get("budget") or {})
+    cpu_budget = float(budgets.get("cpu", 0.40) or 0.40)
+    gpu_budget = float(budgets.get("gpu", 0.40) or 0.40)
+
+    cpu_cnt = max(1, (os.cpu_count() or 1))
+    cpu_ratio = min(1.0, max(0.0, cpu_load / float(cpu_cnt)))
+
+    gpu_ratio = 0.0
+    gpu_known = False
+    try:
+        p = subprocess.run([
+            "nvidia-smi",
+            "--query-gpu=utilization.gpu",
+            "--format=csv,noheader,nounits",
+        ], capture_output=True, text=True, check=False)
+        if p.returncode == 0 and (p.stdout or "").strip():
+            vals = [float(x.strip()) for x in (p.stdout or "").splitlines() if x.strip()]
+            if vals:
+                gpu_ratio = min(1.0, max(0.0, max(vals) / 100.0))
+                gpu_known = True
+    except Exception:
+        pass
+
+    cpu_pressure = cpu_ratio / max(1e-6, cpu_budget)
+    gpu_pressure = (gpu_ratio / max(1e-6, gpu_budget)) if gpu_known else 0.0
 
     # default role split: heavy on GPU, formal authority on CPU
     role_plan = {
-        "neural_network": {"enabled": ("neuromorphic-emu" in lanes) or selected == "hybrid", "device": "gpu", "role": "ranking_and_embedding"},
-        "quantum_emulator": {"enabled": ("quantum-emu" in lanes) or selected == "hybrid", "device": "gpu", "role": "branch_prioritization"},
-        "non_von_neumann_emulator": {"enabled": ("neuromorphic-emu" in lanes) or selected == "hybrid", "device": "gpu", "role": "exploratory_candidate_generation"},
-        "von_neumann_formal": {"enabled": True, "device": "cpu", "role": "sat_smt_hol_authority"},
+        "neural_network": {"enabled": ("neuromorphic-emu" in lanes) or selected == "hybrid", "device": "gpu", "role": "ranking_and_embedding", "target_util_max": gpu_budget},
+        "quantum_emulator": {"enabled": ("quantum-emu" in lanes) or selected == "hybrid", "device": "gpu", "role": "branch_prioritization", "target_util_max": gpu_budget},
+        "non_von_neumann_emulator": {"enabled": ("neuromorphic-emu" in lanes) or selected == "hybrid", "device": "gpu", "role": "exploratory_candidate_generation", "target_util_max": gpu_budget},
+        "von_neumann_formal": {"enabled": True, "device": "cpu", "role": "sat_smt_hol_authority", "target_util_max": cpu_budget},
     }
 
-    # degrade GPU lanes under host pressure
-    if cpu_load >= max(1.0, (os.cpu_count() or 4) * 0.8):
+    # hard budget-aware throttling / degrade policy
+    if cpu_pressure >= 1.0:
+        role_plan["von_neumann_formal"]["mode"] = "throttled"
+        role_plan["von_neumann_formal"]["throttle_factor"] = round(min(1.0, 1.0 / max(cpu_pressure, 1.0)), 4)
+
+    if gpu_known and gpu_pressure >= 1.0:
         for k in ["neural_network", "quantum_emulator", "non_von_neumann_emulator"]:
             if role_plan[k]["enabled"]:
-                role_plan[k]["mode"] = "degraded"
+                role_plan[k]["mode"] = "throttled"
+                role_plan[k]["throttle_factor"] = round(min(1.0, 1.0 / max(gpu_pressure, 1.0)), 4)
+
+    # strict fallback to CPU when no GPU metrics/device available
+    if not gpu_known:
+        for k in ["neural_network", "quantum_emulator", "non_von_neumann_emulator"]:
+            if role_plan[k]["enabled"]:
+                role_plan[k]["device"] = "cpu"
+                role_plan[k]["mode"] = "gpu-unavailable-fallback"
 
     return {
         "selected": selected,
         "lanes": lanes,
         "role_plan": role_plan,
         "policy": "heavy_to_gpu_light_to_cpu_with_formal_cpu_authority",
+        "resource_enforcement": {
+            "cpu_ratio": round(cpu_ratio, 4),
+            "gpu_ratio": round(gpu_ratio, 4),
+            "gpu_known": gpu_known,
+            "cpu_budget": cpu_budget,
+            "gpu_budget": gpu_budget,
+            "cpu_pressure": round(cpu_pressure, 4),
+            "gpu_pressure": round(gpu_pressure, 4),
+            "hard_cap": 0.40,
+        },
     }
 
 
