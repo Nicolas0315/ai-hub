@@ -79,6 +79,13 @@ def triadic_kernel(payload: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def symbolic_kernel(payload: dict[str, Any]) -> dict[str, Any]:
+    from katala_samurai.kq_symbolic_bridge import eval_symbolic
+
+    expr = str(payload.get("expr", "") or "")
+    return eval_symbolic(expr)
+
+
 def spml_kernel(payload: dict[str, Any]) -> dict[str, Any]:
     # scaffold only; deterministic pass-through aggregation
     w = payload.get("weights") or {}

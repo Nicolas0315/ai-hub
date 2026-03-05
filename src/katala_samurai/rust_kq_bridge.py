@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from typing import Any
 
+from .kq_symbolic_bridge import eval_symbolic
+
 
 class RustKQBridge:
     """Rust kernel adapter scaffold for r18 migration.
@@ -50,3 +52,14 @@ class RustKQBridge:
         if self.available and self._mod is not None:
             return self._mod.triadic_kernel(payload)
         raise RuntimeError("rust_kq_kernels unavailable")
+
+    def symbolic_kernel(self, expr: str) -> dict[str, Any]:
+        """Evaluate arithmetic/logical expression via native kernel when available.
+        Falls back to KQ safe symbolic evaluator.
+        """
+        if self.available and self._mod is not None and hasattr(self._mod, "symbolic_kernel"):
+            try:
+                return self._mod.symbolic_kernel({"expr": expr})
+            except Exception:
+                pass
+        return eval_symbolic(expr)

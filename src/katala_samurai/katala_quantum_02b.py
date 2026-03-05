@@ -137,6 +137,7 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
             "rust_kernel_bridge": True,
             "rust_kernel_available": bool(getattr(self.RUST_BRIDGE, "available", False)),
             "rust_kernel_backend": getattr(self.RUST_BRIDGE, "backend", "none"),
+            "symbolic_expression_kernel": True,
         })
         return s
 
@@ -1273,6 +1274,16 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
             "retained_fields": ["aggregate_metrics_only"],
         }
 
+    def _extract_symbolic_candidates(self, text: str) -> list[str]:
+        out: list[str] = []
+        for line in (text or "").splitlines():
+            s = line.strip()
+            if s.lower().startswith("expr:"):
+                out.append(s.split(":", 1)[1].strip())
+            elif s.lower().startswith("logic:"):
+                out.append(s.split(":", 1)[1].strip())
+        return out[:5]
+
     def verify(self, *args, **kwargs):
         r = super().verify(*args, **kwargs)
         if not isinstance(r, dict):
@@ -1289,6 +1300,23 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
         p = r.get("paper_stats") or {}
         htmlp = r.get("html_first_pipeline") or {}
         sweep = r.get("paper_read_sweep") or {}
+
+        symbolic_candidates = self._extract_symbolic_candidates(text)
+        if symbolic_candidates:
+            r["symbolic_expression_eval"] = {
+                "enabled": True,
+                "backend": getattr(self.RUST_BRIDGE, "backend", "none"),
+                "items": [
+                    {"expr": e, **(self.RUST_BRIDGE.symbolic_kernel(e) or {})}
+                    for e in symbolic_candidates
+                ],
+            }
+        else:
+            r["symbolic_expression_eval"] = {
+                "enabled": True,
+                "backend": getattr(self.RUST_BRIDGE, "backend", "none"),
+                "items": [],
+            }
 
         tl = self._compute_translation_loss(text, r, p, htmlp, sweep)
         mlc = self._check_multilayer_consistency(text)
@@ -1432,7 +1460,7 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
                 "persistent_cache": False,
             }
 
-        r["kq_revision"] = "02b-r21"
+        r["kq_revision"] = "02b-r22"
         r["model"] = self.SYSTEM_MODEL
         r["alias"] = self.ALIAS
         return r
