@@ -564,8 +564,20 @@ def solve_sat_lite(expr: str) -> dict[str, Any]:
                     any_unassigned = True
             return 0 if any_unassigned else -1
 
-        trace = {"decisions": 0, "conflicts": 0, "backjumps": 0, "checked_points": 0}
+        trace = {"decisions": 0, "conflicts": 0, "backjumps": 0, "checked_points": 0, "watch_updates": 0}
         learned_clauses: list[str] = []
+
+        def _refresh_watches(env: dict[str, bool]):
+            updated = []
+            for cl in clauses:
+                sats = [(v, sign) for v, sign in cl if (v in env and env[v] is sign)]
+                unks = [(v, sign) for v, sign in cl if v not in env]
+                picks = sats[:2] if len(sats) >= 2 else (sats + unks)[:2]
+                if not picks and cl:
+                    picks = cl[:1]
+                updated.append([(v if sign else f"not {v}") for v, sign in picks])
+            trace["watch_updates"] += 1
+            return updated
 
         ranked_vars = vars_list[:]
         if _HAS_QEMU:
@@ -574,7 +586,10 @@ def solve_sat_lite(expr: str) -> dict[str, Any]:
             ranked_vars = [k for k in vars_list if ranked_env and ranked_env[0].get(k, False)] + [k for k in vars_list if not (ranked_env and ranked_env[0].get(k, False))]
 
         def dpll(env: dict[str, bool], level: int = 0):
+            nonlocal watched_literals
             trace["checked_points"] += 1
+            current_watches = _refresh_watches(env)
+            watched_literals = current_watches
             # unit propagation
             changed = True
             while changed:
@@ -723,6 +738,40 @@ def solve_bitvec_lite(expr: str) -> dict[str, Any]:
         return {'ok': True, 'proof_status': 'checked', 'solver': 'smt-bitvec-lite', 'width': w, 'result': int(r)}
     except Exception as e:
         return {'ok': False, 'proof_status': 'failed', 'solver': 'smt-bitvec-lite', 'error': str(e)}
+
+
+def solve_nra_lite(expr: str) -> dict[str, Any]:
+    """Non-linear arithmetic lite over bounded integer domains.
+
+    Syntax:
+    - vars: x in [-5,5], y in [-5,5]; formula: x*x + y*y == 25
+    """
+    try:
+        doms, formula = _parse_smt_lite(expr)
+        if not doms:
+            return {"ok": False, "proof_status": "failed", "solver": "smt-nra-lite", "error": "no vars/domain"}
+        names = list(doms.keys())
+        ranges = [range(lo, hi + 1) for (lo, hi) in doms.values()]
+        sols = []
+        checks = 0
+        for values in product(*ranges):
+            env = {k: int(v) for k, v in zip(names, values)}
+            checks += 1
+            ev = _eval_symbolic_env(formula, env)
+            if ev.get("ok") and bool(ev.get("result")):
+                sols.append(env)
+                if len(sols) >= 128:
+                    break
+        return {
+            "ok": True,
+            "proof_status": "checked" if checks > 0 else "inconclusive",
+            "solver": "smt-nra-lite",
+            "solutions": sols,
+            "solution_count": len(sols),
+            "proof_trace": {"variables": names, "checked_points": checks},
+        }
+    except Exception as e:
+        return {"ok": False, "proof_status": "failed", "solver": "smt-nra-lite", "error": str(e)}
 
 
 def solve_array_lite(expr: str) -> dict[str, Any]:
