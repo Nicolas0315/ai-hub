@@ -40,6 +40,47 @@ CALIBRATION_STAGES = [
     "E7_final_normalization",
 ]
 
+# cached regex / lexicons (runtime-only; never emitted as output)
+RE_YEAR = re.compile(r"\b(19\d{2}|20\d{2})\b")
+
+SPM_PARADIGM_LEX = {
+    "empiricism": ["trial", "experiment", "observed", "empirical", "実験"],
+    "mechanistic": ["mechanism", "causal", "pathway", "機序"],
+    "statistical": ["regression", "significant", "p-value", "bayesian", "統計"],
+    "interpretive": ["interpret", "phenomenology", "narrative", "解釈"],
+    "engineering": ["pipeline", "system", "benchmark", "deployment", "実装"],
+}
+SPM_CATEGORY_LEX = {
+    "medical": ["clinical", "patient", "trial", "symptom", "therapy", "症状", "治療"],
+    "engineering": ["system", "pipeline", "benchmark", "deployment", "implementation", "実装", "運用"],
+    "social": ["policy", "society", "ethics", "institution", "制度", "倫理", "社会"],
+    "cognitive": ["perception", "memory", "attention", "cognitive", "認知", "知覚", "記憶"],
+    "education": ["learning", "curriculum", "classroom", "pedagogy", "教育", "学習"],
+    "economics": ["market", "cost", "incentive", "productivity", "経済", "費用"],
+    "security": ["threat", "vulnerability", "safety", "attack", "セキュリティ", "脆弱性"],
+    "environment": ["climate", "pollution", "sustainability", "ecology", "環境", "気候"],
+    "law_governance": ["law", "regulation", "compliance", "governance", "法", "規制", "ガバナンス"],
+    "culture": ["culture", "norm", "value", "tradition", "文化", "価値観"],
+}
+SPM_PERSPECTIVE_LEX = {
+    "author": ["we", "our", "本研究", "我々"],
+    "participant": ["patient", "user", "participant", "subject", "被験者", "利用者"],
+    "system": ["model", "system", "algorithm", "agent", "手法", "モデル"],
+    "institution": ["guideline", "policy", "regulation", "committee", "規制", "指針"],
+    "practitioner": ["clinician", "engineer", "operator", "teacher", "医師", "技術者", "運用者"],
+    "community": ["community", "citizen", "public", "stakeholder", "市民", "社会"],
+    "industry": ["company", "enterprise", "product", "business", "企業", "産業"],
+    "regulator": ["authority", "government", "ministry", "oversight", "政府", "当局"],
+    "historian": ["historical", "archive", "chronicle", "history", "歴史", "史料"],
+    "global_south": ["global south", "developing", "low-resource", "途上国", "低資源"],
+}
+SPM_OPINION_LEX = {
+    "hypothesis": ["hypothesis", "仮説", "we hypothesize"],
+    "interpretation": ["suggest", "interpret", "示唆", "解釈"],
+    "recommendation": ["should", "recommend", "提言", "推奨"],
+    "observation": ["observed", "found", "観察", "結果"],
+}
+
 
 class Katala_Quantum_02b(Katala_Quantum_02a):
     # KSにあってKQで弱かった点をKQ側で補強（独立実装）
@@ -945,48 +986,10 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
         low = t.lower()
 
         pub_year = int((paper_stats or {}).get("latest_year", 0) or 0)
-        years_in_text = [int(y) for y in re.findall(r"\b(19\d{2}|20\d{2})\b", t)]
+        years_in_text = [int(y) for y in RE_YEAR.findall(t)]
         subject_year = max(years_in_text) if years_in_text else 0
         if pub_year <= 0:
             pub_year = max(0, subject_year)
-
-        paradigm_lex = {
-            "empiricism": ["trial", "experiment", "observed", "empirical", "実験"],
-            "mechanistic": ["mechanism", "causal", "pathway", "機序"],
-            "statistical": ["regression", "significant", "p-value", "bayesian", "統計"],
-            "interpretive": ["interpret", "phenomenology", "narrative", "解釈"],
-            "engineering": ["pipeline", "system", "benchmark", "deployment", "実装"],
-        }
-        category_lex = {
-            "medical": ["clinical", "patient", "trial", "symptom", "therapy", "症状", "治療"],
-            "engineering": ["system", "pipeline", "benchmark", "deployment", "implementation", "実装", "運用"],
-            "social": ["policy", "society", "ethics", "institution", "制度", "倫理", "社会"],
-            "cognitive": ["perception", "memory", "attention", "cognitive", "認知", "知覚", "記憶"],
-            "education": ["learning", "curriculum", "classroom", "pedagogy", "教育", "学習"],
-            "economics": ["market", "cost", "incentive", "productivity", "経済", "費用"],
-            "security": ["threat", "vulnerability", "safety", "attack", "セキュリティ", "脆弱性"],
-            "environment": ["climate", "pollution", "sustainability", "ecology", "環境", "気候"],
-            "law_governance": ["law", "regulation", "compliance", "governance", "法", "規制", "ガバナンス"],
-            "culture": ["culture", "norm", "value", "tradition", "文化", "価値観"],
-        }
-        perspective_lex = {
-            "author": ["we", "our", "本研究", "我々"],
-            "participant": ["patient", "user", "participant", "subject", "被験者", "利用者"],
-            "system": ["model", "system", "algorithm", "agent", "手法", "モデル"],
-            "institution": ["guideline", "policy", "regulation", "committee", "規制", "指針"],
-            "practitioner": ["clinician", "engineer", "operator", "teacher", "医師", "技術者", "運用者"],
-            "community": ["community", "citizen", "public", "stakeholder", "市民", "社会"],
-            "industry": ["company", "enterprise", "product", "business", "企業", "産業"],
-            "regulator": ["authority", "government", "ministry", "oversight", "政府", "当局"],
-            "historian": ["historical", "archive", "chronicle", "history", "歴史", "史料"],
-            "global_south": ["global south", "developing", "low-resource", "途上国", "低資源"],
-        }
-        opinion_lex = {
-            "hypothesis": ["hypothesis", "仮説", "we hypothesize"],
-            "interpretation": ["suggest", "interpret", "示唆", "解釈"],
-            "recommendation": ["should", "recommend", "提言", "推奨"],
-            "observation": ["observed", "found", "観察", "結果"],
-        }
 
         def tag_with_conf(lex: dict[str, list[str]]) -> list[dict[str, Any]]:
             out = []
@@ -996,10 +999,10 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
                     out.append({"tag": k, "confidence": round(min(1.0, 0.35 + hits * 0.2), 4), "hits": hits})
             return out
 
-        paradigm_tags = tag_with_conf(paradigm_lex)
-        category_tags = tag_with_conf(category_lex)
-        perspective_tags = tag_with_conf(perspective_lex)
-        opinion_tags = tag_with_conf(opinion_lex)
+        paradigm_tags = tag_with_conf(SPM_PARADIGM_LEX)
+        category_tags = tag_with_conf(SPM_CATEGORY_LEX)
+        perspective_tags = tag_with_conf(SPM_PERSPECTIVE_LEX)
+        opinion_tags = tag_with_conf(SPM_OPINION_LEX)
 
         sensory_hits = sum(1 for k in ["pain", "fatigue", "comfort", "discomfort", "痛み", "疲労", "感覚"] if k in low)
         action_hits = sum(1 for k in ["intervention", "manipulation", "operate", "procedure", "介入", "操作", "動作"] if k in low)

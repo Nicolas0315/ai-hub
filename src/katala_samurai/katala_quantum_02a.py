@@ -11,6 +11,7 @@ from __future__ import annotations
 import os
 import re
 import tempfile
+import time
 import urllib.parse
 import urllib.request
 from typing import Any
@@ -219,58 +220,122 @@ class Katala_Quantum_02a(Katala_Quantum_01a):
         pdf_titles = []
         text_titles = []
         errors = 0
+        reason_counts: dict[str, int] = {}
+        host_failures: dict[str, int] = {}
+        batch_summaries = []
 
-        for it in items:
+        batch_size = 10
+        max_retries = 2
+
+        def _reason_from_exc(exc: Exception) -> str:
+            e = str(exc).lower()
+            if "timed out" in e:
+                return "timeout"
+            if "http error 401" in e or "http error 403" in e:
+                return "auth_blocked"
+            if "http error 429" in e:
+                return "rate_limited"
+            if "http error" in e:
+                return "http_error"
+            if "name or service not known" in e or "temporary failure" in e:
+                return "dns_error"
+            return "network_error"
+
+        for bstart in range(0, len(items), batch_size):
             if pdf_ok >= pdf_target and text_ok >= text_target:
                 break
-            if not isinstance(it, dict):
-                continue
-            url = (it.get("url") or "").strip()
-            doi = (it.get("doi") or "").strip()
-            title = (it.get("title") or "").strip()[:120]
-            if not url and not doi:
-                continue
-            resolved_url = self._resolve_pdf_candidate(url, doi)
-            try:
-                req = urllib.request.Request(resolved_url, headers={"User-Agent": "Katala-Quantum/1.0"})
-                with urllib.request.urlopen(req, timeout=3.0) as r:
-                    raw = r.read(200000)
-                    ct = (r.headers.get("Content-Type") or "").lower()
 
-                is_pdf = ("pdf" in ct) or resolved_url.lower().endswith(".pdf") or raw.startswith(b"%PDF-")
-                if is_pdf and pdf_ok < pdf_target:
-                    txt = ""
-                    # Prefer KS PDF extraction logic when available
-                    if _HAS_KS_PDF_READER:
-                        tmp_path = None
-                        try:
-                            with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tf:
-                                tf.write(raw)
-                                tmp_path = tf.name
-                            txt = extract_text_pdfplumber(tmp_path)
-                            if len((txt or "").strip()) < 120:
-                                txt = extract_text_ocr(tmp_path)
-                        except Exception:
+            chunk = items[bstart:bstart + batch_size]
+            b_ok = 0
+            b_err = 0
+            b_reasons: dict[str, int] = {}
+
+            for it in chunk:
+                if pdf_ok >= pdf_target and text_ok >= text_target:
+                    break
+                if not isinstance(it, dict):
+                    continue
+                url = (it.get("url") or "").strip()
+                doi = (it.get("doi") or "").strip()
+                title = (it.get("title") or "").strip()[:120]
+                if not url and not doi:
+                    continue
+                resolved_url = self._resolve_pdf_candidate(url, doi)
+
+                from urllib.parse import urlparse
+                host = (urlparse(resolved_url).netloc or "unknown").lower()
+
+                success = False
+                last_reason = "unknown"
+                for attempt in range(max_retries + 1):
+                    try:
+                        req = urllib.request.Request(resolved_url, headers={"User-Agent": "Katala-Quantum/1.0"})
+                        with urllib.request.urlopen(req, timeout=3.0 + attempt) as r:
+                            raw = r.read(200000)
+                            ct = (r.headers.get("Content-Type") or "").lower()
+
+                        is_pdf = ("pdf" in ct) or resolved_url.lower().endswith(".pdf") or raw.startswith(b"%PDF-")
+                        if is_pdf and pdf_ok < pdf_target:
                             txt = ""
-                        finally:
-                            if tmp_path and os.path.exists(tmp_path):
+                            if _HAS_KS_PDF_READER:
+                                tmp_path = None
                                 try:
-                                    os.unlink(tmp_path)
+                                    with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tf:
+                                        tf.write(raw)
+                                        tmp_path = tf.name
+                                    txt = extract_text_pdfplumber(tmp_path)
+                                    if len((txt or "").strip()) < 120:
+                                        txt = extract_text_ocr(tmp_path)
                                 except Exception:
-                                    pass
-                    if len((txt or "").strip()) < 120:
-                        txt = self._extract_pdf_text_lite(raw)
-                    if len((txt or "").strip()) >= 120:
-                        pdf_ok += 1
-                        pdf_titles.append(title or url)
-                elif (not is_pdf) and text_ok < text_target:
-                    txt = self._extract_html_text_lite(raw)
-                    if len(txt) >= 120:
-                        text_ok += 1
-                        text_titles.append(title or url)
-            except Exception:
-                errors += 1
+                                    txt = ""
+                                finally:
+                                    if tmp_path and os.path.exists(tmp_path):
+                                        try:
+                                            os.unlink(tmp_path)
+                                        except Exception:
+                                            pass
+                            if len((txt or "").strip()) < 120:
+                                txt = self._extract_pdf_text_lite(raw)
+                            if len((txt or "").strip()) >= 120:
+                                pdf_ok += 1
+                                pdf_titles.append(title or url)
+                                success = True
+                                break
+                            last_reason = "thin_pdf_content"
+                        elif (not is_pdf) and text_ok < text_target:
+                            txt = self._extract_html_text_lite(raw)
+                            if len(txt) >= 120:
+                                text_ok += 1
+                                text_titles.append(title or url)
+                                success = True
+                                break
+                            last_reason = "thin_html_content"
+                        else:
+                            success = True
+                            break
+                    except Exception as e:
+                        last_reason = _reason_from_exc(e)
+                        if attempt < max_retries:
+                            time.sleep(0.15 * (attempt + 1))
 
+                if success:
+                    b_ok += 1
+                else:
+                    errors += 1
+                    b_err += 1
+                    reason_counts[last_reason] = reason_counts.get(last_reason, 0) + 1
+                    b_reasons[last_reason] = b_reasons.get(last_reason, 0) + 1
+                    host_failures[host] = host_failures.get(host, 0) + 1
+
+            batch_summaries.append({
+                "batch": len(batch_summaries) + 1,
+                "size": len(chunk),
+                "ok": b_ok,
+                "errors": b_err,
+                "reasons": b_reasons,
+            })
+
+        # runtime-only local counters are not persisted outside output payload
         return {
             "pdf_target": pdf_target,
             "text_target": text_target,
@@ -281,6 +346,9 @@ class Katala_Quantum_02a(Katala_Quantum_01a):
             "pdf_titles_sample": pdf_titles[:10],
             "text_titles_sample": text_titles[:10],
             "errors": errors,
+            "batch_summaries": batch_summaries,
+            "reason_counts": reason_counts,
+            "host_failures": host_failures,
         }
 
     def _html_first_pipeline(self, refs: dict[str, Any], limit: int = 20) -> dict[str, Any]:
