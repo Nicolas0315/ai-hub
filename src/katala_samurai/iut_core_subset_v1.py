@@ -24,42 +24,30 @@ def default_iut_core_subset_v1() -> list[IUTLemmaNode]:
     This is not a full formalization of IUT; it is a structured stepping stone.
     """
     return [
-        IUTLemmaNode(
-            "L1-obj-001", "L1", "hodge-theater-base-coherence",
-            "forall x in [0,1]: x == x", [],
-            source_paper="IUT I",
-            source_note="Construction of Hodge Theaters (base object coherence)",
-        ),
-        IUTLemmaNode(
-            "L1-obj-002", "L1", "frobenioid-local-consistency",
-            "x in [0,5]: x+1>x", [],
-            source_paper="IUT I",
-            source_note="Local consistency surrogate for arithmetic theater transitions",
-        ),
-        IUTLemmaNode(
-            "L2-mor-001", "L2", "hodge-arakelov-evaluation-stability",
-            "x in [0,5]: x*x >= 0", ["L1-obj-001", "L1-obj-002"],
-            source_paper="IUT II",
-            source_note="Hodge-Arakelov-theoretic Evaluation stability surrogate",
-        ),
-        IUTLemmaNode(
-            "L3-cor-001", "L3", "log-theta-canonical-splitting-consistency",
-            "(p or q) and (not p or q)", ["L2-mor-001"],
-            source_paper="IUT III",
-            source_note="Canonical splittings / correspondence consistency surrogate",
-        ),
-        IUTLemmaNode(
-            "L4-inv-001", "L4", "log-volume-invariant-transfer",
-            "exists x in [1,2,3]: x % 2 == 0", ["L3-cor-001"],
-            source_paper="IUT IV",
-            source_note="Log-volume computation + invariant transfer surrogate",
-        ),
-        IUTLemmaNode(
-            "L5-syn-001", "L5", "global-theater-synthesis-check",
-            "vars: x in [0,3], y in [0,3]; formula: and(x+y==3, x>=0, y>=0)", ["L4-inv-001"],
-            source_paper="IUT I-IV",
-            source_note="Global synthesis sanity over composed constraints",
-        ),
+        # L1: base objects / local coherence
+        IUTLemmaNode("L1-obj-001", "L1", "hodge-theater-base-coherence", "forall x in [0,1]: x == x", [], source_paper="IUT I", source_note="Base object coherence"),
+        IUTLemmaNode("L1-obj-002", "L1", "frobenioid-local-consistency", "x in [0,5]: x+1>x", [], source_paper="IUT I", source_note="Local consistency surrogate"),
+        IUTLemmaNode("L1-obj-003", "L1", "local-order-preservation", "x in [0,5]: x*x >= 0", [], source_paper="IUT I", source_note="Order preservation baseline"),
+
+        # L2: local morphisms / evaluation links
+        IUTLemmaNode("L2-mor-001", "L2", "hodge-arakelov-evaluation-stability", "vars: x in [0,3], y in [0,3]; formula: and(x+y==3, x>=0, y>=0)", ["L1-obj-001", "L1-obj-002"], source_paper="IUT II", source_note="Evaluation stability"),
+        IUTLemmaNode("L2-mor-002", "L2", "local-morphism-composition", "(p or q) and (not p or q)", ["L1-obj-002", "L1-obj-003"], source_paper="IUT II", source_note="Composition consistency"),
+        IUTLemmaNode("L2-mor-003", "L2", "arith-constraint-soundness", "x in [1,10]: x % 2 == 0 and x > 1", ["L1-obj-003"], source_paper="IUT II", source_note="Arithmetic soundness surrogate"),
+
+        # L3: inter-universal correspondences
+        IUTLemmaNode("L3-cor-001", "L3", "log-theta-canonical-splitting-consistency", "(a or b) and (not a or b)", ["L2-mor-001"], source_paper="IUT III", source_note="Canonical splitting consistency"),
+        IUTLemmaNode("L3-cor-002", "L3", "cross-theater-bridge-preservation", "forall x in [1,2,3]: x > 0", ["L2-mor-001", "L2-mor-002"], source_paper="IUT III", source_note="Bridge-preservation surrogate"),
+        IUTLemmaNode("L3-cor-003", "L3", "theta-link-invariant-transfer", "exists x in [1,2,3]: x % 2 == 1", ["L2-mor-002", "L2-mor-003"], source_paper="IUT III", source_note="Theta-link transfer"),
+
+        # L4: invariant transfer / log-volume style controls
+        IUTLemmaNode("L4-inv-001", "L4", "log-volume-invariant-transfer", "x in [0,5]: x*x >= 0", ["L3-cor-001", "L3-cor-002"], source_paper="IUT IV", source_note="Invariant transfer baseline"),
+        IUTLemmaNode("L4-inv-002", "L4", "set-theoretic-foundation-sanity", "vars: x in [0,4], y in [0,4]; formula: and(x>=0, y>=0, x+y>=0)", ["L3-cor-002"], source_paper="IUT IV", source_note="Set-theoretic sanity"),
+        IUTLemmaNode("L4-inv-003", "L4", "counterexample-consistency-guard", "(p or q) and (not p or q)", ["L3-cor-003"], source_paper="IUT IV", source_note="Counterexample guard"),
+
+        # L5: global synthesis
+        IUTLemmaNode("L5-syn-001", "L5", "global-theater-synthesis-check", "vars: x in [0,3], y in [0,3]; formula: and(x+y==3, x>=0, y>=0)", ["L4-inv-001", "L4-inv-002"], source_paper="IUT I-IV", source_note="Global synthesis sanity"),
+        IUTLemmaNode("L5-syn-002", "L5", "global-bridge-coherence", "forall x in [1,2,3]: x >= 1", ["L4-inv-001", "L4-inv-003"], source_paper="IUT I-IV", source_note="Bridge coherence"),
+        IUTLemmaNode("L5-syn-003", "L5", "final-invariant-preservation", "exists x in [2,3,4,5]: x % 2 == 1", ["L5-syn-001", "L5-syn-002"], source_paper="IUT I-IV", source_note="Final preservation check"),
     ]
 
 
