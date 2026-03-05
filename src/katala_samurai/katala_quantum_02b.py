@@ -78,6 +78,8 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
             "parallel_mini_solver_topology": "512-lanes",
             "ks47_compatible_axis_layer": True,
             "ks47_compatible_output_standard": True,
+            "spm_layer": True,
+            "spml_layer": True,
         })
         return s
 
@@ -697,27 +699,110 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
             "R_temporal": round(r_temporal, 4),
         }
 
-    def _compute_translation_loss(
-        self,
-        text: str,
-        result: dict[str, Any],
-        paper_stats: dict[str, Any],
-        html_pipe: dict[str, Any],
-        sweep: dict[str, Any],
-    ) -> dict[str, Any]:
+    def _spm_mapping(self, text: str, paper_stats: dict[str, Any]) -> dict[str, Any]:
         t = text or ""
         low = t.lower()
 
-        refs_count = float((paper_stats or {}).get("refs_count", 0))
-        html_hits = float((html_pipe or {}).get("html_hit_count", 0))
+        pub_year = int((paper_stats or {}).get("latest_year", 0) or 0)
+        years_in_text = [int(y) for y in re.findall(r"\b(19\d{2}|20\d{2})\b", t)]
+        subject_year = max(years_in_text) if years_in_text else 0
+        if pub_year <= 0:
+            pub_year = max(0, subject_year)
 
-        pdf_target = float((sweep or {}).get("pdf_target", 1) or 1)
-        text_target = float((sweep or {}).get("text_target", 1) or 1)
-        pdf_read = float((sweep or {}).get("pdf_read_count", 0) or 0)
-        text_read = float((sweep or {}).get("text_read_count", 0) or 0)
-        read_cov = min(1.0, (pdf_read / max(1.0, pdf_target)) * 0.5 + (text_read / max(1.0, text_target)) * 0.5)
+        paradigm_lex = {
+            "empiricism": ["trial", "experiment", "observed", "empirical", "実験"],
+            "mechanistic": ["mechanism", "causal", "pathway", "機序"],
+            "statistical": ["regression", "significant", "p-value", "bayesian", "統計"],
+            "interpretive": ["interpret", "phenomenology", "narrative", "解釈"],
+            "engineering": ["pipeline", "system", "benchmark", "deployment", "実装"],
+        }
+        category_lex = {
+            "medical": ["clinical", "patient", "trial", "symptom", "therapy", "症状", "治療"],
+            "engineering": ["system", "pipeline", "benchmark", "deployment", "implementation", "実装", "運用"],
+            "social": ["policy", "society", "ethics", "institution", "制度", "倫理", "社会"],
+            "cognitive": ["perception", "memory", "attention", "cognitive", "認知", "知覚", "記憶"],
+            "education": ["learning", "curriculum", "classroom", "pedagogy", "教育", "学習"],
+            "economics": ["market", "cost", "incentive", "productivity", "経済", "費用"],
+            "security": ["threat", "vulnerability", "safety", "attack", "セキュリティ", "脆弱性"],
+            "environment": ["climate", "pollution", "sustainability", "ecology", "環境", "気候"],
+            "law_governance": ["law", "regulation", "compliance", "governance", "法", "規制", "ガバナンス"],
+            "culture": ["culture", "norm", "value", "tradition", "文化", "価値観"],
+        }
+        perspective_lex = {
+            "author": ["we", "our", "本研究", "我々"],
+            "participant": ["patient", "user", "participant", "subject", "被験者", "利用者"],
+            "system": ["model", "system", "algorithm", "agent", "手法", "モデル"],
+            "institution": ["guideline", "policy", "regulation", "committee", "規制", "指針"],
+            "practitioner": ["clinician", "engineer", "operator", "teacher", "医師", "技術者", "運用者"],
+            "community": ["community", "citizen", "public", "stakeholder", "市民", "社会"],
+            "industry": ["company", "enterprise", "product", "business", "企業", "産業"],
+            "regulator": ["authority", "government", "ministry", "oversight", "政府", "当局"],
+            "historian": ["historical", "archive", "chronicle", "history", "歴史", "史料"],
+            "global_south": ["global south", "developing", "low-resource", "途上国", "低資源"],
+        }
+        opinion_lex = {
+            "hypothesis": ["hypothesis", "仮説", "we hypothesize"],
+            "interpretation": ["suggest", "interpret", "示唆", "解釈"],
+            "recommendation": ["should", "recommend", "提言", "推奨"],
+            "observation": ["observed", "found", "観察", "結果"],
+        }
 
-        # 1) semantic fidelity loss
+        def tag_with_conf(lex: dict[str, list[str]]) -> list[dict[str, Any]]:
+            out = []
+            for k, ws in lex.items():
+                hits = sum(1 for w in ws if w in low)
+                if hits > 0:
+                    out.append({"tag": k, "confidence": round(min(1.0, 0.35 + hits * 0.2), 4), "hits": hits})
+            return out
+
+        paradigm_tags = tag_with_conf(paradigm_lex)
+        category_tags = tag_with_conf(category_lex)
+        perspective_tags = tag_with_conf(perspective_lex)
+        opinion_tags = tag_with_conf(opinion_lex)
+
+        sensory_hits = sum(1 for k in ["pain", "fatigue", "comfort", "discomfort", "痛み", "疲労", "感覚"] if k in low)
+        action_hits = sum(1 for k in ["intervention", "manipulation", "operate", "procedure", "介入", "操作", "動作"] if k in low)
+        env_hits = sum(1 for k in ["temperature", "touch", "noise", "visual", "environment", "温度", "接触", "環境"] if k in low)
+
+        sent_n = max(1, len([p for p in re.split(r"[。.!?\n]+", t) if p.strip()]))
+        para_n = max(1, len([p for p in re.split(r"\n\s*\n", t) if p.strip()]))
+
+        return {
+            "version": "spm-v1",
+            "temporal": {
+                "publication_time": pub_year,
+                "subject_time": subject_year,
+                "time_gap_policy": "no_auto_penalty_for_peer_review",
+            },
+            "paradigm": paradigm_tags,
+            "category": category_tags,
+            "perspective": perspective_tags,
+            "opinion": opinion_tags,
+            "embodied": {
+                "policy": "sensory_action_environment_equal",
+                "sensory_hits": sensory_hits,
+                "action_hits": action_hits,
+                "environment_hits": env_hits,
+            },
+            "hierarchy": {
+                "micro_sentence_count": sent_n,
+                "meso_paragraph_count": para_n,
+                "macro_document": True,
+            },
+        }
+
+    def _spml_from_spm(
+        self,
+        spm: dict[str, Any],
+        result: dict[str, Any],
+        html_pipe: dict[str, Any],
+        sweep: dict[str, Any],
+        refs_count: float,
+    ) -> dict[str, Any]:
+        t = ((result.get("kq_payload") or {}).get("text") or "") if isinstance(result, dict) else ""
+        if not t:
+            t = ""
+
         compression_ratio = float(result.get("context_compression_ratio", 1.0) or 1.0)
         compression_loss = min(1.0, abs(1.0 - compression_ratio))
         hdec = ((result.get("reason") or {}).get("kq_hierarchical_decode") or {})
@@ -725,45 +810,31 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
         decode_loss = 1.0 - max(0.0, min(1.0, continuity))
         semantic_fidelity_loss = self._clamp(compression_loss * 0.55 + decode_loss * 0.45)
 
-        # 2) embodied signal loss (sensory/action/environment)
-        sensory_hits = sum(1 for k in ["pain", "fatigue", "comfort", "discomfort", "痛み", "疲労", "感覚"] if k in low)
-        action_hits = sum(1 for k in ["intervention", "manipulation", "operate", "procedure", "介入", "操作", "動作"] if k in low)
-        env_hits = sum(1 for k in ["temperature", "touch", "noise", "visual", "environment", "温度", "接触", "環境"] if k in low)
-        embodied_signal_strength = self._clamp(min(1.0, sensory_hits / 3.0) * 0.34 + min(1.0, action_hits / 3.0) * 0.33 + min(1.0, env_hits / 3.0) * 0.33)
+        emb = spm.get("embodied") or {}
+        embodied_signal_strength = self._clamp(
+            min(1.0, float(emb.get("sensory_hits", 0)) / 3.0) * 0.34
+            + min(1.0, float(emb.get("action_hits", 0)) / 3.0) * 0.33
+            + min(1.0, float(emb.get("environment_hits", 0)) / 3.0) * 0.33
+        )
         embodied_signal_loss = self._clamp(1.0 - embodied_signal_strength)
 
-        # 3) temporal-paradigm loss (publication_time / subject_time + paradigm tags)
-        # policy: large time gap in peer-reviewed context is NOT an automatic loss increase.
-        pub_year = int((paper_stats or {}).get("latest_year", 0) or 0)
-        years_in_text = [int(y) for y in re.findall(r"\b(19\d{2}|20\d{2})\b", t)]
-        subject_year = max(years_in_text) if years_in_text else 0
-        if pub_year <= 0:
-            pub_year = max(0, subject_year)
-
-        paradigm_tags = {
-            "empiricism": ["trial", "experiment", "observed", "empirical", "実験"],
-            "mechanistic": ["mechanism", "causal", "pathway", "機序"],
-            "statistical": ["regression", "significant", "p-value", "bayesian", "統計"],
-            "interpretive": ["interpret", "phenomenology", "narrative", "解釈"],
-            "engineering": ["pipeline", "system", "benchmark", "deployment", "実装"],
-        }
-        detected = [k for k, ws in paradigm_tags.items() if any(w in low for w in ws)]
-        # loss focuses on detectability of temporal/paradigm coordinates, not age-gap penalty.
-        temporal_detectability = 1.0 if (pub_year > 0 or subject_year > 0) else 0.0
-        paradigm_detectability = min(1.0, len(detected) / 2.0)
+        temporal = spm.get("temporal") or {}
+        temporal_detectability = 1.0 if (temporal.get("publication_time", 0) or temporal.get("subject_time", 0)) else 0.0
+        paradigm_detectability = min(1.0, len(spm.get("paradigm") or []) / 2.0)
         temporal_paradigm_loss = self._clamp(1.0 - (temporal_detectability * 0.5 + paradigm_detectability * 0.5))
 
-        # 4) stance-context loss: do not judge validity; only estimate coordinate extractability
-        stance_hits = sum(1 for k in ["we argue", "we claim", "suggest", "hypothesis", "主張", "示唆", "仮説"] if k in low)
-        context_hits = sum(1 for k in ["however", "although", "in this context", "一方", "ただし", "文脈"] if k in low)
-        stance_context_strength = self._clamp(min(1.0, stance_hits / 3.0) * 0.55 + min(1.0, context_hits / 3.0) * 0.45)
-        stance_context_loss = self._clamp(1.0 - stance_context_strength)
+        stance_detectability = self._clamp(min(1.0, len(spm.get("opinion") or []) / 2.0) * 0.55 + min(1.0, len(spm.get("perspective") or []) / 3.0) * 0.45)
+        stance_context_loss = self._clamp(1.0 - stance_detectability)
 
-        # 5) evidence grounding loss
+        html_hits = float((html_pipe or {}).get("html_hit_count", 0))
+        pdf_target = float((sweep or {}).get("pdf_target", 1) or 1)
+        text_target = float((sweep or {}).get("text_target", 1) or 1)
+        pdf_read = float((sweep or {}).get("pdf_read_count", 0) or 0)
+        text_read = float((sweep or {}).get("text_read_count", 0) or 0)
+        read_cov = min(1.0, (pdf_read / max(1.0, pdf_target)) * 0.5 + (text_read / max(1.0, text_target)) * 0.5)
         grounding_strength = min(1.0, refs_count / 40.0) * 0.45 + min(1.0, html_hits / 12.0) * 0.25 + read_cov * 0.30
         evidence_grounding_loss = self._clamp(1.0 - grounding_strength)
 
-        # fixed-weight aggregate (manual tuning policy)
         weights = {
             "semantic_fidelity_loss": 0.24,
             "embodied_signal_loss": 0.20,
@@ -771,6 +842,9 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
             "stance_context_loss": 0.16,
             "evidence_grounding_loss": 0.20,
         }
+        mapping_completeness_loss = self._clamp((temporal_paradigm_loss * 0.5 + stance_context_loss * 0.5))
+        mapping_fidelity_loss = self._clamp((semantic_fidelity_loss * 0.5 + evidence_grounding_loss * 0.5))
+
         score = self._clamp(
             semantic_fidelity_loss * weights["semantic_fidelity_loss"]
             + embodied_signal_loss * weights["embodied_signal_loss"]
@@ -778,11 +852,6 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
             + stance_context_loss * weights["stance_context_loss"]
             + evidence_grounding_loss * weights["evidence_grounding_loss"]
         )
-
-        source_layer = self._detect_layer_from_features(text)
-        target_layer = "natural_language"
-        confidence = self._clamp(0.45 + min(0.35, refs_count / 120.0) + min(0.20, html_hits / 20.0))
-
         if score <= 0.18:
             profile = "low-loss"
         elif score <= 0.35:
@@ -793,10 +862,12 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
             profile = "high-loss"
 
         return {
+            "version": "spml-v1",
             "mode": "measured" if refs_count > 0 else "estimated",
             "score": round(score, 4),
             "profile": profile,
-            "anchor_retention_estimate": round(1.0 - semantic_fidelity_loss, 4),
+            "mapping_completeness_loss": round(mapping_completeness_loss, 4),
+            "mapping_fidelity_loss": round(mapping_fidelity_loss, 4),
             "components": {
                 "semantic_fidelity_loss": round(semantic_fidelity_loss, 4),
                 "embodied_signal_loss": round(embodied_signal_loss, 4),
@@ -805,58 +876,55 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
                 "evidence_grounding_loss": round(evidence_grounding_loss, 4),
             },
             "weights": {k: round(v, 4) for k, v in weights.items()},
+        }
+
+    def _compute_translation_loss(
+        self,
+        text: str,
+        result: dict[str, Any],
+        paper_stats: dict[str, Any],
+        html_pipe: dict[str, Any],
+        sweep: dict[str, Any],
+    ) -> dict[str, Any]:
+        refs_count = float((paper_stats or {}).get("refs_count", 0))
+        spm = self._spm_mapping(text, paper_stats)
+        spml = self._spml_from_spm(spm, result, html_pipe, sweep, refs_count)
+
+        source_layer = self._detect_layer_from_features(text)
+        target_layer = "natural_language"
+        html_hits = float((html_pipe or {}).get("html_hit_count", 0))
+        confidence = self._clamp(0.45 + min(0.35, refs_count / 120.0) + min(0.20, html_hits / 20.0))
+
+        tl = {
+            "mode": spml.get("mode", "estimated"),
+            "score": spml.get("score", 0.5),
+            "profile": spml.get("profile", "medium-loss"),
+            "anchor_retention_estimate": round(1.0 - float((spml.get("components") or {}).get("semantic_fidelity_loss", 0.5)), 4),
+            "components": spml.get("components") or {},
+            "weights": spml.get("weights") or {},
             "confidence": round(confidence, 4),
             "auto_detected_layers": {
                 "source": source_layer,
                 "target": target_layer,
-                "paradigm_tags": detected,
+                "paradigm_tags": [x.get("tag") for x in (spm.get("paradigm") or [])],
             },
             "temporal_axes": {
-                "publication_time": pub_year,
-                "subject_time": subject_year,
+                "publication_time": (spm.get("temporal") or {}).get("publication_time", 0),
+                "subject_time": (spm.get("temporal") or {}).get("subject_time", 0),
                 "time_gap_policy": "no_auto_penalty_for_peer_review",
-                "temporal_detectability": round(temporal_detectability, 4),
+                "temporal_detectability": 1.0 if ((spm.get("temporal") or {}).get("publication_time", 0) or (spm.get("temporal") or {}).get("subject_time", 0)) else 0.0,
             },
-            "embodied_axes": {
-                "policy": "sensory_action_environment_equal",
-                "sensory_hits": sensory_hits,
-                "action_hits": action_hits,
-                "environment_hits": env_hits,
-            },
+            "embodied_axes": spm.get("embodied") or {},
             "coordinate_extraction": {
-                "category_tags": [k for k, ws in {
-                    "medical": ["clinical", "patient", "trial", "symptom", "therapy", "症状", "治療"],
-                    "engineering": ["system", "pipeline", "benchmark", "deployment", "implementation", "実装", "運用"],
-                    "social": ["policy", "society", "ethics", "institution", "制度", "倫理", "社会"],
-                    "cognitive": ["perception", "memory", "attention", "cognitive", "認知", "知覚", "記憶"],
-                    "education": ["learning", "curriculum", "classroom", "pedagogy", "教育", "学習"],
-                    "economics": ["market", "cost", "incentive", "productivity", "経済", "費用"],
-                    "security": ["threat", "vulnerability", "safety", "attack", "セキュリティ", "脆弱性"],
-                    "environment": ["climate", "pollution", "sustainability", "ecology", "環境", "気候"],
-                    "law_governance": ["law", "regulation", "compliance", "governance", "法", "規制", "ガバナンス"],
-                    "culture": ["culture", "norm", "value", "tradition", "文化", "価値観"],
-                }.items() if any(w in low for w in ws)],
-                "paradigm_tags": detected,
-                "perspective_tags": [k for k, ws in {
-                    "author": ["we", "our", "本研究", "我々"],
-                    "participant": ["patient", "user", "participant", "subject", "被験者", "利用者"],
-                    "system": ["model", "system", "algorithm", "agent", "手法", "モデル"],
-                    "institution": ["guideline", "policy", "regulation", "committee", "規制", "指針"],
-                    "practitioner": ["clinician", "engineer", "operator", "teacher", "医師", "技術者", "運用者"],
-                    "community": ["community", "citizen", "public", "stakeholder", "市民", "社会"],
-                    "industry": ["company", "enterprise", "product", "business", "企業", "産業"],
-                    "regulator": ["authority", "government", "ministry", "oversight", "政府", "当局"],
-                    "historian": ["historical", "archive", "chronicle", "history", "歴史", "史料"],
-                    "global_south": ["global south", "developing", "low-resource", "途上国", "低資源"],
-                }.items() if any(w in low for w in ws)],
-                "opinion_tags": [k for k, ws in {
-                    "hypothesis": ["hypothesis", "仮説", "we hypothesize"],
-                    "interpretation": ["suggest", "interpret", "示唆", "解釈"],
-                    "recommendation": ["should", "recommend", "提言", "推奨"],
-                    "observation": ["observed", "found", "観察", "結果"],
-                }.items() if any(w in low for w in ws)],
+                "category_tags": [x.get("tag") for x in (spm.get("category") or [])],
+                "paradigm_tags": [x.get("tag") for x in (spm.get("paradigm") or [])],
+                "perspective_tags": [x.get("tag") for x in (spm.get("perspective") or [])],
+                "opinion_tags": [x.get("tag") for x in (spm.get("opinion") or [])],
             },
+            "spm_mapping": spm,
+            "spml": spml,
         }
+        return tl
 
     def verify(self, *args, **kwargs):
         r = super().verify(*args, **kwargs)
@@ -882,9 +950,11 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
         bias = self._bias_detection(text, {**r, "paper_stats": p})
         htlf = self._htlf_loss_vector((tl.get("components") or {}), float(bias.get("risk_score", 0.0) or 0.0))
 
-        # C: fixed schema
+        # C: fixed schema + SPM/SPML native outputs
         r["translation_loss"] = tl
         r["kq_translation_loss"] = tl
+        r["spm_mapping"] = tl.get("spm_mapping") or {}
+        r["spml"] = tl.get("spml") or {}
         r["bias_detection"] = bias
         r["htlf_loss_vector"] = htlf
         r["kq_final_l8"] = self._l8_final_5axis(r, tl, htlf, bias, mlc)
@@ -948,7 +1018,7 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
         fw["mini_solver_activation_ratio"] = float((mini or {}).get("activation_ratio", 0.0) or 0.0)
         r["fusion_weights"] = fw
 
-        r["kq_revision"] = "02b-r13"
+        r["kq_revision"] = "02b-r14"
         r["model"] = self.SYSTEM_MODEL
         r["alias"] = self.ALIAS
         return r
