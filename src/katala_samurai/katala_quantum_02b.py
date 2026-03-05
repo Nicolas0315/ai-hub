@@ -130,6 +130,9 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
             "orchestration_detail": True,
             "orchestration_history": True,
             "solver_exposure_extended": True,
+            "counter_hypothesis_layer": True,
+            "schema_guard": True,
+            "transient_session_mode": True,
             "rust_kernel_bridge": True,
             "rust_kernel_available": bool(getattr(self.RUST_BRIDGE, "available", False)),
             "rust_kernel_backend": getattr(self.RUST_BRIDGE, "backend", "none"),
@@ -1170,6 +1173,57 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
         }
         return tl
 
+    def _counter_hypothesis_from_spml(self, text: str, spm: dict[str, Any], spml: dict[str, Any]) -> dict[str, Any]:
+        comps = (spml or {}).get("components") or {}
+        ranked = sorted(comps.items(), key=lambda kv: float(kv[1] or 0.0), reverse=True)
+        focus = [k for k, _ in ranked[:2]]
+        cats = [x.get("tag") for x in (spm.get("category") or []) if isinstance(x, dict)]
+        pars = [x.get("tag") for x in (spm.get("paradigm") or []) if isinstance(x, dict)]
+        persp = [x.get("tag") for x in (spm.get("perspective") or []) if isinstance(x, dict)]
+
+        claim = (text or "").strip()
+        contra = (
+            "Counter-hypothesis: The current claim may be overfit to its dominant coordinate assumptions "
+            f"(category={cats[:2]}, paradigm={pars[:2]}, perspective={persp[:2]}). "
+            f"High-loss components {focus} suggest an alternative interpretation should be preferred until additional evidence is grounded. "
+            f"Original claim: {claim[:240]}"
+        )
+        quality = self._clamp(1.0 - float((spml or {}).get("mapping_fidelity_loss", 0.5) or 0.5) * 0.7)
+        return {
+            "enabled": True,
+            "focus_components": focus,
+            "counter_hypothesis": contra,
+            "quality_score": round(quality, 4),
+            "verdict": "PASS" if quality >= 0.55 else "CAUTION",
+        }
+
+    def _schema_guard(self, result: dict[str, Any]) -> dict[str, Any]:
+        required = [
+            "spm_mapping",
+            "spml",
+            "translation_loss",
+            "kq_translation_loss",
+            "ks47_compatible_output",
+            "kq_solver_l1_l7",
+            "kq_final_l8",
+        ]
+        missing = [k for k in required if k not in result]
+        return {
+            "enabled": True,
+            "required": required,
+            "missing": missing,
+            "valid": len(missing) == 0,
+        }
+
+    def _transient_session_stamp(self) -> dict[str, Any]:
+        sid = f"kq-{os.urandom(6).hex()}"
+        return {
+            "session_id": sid,
+            "ephemeral": True,
+            "expires_on_completion": True,
+            "retained_fields": ["aggregate_metrics_only"],
+        }
+
     def verify(self, *args, **kwargs):
         r = super().verify(*args, **kwargs)
         if not isinstance(r, dict):
@@ -1200,6 +1254,7 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
         r["kq_translation_loss"] = tl
         r["spm_mapping"] = tl.get("spm_mapping") or {}
         r["spml"] = tl.get("spml") or {}
+        r["transient_session"] = self._transient_session_stamp()
         r["bias_detection"] = bias
         r["htlf_loss_vector"] = htlf
         r["kq_final_l8"] = self._l8_final_5axis(r, tl, htlf, bias, mlc)
@@ -1241,6 +1296,8 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
         r["hardware_batch_layer"] = self._hardware_batch_layer()
         r["internal_calibration_e1_e7"] = self._internal_calibration_e1_e7(r, tl, bias)
         r["goal_report"] = self._goal_report(text, r, r["kq_final_l8"], r["inline_sentence_verify"])
+        r["counter_hypothesis"] = self._counter_hypothesis_from_spml(text, r.get("spm_mapping") or {}, r.get("spml") or {})
+        r["schema_guard"] = self._schema_guard(r)
         r["legacy_compatibility"] = {
             "ks_style_fields": [
                 "translation_loss",
@@ -1260,6 +1317,8 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
         spml_obj = r.get("spml") or {}
         completeness_loss = float(spml_obj.get("mapping_completeness_loss", 0.0) or 0.0)
         fidelity_loss = float(spml_obj.get("mapping_fidelity_loss", 0.0) or 0.0)
+        counter_ok = ((r.get("counter_hypothesis") or {}).get("verdict") == "PASS")
+        schema_ok = bool((r.get("schema_guard") or {}).get("valid"))
         assertive_allowed = (
             (loss_score <= 0.24)
             and (consistency_score >= 0.72)
@@ -1267,6 +1326,8 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
             and (adv_risk <= 0.35)
             and (completeness_loss <= 0.42)
             and (fidelity_loss <= 0.46)
+            and counter_ok
+            and schema_ok
         )
         r["translation_loss_gate"] = {
             "enabled": True,
@@ -1276,6 +1337,10 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
             "adversarial_threshold": 0.35,
             "spml_completeness_threshold": 0.42,
             "spml_fidelity_threshold": 0.46,
+            "counter_hypothesis_required": True,
+            "schema_guard_required": True,
+            "counter_hypothesis_pass": counter_ok,
+            "schema_guard_pass": schema_ok,
             "assertive_allowed": assertive_allowed,
         }
 
@@ -1304,7 +1369,7 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
         fw["solver_complement_boost_sum"] = round(sum(float(v or 0.0) for v in ((complement.get("family_boost") or {}).values())), 4)
         r["fusion_weights"] = fw
 
-        r["kq_revision"] = "02b-r19"
+        r["kq_revision"] = "02b-r20"
         r["model"] = self.SYSTEM_MODEL
         r["alias"] = self.ALIAS
         return r
