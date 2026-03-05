@@ -6,7 +6,7 @@ import re
 import shutil
 import subprocess
 import tempfile
-from itertools import product
+from itertools import product, combinations
 from typing import Any
 
 try:
@@ -628,6 +628,14 @@ def solve_sat_lite(expr: str) -> dict[str, Any]:
                 },
             }
 
+        def _sat_for(subset: list[list[tuple[str, bool]]]) -> bool:
+            for bits in product([False, True], repeat=len(vars_list)):
+                env = {k: b for k, b in zip(vars_list, bits)}
+                if all(any((env.get(v, False) is sign) for v, sign in cl) for cl in subset):
+                    return True
+            return False
+
+        # First shrink greedily, then exact-minimize (for manageable clause counts)
         core = clauses[:]
         changed = True
         while changed and len(core) > 1:
@@ -635,17 +643,28 @@ def solve_sat_lite(expr: str) -> dict[str, Any]:
             i = 0
             while i < len(core):
                 trial = core[:i] + core[i + 1 :]
-                sat = False
-                for bits in product([False, True], repeat=len(vars_list)):
-                    env = {k: b for k, b in zip(vars_list, bits)}
-                    if all(any((env.get(v, False) is sign) for v, sign in cl) for cl in trial):
-                        sat = True
-                        break
-                if not sat:
+                if not _sat_for(trial):
                     core = trial
                     changed = True
                 else:
                     i += 1
+
+        exact_min_applied = False
+        if len(core) <= 14:
+            n = len(core)
+            found = None
+            for k in range(1, n + 1):
+                for idxs in combinations(range(n), k):
+                    trial = [core[i] for i in idxs]
+                    if not _sat_for(trial):
+                        found = trial
+                        break
+                if found is not None:
+                    break
+            if found is not None:
+                core = found
+                exact_min_applied = True
+
         core_txt = [" or ".join([(v if sign else f"not {v}") for v, sign in cl]) for cl in core]
 
         unit_pos = {cl[0][0] for cl in core if len(cl) == 1 and cl[0][1] is True}
@@ -665,6 +684,7 @@ def solve_sat_lite(expr: str) -> dict[str, Any]:
                 "mode": "cdcl-lite+qemu-priority" if _HAS_QEMU else "cdcl-lite",
                 "watched_literals_init": watched_literals,
                 "learned_clauses": learned_clauses,
+                "unsat_core_exact_minimized": exact_min_applied,
                 **trace,
             },
         }

@@ -149,12 +149,14 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
             "sat_lite_kernel": True,
             "cdcl_lite_watchers": True,
             "cdcl_lite_backjump": True,
+            "unsat_core_exact_min": True,
             "quantum_emu_formal_kernels": True,
             "lean_coq_proof_bridge": True,
             "isabelle_proof_bridge": True,
             "claim_ir_v1": True,
             "claim_ir_v2": True,
             "claim_ir_modalities_v2": True,
+            "claim_ir_modality_trace": True,
             "proof_status_gate_link": True,
             "machine_verified_spml_link": True,
             "spml_information_loss_ratio": True,
@@ -1177,6 +1179,13 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
         proof = self._proof_status_summary(symbolic_eval or {})
         payload = v1.get("payload") or {}
         payload["modalities"] = self._extract_modal_payloads(text)
+        mods = payload.get("modalities") or {}
+        modality_trace = {
+            "code": [x.get("trace") for x in mods.get("code", []) if isinstance(x, dict)],
+            "image": [x.get("trace") for x in mods.get("image", []) if isinstance(x, dict)],
+            "audio": [x.get("trace") for x in mods.get("audio", []) if isinstance(x, dict)],
+            "binary": [x.get("trace") for x in mods.get("binary", []) if isinstance(x, dict)],
+        }
         return {
             "version": "claim-ir-v2",
             "source_modality": v1.get("source_modality", "text"),
@@ -1185,6 +1194,7 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
             "formal": {
                 "backend": (symbolic_eval or {}).get("backend", "none"),
                 "proof_status_summary": proof,
+                "modality_trace": modality_trace,
             },
             "evidence": {
                 "spml_profile": (spml or {}).get("profile", "unknown"),
@@ -1550,9 +1560,10 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
         spmlx = r.get("spml") or {}
         base_ilr = float(spmlx.get("information_loss_ratio", 0.0) or 0.0)
         mv_gap = max(0.0, 0.5 - mv_ratio0)
-        ilr_adj = self._clamp(base_ilr + mv_gap * 0.12)
+        mv_weight = 0.20
+        ilr_adj = self._clamp(base_ilr + mv_gap * mv_weight)
         spmlx["information_loss_ratio"] = round(ilr_adj, 4)
-        spmlx["machine_verified_link"] = {"enabled": True, "machine_verified_ratio": round(mv_ratio0, 4), "gap": round(mv_gap, 4), "weight": 0.12}
+        spmlx["machine_verified_link"] = {"enabled": True, "machine_verified_ratio": round(mv_ratio0, 4), "gap": round(mv_gap, 4), "weight": mv_weight}
         r["spml"] = spmlx
         r["translation_loss"]["spml"] = spmlx
         r["kq_translation_loss"]["spml"] = spmlx
@@ -1713,7 +1724,7 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
                 "persistent_cache": False,
             }
 
-        r["kq_revision"] = "02b-r36"
+        r["kq_revision"] = "02b-r37"
         r["model"] = self.SYSTEM_MODEL
         r["alias"] = self.ALIAS
         return r
