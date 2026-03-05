@@ -107,6 +107,20 @@ def constraint_kernel(payload: dict[str, Any]) -> dict[str, Any]:
     return solve_constraint_lite(expr)
 
 
+def ltl_kernel(payload: dict[str, Any]) -> dict[str, Any]:
+    from katala_samurai.kq_symbolic_bridge import eval_ltl_lite
+
+    expr = str(payload.get("expr", "") or "")
+    return eval_ltl_lite(expr)
+
+
+def smt_kernel(payload: dict[str, Any]) -> dict[str, Any]:
+    from katala_samurai.kq_symbolic_bridge import solve_smt_optional
+
+    expr = str(payload.get("expr", "") or "")
+    return solve_smt_optional(expr)
+
+
 def spml_kernel(payload: dict[str, Any]) -> dict[str, Any]:
     # scaffold only; deterministic pass-through aggregation
     w = payload.get("weights") or {}

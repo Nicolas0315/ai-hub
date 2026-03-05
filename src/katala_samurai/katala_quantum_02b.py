@@ -141,6 +141,8 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
             "modal_kernel": True,
             "predicate_lite_kernel": True,
             "constraint_kernel": True,
+            "ltl_kernel": True,
+            "smt_kernel": True,
             "claim_ir_v1": True,
             "claim_ir_v2": True,
             "proof_status_gate_link": True,
@@ -1097,7 +1099,7 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
 
     def _proof_status_summary(self, symbolic_eval: dict[str, Any]) -> dict[str, Any]:
         statuses: list[str] = []
-        for k in ("items", "modal_items", "predicate_items", "constraint_items"):
+        for k in ("items", "modal_items", "predicate_items", "constraint_items", "ltl_items", "smt_items"):
             for it in (symbolic_eval or {}).get(k, []) or []:
                 if isinstance(it, dict):
                     statuses.append(str(it.get("proof_status", "unknown") or "unknown"))
@@ -1310,7 +1312,7 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
 
         sym_items = []
         if isinstance(symbolic_eval, dict):
-            for k in ("items", "modal_items", "predicate_items", "constraint_items"):
+            for k in ("items", "modal_items", "predicate_items", "constraint_items", "ltl_items", "smt_items"):
                 sym_items.extend((symbolic_eval.get(k) or []))
         sym_refutations = []
         sym_fail = 0
@@ -1399,7 +1401,7 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
         return out[:5]
 
     def _extract_formal_candidates(self, text: str) -> dict[str, list[str]]:
-        modal, pred, cons = [], [], []
+        modal, pred, cons, ltl, smt = [], [], [], [], []
         for line in (text or "").splitlines():
             s = line.strip()
             low = s.lower()
@@ -1409,7 +1411,11 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
                 pred.append(s.split(":", 1)[1].strip())
             elif low.startswith("constraint:"):
                 cons.append(s.split(":", 1)[1].strip())
-        return {"modal": modal[:5], "predicate": pred[:5], "constraint": cons[:5]}
+            elif low.startswith("ltl:"):
+                ltl.append(s.split(":", 1)[1].strip())
+            elif low.startswith("smt:"):
+                smt.append(s.split(":", 1)[1].strip())
+        return {"modal": modal[:5], "predicate": pred[:5], "constraint": cons[:5], "ltl": ltl[:5], "smt": smt[:5]}
 
     def verify(self, *args, **kwargs):
         r = super().verify(*args, **kwargs)
@@ -1448,6 +1454,14 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
             "constraint_items": [
                 {"expr": e, **(self.RUST_BRIDGE.constraint_kernel(e) or {})}
                 for e in formal.get("constraint", [])
+            ],
+            "ltl_items": [
+                {"expr": e, **(self.RUST_BRIDGE.ltl_kernel(e) or {})}
+                for e in formal.get("ltl", [])
+            ],
+            "smt_items": [
+                {"expr": e, **(self.RUST_BRIDGE.smt_kernel(e) or {})}
+                for e in formal.get("smt", [])
             ],
         }
 
@@ -1612,7 +1626,7 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
                 "persistent_cache": False,
             }
 
-        r["kq_revision"] = "02b-r27"
+        r["kq_revision"] = "02b-r28"
         r["model"] = self.SYSTEM_MODEL
         r["alias"] = self.ALIAS
         return r
