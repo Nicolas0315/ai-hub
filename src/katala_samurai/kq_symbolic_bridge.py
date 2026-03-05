@@ -898,41 +898,164 @@ def solve_zfc_lite(expr: str) -> dict[str, Any]:
         return {"ok": False, "proof_status": "failed", "solver": "zfc-lite", "error": str(e)}
 
 
+def _strip_outer_paren(s: str) -> str:
+    t = (s or '').strip()
+    while t.startswith('(') and t.endswith(')'):
+        depth = 0
+        ok = True
+        for i, ch in enumerate(t):
+            if ch == '(':
+                depth += 1
+            elif ch == ')':
+                depth -= 1
+                if depth == 0 and i != len(t) - 1:
+                    ok = False
+                    break
+        if ok:
+            t = t[1:-1].strip()
+        else:
+            break
+    return t
+
+
+def _split_top_expr(s: str, token: str) -> tuple[str, str] | None:
+    t = s
+    depth = 0
+    i = 0
+    while i < len(t):
+        ch = t[i]
+        if ch == '(':
+            depth += 1
+        elif ch == ')':
+            depth = max(0, depth - 1)
+        if depth == 0 and t.startswith(token, i):
+            return t[:i].strip(), t[i + len(token):].strip()
+        i += 1
+    return None
+
+
+def _parse_hol_expr(s: str):
+    t = _strip_outer_paren((s or '').strip())
+    low = t.lower()
+
+    # quantifiers
+    m = re.match(r'^(forall|exists)\s+([A-Za-z_]\w*)\s+in\s*(\[[^\]]*\]|\([^\)]*\))\s*\.\s*(.+)$', t, re.I)
+    if m:
+        q, var, dom_txt, body = m.group(1).lower(), m.group(2), m.group(3), m.group(4)
+        dom = ast.literal_eval(dom_txt)
+        if not isinstance(dom, (list, tuple)):
+            raise ValueError('quantifier domain must be list/tuple')
+        return ('quant', q, var, list(dom), _parse_hol_expr(body))
+
+    # lambda abstraction
+    m = re.match(r'^lambda\s+([A-Za-z_]\w*)\s*\.\s*(.+)$', t, re.I)
+    if m:
+        return ('lambda', m.group(1), _parse_hol_expr(m.group(2)))
+
+    # implication
+    sp = _split_top_expr(t, '->')
+    if sp:
+        a, b = sp
+        return ('or', ('not', _parse_hol_expr(a)), _parse_hol_expr(b))
+
+    # boolean connectives
+    for tok, k in [(' and ', 'and'), (' or ', 'or')]:
+        sp = _split_top_expr(t, tok)
+        if sp:
+            a, b = sp
+            return (k, _parse_hol_expr(a), _parse_hol_expr(b))
+
+    if low.startswith('not '):
+        return ('not', _parse_hol_expr(t[4:].strip()))
+
+    # application: f @ x
+    sp = _split_top_expr(t, '@')
+    if sp:
+        f, a = sp
+        return ('app', _parse_hol_expr(f), _parse_hol_expr(a))
+
+    return ('leaf', t)
+
+
+def _eval_hol_ast(node, env: dict[str, Any]):
+    k = node[0]
+    if k == 'quant':
+        _, q, var, dom, body = node
+        vals = []
+        for v in dom:
+            e2 = dict(env)
+            e2[var] = v
+            vals.append(bool(_eval_hol_ast(body, e2)))
+        return all(vals) if q == 'forall' else any(vals)
+
+    if k == 'lambda':
+        _, var, body = node
+        return ('closure', var, body, dict(env))
+
+    if k == 'app':
+        _, fn, arg = node
+        fv = _eval_hol_ast(fn, env)
+        av = _eval_hol_ast(arg, env)
+        if isinstance(fv, tuple) and len(fv) == 4 and fv[0] == 'closure':
+            _, var, body, cenv = fv
+            e2 = dict(cenv)
+            e2[var] = av
+            return _eval_hol_ast(body, e2)
+        raise ValueError('application target is not lambda closure')
+
+    if k == 'and':
+        return bool(_eval_hol_ast(node[1], env)) and bool(_eval_hol_ast(node[2], env))
+    if k == 'or':
+        return bool(_eval_hol_ast(node[1], env)) or bool(_eval_hol_ast(node[2], env))
+    if k == 'not':
+        return not bool(_eval_hol_ast(node[1], env))
+
+    if k == 'leaf':
+        t = node[1]
+        if re.fullmatch(r'-?\d+', t):
+            return int(t)
+        if re.fullmatch(r'-?\d+\.\d+', t):
+            return float(t)
+        tl = t.lower()
+        if tl in {'true', 'false'}:
+            return tl == 'true'
+        if t in env:
+            return env[t]
+        ev = _eval_symbolic_env(t, env)
+        if ev.get('ok'):
+            return ev.get('result')
+        raise ValueError(ev.get('error', 'leaf eval failed'))
+
+    raise ValueError(f'unsupported hol ast node: {k}')
+
+
 def solve_hol_lite(expr: str) -> dict[str, Any]:
-    """HOL-lite parser/evaluator (very limited).
+    """HOL-lite general formula evaluator (typed-lambda style surface).
 
-    Syntax:
+    Supported:
     - forall x in [1,2,3]. x > 0
-    - exists x in [1,2,3]. x % 2 == 0
-    - lambda x. x+1 @ 3
+    - exists x in [1,2,3]. (x % 2 == 0)
+    - (lambda x. x+1) @ 3
+    - ((lambda x. lambda y. x+y) @ 2) @ 5
+    - forall x in [1,2,3]. ((lambda z. z>0) @ x)
+    - formula=(forall x in [1,2,3]. x > 0)
     """
-    s = (expr or "").strip()
+    s = (expr or '').strip()
     try:
-        low = s.lower()
-        if low.startswith("forall ") or low.startswith("exists "):
-            q = "forall" if low.startswith("forall ") else "exists"
-            body = s[len(q):].strip()
-            var, rest = body.split(" in ", 1)
-            dom_txt, pred_txt = rest.split(".", 1)
-            dom = ast.literal_eval(dom_txt.strip())
-            vals = []
-            for v in dom:
-                ev = _eval_symbolic_env(pred_txt.strip(), {var.strip(): v})
-                vals.append(bool(ev.get("ok") and ev.get("result")))
-            r = all(vals) if q == "forall" else any(vals)
-            return {"ok": True, "proof_status": "checked", "solver": "hol-lite", "result": r, "quantifier": q}
-        if low.startswith("lambda ") and "@" in s:
-            lam, arg = [x.strip() for x in s.split("@", 1)]
-            head, body = lam.split(".", 1)
-            var = head.replace("lambda", "", 1).strip()
-            av = ast.literal_eval(arg.strip())
-            ev = _eval_symbolic_env(body.strip(), {var: av})
-            return {"ok": bool(ev.get("ok")), "proof_status": "checked" if ev.get("ok") else "failed", "solver": "hol-lite", "result": ev.get("result")}
-        return {"ok": False, "proof_status": "failed", "solver": "hol-lite", "error": "unsupported syntax"}
+        if s.lower().startswith('formula='):
+            s = s.split('=', 1)[1].strip()
+        astn = _parse_hol_expr(s)
+        val = _eval_hol_ast(astn, {})
+        return {
+            'ok': True,
+            'proof_status': 'checked',
+            'solver': 'hol-lite',
+            'result': val if not (isinstance(val, tuple) and val and val[0] == 'closure') else '<lambda>',
+            'ast': str(astn),
+            'mode': 'general-formula',
+        }
     except Exception as e:
-        return {"ok": False, "proof_status": "failed", "solver": "hol-lite", "error": str(e)}
-
-
+        return {'ok': False, 'proof_status': 'failed', 'solver': 'hol-lite', 'error': str(e)}
 
 
 def solve_ctl_lite(expr: str) -> dict[str, Any]:
