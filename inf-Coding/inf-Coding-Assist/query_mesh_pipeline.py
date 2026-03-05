@@ -407,6 +407,12 @@ class ReasoningMeshExecutor:
             " εἰ ": " if ", " καί ": " and ", " ἤ ": " or ",  # ancient greek
             " sace ": " if ", " ca ": " and ", " vā ": " or ",  # pali
             " ܐܢ ": " if ", " ܗܝܕܝܢ ": " then ",  # classical syriac
+            " ije ": " if ", " ian ": " and ", " a ": " or ",  # interlingua/ido lite
+            " xu ": " if ", " gi'e ": " and ", " ja ": " or ",  # lojban-lite
+            " chugh ": " if ", " vaj ": " then ", " je ": " and ", " pagh ": " or ",  # klingon-lite
+            " aiya ": " if ", " ar ": " and ", " hya ": " or ",  # quenya/sindarin-lite
+            " mae ": " if ", " san ": " then ", " vos ": " or ",  # dothraki/valyrian-lite
+            " tsnì ": " and ", " fu ": " or ",  # na'vi-lite
         }
         for a, b in rep.items():
             if a in low:
@@ -480,7 +486,7 @@ class ReasoningMeshExecutor:
 
 
 class FormalClaimRouter:
-    LOGIC_PAT = re.compile(r"(forall|exists|\bSAT\b|\bSMT\b|\bCTL\b|\bLTL\b|\bmu\b|\bnu\b|->|<->|\band\b|\bor\b|=|<=|>=|ならば|すべて|存在|si|entonces|y|o|se|ent[aã]o|e|ou|si\s+alors|et|ou|wenn|dann|und|oder|если|то|и|или|اذا|فإن|و|أو|यदि|तो|और|या|如果|那么|且|或|ถ้า|แล้ว|และ|หรือ|jika|maka|dan|atau|toki|la|en|aŭ|se\s+tiam|kaj|aux|ergo|igitur|aut|εἰ|καί|ἤ|sace|vā|ܐܢ)", re.I)
+    LOGIC_PAT = re.compile(r"(forall|exists|\bSAT\b|\bSMT\b|\bCTL\b|\bLTL\b|\bmu\b|\bnu\b|->|<->|\band\b|\bor\b|=|<=|>=|ならば|すべて|存在|si|entonces|y|o|se|ent[aã]o|e|ou|si\s+alors|et|ou|wenn|dann|und|oder|если|то|и|или|اذا|فإن|و|أو|यदि|तो|और|या|如果|那么|且|或|ถ้า|แล้ว|และ|หรือ|jika|maka|dan|atau|toki|la|en|aŭ|se\s+tiam|kaj|aux|ergo|igitur|aut|εἰ|καί|ἤ|sace|vā|ܐܢ|lojban|la\s+o\w+|interlingua|ido|klingon|tlh|quenya|sindarin|dothraki|valyrian|na['’]vi)", re.I)
 
     @staticmethod
     def _normalize_claim(claim: str) -> dict[str, Any]:
@@ -515,6 +521,12 @@ class FormalClaimRouter:
             " εἰ ": " if ", " καί ": " and ", " ἤ ": " or ",  # ancient greek
             " sace ": " if ", " ca ": " and ", " vā ": " or ",  # pali
             " ܐܢ ": " if ", " ܗܝܕܝܢ ": " then ",  # classical syriac
+            " ije ": " if ", " ian ": " and ", " a ": " or ",  # interlingua/ido lite
+            " xu ": " if ", " gi'e ": " and ", " ja ": " or ",  # lojban-lite
+            " chugh ": " if ", " vaj ": " then ", " je ": " and ", " pagh ": " or ",  # klingon-lite
+            " aiya ": " if ", " ar ": " and ", " hya ": " or ",  # quenya/sindarin-lite
+            " mae ": " if ", " san ": " then ", " vos ": " or ",  # dothraki/valyrian-lite
+            " tsnì ": " and ", " fu ": " or ",  # na'vi-lite
             " 𒆠 ": " in ", " 𒌋 ": " and ",  # sumerian markers (best-effort)
         }
         for a, b in rep.items():

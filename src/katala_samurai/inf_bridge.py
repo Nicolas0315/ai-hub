@@ -180,7 +180,7 @@ def external_signals(payload: dict[str, Any]) -> dict[str, Any]:
         "sw": [" ikiwa ", " basi ", " na ", " au ", " nadharia", "uthibitisho"],
         "fa": [" اگر ", " آنگاه ", " و ", " یا ", " قضیه", "برهان"],
         "he": [" אם ", " אז ", " ו ", " או ", " משפט", "הוכחה"],
-        "conlang": [" toki ", " anu ", " se ", " tiam ", " kaj ", " aŭ "],
+        "conlang": [" toki ", " anu ", " se ", " tiam ", " kaj ", " aŭ ", " lojban ", " interlingua ", " ido ", " klingon ", " tlh ", " quenya ", " sindarin ", " dothraki ", " valyrian ", " na'vi ", " volapük ", " novial ", " interslavic ", " lingua franca nova "],
         "latin_classical": [" si ", " igitur ", " ergo ", " et ", " aut ", " theorem", "demonstratio"],
         "greek_ancient": [" εἰ ", " τότε ", " καί ", " ἤ ", " θεώρημα", "ἀπόδειξ"],
         "koine_greek": [" εἰ ", " τότε ", " και ", " ή ", " θεωρη", "αποδει"],
