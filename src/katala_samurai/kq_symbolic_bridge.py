@@ -330,12 +330,29 @@ def _apply_family_grammar_templates(expr: str, family: str, solver: str) -> tupl
 
     # multilingual surface normalization for quantifier scope
     for a, b in [
+        # Japonic / Sinitic / Koreanic
         (" すべての ", " forall "), (" 全ての ", " forall "), (" 任意の ", " forall "),
         (" 모든 ", " forall "), (" 모든것 ", " forall "),
-        (" 所有 ", " forall "), (" 任意 ", " forall "),
-        (" 任一 ", " forall "), (" 对所有 ", " forall "),
-        (" 存在する ", " exists "), (" ある ", " exists "),
-        (" 存在する ", " exists "), (" 存在 ", " exists "),
+        (" 所有 ", " forall "), (" 任意 ", " forall "), (" 任一 ", " forall "), (" 对所有 ", " forall "),
+        (" 存在する ", " exists "), (" ある ", " exists "), (" 存在 ", " exists "),
+        # Indo-European broad coverage
+        (" all ", " forall "), (" every ", " forall "), (" each ", " forall "),
+        (" todos los ", " forall "), (" todas las ", " forall "), (" cada ", " forall "),
+        (" tous les ", " forall "), (" toutes les ", " forall "), (" chaque ", " forall "),
+        (" alle ", " forall "), (" jeder ", " forall "), (" jede ", " forall "),
+        (" tutti i ", " forall "), (" tutte le ", " forall "), (" ciascun ", " forall "),
+        (" todos os ", " forall "), (" todas as ", " forall "), (" cada ", " forall "),
+        (" все ", " forall "), (" каждый ", " forall "),
+        (" όλοι ", " forall "), (" κάθε ", " forall "),
+        (" exists ", " exists "), (" there exists ", " exists "),
+        (" existe ", " exists "), (" existen ", " exists "),
+        (" il existe ", " exists "), (" es gibt ", " exists "),
+        (" esiste ", " exists "), (" existem ", " exists "),
+        (" существует ", " exists "), (" there is ", " exists "),
+        # Indo-Aryan / Semitic / others
+        (" सभी ", " forall "), (" प्रत्येक ", " forall "), (" सभी के लिए ", " forall "),
+        (" सब ", " forall "), (" ہر ", " forall "), (" كل ", " forall "),
+        (" अगर मौजूद है ", " exists "), (" وجود دارد ", " exists "), (" يوجد ", " exists "),
     ]:
         if a in t:
             t = t.replace(a, b)
@@ -365,7 +382,16 @@ def _apply_family_grammar_templates(expr: str, family: str, solver: str) -> tupl
         low = t.lower()
 
     # subordinate clauses: multilingual markers -> conjunction skeleton
-    for kw in [" although ", " while ", " because ", " since ", " しかし ", " だが ", " なので ", " から ", " 但是 ", " 因为 ", " 하지만 ", " 때문에 "]:
+    for kw in [
+        " although ", " while ", " because ", " since ", " however ", " therefore ",
+        " pero ", " porque ", " alors ", " parce que ", " aber ", " weil ", " denn ",
+        " однако ", " потому что ", " если ", " тогда ",
+        " しかし ", " だが ", " なので ", " から ",
+        " 但是 ", " 因为 ", " 所以 ",
+        " 하지만 ", " 때문에 ",
+        " क्योंकि ", " इसलिए ", " যদি ", " তবে ",
+        " لأن ", " لذلك ", " زیرا ", " بنابراین ",
+    ]:
         if kw in low and " and " not in low:
             parts = low.split(kw, 1)
             t = f"({parts[0].strip()}) and ({parts[1].strip()})"
@@ -374,12 +400,14 @@ def _apply_family_grammar_templates(expr: str, family: str, solver: str) -> tupl
 
     # implication templates from multilingual surface forms
     implication_pairs = [
-        (" if ", " then "),
-        (" ならば ", " "),
-        (" もし ", " なら "),
-        (" 如果 ", " 那么 "),
-        (" 若 ", " 则 "),
+        (" if ", " then "), (" when ", " then "),
+        (" si ", " entonces "), (" si ", " alors "), (" se ", " allora "), (" se ", " então "),
+        (" wenn ", " dann "), (" если ", " то "), (" eğer ", " ise "), (" dacă ", " atunci "),
+        (" ならば ", " "), (" もし ", " なら "),
+        (" 如果 ", " 那么 "), (" 若 ", " 则 "),
         (" 만약 ", " 이면 "),
+        (" यदि ", " तो "), (" अगर ", " तो "), (" যদি ", " তবে "),
+        (" إذا ", " فإن "), (" اگر ", " آنگاه "),
     ]
     if "->" not in low:
         for a_kw, b_kw in implication_pairs:
@@ -407,7 +435,17 @@ def _apply_family_grammar_templates(expr: str, family: str, solver: str) -> tupl
     mq = re.search(r"\b(forall|exists)\s+([a-zA-Z_]\w*)\s+in\s*(\[[^\]]+\]|\([^\)]+\))\s*:\s*(.+)", low)
     if mq:
         q, v, dom, body = mq.group(1), mq.group(2), mq.group(3), mq.group(4)
-        body2 = re.sub(r"\b(it|they|them|this|that|he|she|him|her)\b|それ|これ|あれ|彼|彼女|它|他|她|그것|그녀|그", v, body)
+        body2 = re.sub(
+            r"\b(it|they|them|this|that|he|she|him|her|these|those)\b"
+            r"|それ|これ|あれ|彼|彼女|彼ら|彼女ら"
+            r"|它|他|她|他们|她们|這|那"
+            r"|그것|그녀|그|이것|저것|그들"
+            r"|это|этот|она|он|они"
+            r"|este|esta|eso|esa|ellos|ellas"
+            r"|ceci|cela|il|elle|ils|elles",
+            v,
+            body,
+        )
         if body2 != body:
             t = f"{q} {v} in {dom}: {body2}"
             notes.append("grammar:anaphora-lite")
