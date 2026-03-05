@@ -53,10 +53,21 @@ jobs:
       - name: Run KQ logic-math benchmark
         run: python3 inf-Coding/inf-Coding-Assist/kq_logic_math_benchmark.py
 
+  iut-subset-check:
+    name: IUT Subset Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Run IUT core subset scaffold
+        run: python3 inf-Coding/inf-Coding-Assist/iut_subset_scaffold.py
+
   build:
     name: Build
     runs-on: ubuntu-latest
-    needs: [lint, test, deep-grammar-regression, logic-math-benchmark]
+    needs: [lint, test, deep-grammar-regression, logic-math-benchmark, iut-subset-check]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
