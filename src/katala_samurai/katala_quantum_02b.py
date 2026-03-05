@@ -660,6 +660,102 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
             "verdict": "PASS" if score >= 0.58 else "CAUTION",
         }
 
+    def _creativity_score_v1(
+        self,
+        spm: dict[str, Any],
+        spml: dict[str, Any],
+        claim_verify: dict[str, Any],
+        proof_summary: dict[str, Any],
+        cross_explore: dict[str, Any],
+    ) -> dict[str, Any]:
+        paradigm_fit = self._clamp(1.0 - float((spml or {}).get("mapping_completeness_loss", 0.5) or 0.5))
+        context_fit = self._clamp(1.0 - float((spml or {}).get("mapping_fidelity_loss", 0.5) or 0.5))
+
+        alts_p = (cross_explore or {}).get("top_alternative_paradigms", []) or []
+        alts_c = (cross_explore or {}).get("top_alternative_contexts", []) or []
+        novelty_raw = 0.0
+        if alts_p:
+            novelty_raw += sum(float(x.get("exploration_score", 0.0) or 0.0) for x in alts_p[:3]) / min(3, len(alts_p))
+        if alts_c:
+            novelty_raw += sum(float(x.get("exploration_score", 0.0) or 0.0) for x in alts_c[:3]) / min(3, len(alts_c))
+        structure_novelty = self._clamp(novelty_raw / 2.0)
+
+        support_ratio = float((claim_verify or {}).get("support_ratio", 0.0) or 0.0)
+        checked_ratio = float((proof_summary or {}).get("checked_ratio", 0.0) or 0.0)
+        machine_verified_ratio = float((proof_summary or {}).get("machine_verified_ratio", 0.0) or 0.0)
+        verifiability = self._clamp(support_ratio * 0.5 + checked_ratio * 0.35 + machine_verified_ratio * 0.15)
+
+        creativity = self._clamp((0.52 * paradigm_fit + 0.48 * context_fit) * (0.95 * structure_novelty) * (0.90 * verifiability))
+
+        novelty_gate = 0.20
+        verify_gate = 0.55
+        accept = bool(structure_novelty >= novelty_gate and verifiability >= verify_gate)
+
+        return {
+            "version": "creativity-score-v1",
+            "ParadigmFit": round(paradigm_fit, 4),
+            "ContextFit": round(context_fit, 4),
+            "StructureNovelty": round(structure_novelty, 4),
+            "Verifiability": round(verifiability, 4),
+            "CreativityScore": round(creativity, 4),
+            "gates": {
+                "novelty_min": novelty_gate,
+                "verifiability_min": verify_gate,
+                "passed": accept,
+            },
+            "verdict": "ACCEPT" if accept else "REJECT",
+        }
+
+    def _creative_ab_candidates(
+        self,
+        text: str,
+        spm: dict[str, Any],
+        spml: dict[str, Any],
+        creativity: dict[str, Any],
+        cross_explore: dict[str, Any],
+    ) -> dict[str, Any]:
+        cats = [x.get("tag") for x in (spm.get("category") or []) if isinstance(x, dict)]
+        pars = [x.get("tag") for x in (spm.get("paradigm") or []) if isinstance(x, dict)]
+
+        alt_p = [x.get("tag") for x in ((cross_explore or {}).get("top_alternative_paradigms") or []) if isinstance(x, dict)]
+        alt_c = [x.get("tag") for x in ((cross_explore or {}).get("top_alternative_contexts") or []) if isinstance(x, dict)]
+
+        a = {
+            "mode": "conservative",
+            "summary": (
+                "現行パラダイム整合を優先。"
+                f" category={cats[:2]}, paradigm={pars[:2]} を中心に、"
+                "低損失・高検証可能性で解を構成。"
+            ),
+            "expected": {
+                "stability": round(self._clamp(1.0 - float((spml or {}).get("score", 0.5) or 0.5) * 0.8), 4),
+                "novelty": round(self._clamp(float((creativity or {}).get("StructureNovelty", 0.0) or 0.0) * 0.55), 4),
+            },
+        }
+
+        b = {
+            "mode": "creative",
+            "summary": (
+                "他パラダイム/他文脈を探索。"
+                f" alt_paradigm={alt_p[:2]}, alt_context={alt_c[:2]} を合成し、"
+                "未発見構造候補を提示。"
+            ),
+            "expected": {
+                "stability": round(self._clamp(0.62 - float((spml or {}).get("score", 0.5) or 0.5) * 0.3), 4),
+                "novelty": round(self._clamp(float((creativity or {}).get("StructureNovelty", 0.0) or 0.0) * 1.15), 4),
+            },
+            "guard": "verifiability gate required",
+        }
+
+        selected = "A" if not bool(((creativity or {}).get("gates") or {}).get("passed")) else "B"
+        return {
+            "enabled": True,
+            "A": a,
+            "B": b,
+            "selected": selected,
+            "selection_reason": "verifiability_gate" if selected == "A" else "novelty_verified",
+        }
+
     def _inline_sentence_verify(self, text: str, tl: dict[str, Any], bias: dict[str, Any]) -> dict[str, Any]:
         raw = (text or "").strip()
         if not raw:
@@ -1679,6 +1775,20 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
         r["orchestration_history"] = self._append_orchestration_history(r["orchestration_detail"])
         r["solver_exposure_extended"] = self._solver_exposure_extended(dpack, mini, complement)
         r["claim_level_citation_verify"] = self._claim_level_citation_verify(text, p, htmlp)
+        r["creativity_score_v1"] = self._creativity_score_v1(
+            r.get("spm_mapping") or {},
+            r.get("spml") or {},
+            r.get("claim_level_citation_verify") or {},
+            ((r.get("claim_ir_v2") or {}).get("formal") or {}).get("proof_status_summary") or {},
+            (tl.get("cross_paradigm_context_explorer") or {}),
+        )
+        r["creative_ab_candidates"] = self._creative_ab_candidates(
+            text,
+            r.get("spm_mapping") or {},
+            r.get("spml") or {},
+            r.get("creativity_score_v1") or {},
+            (tl.get("cross_paradigm_context_explorer") or {}),
+        )
         r["why_this_solver_set"] = {
             "spm_driven": True,
             "domain": dpack.get("domain"),
