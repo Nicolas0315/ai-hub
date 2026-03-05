@@ -138,6 +138,8 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
             "rust_kernel_available": bool(getattr(self.RUST_BRIDGE, "available", False)),
             "rust_kernel_backend": getattr(self.RUST_BRIDGE, "backend", "none"),
             "symbolic_expression_kernel": True,
+            "claim_ir_v1": True,
+            "spml_information_loss_ratio": True,
         })
         return s
 
@@ -1088,6 +1090,26 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
             },
         }
 
+    def _claim_ir_v1(self, text: str, spm: dict[str, Any], spml: dict[str, Any]) -> dict[str, Any]:
+        return {
+            "version": "claim-ir-v1",
+            "source_modality": "text",
+            "payload": {
+                "raw_text": (text or "")[:1200],
+                "temporal": spm.get("temporal") or {},
+                "paradigm": [x.get("tag") for x in (spm.get("paradigm") or []) if isinstance(x, dict)],
+                "category": [x.get("tag") for x in (spm.get("category") or []) if isinstance(x, dict)],
+                "perspective": [x.get("tag") for x in (spm.get("perspective") or []) if isinstance(x, dict)],
+                "opinion": [x.get("tag") for x in (spm.get("opinion") or []) if isinstance(x, dict)],
+                "embodied": spm.get("embodied") or {},
+            },
+            "quality": {
+                "mapping_completeness_loss": float((spml or {}).get("mapping_completeness_loss", 0.0) or 0.0),
+                "mapping_fidelity_loss": float((spml or {}).get("mapping_fidelity_loss", 0.0) or 0.0),
+                "information_loss_ratio": float((spml or {}).get("information_loss_ratio", 0.0) or 0.0),
+            },
+        }
+
     def _spml_from_spm(
         self,
         spm: dict[str, Any],
@@ -1158,13 +1180,16 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
         else:
             profile = "high-loss"
 
+        information_loss_ratio = self._clamp(mapping_completeness_loss * 0.45 + mapping_fidelity_loss * 0.55)
+
         return {
-            "version": "spml-v1",
+            "version": "spml-v2",
             "mode": "measured" if refs_count > 0 else "estimated",
             "score": round(score, 4),
             "profile": profile,
             "mapping_completeness_loss": round(mapping_completeness_loss, 4),
             "mapping_fidelity_loss": round(mapping_fidelity_loss, 4),
+            "information_loss_ratio": round(information_loss_ratio, 4),
             "components": {
                 "semantic_fidelity_loss": round(semantic_fidelity_loss, 4),
                 "embodied_signal_loss": round(embodied_signal_loss, 4),
@@ -1364,6 +1389,7 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
         r["kq_translation_loss"] = tl
         r["spm_mapping"] = tl.get("spm_mapping") or {}
         r["spml"] = tl.get("spml") or {}
+        r["claim_ir_v1"] = self._claim_ir_v1(text, r["spm_mapping"], r["spml"])
         r["transient_session"] = self._transient_session_stamp()
         r["bias_detection"] = bias
         r["htlf_loss_vector"] = htlf
@@ -1498,7 +1524,7 @@ class Katala_Quantum_02b(Katala_Quantum_02a):
                 "persistent_cache": False,
             }
 
-        r["kq_revision"] = "02b-r23"
+        r["kq_revision"] = "02b-r24"
         r["model"] = self.SYSTEM_MODEL
         r["alias"] = self.ALIAS
         return r
