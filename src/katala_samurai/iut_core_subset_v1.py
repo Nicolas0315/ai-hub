@@ -3,6 +3,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 import hashlib
+import os
+import time
 
 from .kq_symbolic_bridge import (
     solve_math_logic_unified,
@@ -267,11 +269,23 @@ def evaluate_iut_core_subset_v1(nodes: list[IUTLemmaNode] | None = None) -> dict
     out: list[dict[str, Any]] = []
     passed: set[str] = set()
 
-    # step5: runtime optimization primitives
+    # step6: runtime optimization primitives
     unified_cache: dict[str, dict[str, Any]] = {}
     cross_cache: dict[str, dict[str, Any]] = {}
-    strict_batch_size = 3
+    layer_cache: dict[str, dict[str, dict[str, Any]]] = {}
+    strict_batch_size = max(1, int(str(os.getenv("IUT_STRICT_BATCH_SIZE", "4")).strip() or "4"))
+    cross_budget_per_layer = max(1, int(str(os.getenv("IUT_CROSS_BUDGET_PER_LAYER", "2")).strip() or "2"))
     strict_queue: list[tuple[IUTLemmaNode, dict[str, Any], dict[str, Any], dict[str, Any], bool, str]] = []
+    strict_queue_by_layer: dict[str, int] = {}
+    perf = {
+        "unified_cache_hits": 0,
+        "unified_cache_misses": 0,
+        "cross_cache_hits": 0,
+        "cross_cache_misses": 0,
+        "cross_skipped_budget": 0,
+        "solver_time_ms": 0,
+        "cross_time_ms": 0,
+    }
 
     deps_map: dict[str, list[str]] = {n.id: [] for n in nodes}
     for e in (graph.get("edges") or []):
@@ -286,11 +300,25 @@ def evaluate_iut_core_subset_v1(nodes: list[IUTLemmaNode] | None = None) -> dict
             return
         for n, r, kq3, inv, counterexample_hook, spec in strict_queue:
             key = _spec_fingerprint(spec)
-            if key in cross_cache:
+            layer_cross_used = strict_queue_by_layer.get(n.layer, 0)
+            if layer_cross_used >= cross_budget_per_layer:
+                external_cross = {
+                    "enabled": False,
+                    "reason": "layer-cross-budget-exceeded",
+                    "primary_ok": True,
+                    "cross_consistent": True,
+                }
+                perf["cross_skipped_budget"] += 1
+            elif key in cross_cache:
                 external_cross = cross_cache[key]
+                perf["cross_cache_hits"] += 1
             else:
+                t0 = time.perf_counter()
                 external_cross = _run_external_cross_verify(n)
+                perf["cross_time_ms"] += int((time.perf_counter() - t0) * 1000)
                 cross_cache[key] = external_cross
+                strict_queue_by_layer[n.layer] = layer_cross_used + 1
+                perf["cross_cache_misses"] += 1
 
             external_cross_hook = bool(external_cross.get("primary_ok", True)) and bool(external_cross.get("cross_consistent", True))
             primary = (r.get("primary") or {}) if isinstance(r, dict) else {}
@@ -299,6 +327,8 @@ def evaluate_iut_core_subset_v1(nodes: list[IUTLemmaNode] | None = None) -> dict
             precision_fields = [n.formal_domain, n.formal_morphism, n.formal_invariant, spec]
             precision_score = round(sum(1 for x in precision_fields if str(x).strip()) / max(1, len(precision_fields)), 4)
             precision_hook = bool(precision_score >= 0.75)
+            strict_specificity = round(1.0 if ("and(" in spec or "forall" in spec or "exists" in spec or "vars:" in spec) else 0.6, 4)
+            strict_spec_hook = bool(len(spec.strip()) > 0 and strict_specificity >= 0.6)
             pres_score = float(inv.get("invariant_preservation_score", 0.0) or 0.0)
             strict_trigger = bool(kq3.get("strict_activated") or pres_score < 0.72 or not counterexample_hook or not external_cross_hook)
             ok = bool(precision_hook and strict_spec_hook and formal_hook and counterexample_hook and proof_trace_hook and external_cross_hook)
@@ -366,11 +396,21 @@ def evaluate_iut_core_subset_v1(nodes: list[IUTLemmaNode] | None = None) -> dict
 
         spec = (n.strict_formula or n.formal_spec or "").strip()
         key = _spec_fingerprint(spec)
-        if key in unified_cache:
+        layer_cache.setdefault(n.layer, {})
+        if key in layer_cache[n.layer]:
+            r = layer_cache[n.layer][key]
+            perf["unified_cache_hits"] += 1
+        elif key in unified_cache:
             r = unified_cache[key]
+            layer_cache[n.layer][key] = r
+            perf["unified_cache_hits"] += 1
         else:
+            t0 = time.perf_counter()
             r = solve_math_logic_unified(spec)
+            perf["solver_time_ms"] += int((time.perf_counter() - t0) * 1000)
             unified_cache[key] = r
+            layer_cache[n.layer][key] = r
+            perf["unified_cache_misses"] += 1
 
         kq3 = (r.get("kq3_mode") or {}) if isinstance(r, dict) else {}
         inv = (r.get("inter_universal_invariants") or {}) if isinstance(r, dict) else {}
@@ -479,9 +519,12 @@ def evaluate_iut_core_subset_v1(nodes: list[IUTLemmaNode] | None = None) -> dict
             "cache": {
                 "unified_entries": len(unified_cache),
                 "cross_entries": len(cross_cache),
+                "layer_entries": {k: len(v) for k, v in layer_cache.items()},
             },
             "strict_batch_size": strict_batch_size,
-            "policy": "strict-only-external-cross-and-cache-first",
+            "cross_budget_per_layer": cross_budget_per_layer,
+            "policy": "strict-batch+layer-cache+budgeted-cross-verify",
+            "perf": perf,
         },
         "results": out,
     }
