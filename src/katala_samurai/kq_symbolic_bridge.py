@@ -483,6 +483,36 @@ def _eval_temporal_ast(node, trace: list[set[str]], i: int = 0, _memo: dict[tupl
     return bool(out)
 
 
+def _windowed_temporal_eval(astn, trace: list[set[str]], window: int, stride: int) -> dict[str, Any]:
+    n = len(trace)
+    if n == 0:
+        return {"result": False, "segments": [], "memo_entries": 0}
+    w = max(1, int(window))
+    st = max(1, int(stride))
+    if n <= w:
+        memo: dict[tuple[str, int], bool] = {}
+        r = _eval_temporal_ast(astn, trace, 0, memo)
+        return {"result": bool(r), "segments": [{"start": 0, "end": n, "result": bool(r), "memo_entries": len(memo)}], "memo_entries": len(memo)}
+
+    segs = []
+    overall = True
+    total_memo = 0
+    for s in range(0, n, st):
+        e = min(n, s + w)
+        if e - s <= 0:
+            continue
+        sub = trace[s:e]
+        memo: dict[tuple[str, int], bool] = {}
+        rr = _eval_temporal_ast(astn, sub, 0, memo)
+        segs.append({"start": s, "end": e, "result": bool(rr), "memo_entries": len(memo)})
+        total_memo += len(memo)
+        if not rr:
+            overall = False
+        if e >= n:
+            break
+    return {"result": overall, "segments": segs, "memo_entries": total_memo}
+
+
 def eval_ltl_lite(expr: str) -> dict[str, Any]:
     """Finite-trace LTL model checker.
 
@@ -497,21 +527,53 @@ def eval_ltl_lite(expr: str) -> dict[str, Any]:
         if "@" not in s:
             return {"ok": False, "error": "ltl syntax requires '@ trace'", "proof_status": "failed"}
         head, trace_txt = [x.strip() for x in s.split("@", 1)]
+
+        window = None
+        stride = None
+        if ';' in trace_txt:
+            main, *opts = [x.strip() for x in trace_txt.split(';') if x.strip()]
+            trace_txt = main
+            for op in opts:
+                if '=' in op:
+                    k, v = [x.strip().lower() for x in op.split('=', 1)]
+                    if k == 'window':
+                        window = int(v)
+                    elif k == 'stride':
+                        stride = int(v)
+
         trace = _ltl_norm_trace(ast.literal_eval(trace_txt))
         astn = _parse_temporal_formula(head)
-        memo: dict[tuple[str, int], bool] = {}
-        ok = _eval_temporal_ast(astn, trace, 0, memo)
-        return {
+
+        if window is not None:
+            seg = _windowed_temporal_eval(astn, trace, window=window, stride=(stride or window))
+            ok = bool(seg.get('result'))
+            memo_entries = int(seg.get('memo_entries', 0))
+            mode = 'model-check+memo+windowed'
+        else:
+            memo: dict[tuple[str, int], bool] = {}
+            ok = _eval_temporal_ast(astn, trace, 0, memo)
+            seg = None
+            memo_entries = len(memo)
+            mode = 'model-check+memo'
+
+        out = {
             "ok": True,
             "result": ok,
             "operator": "MC",
             "proof_status": "checked",
-            "mode": "model-check+memo",
+            "mode": mode,
             "ast": str(astn),
             "supported_ops": ["!", "&", "|", "->", "<->", "X", "Y", "F", "G", "O", "H", "U", "R", "W", "EX", "AX", "EF", "AF", "EG", "AG"],
-            "memo_entries": len(memo),
-            "proof_certificate": _proof_fingerprint({"solver": "ltl-mc", "ast": str(astn), "result": bool(ok), "trace_len": len(trace), "memo": len(memo)}),
+            "memo_entries": memo_entries,
+            "proof_certificate": _proof_fingerprint({"solver": "ltl-mc", "ast": str(astn), "result": bool(ok), "trace_len": len(trace), "memo": memo_entries}),
         }
+        if seg is not None:
+            out['windowed'] = {
+                'window': int(window or 0),
+                'stride': int((stride or window or 1)),
+                'segments': seg.get('segments', []),
+            }
+        return out
     except Exception as e:
         return {"ok": False, "error": str(e), "proof_status": "failed"}
 
@@ -1436,22 +1498,53 @@ def solve_ctl_lite(expr: str) -> dict[str, Any]:
             if not formula:
                 return {'ok': False, 'proof_status': 'failed', 'solver': 'ctl-lite', 'error': 'missing formula'}
 
+        window = None
+        stride = None
+        if ';' in trace_txt:
+            main, *opts = [x.strip() for x in trace_txt.split(';') if x.strip()]
+            trace_txt = main
+            for op in opts:
+                if '=' in op:
+                    k, v = [x.strip().lower() for x in op.split('=', 1)]
+                    if k == 'window':
+                        window = int(v)
+                    elif k == 'stride':
+                        stride = int(v)
+
         trace = _ltl_norm_trace(ast.literal_eval(trace_txt))
         astn = _parse_temporal_formula(formula)
-        memo: dict[tuple[str, int], bool] = {}
-        r = _eval_temporal_ast(astn, trace, 0, memo)
-        return {
+
+        if window is not None:
+            seg = _windowed_temporal_eval(astn, trace, window=window, stride=(stride or window))
+            r = bool(seg.get('result'))
+            memo_entries = int(seg.get('memo_entries', 0))
+            mode = 'model-check+memo+windowed'
+        else:
+            memo: dict[tuple[str, int], bool] = {}
+            r = _eval_temporal_ast(astn, trace, 0, memo)
+            seg = None
+            memo_entries = len(memo)
+            mode = 'model-check+memo'
+
+        out = {
             'ok': True,
             'proof_status': 'checked',
             'solver': 'ctl-lite',
             'result': bool(r),
             'formula': formula,
             'ast': str(astn),
-            'mode': 'model-check+memo',
+            'mode': mode,
             'supported_ops': ["!", "&", "|", "->", "<->", "X", "Y", "F", "G", "O", "H", "U", "R", "W", "EX", "AX", "EF", "AF", "EG", "AG"],
-            'memo_entries': len(memo),
-            'proof_certificate': _proof_fingerprint({'solver': 'ctl-mc', 'ast': str(astn), 'result': bool(r), 'trace_len': len(trace), 'memo': len(memo)}),
+            'memo_entries': memo_entries,
+            'proof_certificate': _proof_fingerprint({'solver': 'ctl-mc', 'ast': str(astn), 'result': bool(r), 'trace_len': len(trace), 'memo': memo_entries}),
         }
+        if seg is not None:
+            out['windowed'] = {
+                'window': int(window or 0),
+                'stride': int((stride or window or 1)),
+                'segments': seg.get('segments', []),
+            }
+        return out
     except Exception as e:
         return {'ok': False, 'proof_status': 'failed', 'solver': 'ctl-lite', 'error': str(e)}
 
