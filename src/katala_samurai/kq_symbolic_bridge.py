@@ -264,6 +264,27 @@ def _normalize_logic_multilingual(expr: str) -> tuple[str, list[str]]:
     return " ".join(s.split()).strip(), notes
 
 
+
+
+def _detect_language_family(expr: str) -> dict[str, Any]:
+    t = (expr or '').lower()
+    families = {
+        'indo-european': [' if ', ' then ', ' and ', ' or ', 'si ', 'wenn ', 'если ', 'ergo ', 'igitur '],
+        'semitic': [' اذا ', ' فإن ', ' ו ', ' או ', 'ܐܢ ', 'ܗܝܕܝܢ '],
+        'sino-tibetan': ['如果', '那么', '且', '或', '若', '則'],
+        'japonic': ['ならば', 'かつ', 'または', 'すべて', '存在'],
+        'koreanic': ['이면', '그리고', '또는', '모든'],
+        'indo-aryan': [' यदि ', ' तो ', ' और ', ' या ', 'sarva'],
+        'constructed': ['toki ', 'lojban', "gi'e", 'klingon', 'tlh', 'quenya', 'sindarin', "na'vi"],
+        'ancient-mesopotamian': ['𒀀', '𒆠', '𒌋', 'šumma'],
+    }
+    scores = {k: sum(1 for m in ms if m in t) for k, ms in families.items()}
+    best = max(scores.items(), key=lambda kv: kv[1]) if scores else ('unknown', 0)
+    fam = best[0] if best[1] > 0 else 'unknown'
+    total = sum(scores.values())
+    conf = 0.0 if total <= 0 else round(best[1] / total, 4)
+    return {'language_family': fam, 'confidence': conf, 'family_scores': scores}
+
 def _parse_smt_lite(expr: str) -> tuple[dict[str, tuple[int, int]], str]:
     s, _ = _normalize_logic_multilingual(expr)
     if "formula:" in s and "vars:" in s:
@@ -725,11 +746,12 @@ def solve_smt_optional(expr: str) -> dict[str, Any]:
     """
     try:
         expr_norm, norm_notes = _normalize_logic_multilingual(expr)
+        linguistic_trace = _detect_language_family(expr_norm)
         doms, formula = _parse_smt_lite(expr_norm)
         if not doms:
             r = solve_constraint_lite(expr_norm)
             r["solver"] = "smt-kq-native-fallback"
-            r["proof_trace"] = {"mode": "fallback", "reason": "no_domain_declaration", "normalization_notes": norm_notes}
+            r["proof_trace"] = {"mode": "fallback", "reason": "no_domain_declaration", "normalization_notes": norm_notes, "linguistic_trace": linguistic_trace}
             return r
 
         doms2, prune_notes = _interval_propagate(formula, doms)
@@ -796,6 +818,7 @@ def solve_smt_optional(expr: str) -> dict[str, Any]:
             "mode": (f"{mode_prefix}+nn-qemu-priority+standalone-enumeration+interval-propagation+env-safe-eval" if _HAS_QEMU else f"{mode_prefix}+nn-priority+standalone-enumeration+interval-propagation+env-safe-eval"),
             "variables": names,
             "normalization_notes": norm_notes,
+            "linguistic_trace": linguistic_trace,
             "strategy": smt_strategy,
             "search_space": int(total_space),
             "checked_points": int(checks),
@@ -881,6 +904,7 @@ def solve_sat_lite(expr: str, _internal: bool = False) -> dict[str, Any]:
     sat_cache: dict[str, bool] = {}
     try:
         expr_norm, norm_notes = _normalize_logic_multilingual(expr)
+        linguistic_trace = _detect_language_family(expr_norm)
         s = (expr_norm or "").strip().lower()
         clause_txts = [x.strip() for x in re.split(r"\)\s*and\s*\(", s.strip().strip("()")) if x.strip()]
         clauses: list[list[tuple[str, bool]]] = []
@@ -932,7 +956,7 @@ def solve_sat_lite(expr: str, _internal: bool = False) -> dict[str, Any]:
                 "solver": "sat-lite-nn-qemu" if _HAS_QEMU else "sat-lite-nn",
                 "satisfiable": True,
                 "model": {},
-                "proof_trace": {"mode": "preprocess-only", "removed_tautologies": removed_taut, "subsumed": subsumed_count, "normalization_notes": norm_notes},
+                "proof_trace": {"mode": "preprocess-only", "removed_tautologies": removed_taut, "subsumed": subsumed_count, "normalization_notes": norm_notes, "linguistic_trace": linguistic_trace},
                 "proof_certificate": _proof_fingerprint({"solver": "sat-lite", "status": "sat-empty-after-preprocess", "removed_tautologies": removed_taut}),
             }
 
@@ -953,7 +977,7 @@ def solve_sat_lite(expr: str, _internal: bool = False) -> dict[str, Any]:
                         "solver": "sat-lite-nn-qemu" if _HAS_QEMU else "sat-lite-nn",
                         "satisfiable": False,
                         "unsat_core_lite": core_txt,
-                        "proof_trace": {"mode": "preprocess-unit-unsat", "removed_tautologies": removed_taut, "pre_units": pre_env, "normalization_notes": norm_notes},
+                        "proof_trace": {"mode": "preprocess-unit-unsat", "removed_tautologies": removed_taut, "pre_units": pre_env, "normalization_notes": norm_notes, "linguistic_trace": linguistic_trace},
                         "proof_certificate": _proof_fingerprint({"solver": "sat-lite", "status": "unsat-preprocess", "core": core_txt}),
                     }
                 if len(un) == 1:
@@ -966,7 +990,7 @@ def solve_sat_lite(expr: str, _internal: bool = False) -> dict[str, Any]:
                             "solver": "sat-lite-nn-qemu" if _HAS_QEMU else "sat-lite-nn",
                             "satisfiable": False,
                             "unsat_core_lite": core_txt,
-                            "proof_trace": {"mode": "preprocess-unit-conflict", "removed_tautologies": removed_taut, "pre_units": pre_env, "normalization_notes": norm_notes},
+                            "proof_trace": {"mode": "preprocess-unit-conflict", "removed_tautologies": removed_taut, "pre_units": pre_env, "normalization_notes": norm_notes, "linguistic_trace": linguistic_trace},
                             "proof_certificate": _proof_fingerprint({"solver": "sat-lite", "status": "unsat-preprocess-conflict", "core": core_txt}),
                         }
                     if v not in pre_env:
@@ -1218,6 +1242,7 @@ def solve_sat_lite(expr: str, _internal: bool = False) -> dict[str, Any]:
             proof_trace = {
                 "variables": vars_list,
                 "normalization_notes": norm_notes,
+                "linguistic_trace": linguistic_trace,
                 "mode": "cdcl-lite+nn-qemu-priority" if _HAS_QEMU else "cdcl-lite+nn-priority",
                 "watched_literals_init": watched_literals,
                 "learned_clauses": learned_clauses,
@@ -1306,6 +1331,7 @@ def solve_sat_lite(expr: str, _internal: bool = False) -> dict[str, Any]:
         proof_trace = {
             "variables": vars_list,
             "normalization_notes": norm_notes,
+            "linguistic_trace": linguistic_trace,
             "core_size": len(core_txt),
             "mode": "cdcl-lite+nn-qemu-priority" if _HAS_QEMU else "cdcl-lite+nn-priority",
             "watched_literals_init": watched_literals,
@@ -1327,7 +1353,7 @@ def solve_sat_lite(expr: str, _internal: bool = False) -> dict[str, Any]:
             "proof_certificate": _proof_fingerprint({"solver": "sat-lite", "status": "unsat", "trace": proof_trace, "core": core_txt}),
         }
     except Exception as e:
-        return {"ok": False, "proof_status": "failed", "error": str(e), "solver": "sat-lite", "normalization_notes": norm_notes if 'norm_notes' in locals() else []}
+        return {"ok": False, "proof_status": "failed", "error": str(e), "solver": "sat-lite", "normalization_notes": norm_notes if 'norm_notes' in locals() else [], "linguistic_trace": linguistic_trace if 'linguistic_trace' in locals() else {}}
     finally:
         # strict no-residual policy: clear all run-local caches/memory
         sat_cache.clear()
@@ -1871,6 +1897,7 @@ def solve_hol_lite(expr: str) -> dict[str, Any]:
     - formula=(forall x in [1,2,3]. x > 0)
     """
     s, norm_notes = _normalize_logic_multilingual(expr)
+    linguistic_trace = _detect_language_family(s)
     try:
         if s.lower().startswith('formula='):
             s = s.split('=', 1)[1].strip()
@@ -1892,13 +1919,14 @@ def solve_hol_lite(expr: str) -> dict[str, Any]:
             'ast_normalized': str(astn_norm),
             'mode': 'general-formula+typecheck+unification+proofsearch',
             'normalization_notes': norm_notes,
+            'linguistic_trace': linguistic_trace,
             'inferred_type': inferred_type,
             'typecheck': {'ok': True, 'unification': {'enabled': True, 'substitutions': _normalize_subst(subst), 'count': len(subst)}, 'strict_function_application': True},
             'proof_search': proof_search,
             'proof_certificate': _proof_fingerprint({'solver': 'hol-lite', 'ast': str(astn_norm), 'result': out_val, 'type': inferred_type, 'proof_search': proof_search}),
         }
     except Exception as e:
-        return {'ok': False, 'proof_status': 'failed', 'solver': 'hol-lite', 'error': str(e), 'normalization_notes': norm_notes}
+        return {'ok': False, 'proof_status': 'failed', 'solver': 'hol-lite', 'error': str(e), 'normalization_notes': norm_notes, 'linguistic_trace': linguistic_trace}
 
 
 def solve_ctl_lite(expr: str) -> dict[str, Any]:
