@@ -255,9 +255,22 @@ def build_dependency_graph(nodes: list[IUTLemmaNode]) -> dict[str, Any]:
 
 
 def evaluate_iut_core_subset_v1(nodes: list[IUTLemmaNode] | None = None) -> dict[str, Any]:
+    eval_t0 = time.perf_counter()
+    hotspots = {
+        "apply_catalog_ms": 0,
+        "build_graph_ms": 0,
+        "dependency_check_ms": 0,
+        "node_total_ms": 0,
+    }
+
     nodes = nodes or default_iut_core_subset_v1()
+    t0 = time.perf_counter()
     nodes = _apply_catalog_fixed_dependencies(nodes)
+    hotspots["apply_catalog_ms"] += int((time.perf_counter() - t0) * 1000)
+
+    t0 = time.perf_counter()
     graph = build_dependency_graph(nodes)
+    hotspots["build_graph_ms"] += int((time.perf_counter() - t0) * 1000)
 
     id_map = {n.id: n for n in nodes}
     exec_order = [id_map[i] for i in graph.get("topological_order", []) if i in id_map]
@@ -275,7 +288,8 @@ def evaluate_iut_core_subset_v1(nodes: list[IUTLemmaNode] | None = None) -> dict
     layer_cache: dict[str, dict[str, dict[str, Any]]] = {}
     strict_batch_size = max(1, int(str(os.getenv("IUT_STRICT_BATCH_SIZE", "4")).strip() or "4"))
     cross_budget_per_layer = max(1, int(str(os.getenv("IUT_CROSS_BUDGET_PER_LAYER", "2")).strip() or "2"))
-    strict_queue: list[tuple[IUTLemmaNode, dict[str, Any], dict[str, Any], dict[str, Any], bool, str]] = []
+    strict_queue: list[tuple[IUTLemmaNode, dict[str, Any], dict[str, Any], dict[str, Any], bool, str, float, bool]] = []
+    node_profile: dict[str, dict[str, Any]] = {}
     strict_queue_by_layer: dict[str, int] = {}
     perf = {
         "unified_cache_hits": 0,
@@ -298,9 +312,10 @@ def evaluate_iut_core_subset_v1(nodes: list[IUTLemmaNode] | None = None) -> dict
         nonlocal out, passed, strict_queue
         if not strict_queue:
             return
-        for n, r, kq3, inv, counterexample_hook, spec in strict_queue:
+        for n, r, kq3, inv, counterexample_hook, spec, node_t0, cache_hit in strict_queue:
             key = _spec_fingerprint(spec)
             layer_cross_used = strict_queue_by_layer.get(n.layer, 0)
+            cross_ms = 0
             if layer_cross_used >= cross_budget_per_layer:
                 external_cross = {
                     "enabled": False,
@@ -315,7 +330,8 @@ def evaluate_iut_core_subset_v1(nodes: list[IUTLemmaNode] | None = None) -> dict
             else:
                 t0 = time.perf_counter()
                 external_cross = _run_external_cross_verify(n)
-                perf["cross_time_ms"] += int((time.perf_counter() - t0) * 1000)
+                cross_ms = int((time.perf_counter() - t0) * 1000)
+                perf["cross_time_ms"] += cross_ms
                 cross_cache[key] = external_cross
                 strict_queue_by_layer[n.layer] = layer_cross_used + 1
                 perf["cross_cache_misses"] += 1
@@ -334,6 +350,17 @@ def evaluate_iut_core_subset_v1(nodes: list[IUTLemmaNode] | None = None) -> dict
             ok = bool(precision_hook and strict_spec_hook and formal_hook and counterexample_hook and proof_trace_hook and external_cross_hook)
             if ok:
                 passed.add(n.id)
+            node_total_ms = int((time.perf_counter() - node_t0) * 1000)
+            node_profile[n.id] = {
+                "id": n.id,
+                "layer": n.layer,
+                "strict_path": True,
+                "cache_hit": cache_hit,
+                "solver_ms": 0,
+                "cross_ms": cross_ms,
+                "total_ms": node_total_ms,
+            }
+            hotspots["node_total_ms"] += node_total_ms
             out.append({
                 "id": n.id,
                 "layer": n.layer,
@@ -376,12 +403,29 @@ def evaluate_iut_core_subset_v1(nodes: list[IUTLemmaNode] | None = None) -> dict
         strict_queue = []
 
     for n in exec_order:
+        node_t0 = time.perf_counter()
+        solver_ms = 0
+        cache_hit = False
         req = deps_map.get(n.id, n.depends_on)
         queued_ids = {x[0].id for x in strict_queue}
         if strict_queue and any(d in queued_ids for d in req):
             _flush_strict_queue()
+        t_dep = time.perf_counter()
         deps_ok = all(d in passed for d in req)
+        hotspots["dependency_check_ms"] += int((time.perf_counter() - t_dep) * 1000)
         if not deps_ok:
+            node_total_ms = int((time.perf_counter() - node_t0) * 1000)
+            node_profile[n.id] = {
+                "id": n.id,
+                "layer": n.layer,
+                "strict_path": False,
+                "cache_hit": False,
+                "solver_ms": 0,
+                "cross_ms": 0,
+                "total_ms": node_total_ms,
+                "status": "blocked",
+            }
+            hotspots["node_total_ms"] += node_total_ms
             out.append({
                 "id": n.id,
                 "layer": n.layer,
@@ -399,15 +443,18 @@ def evaluate_iut_core_subset_v1(nodes: list[IUTLemmaNode] | None = None) -> dict
         layer_cache.setdefault(n.layer, {})
         if key in layer_cache[n.layer]:
             r = layer_cache[n.layer][key]
+            cache_hit = True
             perf["unified_cache_hits"] += 1
         elif key in unified_cache:
             r = unified_cache[key]
             layer_cache[n.layer][key] = r
+            cache_hit = True
             perf["unified_cache_hits"] += 1
         else:
             t0 = time.perf_counter()
             r = solve_math_logic_unified(spec)
-            perf["solver_time_ms"] += int((time.perf_counter() - t0) * 1000)
+            solver_ms = int((time.perf_counter() - t0) * 1000)
+            perf["solver_time_ms"] += solver_ms
             unified_cache[key] = r
             layer_cache[n.layer][key] = r
             perf["unified_cache_misses"] += 1
@@ -423,7 +470,7 @@ def evaluate_iut_core_subset_v1(nodes: list[IUTLemmaNode] | None = None) -> dict
         )
 
         if strict_trigger:
-            strict_queue.append((n, r, kq3, inv, counterexample_hook, spec))
+            strict_queue.append((n, r, kq3, inv, counterexample_hook, spec, node_t0, cache_hit))
             if len(strict_queue) >= strict_batch_size:
                 _flush_strict_queue()
             continue
@@ -440,6 +487,17 @@ def evaluate_iut_core_subset_v1(nodes: list[IUTLemmaNode] | None = None) -> dict
         ok = bool(precision_hook and strict_spec_hook and formal_hook and counterexample_hook and proof_trace_hook)
         if ok:
             passed.add(n.id)
+        node_total_ms = int((time.perf_counter() - node_t0) * 1000)
+        node_profile[n.id] = {
+            "id": n.id,
+            "layer": n.layer,
+            "strict_path": False,
+            "cache_hit": cache_hit,
+            "solver_ms": solver_ms,
+            "cross_ms": 0,
+            "total_ms": node_total_ms,
+        }
+        hotspots["node_total_ms"] += node_total_ms
         out.append({
             "id": n.id,
             "layer": n.layer,
@@ -494,6 +552,10 @@ def evaluate_iut_core_subset_v1(nodes: list[IUTLemmaNode] | None = None) -> dict
         })
 
     catalog = build_iut_lemma_catalog_v1()
+    hotspots["solver_ms"] = int(perf.get("solver_time_ms", 0))
+    hotspots["cross_verify_ms"] = int(perf.get("cross_time_ms", 0))
+    hotspots["total_eval_ms"] = int((time.perf_counter() - eval_t0) * 1000)
+    top_nodes = sorted(node_profile.values(), key=lambda x: int(x.get("total_ms", 0)), reverse=True)[:5]
 
     return {
         "ok": ok_n == total,
@@ -525,6 +587,8 @@ def evaluate_iut_core_subset_v1(nodes: list[IUTLemmaNode] | None = None) -> dict
             "cross_budget_per_layer": cross_budget_per_layer,
             "policy": "strict-batch+layer-cache+budgeted-cross-verify",
             "perf": perf,
+            "hotspots": hotspots,
+            "top_hot_nodes": top_nodes,
         },
         "results": out,
     }
