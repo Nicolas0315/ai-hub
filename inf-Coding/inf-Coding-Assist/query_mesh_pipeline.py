@@ -19,6 +19,7 @@ from __future__ import annotations
 
 import concurrent.futures as cf
 import json
+import os
 import re
 import time
 from dataclasses import dataclass
@@ -55,6 +56,64 @@ class DecomposedQuery:
     refutation_terms: list[str]
     temporal_terms: list[str]
     generated_queries: list[str]
+
+
+@dataclass
+class ResourceGovernor:
+    cpu_budget: float = float(os.getenv("KQ_CPU_BUDGET", "0.40"))
+    gpu_budget: float = float(os.getenv("KQ_GPU_BUDGET", "0.40"))
+
+    def snapshot(self) -> dict[str, Any]:
+        try:
+            load1 = os.getloadavg()[0]
+        except Exception:
+            load1 = 0.0
+        cpu_cnt = max(1, (os.cpu_count() or 1))
+        cpu_ratio = min(1.0, max(0.0, load1 / float(cpu_cnt)))
+        # GPU ratio is optional; if unavailable we keep 0 and mark unknown
+        gpu_ratio = 0.0
+        gpu_known = False
+        try:
+            import subprocess
+            p = subprocess.run([
+                "nvidia-smi",
+                "--query-gpu=utilization.gpu",
+                "--format=csv,noheader,nounits",
+            ], capture_output=True, text=True, check=False)
+            if p.returncode == 0 and (p.stdout or "").strip():
+                vals = [float(x.strip()) for x in (p.stdout or "").splitlines() if x.strip()]
+                if vals:
+                    gpu_ratio = min(1.0, max(0.0, max(vals) / 100.0))
+                    gpu_known = True
+        except Exception:
+            pass
+        return {
+            "cpu_ratio": round(cpu_ratio, 4),
+            "gpu_ratio": round(gpu_ratio, 4),
+            "gpu_known": gpu_known,
+            "cpu_ok": cpu_ratio <= self.cpu_budget,
+            "gpu_ok": (gpu_ratio <= self.gpu_budget) if gpu_known else True,
+            "cpu_budget": self.cpu_budget,
+            "gpu_budget": self.gpu_budget,
+        }
+
+
+class TaskScheduler:
+    def __init__(self, governor: ResourceGovernor):
+        self.governor = governor
+
+    def choose_lane(self, task_kind: str, priority: str = "normal") -> dict[str, Any]:
+        snap = self.governor.snapshot()
+        heavy = task_kind in {"ocr", "embedding", "nn-rank", "pdf-deep-read"}
+        lane = "cpu"
+        degrade = False
+        if heavy and snap.get("gpu_ok"):
+            lane = "gpu"
+        if not snap.get("cpu_ok") or not snap.get("gpu_ok"):
+            degrade = True
+        if priority == "high":
+            degrade = False
+        return {"lane": lane, "degrade": degrade, "resource": snap}
 
 
 class QueryDecomposer:
@@ -772,6 +831,8 @@ def run_pipeline(query: str, per_source_limit: int = 8) -> dict[str, Any]:
     mesh = ReasoningMeshExecutor()
     router = FormalClaimRouter()
     scorer = EvidenceScorer()
+    governor = ResourceGovernor()
+    scheduler = TaskScheduler(governor)
 
     # ephemeral run memory
     raw_items: list[dict[str, Any]] = []
@@ -795,8 +856,18 @@ def run_pipeline(query: str, per_source_limit: int = 8) -> dict[str, Any]:
 
         step8 = scorer.score(read_items, routed_items)
 
+        sched_fetch = scheduler.choose_lane("network-fetch", priority="high")
+        sched_read = scheduler.choose_lane("pdf-deep-read")
+        sched_ocr = scheduler.choose_lane("ocr")
+
         return {
             "pipeline": "query-mesh-v2",
+            "resource_governor": governor.snapshot(),
+            "task_scheduler": {
+                "network_fetch": sched_fetch,
+                "paper_read": sched_read,
+                "ocr": sched_ocr,
+            },
             "step1_query_decomposer": {
                 "search_terms": dq.search_terms,
                 "refutation_terms": dq.refutation_terms,
