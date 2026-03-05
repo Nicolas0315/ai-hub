@@ -11,6 +11,7 @@ import tempfile
 from itertools import product, combinations
 from typing import Any
 
+from .rust_hotpath_bridge import invariant_preservation_score as _rust_invariant_preservation_score
 
 _DOMAIN_HEURISTIC_MEMORY: dict[str, dict[str, float]] = {
     "algebra": {},
@@ -2713,12 +2714,13 @@ def _inter_universal_invariant_checks(rows: list[dict[str, Any]]) -> dict[str, A
         "proof_to_human": round(sum(1 for r in ok_rows if isinstance((r.get("result") or {}).get("proof_trace_human"), dict)) / max(1, len(ok_rows)), 4),
     }
 
-    preservation = round(
-        0.45 * (1.0 - (1.0 if truth_conflict else 0.0))
-        + 0.30 * provability_ratio
-        + 0.15 * (1.0 if counterexample_consistent else 0.0)
-        + 0.10 * ((morphism["linguistic_to_formal"] + morphism["formal_to_proof"] + morphism["proof_to_human"]) / 3.0),
-        4,
+    preservation = _rust_invariant_preservation_score(
+        truth_conflict,
+        provability_ratio,
+        counterexample_consistent,
+        morphism["linguistic_to_formal"],
+        morphism["formal_to_proof"],
+        morphism["proof_to_human"],
     )
 
     return {

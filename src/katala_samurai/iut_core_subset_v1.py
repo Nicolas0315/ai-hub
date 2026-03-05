@@ -10,6 +10,7 @@ from .kq_symbolic_bridge import (
     verify_coq_proof,
     verify_isabelle_proof,
 )
+from .rust_hotpath_bridge import dense_dependency_edges as _rust_dense_dependency_edges
 
 
 @dataclass
@@ -164,7 +165,16 @@ def build_dependency_graph(nodes: list[IUTLemmaNode]) -> dict[str, Any]:
             if d in ids:
                 explicit_edges.add((d, n.id))
 
-    dense_edges = _infer_dense_dependencies(nodes, explicit_edges)
+    py_dense_edges = _infer_dense_dependencies(nodes, explicit_edges)
+    node_ids = [n.id for n in nodes]
+    node_layers = [n.layer for n in nodes]
+    node_morphisms = [n.formal_morphism for n in nodes]
+    node_invariants = [n.formal_invariant for n in nodes]
+    dense_edges = set(_rust_dense_dependency_edges(node_ids, node_layers, node_morphisms, node_invariants, sorted(list(explicit_edges))))
+    if not dense_edges:
+        dense_edges = py_dense_edges
+    else:
+        dense_edges = set(dense_edges) | set(py_dense_edges)
 
     indeg: dict[str, int] = {n.id: 0 for n in nodes}
     succ: dict[str, list[str]] = {n.id: [] for n in nodes}
