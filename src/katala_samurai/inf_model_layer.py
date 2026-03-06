@@ -49,7 +49,8 @@ def run_inf_model_layer(prompt: str, inf_theory: dict[str, Any] | None = None) -
         },
         "katala_universe_model": {
             "name": "katala_unified_universe_model_v1",
-            "status": "candidate" if ready else "hold",
+            "status": ("tested" if ready else "hypothesis"),
+            "allowed_statuses": ["hypothesis", "tested", "rejected_consistent_variant", "adopted"],
             "readiness_score": round(wt, 4),
             "components": {
                 "relativity_core": bool("relativity_foundation" in utm),
@@ -58,6 +59,19 @@ def run_inf_model_layer(prompt: str, inf_theory: dict[str, Any] | None = None) -
                 "standard_model_core": bool("standard_model_foundation" in utm),
                 "eft_bridge": bool("effective_field_theory_bridge" in utm),
                 "observation_tests": bool("observational_projection_tests" in utm),
+            },
+            "axiom_sandbox": {
+                "baseline_axioms": [
+                    "lorentz_invariance",
+                    "unitary_quantum_evolution",
+                    "equivalence_principle",
+                ],
+                "variant_axioms": [
+                    "effective_lorentz_violation",
+                    "scale_dependent_invariants",
+                ],
+                "selection_rule": "consistency+projection+chi2_strict",
+                "notes": "Variants are allowed for exploration but cannot be adopted unless strict validation passes.",
             },
             "ugt_gates": {
                 "UGT1": (((utm.get("step1_singularity_resolution") or {}).get("result") or {}).get("pass", False)),
@@ -70,6 +84,11 @@ def run_inf_model_layer(prompt: str, inf_theory: dict[str, Any] | None = None) -
                 "count": len(equations),
                 "items": equations,
                 "readable_markdown": equation_markdown,
+            },
+            "decision_policy": {
+                "adoption_requires": ["consistency", "projection", "chi_square"],
+                "retain_rejected_variants": True,
+                "rejected_variant_status": "rejected_consistent_variant",
             },
         },
         "status": {
