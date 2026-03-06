@@ -44,6 +44,11 @@ fn precision_score(domain: String, morphism: String, invariant_s: String, spec: 
 }
 
 #[pyfunction]
+fn strict_spec_hook(spec: String, strict_specificity: f64) -> bool {
+    !spec.trim().is_empty() && strict_specificity >= 0.6
+}
+
+#[pyfunction]
 fn dense_dependency_edges(
     node_ids: Vec<String>,
     node_layers: Vec<String>,
@@ -88,6 +93,7 @@ fn katala_rust_hotpath(_py: Python<'_>, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(strict_specificity_score, m)?)?;
     m.add_function(wrap_pyfunction!(strict_triggered, m)?)?;
     m.add_function(wrap_pyfunction!(precision_score, m)?)?;
+    m.add_function(wrap_pyfunction!(strict_spec_hook, m)?)?;
     m.add_function(wrap_pyfunction!(dense_dependency_edges, m)?)?;
     Ok(())
 }

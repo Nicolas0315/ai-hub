@@ -11,7 +11,7 @@ SRC = ROOT / "src"
 if str(SRC) not in sys.path:
     sys.path.insert(0, str(SRC))
 
-from katala_samurai.rust_hotpath_bridge import dense_dependency_edges, invariant_preservation_score, strict_specificity_score, strict_triggered, precision_score  # noqa: E402
+from katala_samurai.rust_hotpath_bridge import dense_dependency_edges, invariant_preservation_score, strict_specificity_score, strict_triggered, precision_score, strict_spec_hook  # noqa: E402
 
 
 def main() -> int:
@@ -22,6 +22,7 @@ def main() -> int:
         _ = strict_specificity_score("forall x in [1,2,3]: x > 0")
         _ = strict_triggered(True, 0.90, True)
         _ = precision_score("d", "m", "i", "forall x in [1]: x==x")
+        _ = strict_spec_hook("forall x in [1]: x==x", 1.0)
         print(json.dumps({"ok": True, "mode": "rust-only"}, ensure_ascii=False))
         return 0
     except Exception as e:

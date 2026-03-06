@@ -17,6 +17,7 @@ from .rust_hotpath_bridge import (
     strict_specificity_score as _rust_strict_specificity_score,
     strict_triggered as _rust_strict_triggered,
     precision_score as _rust_precision_score,
+    strict_spec_hook as _rust_strict_spec_hook,
 )
 from .iut_formal_dictionary import IUT_FORMAL_DICTIONARY, normalize_iut_terms
 from .iut_lemma_catalog import build_iut_lemma_catalog_v1
@@ -348,7 +349,7 @@ def evaluate_iut_core_subset_v1(nodes: list[IUTLemmaNode] | None = None) -> dict
             precision_score = round(float(_rust_precision_score(n.formal_domain, n.formal_morphism, n.formal_invariant, spec)), 4)
             precision_hook = bool(precision_score >= 0.75)
             strict_specificity = round(float(_rust_strict_specificity_score(spec)), 4)
-            strict_spec_hook = bool(len(spec.strip()) > 0 and strict_specificity >= 0.6)
+            strict_spec_hook = bool(_rust_strict_spec_hook(spec, strict_specificity))
             pres_score = float(inv.get("invariant_preservation_score", 0.0) or 0.0)
             strict_trigger = bool(_rust_strict_triggered(bool(kq3.get("strict_activated")), pres_score, counterexample_hook) or (not external_cross_hook))
             ok = bool(precision_hook and strict_spec_hook and formal_hook and counterexample_hook and proof_trace_hook and external_cross_hook)
@@ -486,7 +487,7 @@ def evaluate_iut_core_subset_v1(nodes: list[IUTLemmaNode] | None = None) -> dict
         precision_score = round(float(_rust_precision_score(n.formal_domain, n.formal_morphism, n.formal_invariant, spec)), 4)
         precision_hook = bool(precision_score >= 0.75)
         strict_specificity = round(float(_rust_strict_specificity_score(spec)), 4)
-        strict_spec_hook = bool(len(spec.strip()) > 0)
+        strict_spec_hook = bool(_rust_strict_spec_hook(spec, strict_specificity))
         formal_hook = bool(r.get("ok")) and str(r.get("proof_status", "")).lower() != "failed"
         proof_trace_hook = bool((primary.get("result") or {}).get("proof_certificate") or (primary.get("result") or {}).get("proof_trace_machine"))
         ok = bool(precision_hook and strict_spec_hook and formal_hook and counterexample_hook and proof_trace_hook)

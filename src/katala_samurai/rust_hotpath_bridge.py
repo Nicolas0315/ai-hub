@@ -113,6 +113,23 @@ def precision_score(domain: str, morphism: str, invariant_s: str, spec: str) -> 
     return _py_precision_score(domain, morphism, invariant_s, spec)
 
 
+def _py_strict_spec_hook(spec: str, strict_specificity: float) -> bool:
+    return bool(len((spec or "").strip()) > 0 and float(strict_specificity) >= 0.6)
+
+
+def strict_spec_hook(spec: str, strict_specificity: float) -> bool:
+    m = _mod()
+    if m is not None:
+        try:
+            return bool(m.strict_spec_hook(str(spec or ""), float(strict_specificity)))
+        except Exception:
+            if _rust_only():
+                raise RuntimeError("KQ_RUST_ONLY is enabled and rust strict_spec_hook failed")
+    if _rust_only():
+        raise RuntimeError("KQ_RUST_ONLY is enabled but katala_rust_hotpath is unavailable")
+    return _py_strict_spec_hook(spec, strict_specificity)
+
+
 def _py_dense_dependency_edges(
     node_ids: list[str],
     node_layers: list[str],

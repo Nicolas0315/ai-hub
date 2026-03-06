@@ -40,6 +40,7 @@ def main() -> int:
     specificity_mismatch = 0
     trigger_mismatch = 0
     precision_mismatch = 0
+    strict_hook_mismatch = 0
 
     for _ in range(total):
         node_ids, node_layers, morphisms, invariants, edges = _rand_case(rng)
@@ -77,8 +78,13 @@ def main() -> int:
         if abs(py_p - rs_p) > 1e-9:
             precision_mismatch += 1
 
-    ok = mismatch == 0 and specificity_mismatch == 0 and trigger_mismatch == 0 and precision_mismatch == 0
-    print(json.dumps({"ok": ok, "total": total, "mismatch": mismatch, "specificity_mismatch": specificity_mismatch, "trigger_mismatch": trigger_mismatch, "precision_mismatch": precision_mismatch}, ensure_ascii=False))
+        py_h = rhb._py_strict_spec_hook(sp, py_s)  # type: ignore[attr-defined]
+        rs_h = bool(m.strict_spec_hook(sp, float(rs_s)))
+        if py_h != rs_h:
+            strict_hook_mismatch += 1
+
+    ok = mismatch == 0 and specificity_mismatch == 0 and trigger_mismatch == 0 and precision_mismatch == 0 and strict_hook_mismatch == 0
+    print(json.dumps({"ok": ok, "total": total, "mismatch": mismatch, "specificity_mismatch": specificity_mismatch, "trigger_mismatch": trigger_mismatch, "precision_mismatch": precision_mismatch, "strict_hook_mismatch": strict_hook_mismatch}, ensure_ascii=False))
     return 0 if ok else 1
 
 
