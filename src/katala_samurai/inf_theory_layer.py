@@ -89,5 +89,30 @@ def run_inf_theory_layer(prompt: str, unified: dict[str, Any] | None = None) -> 
                     "note": "GR reduces locally to SR in local inertial frames.",
                 },
             },
+            "quantum_foundation": {
+                "version": "qm-core-v1",
+                "state_space": {
+                    "hilbert_space": "|\\psi\\rangle \\in \\mathcal{H}",
+                    "normalization_latex": "\\langle\\psi|\\psi\\rangle=1",
+                },
+                "dynamics": {
+                    "schrodinger_equation_latex": "i\\hbar\\frac{\\partial}{\\partial t}|\\psi(t)\\rangle=\\hat{H}|\\psi(t)\\rangle",
+                    "unitary_evolution_latex": "|\\psi(t)\\rangle=U(t)|\\psi(0)\\rangle,\\ U^\\dagger U=I",
+                    "von_neumann_equation_latex": "i\\hbar\\dot{\\rho}=[\\hat{H},\\rho]",
+                },
+                "observables_measurement": {
+                    "observable_operator": "\\hat{A}=\\hat{A}^\\dagger",
+                    "born_rule_latex": "P(a_i)=|\\langle a_i|\\psi\\rangle|^2",
+                    "expectation_value_latex": "\\langle A\\rangle=\\langle\\psi|\\hat{A}|\\psi\\rangle=\\mathrm{Tr}(\\rho\\hat{A})",
+                },
+                "canonical_structure": {
+                    "commutator_latex": "[\\hat{x},\\hat{p}]=i\\hbar",
+                    "uncertainty_latex": "\\Delta x\\,\\Delta p\\geq \\hbar/2",
+                },
+                "field_theory_minimum": {
+                    "kg_equation_latex": "(\\Box + m^2)\\phi=0",
+                    "dirac_equation_latex": "(i\\gamma^\\mu\\partial_\\mu-m)\\psi=0",
+                },
+            },
         },
     }
