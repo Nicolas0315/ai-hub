@@ -40,6 +40,13 @@ def run_inf_memory_layer(prompt: str, unified: dict[str, Any] | None = None) -> 
         "peer_review_memory": {
             "policy": "peer-reviewed-only",
             "trusted_sources": sorted(list(TRUSTED_PEER_REVIEW_SOURCES)),
+            "storage_strategy": {
+                "logic_layer": "code",
+                "raw_data_layer": "binary",
+                "trace_layer": "metadata-json",
+                "hash_algorithm": "sha256",
+                "binary_store_root": "/mnt/c/Users/ogosh/Documents/NICOLAS/Katala/inf-Coding/inf-memory-store",
+            },
             "count": len(papers),
             "papers": papers,
         },
