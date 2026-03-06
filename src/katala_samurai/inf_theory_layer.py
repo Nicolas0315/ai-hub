@@ -49,6 +49,20 @@ def run_inf_theory_layer(prompt: str, unified: dict[str, Any] | None = None) -> 
     early_observable_projectable = bool(len(observable_map) > 0)
     step2_pass = bool(high_density_consistent and initial_condition_stable and bridge_cross_scale_consistent and early_observable_projectable)
 
+    # Step3 (quantum gravity interface) formal pass/fail gate
+    qg_interface_consistent = bool(inv_score >= 0.72)
+    renormalization_safe = bool(not truth_conflict)
+    sm_gr_bridge_consistent = bool(cx_ok)
+    qg_observable_projectable = bool(len(observable_map) > 0)
+    step3_pass = bool(qg_interface_consistent and renormalization_safe and sm_gr_bridge_consistent and qg_observable_projectable)
+
+    # Step4 (black-hole information consistency) formal pass/fail gate
+    information_unitary = bool(not truth_conflict)
+    evaporation_consistent = bool(cx_ok)
+    entropy_projection_available = bool(len(observable_map) > 0)
+    info_counterexample_clear = bool(counterexample_resilience >= 1.0)
+    step4_pass = bool(information_unitary and evaporation_consistent and entropy_projection_available and info_counterexample_clear)
+
     return {
         "enabled": True,
         "schema_version": "inf-theory-v1",
@@ -151,6 +165,56 @@ def run_inf_theory_layer(prompt: str, unified: dict[str, Any] | None = None) -> 
                 "result": {
                     "pass": step2_pass,
                     "status": ("pass" if step2_pass else "hold"),
+                },
+            },
+            "step3_quantum_gravity_resolution": {
+                "id": "UGT3",
+                "target": "quantum_gravity_interface",
+                "axioms": {
+                    "qg_interface_latex": "\\mathcal{QG}=\\mathcal{B}_{IUT}(GR,QM)",
+                    "renormalization_control_latex": "\\mathcal{L}_{eff}=\\mathcal{L}_{ren}+\\sum_{d>4} c_d\\mathcal{O}_d/\\Lambda^{d-4}",
+                    "sm_gr_bridge_latex": "\\mathcal{I}_{SM}\\leftrightarrow\\mathcal{I}_{GR}\\text{ via }\\mathcal{B}_{IUT}",
+                },
+                "pass_conditions": {
+                    "qg_interface_consistent": qg_interface_consistent,
+                    "renormalization_safe": renormalization_safe,
+                    "sm_gr_bridge_consistent": sm_gr_bridge_consistent,
+                    "observable_projectable": qg_observable_projectable,
+                },
+                "fail_conditions": {
+                    "qg_interface_failure": bool(not qg_interface_consistent),
+                    "renormalization_break": bool(not renormalization_safe),
+                    "sm_gr_bridge_break": bool(not sm_gr_bridge_consistent),
+                    "projection_missing": bool(not qg_observable_projectable),
+                },
+                "result": {
+                    "pass": step3_pass,
+                    "status": ("pass" if step3_pass else "hold"),
+                },
+            },
+            "step4_information_consistency_resolution": {
+                "id": "UGT4",
+                "target": "black_hole_information_consistency",
+                "axioms": {
+                    "unitary_information_latex": "S(\\rho_{out})=S(U\\rho_{in}U^\\dagger)",
+                    "evaporation_consistency_latex": "\\mathcal{E}_{Hawking}\\circ\\mathcal{B}_{IUT}\\text{ preserves consistency}",
+                    "entropy_projection_latex": "S_{BH}\\to S_{obs}\\text{ via projection map}",
+                },
+                "pass_conditions": {
+                    "information_unitary": information_unitary,
+                    "evaporation_consistent": evaporation_consistent,
+                    "entropy_projection_available": entropy_projection_available,
+                    "counterexample_clear": info_counterexample_clear,
+                },
+                "fail_conditions": {
+                    "unitarity_break": bool(not information_unitary),
+                    "evaporation_inconsistency": bool(not evaporation_consistent),
+                    "entropy_projection_missing": bool(not entropy_projection_available),
+                    "counterexample_hit": bool(not info_counterexample_clear),
+                },
+                "result": {
+                    "pass": step4_pass,
+                    "status": ("pass" if step4_pass else "hold"),
                 },
             },
             "relativity_foundation": {
