@@ -7,7 +7,12 @@
   ],
   "variant_axioms": [
     "effective_lorentz_violation",
-    "scale_dependent_invariants"
+    "scale_dependent_invariants",
+    "late_universe_calibration_systematics_relaxation_v1",
+    "scale_dependent_growth_bridge_v1",
+    "muon_sector_effective_operator_delta_v1",
+    "early_universe_parameter_drift_guard_v1",
+    "flavor_sector_effective_coupling_window_v1"
   ],
   "selection_rule": "consistency+projection+chi2_strict",
   "notes": "User-editable inf-Model sandbox. Keep rejected variants as records; do not delete history.",
