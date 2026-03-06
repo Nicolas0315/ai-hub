@@ -373,6 +373,11 @@ def _post_response_cleanup() -> None:
                         pass
 
 
+def _kq_mandatory_gate_enabled() -> bool:
+    v = os.getenv("KQ_MANDATORY_GATE", "1").strip().lower()
+    return v in {"1", "true", "yes", "on"}
+
+
 def main() -> int:
     if len(sys.argv) < 2:
         print('Usage: ksi1-router.py <command...>', file=sys.stderr)
@@ -390,8 +395,28 @@ def main() -> int:
         append_ephemeral_audit(audit_path, {"event": "start", "command": command, "kq_input_layer": input_packet})
         append_goal_event(goal_history_path, {"event": "goal_set", "goal": command, "kq_input_layer": input_packet})
 
+        if _kq_mandatory_gate_enabled() and not input_packet:
+            blocked = {
+                'blocked': True,
+                'reason': 'kq_mandatory_gate_missing_input_packet',
+            }
+            print(json.dumps(blocked, ensure_ascii=False))
+            append_ephemeral_audit(audit_path, {"event": "blocked", **blocked})
+            append_goal_event(goal_history_path, {"event": "goal_blocked", **blocked})
+            return 74
+
         route, detail = decide_route(command, input_packet=input_packet)
         if input_packet.get('violations'):
+            if _kq_mandatory_gate_enabled():
+                blocked = {
+                    'blocked': True,
+                    'reason': 'kq_mandatory_gate_input_violation',
+                    'violations': input_packet.get('violations') or [],
+                }
+                print(json.dumps(blocked, ensure_ascii=False))
+                append_ephemeral_audit(audit_path, {"event": "blocked", **blocked})
+                append_goal_event(goal_history_path, {"event": "goal_blocked", **blocked})
+                return 74
             route = 'strict'
             detail['route'] = 'strict'
             detail['reason'] = 'kq_input_layer_violation'
@@ -415,6 +440,7 @@ def main() -> int:
         env['KSI1_ROUTE'] = route
         env['KSI_MODEL_ACTIVE'] = detail.get('model', '')
         env['INF_BRIDGE_TRUST'] = (((detail.get('inf_bridge') or {}).get('input') or {}).get('source_trust') or 'untrusted')
+        env['KQ_MANDATORY_GATE_ACTIVE'] = '1' if _kq_mandatory_gate_enabled() else '0'
         env['KQ_INPUT_PACKET_JSON'] = json.dumps(input_packet, ensure_ascii=False)
 
         if _requires_upstream_mutation_approval(command) and not _has_upstream_mutation_approval():
