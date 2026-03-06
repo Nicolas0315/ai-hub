@@ -76,6 +76,8 @@ def _apply_user_overrides(base: dict[str, Any], overrides: dict[str, Any]) -> di
         m["theory_gap_blocks"] = dict(overrides.get("theory_gap_blocks") or {})
     if isinstance(overrides.get("parallel_discovery_tracks"), dict):
         m["parallel_discovery_tracks"] = dict(overrides.get("parallel_discovery_tracks") or {})
+    if isinstance(overrides.get("layer_separation_policy"), dict):
+        m["layer_separation_policy"] = dict(overrides.get("layer_separation_policy") or {})
 
     m["user_override_file"] = {
         "path": os.getenv(
@@ -212,6 +214,12 @@ def run_inf_model_layer(prompt: str, inf_theory: dict[str, Any] | None = None) -
             "track_B": "formalize_requirements_for_gravity-referenced_max_speed_statement",
             "track_C": "classify_each_candidate_as_derivable_theorem_or_independent_axiom",
             "selection_rule": "intersection_A_and_B_and_C_only",
+        },
+        "layer_separation_policy": {
+            "euclid_axioms_must_remain_pure_geometry": True,
+            "forbid_physical_entities_in_euclid_axioms": True,
+            "require_formal_independence_check_before_physics_mapping": True,
+            "physics_mapping_must_be_post_layer": True,
         },
     }
 

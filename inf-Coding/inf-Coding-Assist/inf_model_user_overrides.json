@@ -75,6 +75,13 @@
       "track_C": "classify_each_candidate_as_derivable_theorem_or_independent_axiom",
       "selection_rule": "intersection_A_and_B_and_C_only"
     },
+    "layer_separation_policy": {
+      "euclid_axioms_must_remain_pure_geometry": true,
+      "forbid_physical_entities_in_euclid_axioms": true,
+      "require_formal_independence_check_before_physics_mapping": true,
+      "physics_mapping_must_be_post_layer": true,
+      "note": "Avoid category errors (e.g., arbitrary object axiomatization); keep geometry and physics layers separated."
+    },
     "mismatch_to_iut_patch_map": {
       "R3_hubble_tension": "iut_patch_late_universe_calibration_bridge_v1",
       "R8_modified_gravity_vs_LCDM": "iut_patch_scale_dependent_growth_bridge_v1",
