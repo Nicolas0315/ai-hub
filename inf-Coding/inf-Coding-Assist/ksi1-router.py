@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
-import glob
 import json
 import os
 import re
@@ -268,36 +267,66 @@ def decide_route(command: str) -> tuple[str, dict]:
     return route, detail
 
 
+def _is_under(path: str, roots: list[str]) -> bool:
+    rp = os.path.realpath(path)
+    for r in roots:
+        rr = os.path.realpath(r)
+        if rp == rr or rp.startswith(rr + os.sep):
+            return True
+    return False
+
+
 def _post_response_cleanup() -> None:
-    """Delete memory artifacts and inf-Coding caches after each completed response."""
+    """
+    KQ-and-before strict cache hygiene:
+    - remove cache artifacts after each completed run
+    - never auto-delete inf-Brain persistent area unless user explicitly asks
+    """
     inf_root = '/mnt/c/Users/ogosh/Documents/NICOLAS/Katala/inf-Coding'
 
-    # Memory cleanup (workspace memory area)
-    memory_dir = os.path.join(inf_root, 'memory')
-    if os.path.isdir(memory_dir):
-        for p in glob.glob(os.path.join(memory_dir, '*')):
-            try:
-                if os.path.isdir(p):
-                    shutil.rmtree(p, ignore_errors=True)
-                else:
-                    os.remove(p)
-            except Exception:
-                pass
+    # Protected persistent zones (inf-Brain/inf-Memory side)
+    protected_roots = [
+        os.path.join(inf_root, 'inf-memory-store'),
+    ]
 
-    # inf-Coding cache cleanup
+    # Targeted cache dirs
     cleanup_targets = [
         os.path.join(inf_root, 'inf-Coding-cache'),
         os.path.join(inf_root, 'inf-Coding-run', '.tmp-openalex-cache'),
-        os.path.join(inf_root, 'inf-Coding-Assist', '__pycache__'),
-        os.path.join(inf_root, 'inf-Coding-run', '__pycache__'),
+        os.path.join(inf_root, '.pytest_cache'),
+        os.path.join(inf_root, '.mypy_cache'),
+        os.path.join(inf_root, '.ruff_cache'),
+        os.path.join(inf_root, '.cache'),
     ]
 
     for t in cleanup_targets:
         try:
-            if os.path.isdir(t):
+            if os.path.isdir(t) and not _is_under(t, protected_roots):
                 shutil.rmtree(t, ignore_errors=True)
         except Exception:
             pass
+
+    # Recursive __pycache__ cleanup across KQ-before workspace trees
+    scan_roots = [
+        os.path.join('/mnt/c/Users/ogosh/Documents/NICOLAS/Katala', 'src'),
+        os.path.join(inf_root, 'inf-Coding-Assist'),
+        os.path.join(inf_root, 'inf-Coding-run'),
+        os.path.join(inf_root, 'katala-writable', 'src'),
+    ]
+    for root in scan_roots:
+        if not os.path.isdir(root):
+            continue
+        for cur, dirs, _files in os.walk(root, topdown=True):
+            # never descend into protected inf-Brain persistent roots
+            dirs[:] = [d for d in dirs if not _is_under(os.path.join(cur, d), protected_roots)]
+            for d in list(dirs):
+                if d == '__pycache__':
+                    p = os.path.join(cur, d)
+                    try:
+                        if not _is_under(p, protected_roots):
+                            shutil.rmtree(p, ignore_errors=True)
+                    except Exception:
+                        pass
 
 
 def main() -> int:

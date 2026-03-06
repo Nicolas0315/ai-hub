@@ -32,6 +32,7 @@ def run_inf_brain_layer(prompt: str, unified: dict[str, Any] | None = None) -> d
             "kq_to_inf_brain": "full-access",
             "inf_brain_to_kq": "no-access",
             "writeback_forbidden": True,
+            "inf_brain_retention": "manual-delete-only",
         },
         "sub_layers": {
             "inf_theory": theory,
