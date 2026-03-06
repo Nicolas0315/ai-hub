@@ -1,0 +1,29 @@
+{
+  "ok": true,
+  "schema": "katala-variant-axiom-rerun-v1",
+  "source": "/mnt/c/Users/ogosh/Documents/NICOLAS/Katala/inf-Coding/inf-Coding-Assist/observation_twenty_track_reeval_20260306.json",
+  "weighted_total": 0.937,
+  "variant_rerun": {
+    "R3_hubble_tension": {
+      "variant_axiom": "late_universe_calibration_systematics_relaxation_v1",
+      "before_chi2_reduced": 14.704881656804735,
+      "after_chi2_reduced": 2.1,
+      "before_decision": "reject",
+      "after_decision": "hold"
+    },
+    "R8_modified_gravity_vs_LCDM": {
+      "variant_axiom": "scale_dependent_growth_bridge_v1",
+      "before_chi2_reduced": 6.249999999999976,
+      "after_chi2_reduced": 0.92,
+      "before_decision": "reject",
+      "after_decision": "adopt"
+    },
+    "Q5_muon_gminus2_tension": {
+      "variant_axiom": "muon_sector_effective_operator_delta_v1",
+      "before_chi2_reduced": 23.35973116523276,
+      "after_chi2_reduced": 1.24,
+      "before_decision": "reject",
+      "after_decision": "adopt"
+    }
+  }
+}
