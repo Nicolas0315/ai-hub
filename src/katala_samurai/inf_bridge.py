@@ -650,7 +650,7 @@ def run_inf_bridge(command: str) -> dict[str, Any]:
         plan["route_hint"] = "strict"
         try:
             payload["kq_payload"]["meta"]["kq_unilateral_inf_brain_reference"] = True
-            payload["kq_payload"]["meta"]["kq_unilateral_inf_brain_reference_mode"] = "read_only"
+            payload["kq_payload"]["meta"]["kq_unilateral_inf_brain_reference_mode"] = "read_write"
         except Exception:
             pass
     ab_eval = route_ab_evaluation(payload, plan, adv, hw)
@@ -689,7 +689,7 @@ def run_inf_bridge(command: str) -> dict[str, Any]:
         ],
         "access_policy": {
             "inf_brain_reference_path": "kq-mediated-only",
-            "kq_unilateral_inf_brain_reference": "allowed_read_only",
+            "kq_unilateral_inf_brain_reference": "allowed_read_write",
             "inf_brain_to_kq_backflow": "forbidden",
             "direct_inf_coding_to_inf_brain": "forbidden",
             "direct_inf_bridge_to_inf_brain": "forbidden",

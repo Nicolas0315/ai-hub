@@ -53,7 +53,7 @@ def run_inf_brain_layer(prompt: str, unified: dict[str, Any] | None = None) -> d
         "goal": "kq_post_layers_orchestration",
         "direction_policy": {
             "kq_to_inf_brain": "full-access",
-            "kq_unilateral_reference": "allowed_read_only",
+            "kq_unilateral_reference": "allowed_read_write",
             "inf_brain_to_kq": "no-access",
             "writeback_forbidden": True,
             "inf_brain_retention": "manual-delete-only",

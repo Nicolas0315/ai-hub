@@ -23,7 +23,7 @@ def sanitize_inf_brain_output(payload: dict[str, Any]) -> dict[str, Any]:
             "goal": "kq_post_layers_orchestration",
             "direction_policy": {
                 "kq_to_inf_brain": "full-access",
-                "kq_unilateral_reference": "allowed_read_only",
+                "kq_unilateral_reference": "allowed_read_write",
                 "inf_brain_to_kq": "no-access",
                 "writeback_forbidden": True,
                 "inf_brain_retention": "manual-delete-only",
@@ -37,7 +37,7 @@ def sanitize_inf_brain_output(payload: dict[str, Any]) -> dict[str, Any]:
     out["schema_version"] = INF_BRAIN_SCHEMA_VERSION
     out.setdefault("direction_policy", {
         "kq_to_inf_brain": "full-access",
-        "kq_unilateral_reference": "allowed_read_only",
+        "kq_unilateral_reference": "allowed_read_write",
         "inf_brain_to_kq": "no-access",
         "writeback_forbidden": True,
         "inf_brain_retention": "manual-delete-only",
@@ -47,7 +47,7 @@ def sanitize_inf_brain_output(payload: dict[str, Any]) -> dict[str, Any]:
     if not isinstance(dp, dict):
         dp = {}
     dp["kq_to_inf_brain"] = "full-access"
-    dp["kq_unilateral_reference"] = "allowed_read_only"
+    dp["kq_unilateral_reference"] = "allowed_read_write"
     dp["inf_brain_to_kq"] = "no-access"
     dp["writeback_forbidden"] = True
     dp["inf_brain_retention"] = "manual-delete-only"
@@ -80,7 +80,7 @@ def validate_inf_brain_output(payload: dict[str, Any]) -> dict[str, Any]:
     if str(dp.get("inf_brain_retention", "")) != "manual-delete-only":
         ok = False
         reasons.append("invalid_retention_policy")
-    if str(dp.get("kq_unilateral_reference", "")) != "allowed_read_only":
+    if str(dp.get("kq_unilateral_reference", "")) != "allowed_read_write":
         ok = False
         reasons.append("invalid_kq_unilateral_reference_policy")
     if bool(dp.get("kq_mediated_access_required", False)) is not True:
