@@ -81,7 +81,7 @@ def _select_model(command: str):
     return KQ03a()
 
 
-def _formal_probe(command: str) -> dict:
+def _formal_probe(command: str, bridge: dict | None = None) -> dict:
     """Run formal probe so inf-Bridge routes with heuristic+formal evidence."""
     if not _HAS_KQ_FORMAL:
         return {"enabled": False, "reason": "kq_formal_bridge_unavailable"}
@@ -91,6 +91,16 @@ def _formal_probe(command: str) -> dict:
 
     # Standard operation: run unified math+logic coverage first.
     unified = solve_math_logic_unified(s)
+    if isinstance(unified, dict):
+        unified.setdefault('kq_access_gate', {
+            'granted': True,
+            'source': 'kq',
+            'path': 'inf-coding->inf-bridge->kq->inf-brain',
+        })
+        if isinstance(bridge, dict):
+            kref = bridge.get('katala_grand_unification_reference')
+            if isinstance(kref, dict):
+                unified['katala_grand_unification_reference'] = kref
     inf_brain_raw = run_inf_brain_layer(s, unified)
     inf_brain = sanitize_inf_brain_output(inf_brain_raw)
     inf_brain_validation = validate_inf_brain_output(inf_brain)
@@ -123,7 +133,7 @@ def decide_route(command: str) -> tuple[str, dict]:
     bridge_plan = bridge.get("plan") or {}
     normalized_command = (bridge.get("input") or {}).get("normalized") or command
     cbind = (bridge.get("context_binding") or {})
-    formal = _formal_probe(normalized_command)
+    formal = _formal_probe(normalized_command, bridge)
 
     # inf-Bridge caution gate (before KQ, no hard reject policy)
     if cbind.get("verdict") in {"caution"}:

@@ -666,6 +666,28 @@ def run_inf_bridge(command: str) -> dict[str, Any]:
         "next_goal": "pending_result_reflection",
     }
 
+    payload["katala_grand_unification_reference"] = {
+        "alias": "katala_grand_unification_theory",
+        "version": "kgu-v1",
+        "five_line_definition": [
+            "KQ(IUT実装済)で数学基盤は改定済。",
+            "inf-Modelは、大統一理論としての物理モデルを新たに作るための層。",
+            "採択条件は consistency + projection + chi2_strict。",
+            "不一致は rejected_consistent_variant として保持する。",
+            "最優先は R3/R8/Q5、次点は Q8/Q9/Q10/Q3。",
+        ],
+        "access_policy": {
+            "inf_brain_reference_path": "kq-mediated-only",
+            "direct_inf_coding_to_inf_brain": "forbidden",
+            "direct_inf_bridge_to_inf_brain": "forbidden",
+        },
+    }
+
+    try:
+        payload["kq_payload"]["meta"]["katala_grand_unification_reference"] = payload["katala_grand_unification_reference"]
+    except Exception:
+        pass
+
     payload["meta_visualization"] = build_meta_visualization(payload, plan)
     payload["flow_audit_report"] = build_flow_audit_report(payload, plan)
     return payload

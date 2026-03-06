@@ -26,6 +26,7 @@ def sanitize_inf_brain_output(payload: dict[str, Any]) -> dict[str, Any]:
                 "inf_brain_to_kq": "no-access",
                 "writeback_forbidden": True,
                 "inf_brain_retention": "manual-delete-only",
+                "kq_mediated_access_required": True,
             },
             "sub_layers": {},
             "validation": {"ok": False},
@@ -38,6 +39,7 @@ def sanitize_inf_brain_output(payload: dict[str, Any]) -> dict[str, Any]:
         "inf_brain_to_kq": "no-access",
         "writeback_forbidden": True,
         "inf_brain_retention": "manual-delete-only",
+        "kq_mediated_access_required": True,
     })
     dp = out.get("direction_policy") or {}
     if not isinstance(dp, dict):
@@ -46,6 +48,7 @@ def sanitize_inf_brain_output(payload: dict[str, Any]) -> dict[str, Any]:
     dp["inf_brain_to_kq"] = "no-access"
     dp["writeback_forbidden"] = True
     dp["inf_brain_retention"] = "manual-delete-only"
+    dp["kq_mediated_access_required"] = True
     out["direction_policy"] = dp
     out.setdefault("sub_layers", {})
     out.setdefault("validation", {"ok": False})
@@ -74,5 +77,8 @@ def validate_inf_brain_output(payload: dict[str, Any]) -> dict[str, Any]:
     if str(dp.get("inf_brain_retention", "")) != "manual-delete-only":
         ok = False
         reasons.append("invalid_retention_policy")
+    if bool(dp.get("kq_mediated_access_required", False)) is not True:
+        ok = False
+        reasons.append("invalid_kq_mediated_access_policy")
 
     return {"ok": ok, "reasons": reasons}

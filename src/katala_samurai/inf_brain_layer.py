@@ -11,6 +11,29 @@ from .inf_memory_layer_policy import sanitize_inf_memory_output, validate_inf_me
 
 
 def run_inf_brain_layer(prompt: str, unified: dict[str, Any] | None = None) -> dict[str, Any]:
+    u = unified if isinstance(unified, dict) else {}
+    gate = (u.get("kq_access_gate") or {}) if isinstance(u, dict) else {}
+    granted = bool(gate.get("granted", False)) and str(gate.get("source", "")) == "kq"
+    if not granted:
+        return {
+            "enabled": False,
+            "schema_version": "inf-brain-v1",
+            "layer": "inf-brain",
+            "goal": "kq_post_layers_orchestration",
+            "direction_policy": {
+                "kq_to_inf_brain": "full-access",
+                "inf_brain_to_kq": "no-access",
+                "writeback_forbidden": True,
+                "inf_brain_retention": "manual-delete-only",
+                "kq_mediated_access_required": True,
+            },
+            "status": {
+                "blocked": True,
+                "reason": "kq_mediated_access_required",
+            },
+            "validation": {"ok": False},
+        }
+
     theory_raw = run_inf_theory_layer(prompt, unified)
     theory = sanitize_inf_theory_output(theory_raw)
     theory_validation = validate_inf_theory_output(theory)
@@ -33,6 +56,7 @@ def run_inf_brain_layer(prompt: str, unified: dict[str, Any] | None = None) -> d
             "inf_brain_to_kq": "no-access",
             "writeback_forbidden": True,
             "inf_brain_retention": "manual-delete-only",
+            "kq_mediated_access_required": True,
         },
         "sub_layers": {
             "inf_theory": theory,
