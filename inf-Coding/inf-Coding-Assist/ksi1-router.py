@@ -62,9 +62,37 @@ STRICT_ONLY_PATTERNS = [
     r"^kubectl(\s|$)",
 ]
 
+UPSTREAM_MUTATION_PATTERNS = [
+    r"\bgit\s+(commit|push|rebase|reset|cherry-pick|merge|apply)\b",
+    r"\b(cat|tee|sed|perl|python3?)\b.*(>|>>|write|save|dump)",
+    r"\bmv\b", r"\bcp\b", r"\brm\b", r"\btruncate\b",
+]
+
+UPSTREAM_PROTECTED_HINTS = [
+    "inf-coding",
+    "inf_bridge.py",
+    "inf-bridge",
+    "kq_",
+    "kq/",
+    "kq ",
+]
+
 
 def _matches(patterns: list[str], command: str) -> bool:
     return any(re.search(p, command, re.IGNORECASE) for p in patterns)
+
+
+def _requires_upstream_mutation_approval(command: str) -> bool:
+    c = (command or "").lower()
+    mutating = _matches(UPSTREAM_MUTATION_PATTERNS, c)
+    touches_upstream = any(h in c for h in UPSTREAM_PROTECTED_HINTS)
+    return bool(mutating and touches_upstream)
+
+
+def _has_upstream_mutation_approval() -> bool:
+    approved = os.getenv("INF_UPSTREAM_MUTATION_APPROVED", "0").strip().lower() in {"1", "true", "yes", "on"}
+    note = os.getenv("INF_UPSTREAM_MUTATION_NOTE", "").strip()
+    return bool(approved and note)
 
 
 def _select_model(command: str):
@@ -376,6 +404,20 @@ def main() -> int:
         env['KSI1_ROUTE'] = route
         env['KSI_MODEL_ACTIVE'] = detail.get('model', '')
         env['INF_BRIDGE_TRUST'] = (((detail.get('inf_bridge') or {}).get('input') or {}).get('source_trust') or 'untrusted')
+
+        if _requires_upstream_mutation_approval(command) and not _has_upstream_mutation_approval():
+            blocked = {
+                'blocked': True,
+                'reason': 'upstream_mutation_requires_user_confirmation',
+                'required_env': {
+                    'INF_UPSTREAM_MUTATION_APPROVED': '1',
+                    'INF_UPSTREAM_MUTATION_NOTE': '<user-confirmation-text>',
+                },
+            }
+            print(json.dumps(blocked, ensure_ascii=False))
+            append_ephemeral_audit(audit_path, {"event": "blocked", **blocked})
+            append_goal_event(goal_history_path, {"event": "goal_blocked", **blocked})
+            return 73
 
         rc = subprocess.call(sys.argv[1:], cwd='/mnt/c/Users/ogosh/Documents/NICOLAS/Katala', env=env)
         append_ephemeral_audit(audit_path, {"event": "completed", "rc": rc})
