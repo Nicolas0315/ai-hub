@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900">
+  <defs>
+    <style>
+      .title{font:700 38px 'Inter','Noto Sans JP','Yu Gothic UI','Meiryo',sans-serif;fill:#111827}
+      .sub{font:500 18px 'Inter','Noto Sans JP','Yu Gothic UI','Meiryo',sans-serif;fill:#4b5563}
+      .h{font:700 24px 'Inter','Noto Sans JP','Yu Gothic UI','Meiryo',sans-serif;fill:#0f172a}
+      .t{font:500 18px 'Inter','Noto Sans JP','Yu Gothic UI','Meiryo',sans-serif;fill:#334155}
+      .edge{fill:none;stroke:#334155;stroke-width:3.2;marker-end:url(#arrow)}
+    </style>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M0,0 L12,6 L0,12 z" fill="#334155"/>
+    </marker>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#f8fafc"/>
+      <stop offset="100%" stop-color="#eef2ff"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1600" height="900" fill="url(#bg)"/>
+  <text x="60" y="70" class="title">Enigma Flow (Simple Bilingual)</text>
+  <text x="60" y="104" class="sub">見やすさ重視: readable font + larger text / 英語 + 日本語</text>
+
+  <rect x="80" y="220" width="280" height="170" rx="18" fill="#dbeafe" stroke="#3b82f6" stroke-width="2.6"/>
+  <text x="112" y="275" class="h">Input / 受信</text>
+  <text x="112" y="310" class="t">Discord DM/Channel</text>
+  <text x="112" y="340" class="t">Mention / Reply</text>
+
+  <rect x="430" y="220" width="310" height="170" rx="18" fill="#dcfce7" stroke="#22c55e" stroke-width="2.6"/>
+  <text x="462" y="275" class="h">Plan / 判断</text>
+  <text x="462" y="310" class="t">Intent classify</text>
+  <text x="462" y="340" class="t">意図分類</text>
+
+  <rect x="810" y="220" width="330" height="170" rx="18" fill="#ede9fe" stroke="#8b5cf6" stroke-width="2.6"/>
+  <text x="842" y="275" class="h">OpenClaw / 実行</text>
+  <text x="842" y="310" class="t">Tools orchestration</text>
+  <text x="842" y="340" class="t">read / exec / message</text>
+
+  <rect x="1210" y="220" width="310" height="170" rx="18" fill="#fef3c7" stroke="#f59e0b" stroke-width="2.6"/>
+  <text x="1242" y="275" class="h">Guard / 保護</text>
+  <text x="1242" y="310" class="t">inf-Coding entry</text>
+  <text x="1242" y="340" class="t">./guard.sh required</text>
+
+  <rect x="340" y="530" width="400" height="190" rx="18" fill="#cffafe" stroke="#06b6d4" stroke-width="2.6"/>
+  <text x="372" y="585" class="h">Katala Path / Katala系</text>
+  <text x="372" y="620" class="t">./katala-exec.sh ...</text>
+  <text x="372" y="650" class="t">Build / Analyze / Update</text>
+
+  <rect x="860" y="530" width="400" height="190" rx="18" fill="#fce7f3" stroke="#ec4899" stroke-width="2.6"/>
+  <text x="892" y="585" class="h">Assist Path / 補助系</text>
+  <text x="892" y="620" class="t">./assist-exec.sh ...</text>
+  <text x="892" y="650" class="t">Research / Utility tasks</text>
+
+  <rect x="560" y="770" width="520" height="90" rx="16" fill="#ffffff" stroke="#94a3b8" stroke-width="2.2"/>
+  <text x="592" y="824" class="h">Output / 返却 → Discord + files (PNG/SVG/Text)</text>
+
+  <path d="M360 305 L430 305" class="edge"/>
+  <path d="M740 305 L810 305" class="edge"/>
+  <path d="M1140 305 L1210 305" class="edge"/>
+  <path d="M1365 390 L1365 460 L1060 530" class="edge"/>
+  <path d="M1365 390 L1365 460 L540 530" class="edge"/>
+  <path d="M540 720 L760 770" class="edge"/>
+  <path d="M1060 720 L890 770" class="edge"/>
+</svg>
