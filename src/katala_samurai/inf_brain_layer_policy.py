@@ -25,7 +25,10 @@ def sanitize_inf_brain_output(payload: dict[str, Any]) -> dict[str, Any]:
                 "kq_to_inf_brain": "full-access",
                 "kq_unilateral_reference": "allowed_read_write",
                 "inf_brain_to_kq": "no-access",
+                "inf_brain_to_inf_bridge": "no-access",
+                "inf_brain_to_inf_coding": "no-access",
                 "writeback_forbidden": True,
+                "upstream_mutation_forbidden": True,
                 "inf_brain_retention": "manual-delete-only",
                 "kq_mediated_access_required": True,
             },
@@ -39,7 +42,10 @@ def sanitize_inf_brain_output(payload: dict[str, Any]) -> dict[str, Any]:
         "kq_to_inf_brain": "full-access",
         "kq_unilateral_reference": "allowed_read_write",
         "inf_brain_to_kq": "no-access",
+        "inf_brain_to_inf_bridge": "no-access",
+        "inf_brain_to_inf_coding": "no-access",
         "writeback_forbidden": True,
+        "upstream_mutation_forbidden": True,
         "inf_brain_retention": "manual-delete-only",
         "kq_mediated_access_required": True,
     })
@@ -49,7 +55,10 @@ def sanitize_inf_brain_output(payload: dict[str, Any]) -> dict[str, Any]:
     dp["kq_to_inf_brain"] = "full-access"
     dp["kq_unilateral_reference"] = "allowed_read_write"
     dp["inf_brain_to_kq"] = "no-access"
+    dp["inf_brain_to_inf_bridge"] = "no-access"
+    dp["inf_brain_to_inf_coding"] = "no-access"
     dp["writeback_forbidden"] = True
+    dp["upstream_mutation_forbidden"] = True
     dp["inf_brain_retention"] = "manual-delete-only"
     dp["kq_mediated_access_required"] = True
     out["direction_policy"] = dp
@@ -77,6 +86,15 @@ def validate_inf_brain_output(payload: dict[str, Any]) -> dict[str, Any]:
     if str(dp.get("inf_brain_to_kq", "")) != "no-access":
         ok = False
         reasons.append("invalid_direction_policy")
+    if str(dp.get("inf_brain_to_inf_bridge", "")) != "no-access":
+        ok = False
+        reasons.append("invalid_inf_brain_to_inf_bridge_policy")
+    if str(dp.get("inf_brain_to_inf_coding", "")) != "no-access":
+        ok = False
+        reasons.append("invalid_inf_brain_to_inf_coding_policy")
+    if bool(dp.get("upstream_mutation_forbidden", False)) is not True:
+        ok = False
+        reasons.append("invalid_upstream_mutation_policy")
     if str(dp.get("inf_brain_retention", "")) != "manual-delete-only":
         ok = False
         reasons.append("invalid_retention_policy")
