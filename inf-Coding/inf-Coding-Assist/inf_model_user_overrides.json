@@ -84,8 +84,8 @@
     },
     "iut_candidate_survival_program": {
       "enabled": true,
-      "hierarchy": {
-        "lower_layers": {
+      "three_layer_architecture": {
+        "L1_lower_raw_layers": {
           "relativity_dimension_layer": {
             "mapping": "euclid_to_relativity_dimension_structure",
             "required": true
@@ -95,8 +95,18 @@
             "required": true
           }
         },
-        "upper_unified_dimension_layer": {
-          "name": "unified_dimension_layer_U",
+        "L2_iut_mediation_layer": {
+          "enabled": true,
+          "gates": {
+            "commutativity": true,
+            "invariant_preservation": true,
+            "non_contradiction": true,
+            "dual_projection_consistency": true
+          }
+        },
+        "L3_top_recovery_layer": {
+          "name": "top_euclid_recovery_layer",
+          "final_acceptance_gate": true,
           "recovery": {
             "local_euclid_recovery": true,
             "limit_euclid_recovery": true
@@ -110,13 +120,7 @@
         "E4_path_independent_comparison",
         "E5_classical_euclid_recovery_limit"
       ],
-      "iut_gate": {
-        "commutativity": true,
-        "invariant_preservation": true,
-        "non_contradiction": true,
-        "dual_projection_consistency": true
-      },
-      "selection_rule": "adopt_candidate_only_if_all_gates_pass"
+      "selection_rule": "adopt_candidate_only_if_all_gates_pass_and_L3_recovery"
     },
     "mismatch_to_iut_patch_map": {
       "R3_hubble_tension": "iut_patch_late_universe_calibration_bridge_v1",

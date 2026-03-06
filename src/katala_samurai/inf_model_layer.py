@@ -187,8 +187,8 @@ def run_inf_model_layer(prompt: str, inf_theory: dict[str, Any] | None = None) -
             },
             "iut_candidate_survival_program": {
                 "enabled": True,
-                "hierarchy": {
-                    "lower_layers": {
+                "three_layer_architecture": {
+                    "L1_lower_raw_layers": {
                         "relativity_dimension_layer": {
                             "mapping": "euclid_to_relativity_dimension_structure",
                             "required": True,
@@ -198,8 +198,18 @@ def run_inf_model_layer(prompt: str, inf_theory: dict[str, Any] | None = None) -
                             "required": True,
                         },
                     },
-                    "upper_unified_dimension_layer": {
-                        "name": "unified_dimension_layer_U",
+                    "L2_iut_mediation_layer": {
+                        "enabled": True,
+                        "gates": {
+                            "commutativity": True,
+                            "invariant_preservation": True,
+                            "non_contradiction": True,
+                            "dual_projection_consistency": True,
+                        },
+                    },
+                    "L3_top_recovery_layer": {
+                        "name": "top_euclid_recovery_layer",
+                        "final_acceptance_gate": True,
                         "recovery": {
                             "local_euclid_recovery": True,
                             "limit_euclid_recovery": True,
@@ -213,13 +223,7 @@ def run_inf_model_layer(prompt: str, inf_theory: dict[str, Any] | None = None) -
                     "E4_path_independent_comparison",
                     "E5_classical_euclid_recovery_limit",
                 ],
-                "iut_gate": {
-                    "commutativity": True,
-                    "invariant_preservation": True,
-                    "non_contradiction": True,
-                    "dual_projection_consistency": True,
-                },
-                "selection_rule": "adopt_candidate_only_if_all_gates_pass",
+                "selection_rule": "adopt_candidate_only_if_all_gates_pass_and_L3_recovery",
             },
         },
         "mismatch_to_iut_patch_map": {

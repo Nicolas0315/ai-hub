@@ -15,9 +15,12 @@ def main() -> int:
     prog = (exp.get('iut_candidate_survival_program') or {})
 
     candidates = list(prog.get('candidate_axioms_euclid_pure') or [])
-    recovery_cfg = (((prog.get('hierarchy') or {}).get('upper_unified_dimension_layer') or {}).get('recovery') or {})
+    arch = (prog.get('three_layer_architecture') or {})
+    l2_gates = ((arch.get('L2_iut_mediation_layer') or {}).get('gates') or {})
+    recovery_cfg = (((arch.get('L3_top_recovery_layer') or {}).get('recovery') or {}))
     require_local = bool(recovery_cfg.get('local_euclid_recovery', True))
     require_limit = bool(recovery_cfg.get('limit_euclid_recovery', True))
+    require_dual_projection = bool(l2_gates.get('dual_projection_consistency', True))
 
     # First executable pass (based on currently fixed derivability/hold-condition knowledge)
     # E1 is conditional on continuity/completeness assumptions and is held for now.
@@ -73,6 +76,7 @@ def main() -> int:
             r.get('commutativity')
             and r.get('invariant_preservation')
             and r.get('non_contradiction')
+            and ((r.get('dual_projection_consistency', True)) if require_dual_projection else True)
             and (r.get('local_euclid_recovery') if require_local else True)
             and (r.get('limit_euclid_recovery') if require_limit else True)
         )
