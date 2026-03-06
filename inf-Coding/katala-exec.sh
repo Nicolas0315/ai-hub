@@ -13,6 +13,28 @@ if [[ "$#" -eq 0 ]]; then
   exit 64
 fi
 
+# Mandatory KQ gate for router-external execution path (fail-close)
+KQ_MANDATORY_GATE="${KQ_MANDATORY_GATE:-1}"
+if [[ "$KQ_MANDATORY_GATE" =~ ^(1|true|yes|on)$ ]]; then
+  if [[ -z "${KQ_INPUT_PACKET_JSON:-}" ]]; then
+    echo "[katala-exec] blocked: missing KQ_INPUT_PACKET_JSON under mandatory KQ gate" >&2
+    exit 74
+  fi
+  if ! python3 - <<'PY' >/dev/null 2>&1
+import json, os, sys
+raw=os.getenv('KQ_INPUT_PACKET_JSON','').strip()
+try:
+    json.loads(raw)
+except Exception:
+    sys.exit(1)
+sys.exit(0)
+PY
+  then
+    echo "[katala-exec] blocked: invalid KQ_INPUT_PACKET_JSON under mandatory KQ gate" >&2
+    exit 74
+  fi
+fi
+
 KATALA_ROOT="$($SCRIPT_DIR/guard.sh)"
 cd "$KATALA_ROOT"
 "$SCRIPT_DIR/order-enforce.sh"
