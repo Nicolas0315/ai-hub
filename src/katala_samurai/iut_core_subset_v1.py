@@ -24,6 +24,7 @@ from .rust_hotpath_bridge import (
 from .iut_formal_dictionary import IUT_FORMAL_DICTIONARY, normalize_iut_terms
 from .iut_lemma_catalog import build_iut_lemma_catalog_v1
 from .iut_counterexample_templates import counterexample_template_index
+from .iut_physical_projection_map import physical_projection_index
 
 
 @dataclass
@@ -588,6 +589,10 @@ def evaluate_iut_core_subset_v1(nodes: list[IUTLemmaNode] | None = None) -> dict
         "counterexample_templates": {
             "version": "v1",
             "items": counterexample_template_index(),
+        },
+        "physical_projection_map": {
+            "version": "v1",
+            "items": physical_projection_index(),
         },
         "dependency_graph": graph,
         "optimization": {
