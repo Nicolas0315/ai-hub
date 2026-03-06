@@ -1,0 +1,83 @@
+{
+  "schema": "katala-observation-manifest-v1",
+  "policy": {
+    "dataset_id_must_be_unique": true,
+    "used_by_track_single_owner": true,
+    "same_physical_quantity_requires_pipeline_split": true,
+    "dedup_key": ["observable", "pipeline", "experiment", "release"]
+  },
+  "datasets": [
+    {
+      "dataset_id": "obs_h0_local_distance_ladder",
+      "domain": "relativity",
+      "observable": "H0",
+      "pipeline": "local_distance_ladder",
+      "experiment": "SH0ES",
+      "release": "2024",
+      "value": null,
+      "uncertainty": null,
+      "unit": "km/s/Mpc",
+      "source": {
+        "provider": "openalex",
+        "doi": null,
+        "url": null
+      },
+      "used_by_track": "R3_hubble_tension",
+      "notes": "Split from CMB-inferred H0 by pipeline"
+    },
+    {
+      "dataset_id": "obs_h0_cmb_inferred",
+      "domain": "relativity",
+      "observable": "H0",
+      "pipeline": "cmb_inference",
+      "experiment": "Planck",
+      "release": "2018",
+      "value": null,
+      "uncertainty": null,
+      "unit": "km/s/Mpc",
+      "source": {
+        "provider": "openalex",
+        "doi": null,
+        "url": null
+      },
+      "used_by_track": "R3_hubble_tension",
+      "notes": "Not duplicate: different inference pipeline"
+    },
+    {
+      "dataset_id": "obs_s8_lss",
+      "domain": "relativity",
+      "observable": "S8",
+      "pipeline": "lss_weak_lensing",
+      "experiment": "DES/KiDS",
+      "release": "latest",
+      "value": null,
+      "uncertainty": null,
+      "unit": "dimensionless",
+      "source": {
+        "provider": "openalex",
+        "doi": null,
+        "url": null
+      },
+      "used_by_track": "R8_modified_gravity_vs_LCDM",
+      "notes": "Single owner track policy"
+    },
+    {
+      "dataset_id": "obs_muon_gminus2_fnal",
+      "domain": "quantum",
+      "observable": "a_mu",
+      "pipeline": "precision_magnetic_moment",
+      "experiment": "Muon g-2",
+      "release": "latest",
+      "value": null,
+      "uncertainty": null,
+      "unit": "dimensionless",
+      "source": {
+        "provider": "openalex",
+        "doi": null,
+        "url": null
+      },
+      "used_by_track": "Q5_muon_gminus2_tension",
+      "notes": "No cross-track reuse"
+    }
+  ]
+}
