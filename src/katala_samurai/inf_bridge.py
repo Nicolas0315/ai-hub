@@ -696,8 +696,28 @@ def run_inf_bridge(command: str) -> dict[str, Any]:
         },
     }
 
+    assimilation_trigger = any(k in cmd_low for k in ["本番同化", "observation assimilation", "同化バンドル"])
+    payload["observation_assimilation_control"] = {
+        "mode": "control_plane_only",
+        "triggered": bool(assimilation_trigger),
+        "version": "assim-prod-v1",
+        "job_owner": "inf-bridge",
+        "data_plane_owner": "inf-memory",
+        "recommended_job": {
+            "script": "/mnt/c/Users/ogosh/Documents/NICOLAS/Katala/inf-Coding/inf-Coding-Assist/inf_observation_assimilation_prod.py",
+            "input": "/mnt/c/Users/ogosh/Documents/NICOLAS/Katala/inf-Coding/inf-Coding-Assist/observation_doi_harvest_20260306.normalized.jsonl",
+            "top_n_per_genre": 500,
+            "output": "/mnt/c/Users/ogosh/Documents/NICOLAS/Katala/inf-Coding/inf-Coding-Assist/observation_assimilation_prod_20260306.json",
+        },
+        "delivery": {
+            "to_kq_inf_model": "via_inf_bridge_metadata_only",
+            "direct_inf_bridge_data_mutation": "forbidden",
+        },
+    }
+
     try:
         payload["kq_payload"]["meta"]["katala_grand_unification_reference"] = payload["katala_grand_unification_reference"]
+        payload["kq_payload"]["meta"]["observation_assimilation_control"] = payload["observation_assimilation_control"]
     except Exception:
         pass
 

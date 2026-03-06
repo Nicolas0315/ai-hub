@@ -129,6 +129,9 @@ def _formal_probe(command: str, bridge: dict | None = None) -> dict:
             kref = bridge.get('katala_grand_unification_reference')
             if isinstance(kref, dict):
                 unified['katala_grand_unification_reference'] = kref
+            actl = bridge.get('observation_assimilation_control')
+            if isinstance(actl, dict):
+                unified['observation_assimilation_control'] = actl
     inf_brain_raw = run_inf_brain_layer(s, unified)
     inf_brain = sanitize_inf_brain_output(inf_brain_raw)
     inf_brain_validation = validate_inf_brain_output(inf_brain)
