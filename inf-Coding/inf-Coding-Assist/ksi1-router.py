@@ -28,6 +28,8 @@ from katala_samurai.inf_theory_layer import run_inf_theory_layer
 from katala_samurai.inf_theory_layer_policy import sanitize_inf_theory_output, validate_inf_theory_output
 from katala_samurai.inf_model_layer import run_inf_model_layer
 from katala_samurai.inf_model_layer_policy import sanitize_inf_model_output, validate_inf_model_output
+from katala_samurai.inf_memory_layer import run_inf_memory_layer
+from katala_samurai.inf_memory_layer_policy import sanitize_inf_memory_output, validate_inf_memory_output
 
 try:
     from katala_samurai.kq_symbolic_bridge import (
@@ -102,13 +104,17 @@ def _formal_probe(command: str) -> dict:
     inf_model = sanitize_inf_model_output(inf_model_raw)
     inf_model_validation = validate_inf_model_output(inf_model)
 
+    inf_memory_raw = run_inf_memory_layer(s, unified)
+    inf_memory = sanitize_inf_memory_output(inf_memory_raw)
+    inf_memory_validation = validate_inf_memory_output(inf_memory)
+
     # Keep explicit kind for routing compatibility.
     if any(k in low for k in ["vars:", "formula:", " in [", "==", ">=", "<="]):
         r = solve_smt_optional(s)
-        return {"enabled": True, "kind": "smt", "result": r, "unified": unified, "inf_theory": inf_theory, "inf_theory_validation": inf_theory_validation, "inf_model": inf_model, "inf_model_validation": inf_model_validation}
+        return {"enabled": True, "kind": "smt", "result": r, "unified": unified, "inf_theory": inf_theory, "inf_theory_validation": inf_theory_validation, "inf_model": inf_model, "inf_model_validation": inf_model_validation, "inf_memory": inf_memory, "inf_memory_validation": inf_memory_validation}
     if any(k in low for k in ["cnf:", "clause:", "sat(", "unsat", " or ", " and "]):
         r = solve_sat_lite(s)
-        return {"enabled": True, "kind": "sat", "result": r, "unified": unified, "inf_theory": inf_theory, "inf_theory_validation": inf_theory_validation, "inf_model": inf_model, "inf_model_validation": inf_model_validation}
+        return {"enabled": True, "kind": "sat", "result": r, "unified": unified, "inf_theory": inf_theory, "inf_theory_validation": inf_theory_validation, "inf_model": inf_model, "inf_model_validation": inf_model_validation, "inf_memory": inf_memory, "inf_memory_validation": inf_memory_validation}
 
     primary = ((unified.get("primary") or {}).get("result") if isinstance(unified, dict) else None)
     if isinstance(primary, dict):
@@ -121,10 +127,12 @@ def _formal_probe(command: str) -> dict:
             "inf_theory_validation": inf_theory_validation,
             "inf_model": inf_model,
             "inf_model_validation": inf_model_validation,
+            "inf_memory": inf_memory,
+            "inf_memory_validation": inf_memory_validation,
         }
 
     r = eval_symbolic(s)
-    return {"enabled": True, "kind": "symbolic", "result": r, "unified": unified, "inf_theory": inf_theory, "inf_theory_validation": inf_theory_validation, "inf_model": inf_model, "inf_model_validation": inf_model_validation}
+    return {"enabled": True, "kind": "symbolic", "result": r, "unified": unified, "inf_theory": inf_theory, "inf_theory_validation": inf_theory_validation, "inf_model": inf_model, "inf_model_validation": inf_model_validation, "inf_memory": inf_memory, "inf_memory_validation": inf_memory_validation}
 
 
 def decide_route(command: str) -> tuple[str, dict]:
@@ -251,6 +259,11 @@ def decide_route(command: str) -> tuple[str, dict]:
     if inf_model_validation and not bool(inf_model_validation.get('ok', True)):
         route = 'strict'
         reason = 'inf_model_schema_violation'
+
+    inf_memory_validation = (formal.get('inf_memory_validation') or {}) if isinstance(formal, dict) else {}
+    if inf_memory_validation and not bool(inf_memory_validation.get('ok', True)):
+        route = 'strict'
+        reason = 'inf_memory_schema_violation'
 
     # inf-Bridge plan hint has final safety priority
     if bridge_hint == 'strict' and route != 'strict':
