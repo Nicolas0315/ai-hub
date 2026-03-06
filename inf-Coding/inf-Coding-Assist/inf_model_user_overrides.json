@@ -1,0 +1,21 @@
+{
+  "model_name": "katala_unified_universe_model_v1",
+  "baseline_axioms": [
+    "lorentz_invariance",
+    "unitary_quantum_evolution",
+    "equivalence_principle"
+  ],
+  "variant_axioms": [
+    "effective_lorentz_violation",
+    "scale_dependent_invariants"
+  ],
+  "selection_rule": "consistency+projection+chi2_strict",
+  "notes": "User-editable inf-Model sandbox. Keep rejected variants as records; do not delete history.",
+  "adoption_requires": [
+    "consistency",
+    "projection",
+    "chi_square"
+  ],
+  "retain_rejected_variants": true,
+  "rejected_variant_status": "rejected_consistent_variant"
+}
