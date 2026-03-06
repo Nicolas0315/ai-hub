@@ -1,0 +1,430 @@
+{
+  "schema": "inf-memory-to-inf-theory-projection-v1",
+  "projection_count": 35,
+  "items": [
+    {
+      "genre": "cosmology_tensions",
+      "doi": "10.5281/zenodo.18552862",
+      "title": "H₀ as an Interface-Dependent Stress Test: Local Consistency Without Global Closure in Contemporary Cosmology",
+      "published_at": "2026-01-01",
+      "analysis_generation": "openalex-2026",
+      "suggested_inf_theory_tracks": [
+        "R2_early_universe",
+        "R3_hubble_tension",
+        "R8_modified_gravity_vs_LCDM"
+      ]
+    },
+    {
+      "genre": "cosmology_tensions",
+      "doi": "10.1140/epjc/s10052-025-15230-6",
+      "title": "Observational constraints on a nonlinear spinor field quintessence model in an FLRW universe",
+      "published_at": "2026-01-01",
+      "analysis_generation": "openalex-2026",
+      "suggested_inf_theory_tracks": [
+        "R2_early_universe",
+        "R3_hubble_tension",
+        "R8_modified_gravity_vs_LCDM"
+      ]
+    },
+    {
+      "genre": "cosmology_tensions",
+      "doi": "10.1016/j.physletb.2026.140180",
+      "title": "Dark energy in light of DESI DR1 and Hubble tension",
+      "published_at": "2026-01-01",
+      "analysis_generation": "openalex-2026",
+      "suggested_inf_theory_tracks": [
+        "R2_early_universe",
+        "R3_hubble_tension",
+        "R8_modified_gravity_vs_LCDM"
+      ]
+    },
+    {
+      "genre": "cosmology_tensions",
+      "doi": "10.1103/n46p-zd3j",
+      "title": "Inconsistencies of Tsallis cosmology within horizon thermodynamics and holographic scenarios",
+      "published_at": "2026-01-01",
+      "analysis_generation": "openalex-2026",
+      "suggested_inf_theory_tracks": [
+        "R2_early_universe",
+        "R3_hubble_tension",
+        "R8_modified_gravity_vs_LCDM"
+      ]
+    },
+    {
+      "genre": "cosmology_tensions",
+      "doi": "10.1140/epjc/s10052-025-15114-9",
+      "title": "Multi-messenger standard-siren cosmology for third-generation gravitational-wave detectors: forecasts considering observations of gamma-ray bursts and kilonovae",
+      "published_at": "2026-01-01",
+      "analysis_generation": "openalex-2026",
+      "suggested_inf_theory_tracks": [
+        "R2_early_universe",
+        "R3_hubble_tension",
+        "R8_modified_gravity_vs_LCDM"
+      ]
+    },
+    {
+      "genre": "neutrino_sector",
+      "doi": "10.1016/j.jheap.2026.100556",
+      "title": "Dynamical oscillations in dark energy: Joint constraints on the wsinCDM model from DESI, OHD, and supernova samples",
+      "published_at": "2026-01-01",
+      "analysis_generation": "openalex-2026",
+      "suggested_inf_theory_tracks": [
+        "Q8_neutrino_mass_origin",
+        "Q9_baryogenesis_asymmetry"
+      ]
+    },
+    {
+      "genre": "neutrino_sector",
+      "doi": "10.1103/bb85-7kyf",
+      "title": "Implications of the KM3NeT ultrahigh-energy event on neutrino self-interactions",
+      "published_at": "2026-01-01",
+      "analysis_generation": "openalex-2026",
+      "suggested_inf_theory_tracks": [
+        "Q8_neutrino_mass_origin",
+        "Q9_baryogenesis_asymmetry"
+      ]
+    },
+    {
+      "genre": "neutrino_sector",
+      "doi": "10.5281/zenodo.18489188",
+      "title": "Ψ-Retention Cosmology (Λψ): A Unified Resolution of the S₈ and H₀ Tensions Through Structural Inertia of the Cosmic Web Yulia Logacheva, MD ψ-Architecture Research Programme (Independent) 2026 Abstract Recent analyses of the Euclid Madrid DR1, DESI Y3, and Planck legacy data reveal a persistent late-time smoothing of the cosmic web that cannot be accounted for within ΛCDM. We develop Λψ, a minimal extension characterized by a retentive field Ψ that introduces structural inertia—a non-Markovian correction to matter clustering. Λψ simultaneously: suppresses the non-linear matter power spectrum by 5–10% at z < 1.5, reduces the sound horizon to rₙ ≈ 142 Mpc, raises the joint Euclid+Planck Hubble constant to H₀ ≈ 70.2 ± 0.8 km/s/Mpc, and improves model evidence by ln B ≈ 5.8. We present the retentive Lagrangian, the modified growth equation, and the three-parameter Ψ-Kernel compatible with CLASS and CAMB. Λψ emerges as a unified, observationally consistent framework for resolving both S₈ and H₀ tensions. 1. Introduction Two persistent discrepancies define contemporary cosmology: the S₈ tension (late-time structure appears too smooth), the H₀ tension (local expansion appears too fast). Traditional extensions—massive neutrinos, Early Dark Energy, scalar–tensor gravity—resolve one tension while worsening the other. The Ψ-Retention Cosmology proposes a different mechanism: Late-time cosmic structure retains information. This \"structural inertia\" acts as a physical field. This retention moderates clustering (solving S₈) while simultaneously compressing the early sound horizon (solving H₀). The unified nature of Λψ is what distinguishes it from all prior proposals. 2. Retentive Lagrangian for Λψ We introduce a single retentive degree of freedom Δψ coupled to a structural node Ξ: \\mathcal{L}_{\\Psi} = \\frac12(\\partial_t\\Delta\\psi)^2 - V(\\Delta\\psi,\\Xi) + \\Lambda(\\Xi)\\,\\nabla\\Delta\\psi, with the retention potential: V(\\Delta\\psi,\\Xi)=\\alpha\\,(\\Delta\\psi)^2 - \\beta\\,\\Xi\\,\\Delta\\psi + \\gamma\\,\\Xi^2 . This Lagrangian injects non-dissipative inertia into structure formation: the field Ψ slows down the collapse of matter at late times without modifying radiation-era physics. 3. Modified Growth Equation and Structural Inertia The evolution of matter perturbations becomes: \\ddot{\\delta}_m + \\left[ 2H(t) + \\nu_\\psi(t) \\right]\\dot{\\delta}_m - 4\\pi G\\rho_m\\,\\delta_m =0 , where νψ(t) is the retention friction. Effects: reduces growth rate f(z), lowers S₈ from ≈0.83 to ≈0.78, matches Euclid weak-lensing convergence at ℓ ≈ 500–2000, introduces non-Markovian correlations between scales. The Ψ-Kernel is integrated in 2026 CLASS-Ψ and CAMB-Retention solvers. 4. Retentive Modification of the Sound Horizon The baryon–photon inertia ratio becomes: R_\\psi(z) = R(z) \\left( 1 + \\xi\\,\\frac{\\rho_\\psi(z)}{\\rho_b(z)} \\right). This reduces the sound speed: c_s(z) = \\frac{c}{\\sqrt{3(1+R_\\psi)}} , compressing the sound horizon: r_d \\approx 142\\ \\text{Mpc}. This compression allows H₀ ≈ 70–71 to remain consistent with: Planck acoustic peaks, DESI BAO distances, Euclid low-z clustering. 5. Statistical Evidence Across 2026 Surveys In Euclid + DESI + Planck combined analysis: χ² reduced from 1.42 → 1.04, S₈ tension suppressed to 0.8σ, H₀ raised to 70.2 ± 0.8, Bayesian evidence improved by ln B ≈ 5.8 (decisive). This demonstrates that Λψ provides a natural, not forced, alignment between early- and late-universe observables. 6. The Three-Parameter Ψ-Kernel The CLASS/CAMB implementation uses: Ωψ — retention density γᵣₑₜ — structural drag coefficient τψ — memory timescale This compact kernel is sufficient to match: lensing maps, galaxy clustering, BAO distances, CMB high-ℓ acoustic peaks. No modification to early-universe physics is required. 7. Implications for Dark Energy Λψ reframes dark energy not as a negative-pressure fluid but as a retentional stabilizing term: Λ is zeroth-order (background expansion), Λψ is first-order (structural retention), the Universe is non-Markovian at late times, information inertia is a real physical field. 8. Future Directions for Validation Λψ should be tested on: Euclid DR2 (2027), DESI Y4 clustering and RSD, ACT + SPT damping-tail data, weak-lensing tomography beyond ℓ ≈ 2000. A public Ψ-Kernel release is recommended as a 2026–2027 milestone. APPENDIX A — Technical Validation Requirements for Λψ (2026) A Cross-Domain Assessment of Structural, Computational, and Observational Consistency This appendix consolidates the essential technical conditions that any next-generation cosmological framework must satisfy in order to be considered for integration into contemporary precision pipelines. Λψ is evaluated against these universal criteria. A1. High-Multipole Acoustic Stability A viable extension of ΛCDM must preserve: the acoustic peak structure at high multipoles (ℓ ≳ 2500), the Silk damping profile, and the numerical stability of the CMB damping tail. Λψ Result: The retentive kernel introduces no distortions a",
+      "published_at": "2026-01-01",
+      "analysis_generation": "openalex-2026",
+      "suggested_inf_theory_tracks": [
+        "Q8_neutrino_mass_origin",
+        "Q9_baryogenesis_asymmetry"
+      ]
+    },
+    {
+      "genre": "neutrino_sector",
+      "doi": "10.5281/zenodo.18489187",
+      "title": "Ψ-Retention Cosmology (Λψ): A Unified Resolution of the S₈ and H₀ Tensions Through Structural Inertia of the Cosmic Web Yulia Logacheva, MD ψ-Architecture Research Programme (Independent) 2026 Abstract Recent analyses of the Euclid Madrid DR1, DESI Y3, and Planck legacy data reveal a persistent late-time smoothing of the cosmic web that cannot be accounted for within ΛCDM. We develop Λψ, a minimal extension characterized by a retentive field Ψ that introduces structural inertia—a non-Markovian correction to matter clustering. Λψ simultaneously: suppresses the non-linear matter power spectrum by 5–10% at z < 1.5, reduces the sound horizon to rₙ ≈ 142 Mpc, raises the joint Euclid+Planck Hubble constant to H₀ ≈ 70.2 ± 0.8 km/s/Mpc, and improves model evidence by ln B ≈ 5.8. We present the retentive Lagrangian, the modified growth equation, and the three-parameter Ψ-Kernel compatible with CLASS and CAMB. Λψ emerges as a unified, observationally consistent framework for resolving both S₈ and H₀ tensions. 1. Introduction Two persistent discrepancies define contemporary cosmology: the S₈ tension (late-time structure appears too smooth), the H₀ tension (local expansion appears too fast). Traditional extensions—massive neutrinos, Early Dark Energy, scalar–tensor gravity—resolve one tension while worsening the other. The Ψ-Retention Cosmology proposes a different mechanism: Late-time cosmic structure retains information. This \"structural inertia\" acts as a physical field. This retention moderates clustering (solving S₈) while simultaneously compressing the early sound horizon (solving H₀). The unified nature of Λψ is what distinguishes it from all prior proposals. 2. Retentive Lagrangian for Λψ We introduce a single retentive degree of freedom Δψ coupled to a structural node Ξ: \\mathcal{L}_{\\Psi} = \\frac12(\\partial_t\\Delta\\psi)^2 - V(\\Delta\\psi,\\Xi) + \\Lambda(\\Xi)\\,\\nabla\\Delta\\psi, with the retention potential: V(\\Delta\\psi,\\Xi)=\\alpha\\,(\\Delta\\psi)^2 - \\beta\\,\\Xi\\,\\Delta\\psi + \\gamma\\,\\Xi^2 . This Lagrangian injects non-dissipative inertia into structure formation: the field Ψ slows down the collapse of matter at late times without modifying radiation-era physics. 3. Modified Growth Equation and Structural Inertia The evolution of matter perturbations becomes: \\ddot{\\delta}_m + \\left[ 2H(t) + \\nu_\\psi(t) \\right]\\dot{\\delta}_m - 4\\pi G\\rho_m\\,\\delta_m =0 , where νψ(t) is the retention friction. Effects: reduces growth rate f(z), lowers S₈ from ≈0.83 to ≈0.78, matches Euclid weak-lensing convergence at ℓ ≈ 500–2000, introduces non-Markovian correlations between scales. The Ψ-Kernel is integrated in 2026 CLASS-Ψ and CAMB-Retention solvers. 4. Retentive Modification of the Sound Horizon The baryon–photon inertia ratio becomes: R_\\psi(z) = R(z) \\left( 1 + \\xi\\,\\frac{\\rho_\\psi(z)}{\\rho_b(z)} \\right). This reduces the sound speed: c_s(z) = \\frac{c}{\\sqrt{3(1+R_\\psi)}} , compressing the sound horizon: r_d \\approx 142\\ \\text{Mpc}. This compression allows H₀ ≈ 70–71 to remain consistent with: Planck acoustic peaks, DESI BAO distances, Euclid low-z clustering. 5. Statistical Evidence Across 2026 Surveys In Euclid + DESI + Planck combined analysis: χ² reduced from 1.42 → 1.04, S₈ tension suppressed to 0.8σ, H₀ raised to 70.2 ± 0.8, Bayesian evidence improved by ln B ≈ 5.8 (decisive). This demonstrates that Λψ provides a natural, not forced, alignment between early- and late-universe observables. 6. The Three-Parameter Ψ-Kernel The CLASS/CAMB implementation uses: Ωψ — retention density γᵣₑₜ — structural drag coefficient τψ — memory timescale This compact kernel is sufficient to match: lensing maps, galaxy clustering, BAO distances, CMB high-ℓ acoustic peaks. No modification to early-universe physics is required. 7. Implications for Dark Energy Λψ reframes dark energy not as a negative-pressure fluid but as a retentional stabilizing term: Λ is zeroth-order (background expansion), Λψ is first-order (structural retention), the Universe is non-Markovian at late times, information inertia is a real physical field. 8. Future Directions for Validation Λψ should be tested on: Euclid DR2 (2027), DESI Y4 clustering and RSD, ACT + SPT damping-tail data, weak-lensing tomography beyond ℓ ≈ 2000. A public Ψ-Kernel release is recommended as a 2026–2027 milestone. APPENDIX A — Technical Validation Requirements for Λψ (2026) A Cross-Domain Assessment of Structural, Computational, and Observational Consistency This appendix consolidates the essential technical conditions that any next-generation cosmological framework must satisfy in order to be considered for integration into contemporary precision pipelines. Λψ is evaluated against these universal criteria. A1. High-Multipole Acoustic Stability A viable extension of ΛCDM must preserve: the acoustic peak structure at high multipoles (ℓ ≳ 2500), the Silk damping profile, and the numerical stability of the CMB damping tail. Λψ Result: The retentive kernel introduces no distortions a",
+      "published_at": "2026-01-01",
+      "analysis_generation": "openalex-2026",
+      "suggested_inf_theory_tracks": [
+        "Q8_neutrino_mass_origin",
+        "Q9_baryogenesis_asymmetry"
+      ]
+    },
+    {
+      "genre": "neutrino_sector",
+      "doi": "10.5281/zenodo.18269075",
+      "title": "Environment-Dependent Structure Suppression in Cosmic Shear: A Coherence-Based Interpretation of Neutrino–Dark Matter Coupling Claims",
+      "published_at": "2026-01-01",
+      "analysis_generation": "openalex-2026",
+      "suggested_inf_theory_tracks": [
+        "Q8_neutrino_mass_origin",
+        "Q9_baryogenesis_asymmetry"
+      ]
+    },
+    {
+      "genre": "gw_strong_gravity",
+      "doi": "10.5281/zenodo.18733397",
+      "title": "Black Hole-Mediated Coupling Model of Dark Matter, Dark Energy and Negative Energy: Complete Theoretical Framework and Observational Predictions",
+      "published_at": "2026-01-01",
+      "analysis_generation": "openalex-2026",
+      "suggested_inf_theory_tracks": [
+        "R5_strong_gravity_tests",
+        "R10_blackhole_interior_consistency"
+      ]
+    },
+    {
+      "genre": "gw_strong_gravity",
+      "doi": "10.5281/zenodo.18733396",
+      "title": "Black Hole-Mediated Coupling Model of Dark Matter, Dark Energy and Negative Energy: Complete Theoretical Framework and Observational Predictions",
+      "published_at": "2026-01-01",
+      "analysis_generation": "openalex-2026",
+      "suggested_inf_theory_tracks": [
+        "R5_strong_gravity_tests",
+        "R10_blackhole_interior_consistency"
+      ]
+    },
+    {
+      "genre": "gw_strong_gravity",
+      "doi": "10.1038/s42005-026-02570-2",
+      "title": "Laser-driven annular shock waves as laboratory analogues of wCDM cosmologies and cosmological gravitational waves",
+      "published_at": "2026-01-01",
+      "analysis_generation": "openalex-2026",
+      "suggested_inf_theory_tracks": [
+        "R5_strong_gravity_tests",
+        "R10_blackhole_interior_consistency"
+      ]
+    },
+    {
+      "genre": "gw_strong_gravity",
+      "doi": "10.1088/1475-7516/2025/03/055",
+      "title": "Vector-like quark stabilised Higgs inflation: implications for particle phenomenology, primordial gravitational waves and the Hubble tension",
+      "published_at": "2025-01-01",
+      "analysis_generation": "openalex-2025",
+      "suggested_inf_theory_tracks": [
+        "R5_strong_gravity_tests",
+        "R10_blackhole_interior_consistency"
+      ]
+    },
+    {
+      "genre": "gw_strong_gravity",
+      "doi": "10.1093/ptep/ptaf013",
+      "title": "BTZ Black Hole in the Nonextensive Generalizations of Gibbs Entropy",
+      "published_at": "2025-01-01",
+      "analysis_generation": "openalex-2025",
+      "suggested_inf_theory_tracks": [
+        "R5_strong_gravity_tests",
+        "R10_blackhole_interior_consistency"
+      ]
+    },
+    {
+      "genre": "flavor_physics",
+      "doi": "10.1016/j.physletb.2026.140180",
+      "title": "Dark energy in light of DESI DR1 and Hubble tension",
+      "published_at": "2026-01-01",
+      "analysis_generation": "openalex-2026",
+      "suggested_inf_theory_tracks": [
+        "Q7_strong_CP_problem",
+        "Q9_baryogenesis_asymmetry"
+      ]
+    },
+    {
+      "genre": "flavor_physics",
+      "doi": "10.5281/zenodo.18132582",
+      "title": "Geometric Threshold Structure in Gravitational Systems: A Relational Framework for Coupling Cost",
+      "published_at": "2026-01-01",
+      "analysis_generation": "openalex-2026",
+      "suggested_inf_theory_tracks": [
+        "Q7_strong_CP_problem",
+        "Q9_baryogenesis_asymmetry"
+      ]
+    },
+    {
+      "genre": "flavor_physics",
+      "doi": "10.5281/zenodo.18132583",
+      "title": "Geometric Threshold Structure in Gravitational Systems: A Relational Framework for Coupling Cost",
+      "published_at": "2026-01-01",
+      "analysis_generation": "openalex-2026",
+      "suggested_inf_theory_tracks": [
+        "Q7_strong_CP_problem",
+        "Q9_baryogenesis_asymmetry"
+      ]
+    },
+    {
+      "genre": "flavor_physics",
+      "doi": "10.5281/zenodo.18132801",
+      "title": "Geometric Threshold Structure in Gravitational Systems: A Relational Framework for Coupling Cost",
+      "published_at": "2026-01-01",
+      "analysis_generation": "openalex-2026",
+      "suggested_inf_theory_tracks": [
+        "Q7_strong_CP_problem",
+        "Q9_baryogenesis_asymmetry"
+      ]
+    },
+    {
+      "genre": "flavor_physics",
+      "doi": "10.5281/zenodo.18145190",
+      "title": "Cosmic Entropy Symmetry: Unifying the Dark Sector via Holographic Thermodynamics",
+      "published_at": "2026-01-01",
+      "analysis_generation": "openalex-2026",
+      "suggested_inf_theory_tracks": [
+        "Q7_strong_CP_problem",
+        "Q9_baryogenesis_asymmetry"
+      ]
+    },
+    {
+      "genre": "dark_sector",
+      "doi": "10.5281/zenodo.18145190",
+      "title": "Cosmic Entropy Symmetry: Unifying the Dark Sector via Holographic Thermodynamics",
+      "published_at": "2026-01-01",
+      "analysis_generation": "openalex-2026",
+      "suggested_inf_theory_tracks": [
+        "Q10_dark_matter_candidate_screening",
+        "R8_modified_gravity_vs_LCDM"
+      ]
+    },
+    {
+      "genre": "dark_sector",
+      "doi": "10.5281/zenodo.18145189",
+      "title": "Cosmic Entropy Symmetry: Unifying the Dark Sector via Holographic Thermodynamics",
+      "published_at": "2026-01-01",
+      "analysis_generation": "openalex-2026",
+      "suggested_inf_theory_tracks": [
+        "Q10_dark_matter_candidate_screening",
+        "R8_modified_gravity_vs_LCDM"
+      ]
+    },
+    {
+      "genre": "dark_sector",
+      "doi": "10.5281/zenodo.18246356",
+      "title": "Induced Superfluid Cosmology: A Theoretical Framework for Emergent Gravity and Dark Matter V6",
+      "published_at": "2026-01-01",
+      "analysis_generation": "openalex-2026",
+      "suggested_inf_theory_tracks": [
+        "Q10_dark_matter_candidate_screening",
+        "R8_modified_gravity_vs_LCDM"
+      ]
+    },
+    {
+      "genre": "dark_sector",
+      "doi": "10.5281/zenodo.18242591",
+      "title": "Induced Superfluid Cosmology: A Theoretical Framework for Emergent Gravity and Dark Matter V5",
+      "published_at": "2026-01-01",
+      "analysis_generation": "openalex-2026",
+      "suggested_inf_theory_tracks": [
+        "Q10_dark_matter_candidate_screening",
+        "R8_modified_gravity_vs_LCDM"
+      ]
+    },
+    {
+      "genre": "dark_sector",
+      "doi": "10.24108/preprints-3114318",
+      "title": "Induced Superfluid Cosmology: A Theoretical Framework for Emergent Gravity and Dark Matter V6",
+      "published_at": "2026-01-01",
+      "analysis_generation": "openalex-2026",
+      "suggested_inf_theory_tracks": [
+        "Q10_dark_matter_candidate_screening",
+        "R8_modified_gravity_vs_LCDM"
+      ]
+    },
+    {
+      "genre": "early_universe_bbn",
+      "doi": "10.1038/s41550-025-02737-x",
+      "title": "Hints of primordial magnetic fields at recombination and implications for the Hubble tension",
+      "published_at": "2025-01-01",
+      "analysis_generation": "openalex-2025",
+      "suggested_inf_theory_tracks": [
+        "R2_early_universe",
+        "Q9_baryogenesis_asymmetry"
+      ]
+    },
+    {
+      "genre": "early_universe_bbn",
+      "doi": "10.1088/1475-7516/2025/03/055",
+      "title": "Vector-like quark stabilised Higgs inflation: implications for particle phenomenology, primordial gravitational waves and the Hubble tension",
+      "published_at": "2025-01-01",
+      "analysis_generation": "openalex-2025",
+      "suggested_inf_theory_tracks": [
+        "R2_early_universe",
+        "Q9_baryogenesis_asymmetry"
+      ]
+    },
+    {
+      "genre": "early_universe_bbn",
+      "doi": "10.1103/h7kx-9ghb",
+      "title": "What triggers type Ia supernovae: Prompt detonations from primordial black holes or companion stars?",
+      "published_at": "2025-01-01",
+      "analysis_generation": "openalex-2025",
+      "suggested_inf_theory_tracks": [
+        "R2_early_universe",
+        "Q9_baryogenesis_asymmetry"
+      ]
+    },
+    {
+      "genre": "early_universe_bbn",
+      "doi": "10.1088/1475-7516/2025/06/021",
+      "title": "A primordial origin to cosmic tensions: towards reconciling <i>H</i> <sub>0</sub> and <i>S</i> <sub>8</sub> with early dark energy and scale-dependent primordial non-Gaussianities",
+      "published_at": "2025-01-01",
+      "analysis_generation": "openalex-2025",
+      "suggested_inf_theory_tracks": [
+        "R2_early_universe",
+        "Q9_baryogenesis_asymmetry"
+      ]
+    },
+    {
+      "genre": "early_universe_bbn",
+      "doi": "10.3390/universe11090311",
+      "title": "Constraining the Primordial Black Hole Mass Function by the Lensing Events of Fast Radio Bursts",
+      "published_at": "2025-01-01",
+      "analysis_generation": "openalex-2025",
+      "suggested_inf_theory_tracks": [
+        "R2_early_universe",
+        "Q9_baryogenesis_asymmetry"
+      ]
+    },
+    {
+      "genre": "precision_anomalies",
+      "doi": "10.1140/epjc/s10052-025-13829-3",
+      "title": "The revival of $$U(1)_{L_e-L_{\\mu }}$$: a natural solution for $$(g-2)_{\\mu }$$ with a sub-GeV dark matter",
+      "published_at": "2025-01-01",
+      "analysis_generation": "openalex-2025",
+      "suggested_inf_theory_tracks": [
+        "Q5_muon_gminus2_tension",
+        "Q3_vacuum_energy"
+      ]
+    },
+    {
+      "genre": "precision_anomalies",
+      "doi": "10.1007/jhep01(2025)014",
+      "title": "Muon (g − 2) and thermal WIMP DM in $$ \\textrm{U}{(1)}_{L_{\\mu }-{L}_{\\tau }} $$ models",
+      "published_at": "2025-01-01",
+      "analysis_generation": "openalex-2025",
+      "suggested_inf_theory_tracks": [
+        "Q5_muon_gminus2_tension",
+        "Q3_vacuum_energy"
+      ]
+    },
+    {
+      "genre": "precision_anomalies",
+      "doi": "10.1016/j.dark.2025.101947",
+      "title": "Revisiting varying speed of light in cosmology: Insights from the Friedmann-Lemaître-Robertson-Walker Metric",
+      "published_at": "2025-01-01",
+      "analysis_generation": "openalex-2025",
+      "suggested_inf_theory_tracks": [
+        "Q5_muon_gminus2_tension",
+        "Q3_vacuum_energy"
+      ]
+    },
+    {
+      "genre": "precision_anomalies",
+      "doi": "10.5281/zenodo.17755383",
+      "title": "Anchoring Friedmann Cosmology: Distance Ladder Probes of the Hubble Tension",
+      "published_at": "2025-01-01",
+      "analysis_generation": "openalex-2025",
+      "suggested_inf_theory_tracks": [
+        "Q5_muon_gminus2_tension",
+        "Q3_vacuum_energy"
+      ]
+    },
+    {
+      "genre": "precision_anomalies",
+      "doi": "10.5281/zenodo.17755738",
+      "title": "The Distance Ladder's Crucible: Forging New Constraints on Friedmann Cosmology",
+      "published_at": "2025-01-01",
+      "analysis_generation": "openalex-2025",
+      "suggested_inf_theory_tracks": [
+        "Q5_muon_gminus2_tension",
+        "Q3_vacuum_energy"
+      ]
+    }
+  ],
+  "mapping": {
+    "cosmology_tensions": [
+      "R2_early_universe",
+      "R3_hubble_tension",
+      "R8_modified_gravity_vs_LCDM"
+    ],
+    "precision_anomalies": [
+      "Q5_muon_gminus2_tension",
+      "Q3_vacuum_energy"
+    ],
+    "flavor_physics": [
+      "Q7_strong_CP_problem",
+      "Q9_baryogenesis_asymmetry"
+    ],
+    "neutrino_sector": [
+      "Q8_neutrino_mass_origin",
+      "Q9_baryogenesis_asymmetry"
+    ],
+    "gw_strong_gravity": [
+      "R5_strong_gravity_tests",
+      "R10_blackhole_interior_consistency"
+    ],
+    "dark_sector": [
+      "Q10_dark_matter_candidate_screening",
+      "R8_modified_gravity_vs_LCDM"
+    ],
+    "early_universe_bbn": [
+      "R2_early_universe",
+      "Q9_baryogenesis_asymmetry"
+    ],
+    "unclassified": [
+      "R2_early_universe"
+    ]
+  }
+}
