@@ -61,8 +61,28 @@ def run_inf_theory_layer(prompt: str, unified: dict[str, Any] | None = None) -> 
             "counterexample_consistent": cx_ok,
         },
         "unification_theory_model": {
-            "name": "gr_qm_iut_unification_candidate",
+            "name": "grand_unification_katala_v1",
             "adopted": bool(weighted_total >= 0.72),
+            "current_status": ("tested" if weighted_total >= 0.72 else "hypothesis"),
+            "scope": {
+                "targets": [
+                    "black_hole_singularity_consistency",
+                    "early_universe_high_density_regime",
+                    "quantum_gravity_interface",
+                    "black_hole_information_consistency",
+                    "observable_projection_for_validation",
+                ]
+            },
+            "non_goals": [
+                "claiming_final_physical_truth_without_experiment",
+                "planck_scale_direct_experimental_completion",
+            ],
+            "falsification_conditions": [
+                "consistency_score < 0.72",
+                "counterexample_resilience < 1.0",
+                "observable_projection_score < 1.0",
+                "truth_conflict == true",
+            ],
             "scores": {
                 "weighted_total": weighted_total,
                 "consistency_score": round(consistency_score, 4),
