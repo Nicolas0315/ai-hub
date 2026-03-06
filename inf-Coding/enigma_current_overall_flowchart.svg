@@ -1,0 +1,114 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1700" height="1100" viewBox="0 0 1700 1100">
+  <defs>
+    <style>
+      .title{font:700 36px 'Noto Sans JP','Yu Gothic','Meiryo',sans-serif;fill:#0f172a}
+      .sub{font:500 16px 'Noto Sans JP','Yu Gothic','Meiryo',sans-serif;fill:#475569}
+      .h{font:700 20px 'Noto Sans JP','Yu Gothic','Meiryo',sans-serif;fill:#0f172a}
+      .t{font:500 15px 'Noto Sans JP','Yu Gothic','Meiryo',sans-serif;fill:#334155}
+      .mono{font:600 13px 'Consolas','Noto Sans Mono CJK JP',monospace;fill:#64748b}
+      .edge{fill:none;stroke:#334155;stroke-width:2.8;marker-end:url(#arr)}
+      .edge2{fill:none;stroke:#0f766e;stroke-width:2.8;marker-end:url(#arr2)}
+      .edge3{fill:none;stroke:#7c3aed;stroke-width:2.8;marker-end:url(#arr3)}
+    </style>
+    <marker id="arr" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 z" fill="#334155"/></marker>
+    <marker id="arr2" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 z" fill="#0f766e"/></marker>
+    <marker id="arr3" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 z" fill="#7c3aed"/></marker>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#f8fafc"/>
+      <stop offset="100%" stop-color="#eef2ff"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#0f172a" flood-opacity="0.12"/>
+    </filter>
+  </defs>
+
+  <rect width="1700" height="1100" fill="url(#bg)"/>
+  <text x="50" y="64" class="title">Enigma 現在の全体フローチャート（運用実態ベース）</text>
+  <text x="50" y="92" class="sub">Discord入力 → LLM判断 → OpenClaw実行 → inf-Coding guard → Katala/Assist → 成果返却</text>
+
+  <!-- Row 1 -->
+  <g filter="url(#shadow)">
+    <rect x="60" y="150" width="300" height="150" rx="16" fill="#dbeafe" stroke="#3b82f6" stroke-width="2.4"/>
+    <text x="86" y="195" class="h">1) 受信</text>
+    <text x="86" y="222" class="t">Discord DM/Channel</text>
+    <text x="86" y="248" class="t">メンション/返信ルール適用</text>
+    <text x="86" y="273" class="mono">allowlist + requireMention</text>
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="430" y="150" width="320" height="150" rx="16" fill="#dcfce7" stroke="#22c55e" stroke-width="2.4"/>
+    <text x="456" y="195" class="h">2) Enigma/LLM判断</text>
+    <text x="456" y="222" class="t">意図分類（雑談/調査/図/実装）</text>
+    <text x="456" y="248" class="t">実行手順を決定</text>
+    <text x="456" y="273" class="mono">gpt-5.3-codex</text>
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="820" y="150" width="340" height="150" rx="16" fill="#ede9fe" stroke="#8b5cf6" stroke-width="2.4"/>
+    <text x="846" y="195" class="h">3) OpenClawオーケストレーション</text>
+    <text x="846" y="222" class="t">read / exec / web_search / message</text>
+    <text x="846" y="248" class="t">Gateway + Session管理</text>
+    <text x="846" y="273" class="mono">ackReaction: 🤖</text>
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="1230" y="150" width="400" height="150" rx="16" fill="#fef3c7" stroke="#f59e0b" stroke-width="2.4"/>
+    <text x="1256" y="195" class="h">4) 実行前ガード</text>
+    <text x="1256" y="222" class="t">inf-Coding入口固定</text>
+    <text x="1256" y="248" class="t">./guard.sh で起点検証</text>
+    <text x="1256" y="273" class="mono">AGENTS.mdルール遵守</text>
+  </g>
+
+  <!-- Row 2 split -->
+  <polygon points="845,380 980,450 845,520 710,450" fill="#e0f2fe" stroke="#0284c7" stroke-width="2.4"/>
+  <text x="775" y="447" class="h">5) 分岐</text>
+  <text x="748" y="475" class="h">Katala or Assist?</text>
+
+  <g filter="url(#shadow)">
+    <rect x="320" y="590" width="460" height="190" rx="16" fill="#cffafe" stroke="#06b6d4" stroke-width="2.4"/>
+    <text x="348" y="636" class="h">6A) Katala実行系</text>
+    <text x="348" y="664" class="t">./katala-exec.sh &lt;command...&gt;</text>
+    <text x="348" y="690" class="t">実装・検証・差分解析・リポ更新</text>
+    <text x="348" y="716" class="mono">例: git/gh/python/flow生成</text>
+    <text x="348" y="742" class="mono">KQ/KS比較ワークロード含む</text>
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="920" y="590" width="460" height="190" rx="16" fill="#fce7f3" stroke="#ec4899" stroke-width="2.4"/>
+    <text x="948" y="636" class="h">6B) Assist実行系</text>
+    <text x="948" y="664" class="t">./assist-exec.sh &lt;command...&gt;</text>
+    <text x="948" y="690" class="t">軽量補助処理・データ整形</text>
+    <text x="948" y="716" class="mono">例: semantic_scholar_free.py</text>
+    <text x="948" y="742" class="mono">API/検索の素早い試行</text>
+  </g>
+
+  <!-- Output -->
+  <g filter="url(#shadow)">
+    <rect x="520" y="860" width="680" height="170" rx="16" fill="#ffffff" stroke="#94a3b8" stroke-width="2.2"/>
+    <text x="548" y="906" class="h">7) 成果物化 &amp; 返却</text>
+    <text x="548" y="934" class="t">SVG→PNG生成 / テキスト要約 / 調査結果 / GitHub反映</text>
+    <text x="548" y="960" class="t">Discordへ返信（必要なら添付送信、改善ループ）</text>
+    <text x="548" y="986" class="mono">message(send) / replyタグ / NO_REPLY運用</text>
+  </g>
+
+  <!-- feedback -->
+  <path d="M1200 930 L1490 930 L1490 230 L1630 230" class="edge3"/>
+  <text x="1360" y="905" class="t" fill="#7c3aed">フィードバックで再実行</text>
+
+  <!-- arrows -->
+  <path d="M360 225 L430 225" class="edge"/>
+  <path d="M750 225 L820 225" class="edge"/>
+  <path d="M1160 225 L1230 225" class="edge"/>
+  <path d="M1230 300 L900 380" class="edge2"/>
+  <path d="M845 520 L570 590" class="edge"/>
+  <path d="M845 520 L1150 590" class="edge"/>
+  <path d="M550 780 L780 860" class="edge2"/>
+  <path d="M1150 780 L940 860" class="edge2"/>
+
+  <text x="565" y="560" class="t">Katala系</text>
+  <text x="1085" y="560" class="t">Assist系</text>
+
+  <!-- footer note -->
+  <rect x="50" y="1050" width="1600" height="34" rx="8" fill="#ffffff" stroke="#cbd5e1"/>
+  <text x="70" y="1072" class="sub">注: 現在の運用制約（allowlist, mention gate, guard.sh必須, gateway token整合）を反映した実務版。</text>
+</svg>
