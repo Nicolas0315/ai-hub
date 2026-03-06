@@ -28,21 +28,45 @@
     "Q5_muon_gminus2_tension"
   ],
   "expansion_plan": {
-    "phase": "priority_three_plus_secondary_wave",
-    "goal": "improve_model_selection_power_under_math_revised_kq",
+    "phase": "theory_scaffold_first_then_stabilization",
+    "goal": "prioritize_mismatch_identification_and_theory_scaffold_before_stability_tuning",
+    "step_order": [
+      "mismatch_primary_confirmation",
+      "theory_scaffold_gap_fill",
+      "observation_to_theory_mapping_fix",
+      "stability_and_reproducibility_after_scaffold"
+    ],
     "track_groups": {
-      "relativity": ["R3_hubble_tension", "R8_modified_gravity_vs_LCDM"],
-      "quantum": ["Q5_muon_gminus2_tension"],
-      "secondary_wave": [
+      "primary_mismatch_axis": [
+        "R3_hubble_tension",
+        "R8_modified_gravity_vs_LCDM",
+        "Q5_muon_gminus2_tension"
+      ],
+      "secondary_candidates": [
         "Q8_neutrino_mass_origin",
         "Q9_baryogenesis_asymmetry",
         "Q10_dark_matter_candidate_screening",
         "Q3_vacuum_energy"
+      ],
+      "blackhole_early_universe_watch": [
+        "Q2_information_problem",
+        "R1_singularity",
+        "R10_blackhole_interior_consistency",
+        "R7_gravitational_wave_background_origin",
+        "R6_global_topology",
+        "R2_early_universe",
+        "R4_cosmological_constant",
+        "R9_initial_fluctuation_to_classical"
       ]
     },
     "constraints": {
       "keep_adoption_rule": "consistency+projection+chi2_strict",
       "retain_rejected_variants": true
+    },
+    "mapping_requirements": {
+      "one_to_one_mismatch_to_iut_patch": true,
+      "observation_to_inf_theory_to_inf_model_table_required": true,
+      "quantum_link_strength_priority": true
     }
   },
   "adoption_requires": [
