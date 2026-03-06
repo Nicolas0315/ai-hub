@@ -28,11 +28,17 @@
     "Q5_muon_gminus2_tension"
   ],
   "expansion_plan": {
-    "phase": "priority_three_focus",
+    "phase": "priority_three_plus_secondary_wave",
     "goal": "improve_model_selection_power_under_math_revised_kq",
     "track_groups": {
       "relativity": ["R3_hubble_tension", "R8_modified_gravity_vs_LCDM"],
-      "quantum": ["Q5_muon_gminus2_tension"]
+      "quantum": ["Q5_muon_gminus2_tension"],
+      "secondary_wave": [
+        "Q8_neutrino_mass_origin",
+        "Q9_baryogenesis_asymmetry",
+        "Q10_dark_matter_candidate_screening",
+        "Q3_vacuum_energy"
+      ]
     },
     "constraints": {
       "keep_adoption_rule": "consistency+projection+chi2_strict",
