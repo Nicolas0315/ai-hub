@@ -70,5 +70,24 @@ def run_inf_theory_layer(prompt: str, unified: dict[str, Any] | None = None) -> 
                 "observable_projection_score": round(observable_projection_score, 4),
                 "unified_admissibility": round(unified_admissibility, 4),
             },
+            "relativity_foundation": {
+                "version": "sr-gr-core-v1",
+                "special_relativity": {
+                    "minkowski_line_element_latex": "ds^2=-c^2dt^2+dx^2+dy^2+dz^2",
+                    "lorentz_transform_x_latex": "x'=\\gamma(x-vt), t'=\\gamma(t-vx/c^2), \\gamma=1/\\sqrt(1-v^2/c^2)",
+                    "energy_momentum_relation_latex": "E^2=(pc)^2+(mc^2)^2",
+                },
+                "general_relativity": {
+                    "metric_line_element_latex": "ds^2=g_{\\mu\\nu}dx^\\mu dx^\\nu",
+                    "geodesic_equation_latex": "d^2x^\\mu/d\\tau^2+\\Gamma^\\mu_{\\alpha\\beta}(dx^\\alpha/d\\tau)(dx^\\beta/d\\tau)=0",
+                    "christoffel_symbol_latex": "\\Gamma^\\mu_{\\alpha\\beta}=\\frac{1}{2}g^{\\mu\\nu}(\\partial_\\alpha g_{\\beta\\nu}+\\partial_\\beta g_{\\alpha\\nu}-\\partial_\\nu g_{\\alpha\\beta})",
+                    "einstein_field_equation_latex": "G_{\\mu\\nu}+\\Lambda g_{\\mu\\nu}=(8\\pi G/c^4)T_{\\mu\\nu}",
+                    "stress_energy_conservation_latex": "\\nabla_\\mu T^{\\mu\\nu}=0",
+                },
+                "sr_gr_connection": {
+                    "local_inertial_limit_latex": "g_{\\mu\\nu}\\to\\eta_{\\mu\\nu}",
+                    "note": "GR reduces locally to SR in local inertial frames.",
+                },
+            },
         },
     }
