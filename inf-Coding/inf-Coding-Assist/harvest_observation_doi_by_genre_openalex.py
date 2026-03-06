@@ -8,6 +8,8 @@ import urllib.request
 from pathlib import Path
 
 TARGET_PER_GENRE = 10000
+# Stop a genre early when consecutive query passes add zero new DOI rows.
+NO_GROWTH_STOP_QUERIES = 3
 ROOT = Path("inf-Coding/inf-Coding-Assist")
 STATE = ROOT / "observation_doi_by_genre_state_20260306.json"
 
@@ -80,12 +82,16 @@ def harvest_genre(genre: str, queries: list[str]) -> dict:
     out_path.parent.mkdir(parents=True, exist_ok=True)
     seen = load_seen(out_path)
 
+    no_growth_streak = 0
+    stop_reason = "target_reached"
+
     with out_path.open("a", encoding="utf-8") as out:
         q_idx = 0
         while len(seen) < TARGET_PER_GENRE:
             q = queries[q_idx % len(queries)]
             q_idx += 1
             cursor = "*"
+            before_query = len(seen)
             while cursor and len(seen) < TARGET_PER_GENRE:
                 params = {
                     "search": q,
@@ -125,7 +131,28 @@ def harvest_genre(genre: str, queries: list[str]) -> dict:
                 if not results:
                     break
                 time.sleep(0.08)
-    return {"genre": genre, "count": len(seen), "target": TARGET_PER_GENRE, "out": str(out_path)}
+
+            added = len(seen) - before_query
+            if added == 0:
+                no_growth_streak += 1
+            else:
+                no_growth_streak = 0
+
+            if no_growth_streak >= NO_GROWTH_STOP_QUERIES:
+                stop_reason = f"no_growth_{NO_GROWTH_STOP_QUERIES}_queries"
+                break
+
+    if len(seen) < TARGET_PER_GENRE and stop_reason == "target_reached":
+        stop_reason = "source_exhausted_or_limited"
+
+    return {
+        "genre": genre,
+        "count": len(seen),
+        "target": TARGET_PER_GENRE,
+        "out": str(out_path),
+        "stop_reason": stop_reason,
+        "no_growth_stop_queries": NO_GROWTH_STOP_QUERIES,
+    }
 
 
 def main() -> int:
