@@ -24,6 +24,7 @@ from katala_samurai.inf_bridge import (
     purge_stale_goal_history,
 )
 from katala_samurai.inf_coding_adapter import emit_router_event
+from katala_samurai.inf_theory_layer import run_inf_theory_layer
 
 try:
     from katala_samurai.kq_symbolic_bridge import (
@@ -90,14 +91,15 @@ def _formal_probe(command: str) -> dict:
 
     # Standard operation: run unified math+logic coverage first.
     unified = solve_math_logic_unified(s)
+    inf_theory = run_inf_theory_layer(s, unified)
 
     # Keep explicit kind for routing compatibility.
     if any(k in low for k in ["vars:", "formula:", " in [", "==", ">=", "<="]):
         r = solve_smt_optional(s)
-        return {"enabled": True, "kind": "smt", "result": r, "unified": unified}
+        return {"enabled": True, "kind": "smt", "result": r, "unified": unified, "inf_theory": inf_theory}
     if any(k in low for k in ["cnf:", "clause:", "sat(", "unsat", " or ", " and "]):
         r = solve_sat_lite(s)
-        return {"enabled": True, "kind": "sat", "result": r, "unified": unified}
+        return {"enabled": True, "kind": "sat", "result": r, "unified": unified, "inf_theory": inf_theory}
 
     primary = ((unified.get("primary") or {}).get("result") if isinstance(unified, dict) else None)
     if isinstance(primary, dict):
@@ -106,10 +108,11 @@ def _formal_probe(command: str) -> dict:
             "kind": ((unified.get("primary") or {}).get("solver") or "unified"),
             "result": primary,
             "unified": unified,
+            "inf_theory": inf_theory,
         }
 
     r = eval_symbolic(s)
-    return {"enabled": True, "kind": "symbolic", "result": r, "unified": unified}
+    return {"enabled": True, "kind": "symbolic", "result": r, "unified": unified, "inf_theory": inf_theory}
 
 
 def decide_route(command: str) -> tuple[str, dict]:
