@@ -3,6 +3,16 @@ from __future__ import annotations
 from typing import Any
 
 
+def _collect_equations(prefix: str, obj: Any, out: list[dict[str, str]]) -> None:
+    if isinstance(obj, dict):
+        for k, v in obj.items():
+            path = f"{prefix}.{k}" if prefix else str(k)
+            if isinstance(v, str) and (k.endswith("_latex") or "equation" in k or "relation" in k or "line_element" in k or "commutator" in k or "uncertainty" in k):
+                out.append({"id": path, "latex": v})
+            else:
+                _collect_equations(path, v, out)
+
+
 def run_inf_model_layer(prompt: str, inf_theory: dict[str, Any] | None = None) -> dict[str, Any]:
     """Build universe-model candidate from Katala unification theory outputs.
 
@@ -14,6 +24,19 @@ def run_inf_model_layer(prompt: str, inf_theory: dict[str, Any] | None = None) -
 
     wt = float(scores.get("weighted_total", 0.0) or 0.0)
     ready = bool(wt >= 0.72)
+
+    equations: list[dict[str, str]] = []
+    for section in [
+        "relativity_foundation",
+        "quantum_foundation",
+        "classical_limit_foundation",
+        "standard_model_foundation",
+        "effective_field_theory_bridge",
+        "observational_projection_tests",
+    ]:
+        _collect_equations(section, utm.get(section), equations)
+
+    equation_markdown = "\n".join([f"- `{e['id']}`: $${e['latex']}$$" for e in equations])
 
     return {
         "enabled": True,
@@ -42,6 +65,11 @@ def run_inf_model_layer(prompt: str, inf_theory: dict[str, Any] | None = None) -
                 "UGT3": (((utm.get("step3_quantum_gravity_resolution") or {}).get("result") or {}).get("pass", False)),
                 "UGT4": (((utm.get("step4_information_consistency_resolution") or {}).get("result") or {}).get("pass", False)),
                 "UGT5": (((utm.get("step5_experimental_validation_resolution") or {}).get("result") or {}).get("pass", False)),
+            },
+            "equation_catalog": {
+                "count": len(equations),
+                "items": equations,
+                "readable_markdown": equation_markdown,
             },
         },
         "status": {
