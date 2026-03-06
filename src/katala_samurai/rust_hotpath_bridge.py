@@ -95,6 +95,24 @@ def strict_triggered(kq3_strict_activated: bool, invariant_preservation_score: f
     return _py_strict_triggered(kq3_strict_activated, invariant_preservation_score, counterexample_consistent)
 
 
+def _py_precision_score(domain: str, morphism: str, invariant_s: str, spec: str) -> float:
+    fields = [domain, morphism, invariant_s, spec]
+    return round(sum(1 for x in fields if str(x).strip()) / max(1, len(fields)), 4)
+
+
+def precision_score(domain: str, morphism: str, invariant_s: str, spec: str) -> float:
+    m = _mod()
+    if m is not None:
+        try:
+            return float(m.precision_score(str(domain or ""), str(morphism or ""), str(invariant_s or ""), str(spec or "")))
+        except Exception:
+            if _rust_only():
+                raise RuntimeError("KQ_RUST_ONLY is enabled and rust precision_score failed")
+    if _rust_only():
+        raise RuntimeError("KQ_RUST_ONLY is enabled but katala_rust_hotpath is unavailable")
+    return _py_precision_score(domain, morphism, invariant_s, spec)
+
+
 def _py_dense_dependency_edges(
     node_ids: list[str],
     node_layers: list[str],

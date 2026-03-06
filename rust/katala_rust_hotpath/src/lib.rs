@@ -34,6 +34,16 @@ fn strict_triggered(kq3_strict_activated: bool, invariant_preservation_score: f6
 }
 
 #[pyfunction]
+fn precision_score(domain: String, morphism: String, invariant_s: String, spec: String) -> f64 {
+    let mut non_empty = 0.0;
+    if !domain.trim().is_empty() { non_empty += 1.0; }
+    if !morphism.trim().is_empty() { non_empty += 1.0; }
+    if !invariant_s.trim().is_empty() { non_empty += 1.0; }
+    if !spec.trim().is_empty() { non_empty += 1.0; }
+    ((non_empty / 4.0) * 10000.0).round() / 10000.0
+}
+
+#[pyfunction]
 fn dense_dependency_edges(
     node_ids: Vec<String>,
     node_layers: Vec<String>,
@@ -77,6 +87,7 @@ fn katala_rust_hotpath(_py: Python<'_>, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(invariant_preservation_score, m)?)?;
     m.add_function(wrap_pyfunction!(strict_specificity_score, m)?)?;
     m.add_function(wrap_pyfunction!(strict_triggered, m)?)?;
+    m.add_function(wrap_pyfunction!(precision_score, m)?)?;
     m.add_function(wrap_pyfunction!(dense_dependency_edges, m)?)?;
     Ok(())
 }

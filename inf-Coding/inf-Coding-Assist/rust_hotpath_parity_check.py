@@ -39,6 +39,7 @@ def main() -> int:
     mismatch = 0
     specificity_mismatch = 0
     trigger_mismatch = 0
+    precision_mismatch = 0
 
     for _ in range(total):
         node_ids, node_layers, morphisms, invariants, edges = _rand_case(rng)
@@ -67,8 +68,17 @@ def main() -> int:
         if py_t != rs_t:
             trigger_mismatch += 1
 
-    ok = mismatch == 0 and specificity_mismatch == 0 and trigger_mismatch == 0
-    print(json.dumps({"ok": ok, "total": total, "mismatch": mismatch, "specificity_mismatch": specificity_mismatch, "trigger_mismatch": trigger_mismatch}, ensure_ascii=False))
+        d = rng.choice(["", "domain"])
+        m1 = rng.choice(["", "morphism"])
+        inv = rng.choice(["", "invariant"])
+        sp = rng.choice(["", "forall x in [1]: x==x"])
+        py_p = rhb._py_precision_score(d, m1, inv, sp)  # type: ignore[attr-defined]
+        rs_p = float(m.precision_score(d, m1, inv, sp))
+        if abs(py_p - rs_p) > 1e-9:
+            precision_mismatch += 1
+
+    ok = mismatch == 0 and specificity_mismatch == 0 and trigger_mismatch == 0 and precision_mismatch == 0
+    print(json.dumps({"ok": ok, "total": total, "mismatch": mismatch, "specificity_mismatch": specificity_mismatch, "trigger_mismatch": trigger_mismatch, "precision_mismatch": precision_mismatch}, ensure_ascii=False))
     return 0 if ok else 1
 
 
