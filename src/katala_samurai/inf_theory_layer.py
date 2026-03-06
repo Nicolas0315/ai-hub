@@ -335,5 +335,25 @@ def run_inf_theory_layer(prompt: str, unified: dict[str, Any] | None = None) -> 
                 "anomalous_magnetic_moment_latex": "a_\\ell=(g_\\ell-2)/2",
                 "chi_square_fit_latex": "\\chi^2=\\sum_i\\frac{(O_i-E_i)^2}{\\sigma_i^2}",
             },
+            "validation_protocol": {
+                "name": "katala_kq_observation_pruning_protocol_v1",
+                "steps": [
+                    "run_ugt1_to_ugt5_pass_fail",
+                    "collect_kq_peer_reviewed_observation_sets",
+                    "map_theory_to_observables_via_physical_projection_map",
+                    "compute_chi_square_and_fit_scores",
+                    "reject_under_threshold_candidates",
+                    "update_current_status_hypothesis_to_tested_if_all_pass",
+                ],
+                "inputs": {
+                    "theory_source": "katala_ugt",
+                    "observation_source": "kq_peer_reviewed_astronomy",
+                },
+                "decision_rule": {
+                    "all_ugt_pass_required": True,
+                    "fit_metric": "chi_square",
+                    "status_transition": "hypothesis_to_tested_only_if_pass",
+                },
+            },
         },
     }
