@@ -642,6 +642,17 @@ def run_inf_bridge(command: str) -> dict[str, Any]:
     s = (ext.get("signals") or {})
     if s.get("math_logic_signal") or s.get("peer_review_priority_signal"):
         plan["route_hint"] = "strict"
+
+    # Canonical Katala GU trigger: allow KQ-side unilateral reference to inf-Brain (read-only)
+    cmd_low = str(command or "").lower()
+    katala_gu_trigger = ("katala大統一理論" in str(command or "")) or ("katala grand unification theory" in cmd_low)
+    if katala_gu_trigger:
+        plan["route_hint"] = "strict"
+        try:
+            payload["kq_payload"]["meta"]["kq_unilateral_inf_brain_reference"] = True
+            payload["kq_payload"]["meta"]["kq_unilateral_inf_brain_reference_mode"] = "read_only"
+        except Exception:
+            pass
     ab_eval = route_ab_evaluation(payload, plan, adv, hw)
     payload["route_ab_evaluation"] = ab_eval
     if ab_eval.get("recommended") == "strict":
@@ -678,6 +689,8 @@ def run_inf_bridge(command: str) -> dict[str, Any]:
         ],
         "access_policy": {
             "inf_brain_reference_path": "kq-mediated-only",
+            "kq_unilateral_inf_brain_reference": "allowed_read_only",
+            "inf_brain_to_kq_backflow": "forbidden",
             "direct_inf_coding_to_inf_brain": "forbidden",
             "direct_inf_bridge_to_inf_brain": "forbidden",
         },
