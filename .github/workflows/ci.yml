@@ -97,10 +97,21 @@ jobs:
       - name: Ensure inf-theory cannot write back to KQ
         run: python3 inf-Coding/inf-Coding-Assist/inf_theory_reverse_flow_guard_test.py
 
+  inf-model-guard-check:
+    name: Inf-Model Reverse-Flow Guard
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Ensure inf-model cannot write back to KQ/inf-theory
+        run: python3 inf-Coding/inf-Coding-Assist/inf_model_reverse_flow_guard_test.py
+
   build:
     name: Build
     runs-on: ubuntu-latest
-    needs: [lint, test, deep-grammar-regression, logic-math-benchmark, iut-subset-check, rust-hotpath-check, inf-theory-guard-check]
+    needs: [lint, test, deep-grammar-regression, logic-math-benchmark, iut-subset-check, rust-hotpath-check, inf-theory-guard-check, inf-model-guard-check]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
