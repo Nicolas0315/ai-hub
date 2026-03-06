@@ -29,6 +29,11 @@ fn strict_specificity_score(spec: String) -> f64 {
 }
 
 #[pyfunction]
+fn strict_triggered(kq3_strict_activated: bool, invariant_preservation_score: f64, counterexample_consistent: bool) -> bool {
+    kq3_strict_activated || invariant_preservation_score < 0.72 || !counterexample_consistent
+}
+
+#[pyfunction]
 fn dense_dependency_edges(
     node_ids: Vec<String>,
     node_layers: Vec<String>,
@@ -71,6 +76,7 @@ fn dense_dependency_edges(
 fn katala_rust_hotpath(_py: Python<'_>, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(invariant_preservation_score, m)?)?;
     m.add_function(wrap_pyfunction!(strict_specificity_score, m)?)?;
+    m.add_function(wrap_pyfunction!(strict_triggered, m)?)?;
     m.add_function(wrap_pyfunction!(dense_dependency_edges, m)?)?;
     Ok(())
 }

@@ -38,6 +38,7 @@ def main() -> int:
     total = 1000
     mismatch = 0
     specificity_mismatch = 0
+    trigger_mismatch = 0
 
     for _ in range(total):
         node_ids, node_layers, morphisms, invariants, edges = _rand_case(rng)
@@ -58,8 +59,16 @@ def main() -> int:
         if abs(py_s - rs_s) > 1e-9:
             specificity_mismatch += 1
 
-    ok = mismatch == 0 and specificity_mismatch == 0
-    print(json.dumps({"ok": ok, "total": total, "mismatch": mismatch, "specificity_mismatch": specificity_mismatch}, ensure_ascii=False))
+        kq3 = rng.choice([True, False])
+        invs = rng.choice([0.5, 0.71, 0.72, 0.9])
+        cex = rng.choice([True, False])
+        py_t = rhb._py_strict_triggered(kq3, invs, cex)  # type: ignore[attr-defined]
+        rs_t = bool(m.strict_triggered(kq3, float(invs), cex))
+        if py_t != rs_t:
+            trigger_mismatch += 1
+
+    ok = mismatch == 0 and specificity_mismatch == 0 and trigger_mismatch == 0
+    print(json.dumps({"ok": ok, "total": total, "mismatch": mismatch, "specificity_mismatch": specificity_mismatch, "trigger_mismatch": trigger_mismatch}, ensure_ascii=False))
     return 0 if ok else 1
 
 

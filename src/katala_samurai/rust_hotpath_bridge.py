@@ -78,6 +78,23 @@ def strict_specificity_score(spec: str) -> float:
     return _py_strict_specificity_score(spec)
 
 
+def _py_strict_triggered(kq3_strict_activated: bool, invariant_preservation_score: float, counterexample_consistent: bool) -> bool:
+    return bool(kq3_strict_activated or float(invariant_preservation_score) < 0.72 or (not bool(counterexample_consistent)))
+
+
+def strict_triggered(kq3_strict_activated: bool, invariant_preservation_score: float, counterexample_consistent: bool) -> bool:
+    m = _mod()
+    if m is not None:
+        try:
+            return bool(m.strict_triggered(bool(kq3_strict_activated), float(invariant_preservation_score), bool(counterexample_consistent)))
+        except Exception:
+            if _rust_only():
+                raise RuntimeError("KQ_RUST_ONLY is enabled and rust strict_triggered failed")
+    if _rust_only():
+        raise RuntimeError("KQ_RUST_ONLY is enabled but katala_rust_hotpath is unavailable")
+    return _py_strict_triggered(kq3_strict_activated, invariant_preservation_score, counterexample_consistent)
+
+
 def _py_dense_dependency_edges(
     node_ids: list[str],
     node_layers: list[str],

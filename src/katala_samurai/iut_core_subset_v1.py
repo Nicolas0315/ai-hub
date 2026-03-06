@@ -15,6 +15,7 @@ from .kq_symbolic_bridge import (
 from .rust_hotpath_bridge import (
     dense_dependency_edges as _rust_dense_dependency_edges,
     strict_specificity_score as _rust_strict_specificity_score,
+    strict_triggered as _rust_strict_triggered,
 )
 from .iut_formal_dictionary import IUT_FORMAL_DICTIONARY, normalize_iut_terms
 from .iut_lemma_catalog import build_iut_lemma_catalog_v1
@@ -349,7 +350,7 @@ def evaluate_iut_core_subset_v1(nodes: list[IUTLemmaNode] | None = None) -> dict
             strict_specificity = round(float(_rust_strict_specificity_score(spec)), 4)
             strict_spec_hook = bool(len(spec.strip()) > 0 and strict_specificity >= 0.6)
             pres_score = float(inv.get("invariant_preservation_score", 0.0) or 0.0)
-            strict_trigger = bool(kq3.get("strict_activated") or pres_score < 0.72 or not counterexample_hook or not external_cross_hook)
+            strict_trigger = bool(_rust_strict_triggered(bool(kq3.get("strict_activated")), pres_score, counterexample_hook) or (not external_cross_hook))
             ok = bool(precision_hook and strict_spec_hook and formal_hook and counterexample_hook and proof_trace_hook and external_cross_hook)
             if ok:
                 passed.add(n.id)
@@ -467,9 +468,11 @@ def evaluate_iut_core_subset_v1(nodes: list[IUTLemmaNode] | None = None) -> dict
         counterexample_hook = bool(((inv.get("counterexample_invariant") or {}).get("consistent", False)))
 
         strict_trigger = bool(
-            kq3.get("strict_activated")
-            or float(inv.get("invariant_preservation_score", 0.0) or 0.0) < 0.72
-            or not counterexample_hook
+            _rust_strict_triggered(
+                bool(kq3.get("strict_activated")),
+                float(inv.get("invariant_preservation_score", 0.0) or 0.0),
+                counterexample_hook,
+            )
         )
 
         if strict_trigger:
