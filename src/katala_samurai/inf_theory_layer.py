@@ -114,5 +114,47 @@ def run_inf_theory_layer(prompt: str, unified: dict[str, Any] | None = None) -> 
                     "dirac_equation_latex": "(i\\gamma^\\mu\\partial_\\mu-m)\\psi=0",
                 },
             },
+            "classical_limit_foundation": {
+                "version": "classical-limit-v1",
+                "newtonian_mechanics": {
+                    "newton_second_law_latex": "m\\ddot{x}=F",
+                    "newton_gravity_latex": "F=G\\frac{m_1m_2}{r^2}",
+                    "hamilton_equations_latex": "\\dot{q}_i=\\partial H/\\partial p_i,\\ \\dot{p}_i=-\\partial H/\\partial q_i",
+                },
+                "sr_to_newton_limit": {
+                    "gamma_series_latex": "\\gamma=(1-v^2/c^2)^{-1/2}\\approx1+\\frac{1}{2}v^2/c^2",
+                    "energy_limit_latex": "E=\\gamma mc^2\\approx mc^2+\\frac{1}{2}mv^2",
+                },
+                "gr_to_newton_limit": {
+                    "weak_field_metric_latex": "g_{00}\\approx-(1+2\\Phi/c^2)",
+                    "poisson_equation_latex": "\\nabla^2\\Phi=4\\pi G\\rho",
+                },
+                "qm_to_classical_limit": {
+                    "ehrenfest_latex": "m\\frac{d^2}{dt^2}\\langle x\\rangle=-\\langle\\nabla V\\rangle",
+                    "wkb_latex": "\\psi(x)\\sim A(x)e^{iS(x)/\\hbar},\\ \\hbar\\to0",
+                },
+            },
+            "standard_model_foundation": {
+                "version": "sm-core-v1",
+                "gauge_group_latex": "SU(3)_C\\times SU(2)_L\\times U(1)_Y",
+                "core_lagrangian_symbolic": "\\mathcal{L}_{SM}=\\mathcal{L}_{gauge}+\\mathcal{L}_{fermion}+\\mathcal{L}_{Higgs}+\\mathcal{L}_{Yukawa}",
+                "symmetry_currents": {
+                    "noether_current_latex": "\\partial_\\mu J^\\mu=0",
+                    "covariant_derivative_latex": "D_\\mu=\\partial_\\mu-ig_sG_\\mu^aT^a-igW_\\mu^i\\tau^i-ig'YB_\\mu",
+                },
+            },
+            "effective_field_theory_bridge": {
+                "version": "eft-bridge-v1",
+                "effective_lagrangian_latex": "\\mathcal{L}_{eff}=\\mathcal{L}_{ren}+\\sum_{d>4}\\frac{c_d}{\\Lambda^{d-4}}\\mathcal{O}_d",
+                "rg_flow_latex": "\\mu\\frac{d g_i}{d\\mu}=\\beta_i(g)",
+                "matching_condition_latex": "\\mathcal{A}_{UV}(\\mu_M)=\\mathcal{A}_{EFT}(\\mu_M)",
+            },
+            "observational_projection_tests": {
+                "version": "obs-test-v1",
+                "gravitational_wave_phase": "\\Delta\\phi_{GW}(f)",
+                "scattering_cross_section_latex": "\\frac{d\\sigma}{d\\Omega}=|\\mathcal{M}|^2/(64\\pi^2 s)",
+                "anomalous_magnetic_moment_latex": "a_\\ell=(g_\\ell-2)/2",
+                "chi_square_fit_latex": "\\chi^2=\\sum_i\\frac{(O_i-E_i)^2}{\\sigma_i^2}",
+            },
         },
     }
