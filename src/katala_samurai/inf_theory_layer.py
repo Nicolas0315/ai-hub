@@ -63,6 +63,13 @@ def run_inf_theory_layer(prompt: str, unified: dict[str, Any] | None = None) -> 
     info_counterexample_clear = bool(counterexample_resilience >= 1.0)
     step4_pass = bool(information_unitary and evaporation_consistent and entropy_projection_available and info_counterexample_clear)
 
+    # Step5 (experimental/observational validation) formal pass/fail gate
+    projection_test_defined = bool(len(observable_map) > 0)
+    chi_square_ready = bool(weighted_total >= 0.72)
+    benchmark_observable_available = bool(observable_projection_score >= 1.0)
+    validation_consistency = bool(consistency_score >= 0.72 and counterexample_resilience >= 1.0)
+    step5_pass = bool(projection_test_defined and chi_square_ready and benchmark_observable_available and validation_consistency)
+
     return {
         "enabled": True,
         "schema_version": "inf-theory-v1",
@@ -215,6 +222,31 @@ def run_inf_theory_layer(prompt: str, unified: dict[str, Any] | None = None) -> 
                 "result": {
                     "pass": step4_pass,
                     "status": ("pass" if step4_pass else "hold"),
+                },
+            },
+            "step5_experimental_validation_resolution": {
+                "id": "UGT5",
+                "target": "experimental_validation",
+                "axioms": {
+                    "observable_projection_latex": "\\mathcal{I}\\to\\mathcal{O}_{measurable}",
+                    "chi_square_validation_latex": "\\chi^2=\\sum_i((O_i-E_i)^2/\\sigma_i^2)",
+                    "benchmark_compare_latex": "\\Delta_{model,obs}\\to\\min",
+                },
+                "pass_conditions": {
+                    "projection_test_defined": projection_test_defined,
+                    "chi_square_ready": chi_square_ready,
+                    "benchmark_observable_available": benchmark_observable_available,
+                    "validation_consistency": validation_consistency,
+                },
+                "fail_conditions": {
+                    "projection_not_defined": bool(not projection_test_defined),
+                    "chi_square_not_ready": bool(not chi_square_ready),
+                    "benchmark_observable_missing": bool(not benchmark_observable_available),
+                    "validation_inconsistent": bool(not validation_consistency),
+                },
+                "result": {
+                    "pass": step5_pass,
+                    "status": ("pass" if step5_pass else "hold"),
                 },
             },
             "relativity_foundation": {
