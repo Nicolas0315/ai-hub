@@ -67,6 +67,28 @@
       "one_to_one_mismatch_to_iut_patch": true,
       "observation_to_inf_theory_to_inf_model_table_required": true,
       "quantum_link_strength_priority": true
+    },
+    "mismatch_to_iut_patch_map": {
+      "R3_hubble_tension": "iut_patch_late_universe_calibration_bridge_v1",
+      "R8_modified_gravity_vs_LCDM": "iut_patch_scale_dependent_growth_bridge_v1",
+      "Q5_muon_gminus2_tension": "iut_patch_muon_effective_operator_bridge_v1"
+    },
+    "theory_gap_blocks": {
+      "R3_hubble_tension": {
+        "status": "open",
+        "required_math_link": "local-vs-early inference reconciliation under IUT invariants",
+        "priority": "P0"
+      },
+      "R8_modified_gravity_vs_LCDM": {
+        "status": "open",
+        "required_math_link": "scale-dependent structure-growth projection consistency",
+        "priority": "P0"
+      },
+      "Q5_muon_gminus2_tension": {
+        "status": "open",
+        "required_math_link": "precision-operator correction under preserved unitarity",
+        "priority": "P0"
+      }
     }
   },
   "adoption_requires": [

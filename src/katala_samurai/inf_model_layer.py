@@ -70,6 +70,10 @@ def _apply_user_overrides(base: dict[str, Any], overrides: dict[str, Any]) -> di
         m["priority_targets"] = [str(x) for x in overrides.get("priority_targets")]
     if isinstance(overrides.get("expansion_plan"), dict):
         m["expansion_plan"] = dict(overrides.get("expansion_plan") or {})
+    if isinstance(overrides.get("mismatch_to_iut_patch_map"), dict):
+        m["mismatch_to_iut_patch_map"] = dict(overrides.get("mismatch_to_iut_patch_map") or {})
+    if isinstance(overrides.get("theory_gap_blocks"), dict):
+        m["theory_gap_blocks"] = dict(overrides.get("theory_gap_blocks") or {})
 
     m["user_override_file"] = {
         "path": os.getenv(
@@ -176,6 +180,28 @@ def run_inf_model_layer(prompt: str, inf_theory: dict[str, Any] | None = None) -
             "constraints": {
                 "keep_adoption_rule": "consistency+projection+chi2_strict",
                 "retain_rejected_variants": True,
+            },
+        },
+        "mismatch_to_iut_patch_map": {
+            "R3_hubble_tension": "iut_patch_late_universe_calibration_bridge_v1",
+            "R8_modified_gravity_vs_LCDM": "iut_patch_scale_dependent_growth_bridge_v1",
+            "Q5_muon_gminus2_tension": "iut_patch_muon_effective_operator_bridge_v1",
+        },
+        "theory_gap_blocks": {
+            "R3_hubble_tension": {
+                "status": "open",
+                "required_math_link": "local-vs-early inference reconciliation under IUT invariants",
+                "priority": "P0",
+            },
+            "R8_modified_gravity_vs_LCDM": {
+                "status": "open",
+                "required_math_link": "scale-dependent structure-growth projection consistency",
+                "priority": "P0",
+            },
+            "Q5_muon_gminus2_tension": {
+                "status": "open",
+                "required_math_link": "precision-operator correction under preserved unitarity",
+                "priority": "P0",
             },
         },
     }
