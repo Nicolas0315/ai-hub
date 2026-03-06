@@ -1,0 +1,258 @@
+{
+  "schema": "inf-model-l1-normalized-v1",
+  "record_count": 21,
+  "records": [
+    {
+      "geom_id": "rel_euc_001",
+      "domain": "relativity",
+      "geometry_class": "euclidean",
+      "name": "Newtonian-limit 3D Euclidean space",
+      "usage_mode": "limit",
+      "euclid_property_profile": {
+        "is_euclidean": true,
+        "local_euclid_recoverable": true,
+        "limit_euclid_recoverable": true
+      }
+    },
+    {
+      "geom_id": "rel_euc_002",
+      "domain": "relativity",
+      "geometry_class": "euclidean",
+      "name": "Weak-field post-Newtonian spatial approximation",
+      "usage_mode": "approximation",
+      "euclid_property_profile": {
+        "is_euclidean": true,
+        "local_euclid_recoverable": true,
+        "limit_euclid_recoverable": true
+      }
+    },
+    {
+      "geom_id": "rel_euc_003",
+      "domain": "relativity",
+      "geometry_class": "euclidean",
+      "name": "Local inertial chart spatial Euclidean approximation",
+      "usage_mode": "local",
+      "euclid_property_profile": {
+        "is_euclidean": true,
+        "local_euclid_recoverable": true,
+        "limit_euclid_recoverable": true
+      }
+    },
+    {
+      "geom_id": "rel_euc_004",
+      "domain": "relativity",
+      "geometry_class": "euclidean",
+      "name": "Euclidean 3-space in laboratory coordinate reductions",
+      "usage_mode": "computational",
+      "euclid_property_profile": {
+        "is_euclidean": true,
+        "local_euclid_recoverable": true,
+        "limit_euclid_recoverable": true
+      }
+    },
+    {
+      "geom_id": "rel_non_001",
+      "domain": "relativity",
+      "geometry_class": "euclidean",
+      "name": "Minkowski geometry",
+      "usage_mode": "core",
+      "euclid_property_profile": {
+        "is_euclidean": true,
+        "local_euclid_recoverable": true,
+        "limit_euclid_recoverable": true
+      }
+    },
+    {
+      "geom_id": "rel_non_002",
+      "domain": "relativity",
+      "geometry_class": "euclidean",
+      "name": "Lorentzian pseudo-Riemannian spacetime",
+      "usage_mode": "core",
+      "euclid_property_profile": {
+        "is_euclidean": true,
+        "local_euclid_recoverable": true,
+        "limit_euclid_recoverable": true
+      }
+    },
+    {
+      "geom_id": "rel_non_003",
+      "domain": "relativity",
+      "geometry_class": "euclidean",
+      "name": "Riemannian 3-geometry on ADM spatial slices",
+      "usage_mode": "formalism",
+      "euclid_property_profile": {
+        "is_euclidean": true,
+        "local_euclid_recoverable": true,
+        "limit_euclid_recoverable": true
+      }
+    },
+    {
+      "geom_id": "rel_non_004",
+      "domain": "relativity",
+      "geometry_class": "euclidean",
+      "name": "de Sitter / anti-de Sitter curved geometry",
+      "usage_mode": "solution-space",
+      "euclid_property_profile": {
+        "is_euclidean": true,
+        "local_euclid_recoverable": true,
+        "limit_euclid_recoverable": true
+      }
+    },
+    {
+      "geom_id": "rel_non_005",
+      "domain": "relativity",
+      "geometry_class": "euclidean",
+      "name": "FLRW curved cosmological geometry",
+      "usage_mode": "cosmology",
+      "euclid_property_profile": {
+        "is_euclidean": true,
+        "local_euclid_recoverable": true,
+        "limit_euclid_recoverable": true
+      }
+    },
+    {
+      "geom_id": "rel_non_006",
+      "domain": "relativity",
+      "geometry_class": "euclidean",
+      "name": "Black-hole manifold geometry (Schwarzschild/Kerr)",
+      "usage_mode": "strong-gravity",
+      "euclid_property_profile": {
+        "is_euclidean": true,
+        "local_euclid_recoverable": true,
+        "limit_euclid_recoverable": true
+      }
+    },
+    {
+      "geom_id": "q_euc_001",
+      "domain": "quantum",
+      "geometry_class": "euclidean",
+      "name": "Euclidean 3D configuration space in non-relativistic QM",
+      "usage_mode": "baseline",
+      "euclid_property_profile": {
+        "is_euclidean": true,
+        "local_euclid_recoverable": true,
+        "limit_euclid_recoverable": true
+      }
+    },
+    {
+      "geom_id": "q_euc_002",
+      "domain": "quantum",
+      "geometry_class": "euclidean",
+      "name": "Wick-rotated Euclidean-time field theory",
+      "usage_mode": "analytic",
+      "euclid_property_profile": {
+        "is_euclidean": true,
+        "local_euclid_recoverable": true,
+        "limit_euclid_recoverable": true
+      }
+    },
+    {
+      "geom_id": "q_euc_003",
+      "domain": "quantum",
+      "geometry_class": "euclidean",
+      "name": "Lattice gauge theory on Euclidean lattices",
+      "usage_mode": "computational",
+      "euclid_property_profile": {
+        "is_euclidean": true,
+        "local_euclid_recoverable": true,
+        "limit_euclid_recoverable": true
+      }
+    },
+    {
+      "geom_id": "q_euc_004",
+      "domain": "quantum",
+      "geometry_class": "euclidean",
+      "name": "Euclidean momentum-space regularization frames",
+      "usage_mode": "regularization",
+      "euclid_property_profile": {
+        "is_euclidean": true,
+        "local_euclid_recoverable": true,
+        "limit_euclid_recoverable": true
+      }
+    },
+    {
+      "geom_id": "q_non_001",
+      "domain": "quantum",
+      "geometry_class": "euclidean",
+      "name": "Projective Hilbert-state geometry",
+      "usage_mode": "core",
+      "euclid_property_profile": {
+        "is_euclidean": true,
+        "local_euclid_recoverable": true,
+        "limit_euclid_recoverable": true
+      }
+    },
+    {
+      "geom_id": "q_non_002",
+      "domain": "quantum",
+      "geometry_class": "euclidean",
+      "name": "Complex projective space CP^n for pure states",
+      "usage_mode": "core",
+      "euclid_property_profile": {
+        "is_euclidean": true,
+        "local_euclid_recoverable": true,
+        "limit_euclid_recoverable": true
+      }
+    },
+    {
+      "geom_id": "q_non_003",
+      "domain": "quantum",
+      "geometry_class": "euclidean",
+      "name": "Fiber-bundle geometry in gauge theories",
+      "usage_mode": "core",
+      "euclid_property_profile": {
+        "is_euclidean": true,
+        "local_euclid_recoverable": true,
+        "limit_euclid_recoverable": true
+      }
+    },
+    {
+      "geom_id": "q_non_004",
+      "domain": "quantum",
+      "geometry_class": "euclidean",
+      "name": "Symplectic geometry in phase-space formulations",
+      "usage_mode": "formalism",
+      "euclid_property_profile": {
+        "is_euclidean": true,
+        "local_euclid_recoverable": true,
+        "limit_euclid_recoverable": true
+      }
+    },
+    {
+      "geom_id": "q_non_005",
+      "domain": "quantum",
+      "geometry_class": "euclidean",
+      "name": "Poisson geometry for classical-quantum correspondence",
+      "usage_mode": "formalism",
+      "euclid_property_profile": {
+        "is_euclidean": true,
+        "local_euclid_recoverable": true,
+        "limit_euclid_recoverable": true
+      }
+    },
+    {
+      "geom_id": "q_non_006",
+      "domain": "quantum",
+      "geometry_class": "euclidean",
+      "name": "Quantum information geometry (Bures/Fisher structures)",
+      "usage_mode": "information",
+      "euclid_property_profile": {
+        "is_euclidean": true,
+        "local_euclid_recoverable": true,
+        "limit_euclid_recoverable": true
+      }
+    },
+    {
+      "geom_id": "q_non_007",
+      "domain": "quantum",
+      "geometry_class": "euclidean",
+      "name": "Noncommutative geometry frameworks",
+      "usage_mode": "extended",
+      "euclid_property_profile": {
+        "is_euclidean": true,
+        "local_euclid_recoverable": true,
+        "limit_euclid_recoverable": true
+      }
+    }
+  ]
+}
