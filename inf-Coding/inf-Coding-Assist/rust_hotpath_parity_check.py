@@ -41,6 +41,7 @@ def main() -> int:
     trigger_mismatch = 0
     precision_mismatch = 0
     strict_hook_mismatch = 0
+    precision_hook_mismatch = 0
     verification_gate_mismatch = 0
 
     for _ in range(total):
@@ -84,14 +85,19 @@ def main() -> int:
         if py_h != rs_h:
             strict_hook_mismatch += 1
 
+        py_ph = rhb._py_precision_hook_from_score(py_p)  # type: ignore[attr-defined]
+        rs_ph = bool(m.precision_hook_from_score(float(rs_p)))
+        if py_ph != rs_ph:
+            precision_hook_mismatch += 1
+
         args = [rng.choice([True, False]) for _ in range(6)]
         py_v = rhb._py_verification_gate(*args)  # type: ignore[attr-defined]
         rs_v = bool(m.verification_gate(*args))
         if py_v != rs_v:
             verification_gate_mismatch += 1
 
-    ok = mismatch == 0 and specificity_mismatch == 0 and trigger_mismatch == 0 and precision_mismatch == 0 and strict_hook_mismatch == 0 and verification_gate_mismatch == 0
-    print(json.dumps({"ok": ok, "total": total, "mismatch": mismatch, "specificity_mismatch": specificity_mismatch, "trigger_mismatch": trigger_mismatch, "precision_mismatch": precision_mismatch, "strict_hook_mismatch": strict_hook_mismatch, "verification_gate_mismatch": verification_gate_mismatch}, ensure_ascii=False))
+    ok = mismatch == 0 and specificity_mismatch == 0 and trigger_mismatch == 0 and precision_mismatch == 0 and strict_hook_mismatch == 0 and precision_hook_mismatch == 0 and verification_gate_mismatch == 0
+    print(json.dumps({"ok": ok, "total": total, "mismatch": mismatch, "specificity_mismatch": specificity_mismatch, "trigger_mismatch": trigger_mismatch, "precision_mismatch": precision_mismatch, "strict_hook_mismatch": strict_hook_mismatch, "precision_hook_mismatch": precision_hook_mismatch, "verification_gate_mismatch": verification_gate_mismatch}, ensure_ascii=False))
     return 0 if ok else 1
 
 

@@ -43,7 +43,7 @@ def main() -> int:
 
     steps.append(run(["python3", "inf-Coding/inf-Coding-Assist/rust_no_fallback_check.py"], cwd=ROOT, env=env))
     steps.append(run(["python3", "inf-Coding/inf-Coding-Assist/rust_hotpath_parity_check.py"], cwd=ROOT, env=env))
-    steps.append(run(["python3", "inf-Coding/inf-Coding-Assist/iut_subset_scaffold.py"], cwd=ROOT / "inf-Coding", env={**env, "IUT_STAGED_CHECK": "0"}))
+    steps.append(run(["python3", "inf-Coding-Assist/iut_subset_scaffold.py"], cwd=ROOT / "inf-Coding", env={**env, "IUT_STAGED_CHECK": "0"}))
 
     out["steps"] = [{k: v for k, v in s.items() if k not in {"stdout", "stderr"}} for s in steps]
     out["ok"] = all(s.get("ok") for s in steps)

@@ -130,6 +130,23 @@ def strict_spec_hook(spec: str, strict_specificity: float) -> bool:
     return _py_strict_spec_hook(spec, strict_specificity)
 
 
+def _py_precision_hook_from_score(precision_score: float) -> bool:
+    return bool(float(precision_score) >= 0.75)
+
+
+def precision_hook_from_score(precision_score: float) -> bool:
+    m = _mod()
+    if m is not None:
+        try:
+            return bool(m.precision_hook_from_score(float(precision_score)))
+        except Exception:
+            if _rust_only():
+                raise RuntimeError("KQ_RUST_ONLY is enabled and rust precision_hook_from_score failed")
+    if _rust_only():
+        raise RuntimeError("KQ_RUST_ONLY is enabled but katala_rust_hotpath is unavailable")
+    return _py_precision_hook_from_score(precision_score)
+
+
 def _py_verification_gate(
     precision_hook: bool,
     strict_spec_hook_flag: bool,

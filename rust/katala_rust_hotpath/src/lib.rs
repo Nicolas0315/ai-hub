@@ -49,6 +49,11 @@ fn strict_spec_hook(spec: String, strict_specificity: f64) -> bool {
 }
 
 #[pyfunction]
+fn precision_hook_from_score(precision_score: f64) -> bool {
+    precision_score >= 0.75
+}
+
+#[pyfunction]
 fn verification_gate(
     precision_hook: bool,
     strict_spec_hook: bool,
@@ -106,6 +111,7 @@ fn katala_rust_hotpath(_py: Python<'_>, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(strict_triggered, m)?)?;
     m.add_function(wrap_pyfunction!(precision_score, m)?)?;
     m.add_function(wrap_pyfunction!(strict_spec_hook, m)?)?;
+    m.add_function(wrap_pyfunction!(precision_hook_from_score, m)?)?;
     m.add_function(wrap_pyfunction!(verification_gate, m)?)?;
     m.add_function(wrap_pyfunction!(dense_dependency_edges, m)?)?;
     Ok(())

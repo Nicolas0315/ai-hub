@@ -18,6 +18,7 @@ from .rust_hotpath_bridge import (
     strict_triggered as _rust_strict_triggered,
     precision_score as _rust_precision_score,
     strict_spec_hook as _rust_strict_spec_hook,
+    precision_hook_from_score as _rust_precision_hook_from_score,
     verification_gate as _rust_verification_gate,
 )
 from .iut_formal_dictionary import IUT_FORMAL_DICTIONARY, normalize_iut_terms
@@ -348,7 +349,7 @@ def evaluate_iut_core_subset_v1(nodes: list[IUTLemmaNode] | None = None) -> dict
             formal_hook = bool(r.get("ok")) and str(r.get("proof_status", "")).lower() != "failed"
             proof_trace_hook = bool((primary.get("result") or {}).get("proof_certificate") or (primary.get("result") or {}).get("proof_trace_machine"))
             precision_score = round(float(_rust_precision_score(n.formal_domain, n.formal_morphism, n.formal_invariant, spec)), 4)
-            precision_hook = bool(precision_score >= 0.75)
+            precision_hook = bool(_rust_precision_hook_from_score(precision_score))
             strict_specificity = round(float(_rust_strict_specificity_score(spec)), 4)
             strict_spec_hook = bool(_rust_strict_spec_hook(spec, strict_specificity))
             pres_score = float(inv.get("invariant_preservation_score", 0.0) or 0.0)
@@ -486,7 +487,7 @@ def evaluate_iut_core_subset_v1(nodes: list[IUTLemmaNode] | None = None) -> dict
         # non-strict path: skip heavy external provers for cost optimization
         primary = (r.get("primary") or {}) if isinstance(r, dict) else {}
         precision_score = round(float(_rust_precision_score(n.formal_domain, n.formal_morphism, n.formal_invariant, spec)), 4)
-        precision_hook = bool(precision_score >= 0.75)
+        precision_hook = bool(_rust_precision_hook_from_score(precision_score))
         strict_specificity = round(float(_rust_strict_specificity_score(spec)), 4)
         strict_spec_hook = bool(_rust_strict_spec_hook(spec, strict_specificity))
         formal_hook = bool(r.get("ok")) and str(r.get("proof_status", "")).lower() != "failed"
