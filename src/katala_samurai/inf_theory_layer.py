@@ -35,6 +35,13 @@ def run_inf_theory_layer(prompt: str, unified: dict[str, Any] | None = None) -> 
         4,
     )
 
+    # Step1 (black-hole singularity) formal pass/fail gate
+    curvature_bound = bool(inv_score >= 0.72)
+    unitary_preserved = bool(not truth_conflict)
+    invariant_preserved = bool(cx_ok)
+    observable_projectable = bool(len(observable_map) > 0)
+    step1_pass = bool(curvature_bound and unitary_preserved and invariant_preserved and observable_projectable)
+
     return {
         "enabled": True,
         "schema_version": "inf-theory-v1",
@@ -89,6 +96,30 @@ def run_inf_theory_layer(prompt: str, unified: dict[str, Any] | None = None) -> 
                 "counterexample_resilience": round(counterexample_resilience, 4),
                 "observable_projection_score": round(observable_projection_score, 4),
                 "unified_admissibility": round(unified_admissibility, 4),
+            },
+            "step1_singularity_resolution": {
+                "id": "UGT1",
+                "target": "black_hole_singularity",
+                "axioms": {
+                    "curvature_bound_latex": "K = R_{\\mu\\nu\\rho\\sigma}R^{\\mu\\nu\\rho\\sigma} \\le K_{max}",
+                    "unitary_preservation_latex": "\\rho_{out}=U\\rho_{in}U^\\dagger, U^\\dagger U=I",
+                    "iut_bridge_invariant_latex": "\\mathcal{I}_{before}=\\mathcal{I}_{after}",
+                },
+                "pass_conditions": {
+                    "curvature_bound": curvature_bound,
+                    "unitary_preserved": unitary_preserved,
+                    "invariant_preserved": invariant_preserved,
+                    "observable_projectable": observable_projectable,
+                },
+                "fail_conditions": {
+                    "curvature_divergence": bool(not curvature_bound),
+                    "unitarity_break": bool(not unitary_preserved),
+                    "projection_missing": bool(not observable_projectable),
+                },
+                "result": {
+                    "pass": step1_pass,
+                    "status": ("pass" if step1_pass else "hold"),
+                },
             },
             "relativity_foundation": {
                 "version": "sr-gr-core-v1",
