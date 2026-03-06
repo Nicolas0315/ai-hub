@@ -185,6 +185,34 @@ def run_inf_model_layer(prompt: str, inf_theory: dict[str, Any] | None = None) -
                 "keep_adoption_rule": "consistency+projection+chi2_strict",
                 "retain_rejected_variants": True,
             },
+            "iut_candidate_survival_program": {
+                "enabled": True,
+                "candidate_axioms_euclid_pure": [
+                    "E1_continuous_segment_division",
+                    "E2_layered_dimension_parameter",
+                    "E3_canonical_comparison_map_uniqueness",
+                    "E4_path_independent_comparison",
+                    "E5_classical_euclid_recovery_limit",
+                ],
+                "mapping_relativity": {
+                    "name": "euclid_to_relativity_dimension_structure",
+                    "required": True,
+                },
+                "mapping_quantum": {
+                    "name": "euclid_to_quantum_state_dimension_structure",
+                    "required": True,
+                },
+                "iut_gate": {
+                    "commutativity": True,
+                    "invariant_preservation": True,
+                    "non_contradiction": True,
+                },
+                "recovery_gate": {
+                    "local_euclid_recovery": True,
+                    "limit_euclid_recovery": True,
+                },
+                "selection_rule": "adopt_candidate_only_if_all_gates_pass",
+            },
         },
         "mismatch_to_iut_patch_map": {
             "R3_hubble_tension": "iut_patch_late_universe_calibration_bridge_v1",

@@ -82,6 +82,34 @@
       "physics_mapping_must_be_post_layer": true,
       "note": "Avoid category errors (e.g., arbitrary object axiomatization); keep geometry and physics layers separated."
     },
+    "iut_candidate_survival_program": {
+      "enabled": true,
+      "candidate_axioms_euclid_pure": [
+        "E1_continuous_segment_division",
+        "E2_layered_dimension_parameter",
+        "E3_canonical_comparison_map_uniqueness",
+        "E4_path_independent_comparison",
+        "E5_classical_euclid_recovery_limit"
+      ],
+      "mapping_relativity": {
+        "name": "euclid_to_relativity_dimension_structure",
+        "required": true
+      },
+      "mapping_quantum": {
+        "name": "euclid_to_quantum_state_dimension_structure",
+        "required": true
+      },
+      "iut_gate": {
+        "commutativity": true,
+        "invariant_preservation": true,
+        "non_contradiction": true
+      },
+      "recovery_gate": {
+        "local_euclid_recovery": true,
+        "limit_euclid_recovery": true
+      },
+      "selection_rule": "adopt_candidate_only_if_all_gates_pass"
+    },
     "mismatch_to_iut_patch_map": {
       "R3_hubble_tension": "iut_patch_late_universe_calibration_bridge_v1",
       "R8_modified_gravity_vs_LCDM": "iut_patch_scale_dependent_growth_bridge_v1",
