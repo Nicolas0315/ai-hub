@@ -37,6 +37,7 @@ def run_inf_theory_layer(prompt: str, unified: dict[str, Any] | None = None) -> 
 
     return {
         "enabled": True,
+        "schema_version": "inf-theory-v1",
         "layer": "inf-theory",
         "goal": "gr_qm_unification_theory_modeling",
         "input": {
@@ -58,5 +59,16 @@ def run_inf_theory_layer(prompt: str, unified: dict[str, Any] | None = None) -> 
             "strict_recommended": bool(weighted_total < 0.72),
             "truth_conflict": truth_conflict,
             "counterexample_consistent": cx_ok,
+        },
+        "unification_theory_model": {
+            "name": "gr_qm_iut_unification_candidate",
+            "adopted": bool(weighted_total >= 0.72),
+            "scores": {
+                "weighted_total": weighted_total,
+                "consistency_score": round(consistency_score, 4),
+                "counterexample_resilience": round(counterexample_resilience, 4),
+                "observable_projection_score": round(observable_projection_score, 4),
+                "unified_admissibility": round(unified_admissibility, 4),
+            },
         },
     }

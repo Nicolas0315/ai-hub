@@ -25,6 +25,7 @@ from katala_samurai.inf_bridge import (
 )
 from katala_samurai.inf_coding_adapter import emit_router_event
 from katala_samurai.inf_theory_layer import run_inf_theory_layer
+from katala_samurai.inf_theory_layer_policy import sanitize_inf_theory_output, validate_inf_theory_output
 
 try:
     from katala_samurai.kq_symbolic_bridge import (
@@ -91,15 +92,17 @@ def _formal_probe(command: str) -> dict:
 
     # Standard operation: run unified math+logic coverage first.
     unified = solve_math_logic_unified(s)
-    inf_theory = run_inf_theory_layer(s, unified)
+    inf_theory_raw = run_inf_theory_layer(s, unified)
+    inf_theory = sanitize_inf_theory_output(inf_theory_raw)
+    inf_theory_validation = validate_inf_theory_output(inf_theory)
 
     # Keep explicit kind for routing compatibility.
     if any(k in low for k in ["vars:", "formula:", " in [", "==", ">=", "<="]):
         r = solve_smt_optional(s)
-        return {"enabled": True, "kind": "smt", "result": r, "unified": unified, "inf_theory": inf_theory}
+        return {"enabled": True, "kind": "smt", "result": r, "unified": unified, "inf_theory": inf_theory, "inf_theory_validation": inf_theory_validation}
     if any(k in low for k in ["cnf:", "clause:", "sat(", "unsat", " or ", " and "]):
         r = solve_sat_lite(s)
-        return {"enabled": True, "kind": "sat", "result": r, "unified": unified, "inf_theory": inf_theory}
+        return {"enabled": True, "kind": "sat", "result": r, "unified": unified, "inf_theory": inf_theory, "inf_theory_validation": inf_theory_validation}
 
     primary = ((unified.get("primary") or {}).get("result") if isinstance(unified, dict) else None)
     if isinstance(primary, dict):
@@ -109,10 +112,11 @@ def _formal_probe(command: str) -> dict:
             "result": primary,
             "unified": unified,
             "inf_theory": inf_theory,
+            "inf_theory_validation": inf_theory_validation,
         }
 
     r = eval_symbolic(s)
-    return {"enabled": True, "kind": "symbolic", "result": r, "unified": unified, "inf_theory": inf_theory}
+    return {"enabled": True, "kind": "symbolic", "result": r, "unified": unified, "inf_theory": inf_theory, "inf_theory_validation": inf_theory_validation}
 
 
 def decide_route(command: str) -> tuple[str, dict]:
@@ -229,6 +233,11 @@ def decide_route(command: str) -> tuple[str, dict]:
         if route != 'strict':
             route = 'strict'
             reason = 'formal_probe_requires_strict'
+
+    inf_theory_validation = (formal.get('inf_theory_validation') or {}) if isinstance(formal, dict) else {}
+    if inf_theory_validation and not bool(inf_theory_validation.get('ok', True)):
+        route = 'strict'
+        reason = 'inf_theory_schema_violation'
 
     # inf-Bridge plan hint has final safety priority
     if bridge_hint == 'strict' and route != 'strict':
