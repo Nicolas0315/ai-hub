@@ -23,6 +23,9 @@ def run(cmd: list[str], cwd: Path | None = None, env: dict[str, str] | None = No
 def main() -> int:
     steps = []
 
+    # precheck) host rust health
+    steps.append(run(["python3", "inf-Coding/inf-Coding-Assist/rust_host_diagnose.py"], cwd=ROOT))
+
     # 1) Rust extension activation
     steps.append(run(["bash", "inf-Coding-Assist/rust_bootstrap_and_activate.sh"], cwd=ROOT / "inf-Coding"))
 
