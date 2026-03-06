@@ -187,6 +187,25 @@ def run_inf_model_layer(prompt: str, inf_theory: dict[str, Any] | None = None) -
             },
             "iut_candidate_survival_program": {
                 "enabled": True,
+                "hierarchy": {
+                    "lower_layers": {
+                        "relativity_dimension_layer": {
+                            "mapping": "euclid_to_relativity_dimension_structure",
+                            "required": True,
+                        },
+                        "quantum_dimension_layer": {
+                            "mapping": "euclid_to_quantum_state_dimension_structure",
+                            "required": True,
+                        },
+                    },
+                    "upper_unified_dimension_layer": {
+                        "name": "unified_dimension_layer_U",
+                        "recovery": {
+                            "local_euclid_recovery": True,
+                            "limit_euclid_recovery": True,
+                        },
+                    },
+                },
                 "candidate_axioms_euclid_pure": [
                     "E1_continuous_segment_division",
                     "E2_layered_dimension_parameter",
@@ -194,22 +213,11 @@ def run_inf_model_layer(prompt: str, inf_theory: dict[str, Any] | None = None) -
                     "E4_path_independent_comparison",
                     "E5_classical_euclid_recovery_limit",
                 ],
-                "mapping_relativity": {
-                    "name": "euclid_to_relativity_dimension_structure",
-                    "required": True,
-                },
-                "mapping_quantum": {
-                    "name": "euclid_to_quantum_state_dimension_structure",
-                    "required": True,
-                },
                 "iut_gate": {
                     "commutativity": True,
                     "invariant_preservation": True,
                     "non_contradiction": True,
-                },
-                "recovery_gate": {
-                    "local_euclid_recovery": True,
-                    "limit_euclid_recovery": True,
+                    "dual_projection_consistency": True,
                 },
                 "selection_rule": "adopt_candidate_only_if_all_gates_pass",
             },

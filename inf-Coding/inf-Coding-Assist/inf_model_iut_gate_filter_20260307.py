@@ -15,6 +15,9 @@ def main() -> int:
     prog = (exp.get('iut_candidate_survival_program') or {})
 
     candidates = list(prog.get('candidate_axioms_euclid_pure') or [])
+    recovery_cfg = (((prog.get('hierarchy') or {}).get('upper_unified_dimension_layer') or {}).get('recovery') or {})
+    require_local = bool(recovery_cfg.get('local_euclid_recovery', True))
+    require_limit = bool(recovery_cfg.get('limit_euclid_recovery', True))
 
     # First executable pass (based on currently fixed derivability/hold-condition knowledge)
     # E1 is conditional on continuity/completeness assumptions and is held for now.
@@ -70,8 +73,8 @@ def main() -> int:
             r.get('commutativity')
             and r.get('invariant_preservation')
             and r.get('non_contradiction')
-            and r.get('local_euclid_recovery')
-            and r.get('limit_euclid_recovery')
+            and (r.get('local_euclid_recovery') if require_local else True)
+            and (r.get('limit_euclid_recovery') if require_limit else True)
         )
         if all_gates:
             passed.append(c)

@@ -84,6 +84,25 @@
     },
     "iut_candidate_survival_program": {
       "enabled": true,
+      "hierarchy": {
+        "lower_layers": {
+          "relativity_dimension_layer": {
+            "mapping": "euclid_to_relativity_dimension_structure",
+            "required": true
+          },
+          "quantum_dimension_layer": {
+            "mapping": "euclid_to_quantum_state_dimension_structure",
+            "required": true
+          }
+        },
+        "upper_unified_dimension_layer": {
+          "name": "unified_dimension_layer_U",
+          "recovery": {
+            "local_euclid_recovery": true,
+            "limit_euclid_recovery": true
+          }
+        }
+      },
       "candidate_axioms_euclid_pure": [
         "E1_continuous_segment_division",
         "E2_layered_dimension_parameter",
@@ -91,22 +110,11 @@
         "E4_path_independent_comparison",
         "E5_classical_euclid_recovery_limit"
       ],
-      "mapping_relativity": {
-        "name": "euclid_to_relativity_dimension_structure",
-        "required": true
-      },
-      "mapping_quantum": {
-        "name": "euclid_to_quantum_state_dimension_structure",
-        "required": true
-      },
       "iut_gate": {
         "commutativity": true,
         "invariant_preservation": true,
-        "non_contradiction": true
-      },
-      "recovery_gate": {
-        "local_euclid_recovery": true,
-        "limit_euclid_recovery": true
+        "non_contradiction": true,
+        "dual_projection_consistency": true
       },
       "selection_rule": "adopt_candidate_only_if_all_gates_pass"
     },
