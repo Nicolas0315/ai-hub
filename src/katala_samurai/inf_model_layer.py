@@ -74,6 +74,8 @@ def _apply_user_overrides(base: dict[str, Any], overrides: dict[str, Any]) -> di
         m["mismatch_to_iut_patch_map"] = dict(overrides.get("mismatch_to_iut_patch_map") or {})
     if isinstance(overrides.get("theory_gap_blocks"), dict):
         m["theory_gap_blocks"] = dict(overrides.get("theory_gap_blocks") or {})
+    if isinstance(overrides.get("parallel_discovery_tracks"), dict):
+        m["parallel_discovery_tracks"] = dict(overrides.get("parallel_discovery_tracks") or {})
 
     m["user_override_file"] = {
         "path": os.getenv(
@@ -203,6 +205,13 @@ def run_inf_model_layer(prompt: str, inf_theory: dict[str, Any] | None = None) -
                 "required_math_link": "precision-operator correction under preserved unitarity",
                 "priority": "P0",
             },
+        },
+        "parallel_discovery_tracks": {
+            "mode": "parallel_required",
+            "track_A": "discover_independent_axiom_candidates_under_euclidean_baseline",
+            "track_B": "formalize_requirements_for_gravity-referenced_max_speed_statement",
+            "track_C": "classify_each_candidate_as_derivable_theorem_or_independent_axiom",
+            "selection_rule": "intersection_A_and_B_and_C_only",
         },
     }
 

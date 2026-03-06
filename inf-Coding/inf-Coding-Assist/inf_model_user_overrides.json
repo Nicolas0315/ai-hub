@@ -68,6 +68,13 @@
       "observation_to_inf_theory_to_inf_model_table_required": true,
       "quantum_link_strength_priority": true
     },
+    "parallel_discovery_tracks": {
+      "mode": "parallel_required",
+      "track_A": "discover_independent_axiom_candidates_under_euclidean_baseline",
+      "track_B": "formalize_requirements_for_gravity-referenced_max_speed_statement",
+      "track_C": "classify_each_candidate_as_derivable_theorem_or_independent_axiom",
+      "selection_rule": "intersection_A_and_B_and_C_only"
+    },
     "mismatch_to_iut_patch_map": {
       "R3_hubble_tension": "iut_patch_late_universe_calibration_bridge_v1",
       "R8_modified_gravity_vs_LCDM": "iut_patch_scale_dependent_growth_bridge_v1",
