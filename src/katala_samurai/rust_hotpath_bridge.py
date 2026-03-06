@@ -130,6 +130,53 @@ def strict_spec_hook(spec: str, strict_specificity: float) -> bool:
     return _py_strict_spec_hook(spec, strict_specificity)
 
 
+def _py_verification_gate(
+    precision_hook: bool,
+    strict_spec_hook_flag: bool,
+    formal_hook: bool,
+    counterexample_hook: bool,
+    proof_trace_hook: bool,
+    external_cross_hook: bool,
+) -> bool:
+    return bool(
+        precision_hook
+        and strict_spec_hook_flag
+        and formal_hook
+        and counterexample_hook
+        and proof_trace_hook
+        and external_cross_hook
+    )
+
+
+def verification_gate(
+    precision_hook: bool,
+    strict_spec_hook_flag: bool,
+    formal_hook: bool,
+    counterexample_hook: bool,
+    proof_trace_hook: bool,
+    external_cross_hook: bool,
+) -> bool:
+    m = _mod()
+    if m is not None:
+        try:
+            return bool(
+                m.verification_gate(
+                    bool(precision_hook),
+                    bool(strict_spec_hook_flag),
+                    bool(formal_hook),
+                    bool(counterexample_hook),
+                    bool(proof_trace_hook),
+                    bool(external_cross_hook),
+                )
+            )
+        except Exception:
+            if _rust_only():
+                raise RuntimeError("KQ_RUST_ONLY is enabled and rust verification_gate failed")
+    if _rust_only():
+        raise RuntimeError("KQ_RUST_ONLY is enabled but katala_rust_hotpath is unavailable")
+    return _py_verification_gate(precision_hook, strict_spec_hook_flag, formal_hook, counterexample_hook, proof_trace_hook, external_cross_hook)
+
+
 def _py_dense_dependency_edges(
     node_ids: list[str],
     node_layers: list[str],

@@ -49,6 +49,18 @@ fn strict_spec_hook(spec: String, strict_specificity: f64) -> bool {
 }
 
 #[pyfunction]
+fn verification_gate(
+    precision_hook: bool,
+    strict_spec_hook: bool,
+    formal_hook: bool,
+    counterexample_hook: bool,
+    proof_trace_hook: bool,
+    external_cross_hook: bool,
+) -> bool {
+    precision_hook && strict_spec_hook && formal_hook && counterexample_hook && proof_trace_hook && external_cross_hook
+}
+
+#[pyfunction]
 fn dense_dependency_edges(
     node_ids: Vec<String>,
     node_layers: Vec<String>,
@@ -94,6 +106,7 @@ fn katala_rust_hotpath(_py: Python<'_>, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(strict_triggered, m)?)?;
     m.add_function(wrap_pyfunction!(precision_score, m)?)?;
     m.add_function(wrap_pyfunction!(strict_spec_hook, m)?)?;
+    m.add_function(wrap_pyfunction!(verification_gate, m)?)?;
     m.add_function(wrap_pyfunction!(dense_dependency_edges, m)?)?;
     Ok(())
 }
