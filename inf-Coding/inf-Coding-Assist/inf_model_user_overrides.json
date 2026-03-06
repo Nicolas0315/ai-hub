@@ -80,8 +80,23 @@
       "L3_top_layer": "physical_dimension_model_with_mandatory_local_and_limit_euclid_recovery",
       "L2_middle_layer": "iut_based_physical_dimension_mapping_model_for_consistency_commutativity_invariants",
       "L1_bottom_layer": "enumeration_of_euclidean_and_non_euclidean_geometries_used_across_full_relativity_and_full_quantum_domains",
-      "L1_ledger_file": "inf-Coding/inf-Coding-Assist/L1_ledger_20260307.json",
+      "L1_ledger_file": "inf-Coding/inf-Coding-Assist/L1_ledger_20260307_v2_enumerated.json",
       "note": "This is the conceptual baseline before downstream gate narrowing."
+    },
+    "layer_contracts": {
+      "L_to_S": ["geom_id", "schema_version", "provenance"],
+      "S_to_P": ["binary_hash_sha256", "decode_spec", "source_ref"],
+      "P_to_M": ["test_result", "gate_result", "reproducibility_tag"]
+    },
+    "history_policy": {
+      "S_append_only": true,
+      "P_transformation_log_required": true,
+      "M_keep_rejected_history": true
+    },
+    "final_authority": {
+      "decision_gate": "L3_top_recovery_layer",
+      "requires": ["local_euclid_recovery", "limit_euclid_recovery"],
+      "note": "Final acceptance authority is fixed at L3 recovery gate."
     },
     "layer_separation_policy": {
       "euclid_axioms_must_remain_pure_geometry": true,
