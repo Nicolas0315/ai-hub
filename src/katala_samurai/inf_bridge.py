@@ -702,7 +702,8 @@ def run_inf_bridge(command: str) -> dict[str, Any]:
         "triggered": bool(assimilation_trigger),
         "version": "assim-prod-v1",
         "job_owner": "inf-bridge",
-        "data_plane_owner": "inf-memory",
+        "data_plane_owner": "inf-blender",
+        "blender_dependency": "inf-memory",
         "recommended_job": {
             "script": "/mnt/c/Users/ogosh/Documents/NICOLAS/Katala/inf-Coding/inf-Coding-Assist/inf_observation_assimilation_prod.py",
             "input": "/mnt/c/Users/ogosh/Documents/NICOLAS/Katala/inf-Coding/inf-Coding-Assist/observation_doi_harvest_20260306.normalized.jsonl",

@@ -8,6 +8,7 @@ from .inf_model_layer import run_inf_model_layer
 from .inf_model_layer_policy import sanitize_inf_model_output, validate_inf_model_output
 from .inf_memory_layer import run_inf_memory_layer
 from .inf_memory_layer_policy import sanitize_inf_memory_output, validate_inf_memory_output
+from .inf_blender_layer import run_inf_blender_layer
 
 
 def run_inf_brain_layer(prompt: str, unified: dict[str, Any] | None = None) -> dict[str, Any]:
@@ -49,6 +50,9 @@ def run_inf_brain_layer(prompt: str, unified: dict[str, Any] | None = None) -> d
     memory = sanitize_inf_memory_output(memory_raw)
     memory_validation = validate_inf_memory_output(memory)
 
+    blender = run_inf_blender_layer(prompt, unified, memory)
+    blender_validation = {"ok": bool((blender.get("enabled", False) and (blender.get("status") or {}).get("writeback_forbidden", False)))}
+
     return {
         "enabled": True,
         "schema_version": "inf-brain-v1",
@@ -69,11 +73,13 @@ def run_inf_brain_layer(prompt: str, unified: dict[str, Any] | None = None) -> d
             "inf_theory": theory,
             "inf_model": model,
             "inf_memory": memory,
+            "inf_blender": blender,
         },
         "validation": {
             "inf_theory": theory_validation,
             "inf_model": model_validation,
             "inf_memory": memory_validation,
-            "ok": bool(theory_validation.get("ok") and model_validation.get("ok") and memory_validation.get("ok")),
+            "inf_blender": blender_validation,
+            "ok": bool(theory_validation.get("ok") and model_validation.get("ok") and memory_validation.get("ok") and blender_validation.get("ok")),
         },
     }
