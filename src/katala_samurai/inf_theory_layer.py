@@ -42,6 +42,13 @@ def run_inf_theory_layer(prompt: str, unified: dict[str, Any] | None = None) -> 
     observable_projectable = bool(len(observable_map) > 0)
     step1_pass = bool(curvature_bound and unitary_preserved and invariant_preserved and observable_projectable)
 
+    # Step2 (early-universe high-density regime) formal pass/fail gate
+    high_density_consistent = bool(inv_score >= 0.72)
+    initial_condition_stable = bool(not truth_conflict)
+    bridge_cross_scale_consistent = bool(cx_ok)
+    early_observable_projectable = bool(len(observable_map) > 0)
+    step2_pass = bool(high_density_consistent and initial_condition_stable and bridge_cross_scale_consistent and early_observable_projectable)
+
     return {
         "enabled": True,
         "schema_version": "inf-theory-v1",
@@ -119,6 +126,31 @@ def run_inf_theory_layer(prompt: str, unified: dict[str, Any] | None = None) -> 
                 "result": {
                     "pass": step1_pass,
                     "status": ("pass" if step1_pass else "hold"),
+                },
+            },
+            "step2_early_universe_resolution": {
+                "id": "UGT2",
+                "target": "early_universe_high_density",
+                "axioms": {
+                    "high_density_consistency_latex": "\\lim_{\\rho\\to\\rho_{Planck}} \\mathcal{I}(\\rho) < \\infty",
+                    "initial_condition_stability_latex": "\\delta\\mathcal{S}_{init} \\to 0 \\Rightarrow \\delta\\mathcal{O}_{late} < \\epsilon",
+                    "cross_scale_bridge_latex": "\\mathcal{B}_{IUT}: (UV\\leftrightarrow IR),\\ \\mathcal{I}_{UV}=\\mathcal{I}_{IR}",
+                },
+                "pass_conditions": {
+                    "high_density_consistent": high_density_consistent,
+                    "initial_condition_stable": initial_condition_stable,
+                    "bridge_cross_scale_consistent": bridge_cross_scale_consistent,
+                    "observable_projectable": early_observable_projectable,
+                },
+                "fail_conditions": {
+                    "uv_divergence": bool(not high_density_consistent),
+                    "initial_condition_instability": bool(not initial_condition_stable),
+                    "cross_scale_inconsistency": bool(not bridge_cross_scale_consistent),
+                    "projection_missing": bool(not early_observable_projectable),
+                },
+                "result": {
+                    "pass": step2_pass,
+                    "status": ("pass" if step2_pass else "hold"),
                 },
             },
             "relativity_foundation": {
