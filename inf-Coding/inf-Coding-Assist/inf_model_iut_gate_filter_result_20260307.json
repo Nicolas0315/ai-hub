@@ -1,0 +1,68 @@
+{
+  "schema": "inf-model-iut-gate-filter-v1",
+  "selection_rule": "adopt_candidate_only_if_all_gates_pass",
+  "candidates_input": [
+    "E1_continuous_segment_division",
+    "E2_layered_dimension_parameter",
+    "E3_canonical_comparison_map_uniqueness",
+    "E4_path_independent_comparison",
+    "E5_classical_euclid_recovery_limit"
+  ],
+  "gate_evaluation": {
+    "E1_continuous_segment_division": {
+      "commutativity": true,
+      "invariant_preservation": true,
+      "non_contradiction": true,
+      "local_euclid_recovery": true,
+      "limit_euclid_recovery": false,
+      "status": "hold_conditional_base_axioms",
+      "note": "Needs explicit continuity/completeness base decision before promotion."
+    },
+    "E2_layered_dimension_parameter": {
+      "commutativity": true,
+      "invariant_preservation": true,
+      "non_contradiction": true,
+      "local_euclid_recovery": true,
+      "limit_euclid_recovery": true,
+      "status": "pass"
+    },
+    "E3_canonical_comparison_map_uniqueness": {
+      "commutativity": true,
+      "invariant_preservation": true,
+      "non_contradiction": true,
+      "local_euclid_recovery": true,
+      "limit_euclid_recovery": true,
+      "status": "pass"
+    },
+    "E4_path_independent_comparison": {
+      "commutativity": true,
+      "invariant_preservation": true,
+      "non_contradiction": true,
+      "local_euclid_recovery": true,
+      "limit_euclid_recovery": true,
+      "status": "pass"
+    },
+    "E5_classical_euclid_recovery_limit": {
+      "commutativity": true,
+      "invariant_preservation": true,
+      "non_contradiction": true,
+      "local_euclid_recovery": true,
+      "limit_euclid_recovery": true,
+      "status": "pass_connection_axiom"
+    }
+  },
+  "adopt_candidates": [
+    "E2_layered_dimension_parameter",
+    "E3_canonical_comparison_map_uniqueness",
+    "E4_path_independent_comparison",
+    "E5_classical_euclid_recovery_limit"
+  ],
+  "hold_candidates": [
+    "E1_continuous_segment_division"
+  ],
+  "summary": {
+    "input_count": 5,
+    "adopt_count": 4,
+    "hold_count": 1
+  }
+}
