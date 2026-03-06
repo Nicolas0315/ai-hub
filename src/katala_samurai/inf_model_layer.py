@@ -63,6 +63,9 @@ def _apply_user_overrides(base: dict[str, Any], overrides: dict[str, Any]) -> di
         dp["rejected_variant_status"] = overrides.get("rejected_variant_status").strip()
     m["decision_policy"] = dp
 
+    if isinstance(overrides.get("paradigm_policy"), dict):
+        m["paradigm_policy"] = dict(overrides.get("paradigm_policy") or {})
+
     m["user_override_file"] = {
         "path": os.getenv(
             "INF_MODEL_EDIT_FILE",
@@ -140,6 +143,12 @@ def run_inf_model_layer(prompt: str, inf_theory: dict[str, Any] | None = None) -
             "adoption_requires": ["consistency", "projection", "chi_square"],
             "retain_rejected_variants": True,
             "rejected_variant_status": "rejected_consistent_variant",
+        },
+        "paradigm_policy": {
+            "math_revision_drives_physics_revision": True,
+            "kq_iut_is_math_revision_core": True,
+            "inf_brain_inf_model_is_model_revision_core": True,
+            "summary": "Katala treats mathematics-first reformulation as the driver of physics-model paradigm updates.",
         },
     }
 

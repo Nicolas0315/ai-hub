@@ -15,7 +15,13 @@
     "flavor_sector_effective_coupling_window_v1"
   ],
   "selection_rule": "consistency+projection+chi2_strict",
-  "notes": "User-editable inf-Model sandbox. Keep rejected variants as records; do not delete history.",
+  "notes": "User-editable inf-Model sandbox. Keep rejected variants as records; do not delete history. KQ IUT-compute is the math-revision core; inf-Brain inf-Model is the physics-model revision core.",
+  "paradigm_policy": {
+    "math_revision_drives_physics_revision": true,
+    "kq_iut_is_math_revision_core": true,
+    "inf_brain_inf_model_is_model_revision_core": true,
+    "summary": "Paradigm shift is math-first: reform mathematics (IUT path in KQ), then revise physics model in inf-Model."
+  },
   "adoption_requires": [
     "consistency",
     "projection",
