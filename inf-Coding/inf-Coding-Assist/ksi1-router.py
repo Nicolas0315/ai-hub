@@ -25,6 +25,7 @@ from katala_samurai.inf_bridge import (
 from katala_samurai.inf_coding_adapter import emit_router_event
 from katala_samurai.inf_brain_layer import run_inf_brain_layer
 from katala_samurai.inf_brain_layer_policy import sanitize_inf_brain_output, validate_inf_brain_output
+from katala_samurai.kq_input_layer import build_kq_input_packet
 
 try:
     from katala_samurai.kq_symbolic_bridge import (
@@ -159,8 +160,9 @@ def _formal_probe(command: str, bridge: dict | None = None) -> dict:
     return {"enabled": True, "kind": "symbolic", "result": r, "unified": unified, "inf_brain": inf_brain, "inf_brain_validation": inf_brain_validation}
 
 
-def decide_route(command: str) -> tuple[str, dict]:
-    bridge = run_inf_bridge(command)
+def decide_route(command: str, input_packet: dict | None = None) -> tuple[str, dict]:
+    pre_kq_command = ((input_packet or {}).get("normalized_input") if isinstance(input_packet, dict) else None) or command
+    bridge = run_inf_bridge(pre_kq_command)
     bridge_plan = bridge.get("plan") or {}
     normalized_command = (bridge.get("input") or {}).get("normalized") or command
     cbind = (bridge.get("context_binding") or {})
@@ -287,6 +289,7 @@ def decide_route(command: str) -> tuple[str, dict]:
     detail = {
         'route': route,
         'reason': reason,
+        'kq_input_layer': input_packet,
         'confidence': conf,
         'risky_pattern': risky,
         'strict_only_pattern': strict_only,
@@ -383,10 +386,15 @@ def main() -> int:
     goal_history_path = make_ephemeral_goal_history_file()
     try:
         command = ' '.join(sys.argv[1:])
-        append_ephemeral_audit(audit_path, {"event": "start", "command": command})
-        append_goal_event(goal_history_path, {"event": "goal_set", "goal": command})
+        input_packet = build_kq_input_packet(command).to_dict()
+        append_ephemeral_audit(audit_path, {"event": "start", "command": command, "kq_input_layer": input_packet})
+        append_goal_event(goal_history_path, {"event": "goal_set", "goal": command, "kq_input_layer": input_packet})
 
-        route, detail = decide_route(command)
+        route, detail = decide_route(command, input_packet=input_packet)
+        if input_packet.get('violations'):
+            route = 'strict'
+            detail['route'] = 'strict'
+            detail['reason'] = 'kq_input_layer_violation'
 
         print(json.dumps({'command': command, **detail}, ensure_ascii=False))
         append_ephemeral_audit(audit_path, {
@@ -407,6 +415,7 @@ def main() -> int:
         env['KSI1_ROUTE'] = route
         env['KSI_MODEL_ACTIVE'] = detail.get('model', '')
         env['INF_BRIDGE_TRUST'] = (((detail.get('inf_bridge') or {}).get('input') or {}).get('source_trust') or 'untrusted')
+        env['KQ_INPUT_PACKET_JSON'] = json.dumps(input_packet, ensure_ascii=False)
 
         if _requires_upstream_mutation_approval(command) and not _has_upstream_mutation_approval():
             blocked = {
