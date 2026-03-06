@@ -75,6 +75,13 @@
       "track_C": "classify_each_candidate_as_derivable_theorem_or_independent_axiom",
       "selection_rule": "intersection_A_and_B_and_C_only"
     },
+    "design_philosophy": {
+      "name": "three_layer_conceptual_baseline_v1",
+      "L3_top_layer": "physical_dimension_model_with_mandatory_local_and_limit_euclid_recovery",
+      "L2_middle_layer": "iut_based_physical_dimension_mapping_model_for_consistency_commutativity_invariants",
+      "L1_bottom_layer": "enumeration_of_euclidean_and_non_euclidean_geometries_used_across_full_relativity_and_full_quantum_domains",
+      "note": "This is the conceptual baseline before downstream gate narrowing."
+    },
     "layer_separation_policy": {
       "euclid_axioms_must_remain_pure_geometry": true,
       "forbid_physical_entities_in_euclid_axioms": true,

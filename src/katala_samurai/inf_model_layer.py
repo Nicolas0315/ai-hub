@@ -185,6 +185,13 @@ def run_inf_model_layer(prompt: str, inf_theory: dict[str, Any] | None = None) -
                 "keep_adoption_rule": "consistency+projection+chi2_strict",
                 "retain_rejected_variants": True,
             },
+            "design_philosophy": {
+                "name": "three_layer_conceptual_baseline_v1",
+                "L3_top_layer": "physical_dimension_model_with_mandatory_local_and_limit_euclid_recovery",
+                "L2_middle_layer": "iut_based_physical_dimension_mapping_model_for_consistency_commutativity_invariants",
+                "L1_bottom_layer": "enumeration_of_euclidean_and_non_euclidean_geometries_used_across_full_relativity_and_full_quantum_domains",
+                "note": "This is the conceptual baseline before downstream gate narrowing.",
+            },
             "iut_candidate_survival_program": {
                 "enabled": True,
                 "three_layer_architecture": {
