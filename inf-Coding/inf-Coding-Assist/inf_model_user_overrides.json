@@ -22,6 +22,23 @@
     "inf_brain_inf_model_is_model_revision_core": true,
     "summary": "Paradigm shift is math-first: reform mathematics (IUT path in KQ), then revise physics model in inf-Model."
   },
+  "priority_targets": [
+    "R3_hubble_tension",
+    "R8_modified_gravity_vs_LCDM",
+    "Q5_muon_gminus2_tension"
+  ],
+  "expansion_plan": {
+    "phase": "priority_three_focus",
+    "goal": "improve_model_selection_power_under_math_revised_kq",
+    "track_groups": {
+      "relativity": ["R3_hubble_tension", "R8_modified_gravity_vs_LCDM"],
+      "quantum": ["Q5_muon_gminus2_tension"]
+    },
+    "constraints": {
+      "keep_adoption_rule": "consistency+projection+chi2_strict",
+      "retain_rejected_variants": true
+    }
+  },
   "adoption_requires": [
     "consistency",
     "projection",

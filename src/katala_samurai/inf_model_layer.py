@@ -66,6 +66,11 @@ def _apply_user_overrides(base: dict[str, Any], overrides: dict[str, Any]) -> di
     if isinstance(overrides.get("paradigm_policy"), dict):
         m["paradigm_policy"] = dict(overrides.get("paradigm_policy") or {})
 
+    if isinstance(overrides.get("priority_targets"), list):
+        m["priority_targets"] = [str(x) for x in overrides.get("priority_targets")]
+    if isinstance(overrides.get("expansion_plan"), dict):
+        m["expansion_plan"] = dict(overrides.get("expansion_plan") or {})
+
     m["user_override_file"] = {
         "path": os.getenv(
             "INF_MODEL_EDIT_FILE",
@@ -149,6 +154,23 @@ def run_inf_model_layer(prompt: str, inf_theory: dict[str, Any] | None = None) -
             "kq_iut_is_math_revision_core": True,
             "inf_brain_inf_model_is_model_revision_core": True,
             "summary": "Katala treats mathematics-first reformulation as the driver of physics-model paradigm updates.",
+        },
+        "priority_targets": [
+            "R3_hubble_tension",
+            "R8_modified_gravity_vs_LCDM",
+            "Q5_muon_gminus2_tension",
+        ],
+        "expansion_plan": {
+            "phase": "priority_three_focus",
+            "goal": "improve_model_selection_power_under_math_revised_kq",
+            "track_groups": {
+                "relativity": ["R3_hubble_tension", "R8_modified_gravity_vs_LCDM"],
+                "quantum": ["Q5_muon_gminus2_tension"],
+            },
+            "constraints": {
+                "keep_adoption_rule": "consistency+projection+chi2_strict",
+                "retain_rejected_variants": True,
+            },
         },
     }
 
