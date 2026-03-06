@@ -23,6 +23,7 @@ from .rust_hotpath_bridge import (
 )
 from .iut_formal_dictionary import IUT_FORMAL_DICTIONARY, normalize_iut_terms
 from .iut_lemma_catalog import build_iut_lemma_catalog_v1
+from .iut_counterexample_templates import counterexample_template_index
 
 
 @dataclass
@@ -583,6 +584,10 @@ def evaluate_iut_core_subset_v1(nodes: list[IUTLemmaNode] | None = None) -> dict
             "papers": sorted(list({c.paper for c in catalog})),
             "dependency_mode": "paper-anchored-fixed",
             "mapped_nodes": [{"node": n.id, "lemma_id": n.lemma_id, "depends_on": n.depends_on} for n in nodes if n.lemma_id],
+        },
+        "counterexample_templates": {
+            "version": "v1",
+            "items": counterexample_template_index(),
         },
         "dependency_graph": graph,
         "optimization": {
