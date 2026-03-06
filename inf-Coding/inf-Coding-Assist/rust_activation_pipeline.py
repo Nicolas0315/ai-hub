@@ -10,6 +10,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 RUST_DIR = ROOT / "rust" / "katala_rust_hotpath"
+PY_BIN = str(ROOT / ".venv" / "bin" / "python") if (ROOT / ".venv" / "bin" / "python").exists() else "python3"
 
 
 def run(cmd: list[str], cwd: Path | None = None, env: dict[str, str] | None = None) -> dict:
@@ -29,6 +30,10 @@ def main() -> int:
 
     maturin = shutil.which("maturin")
     if not maturin:
+        local_maturin = str(Path.home() / ".local" / "bin" / "maturin")
+        if Path(local_maturin).exists():
+            maturin = local_maturin
+    if not maturin:
         out["reason"] = "maturin-not-found"
         out["hint"] = "run inf-Coding-Assist/rust_bootstrap_and_activate.sh to auto-install maturin and retry"
         out["ok"] = False
@@ -41,9 +46,9 @@ def main() -> int:
     env = os.environ.copy()
     env["KQ_RUST_ONLY"] = "1"
 
-    steps.append(run(["python3", "inf-Coding/inf-Coding-Assist/rust_no_fallback_check.py"], cwd=ROOT, env=env))
-    steps.append(run(["python3", "inf-Coding/inf-Coding-Assist/rust_hotpath_parity_check.py"], cwd=ROOT, env=env))
-    steps.append(run(["python3", "inf-Coding-Assist/iut_subset_scaffold.py"], cwd=ROOT / "inf-Coding", env={**env, "IUT_STAGED_CHECK": "0"}))
+    steps.append(run([PY_BIN, "inf-Coding/inf-Coding-Assist/rust_no_fallback_check.py"], cwd=ROOT, env=env))
+    steps.append(run([PY_BIN, "inf-Coding/inf-Coding-Assist/rust_hotpath_parity_check.py"], cwd=ROOT, env=env))
+    steps.append(run([PY_BIN, "inf-Coding-Assist/iut_subset_scaffold.py"], cwd=ROOT / "inf-Coding", env={**env, "IUT_STAGED_CHECK": "0"}))
 
     out["steps"] = [{k: v for k, v in s.items() if k not in {"stdout", "stderr"}} for s in steps]
     out["ok"] = all(s.get("ok") for s in steps)

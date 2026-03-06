@@ -11,7 +11,7 @@ def run_once(env_overrides: dict[str, str]) -> dict:
     env = os.environ.copy()
     env.update(env_overrides)
     p = subprocess.run(
-        ["python3", "inf-Coding/inf-Coding-Assist/iut_subset_scaffold.py"],
+        [sys.executable, "inf-Coding/inf-Coding-Assist/iut_subset_scaffold.py"],
         capture_output=True,
         text=True,
         env=env,

@@ -35,7 +35,7 @@ fn strict_triggered(kq3_strict_activated: bool, invariant_preservation_score: f6
 
 #[pyfunction]
 fn precision_score(domain: String, morphism: String, invariant_s: String, spec: String) -> f64 {
-    let mut non_empty = 0.0;
+    let mut non_empty: f64 = 0.0;
     if !domain.trim().is_empty() { non_empty += 1.0; }
     if !morphism.trim().is_empty() { non_empty += 1.0; }
     if !invariant_s.trim().is_empty() { non_empty += 1.0; }
