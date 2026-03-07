@@ -457,7 +457,12 @@ def main() -> int:
         env['KSI_MODEL_ACTIVE'] = detail.get('model', '')
         env['INF_BRIDGE_TRUST'] = (((detail.get('inf_bridge') or {}).get('input') or {}).get('source_trust') or 'untrusted')
         env['INF_CODING_PASSED'] = '1'
-        env['INF_CODING_DISPLAY_PREFIX'] = KATALA_THOUGHT_PREFIX
+        if route == 'strict' and (detail.get('model') or '').upper() != 'KS47':
+            env['INF_CODING_DISPLAY_PREFIX'] = KATALA_THOUGHT_PREFIX
+            env['KL_PASSED'] = '1'
+        else:
+            env.pop('INF_CODING_DISPLAY_PREFIX', None)
+            env['KL_PASSED'] = '0'
         env['KQ_MANDATORY_GATE_ACTIVE'] = '1' if _kq_mandatory_gate_enabled() else '0'
         env['KQ_INPUT_PACKET_JSON'] = json.dumps(input_packet, ensure_ascii=False)
 
