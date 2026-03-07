@@ -78,6 +78,8 @@ UPSTREAM_PROTECTED_HINTS = [
     "kq ",
 ]
 
+KATALA_THOUGHT_PREFIX = "[Katala思考済]"
+
 
 def _matches(patterns: list[str], command: str) -> bool:
     return any(re.search(p, command, re.IGNORECASE) for p in patterns)
@@ -94,6 +96,15 @@ def _has_upstream_mutation_approval() -> bool:
     approved = os.getenv("INF_UPSTREAM_MUTATION_APPROVED", "0").strip().lower() in {"1", "true", "yes", "on"}
     note = os.getenv("INF_UPSTREAM_MUTATION_NOTE", "").strip()
     return bool(approved and note)
+
+
+def ensure_katala_thought_prefix(text: str | None) -> str:
+    s = (text or "").strip()
+    if not s:
+        return KATALA_THOUGHT_PREFIX
+    if s.startswith(KATALA_THOUGHT_PREFIX):
+        return s
+    return f"{KATALA_THOUGHT_PREFIX} {s}"
 
 
 def _select_model(command: str):
@@ -446,6 +457,7 @@ def main() -> int:
         env['KSI_MODEL_ACTIVE'] = detail.get('model', '')
         env['INF_BRIDGE_TRUST'] = (((detail.get('inf_bridge') or {}).get('input') or {}).get('source_trust') or 'untrusted')
         env['INF_CODING_PASSED'] = '1'
+        env['INF_CODING_DISPLAY_PREFIX'] = KATALA_THOUGHT_PREFIX
         env['KQ_MANDATORY_GATE_ACTIVE'] = '1' if _kq_mandatory_gate_enabled() else '0'
         env['KQ_INPUT_PACKET_JSON'] = json.dumps(input_packet, ensure_ascii=False)
 

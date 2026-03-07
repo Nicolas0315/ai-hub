@@ -52,6 +52,7 @@ inf-Coding から利用する補助ツール層。
 - External Signals / Adversarial Pretest / Hardware Batch Telemetry を前段レイヤとして保持
 - inf-Bridge監査ログは一時キャッシュ出力のみで、タスク完了時に自動削除
 - GoalHistoryTracker は一時キャッシュ（`.tmp-goal-history`）で保持し、出力完了時に完全削除
+- `inf-Coding` 通過後の表示は **`[Katala思考済]`** を絶対プレフィックスとする
 - 明示時のみ: `KS47` 直結（`ks-bridge.py`。自動フォールバックなし）
 
 ```bash
