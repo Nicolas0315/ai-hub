@@ -49,7 +49,7 @@
   "asset_kind": "geometry_normalized_source",
   "binary_format": "json",
   "producer": "inf_brain_p1_compiler_v3_20260307.py",
-  "created_at": "2026-03-07T05:29:52.889539+00:00",
+  "created_at": "2026-03-07T05:32:47.442793+00:00",
   "intended_consumers": [
     "P1",
     "P2",
@@ -58,5 +58,5 @@
   "family": "manifold_geometry",
   "catalog_geometry_class": "non_euclidean",
   "catalog_formalization_target": "normalized",
-  "sha256": "6374d1919095ad514b9ce69af0f0c5d864c3bde069c637bf721e5c61ad270fbb"
+  "sha256": "0b2499ade112f4d6fd5a6dd60739bf456e3b1a4b0d21b3f5d040464fcf13607c"
 }

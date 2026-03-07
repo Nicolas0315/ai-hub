@@ -3,20 +3,161 @@
   "layer": "L1",
   "description": "Theory-facing unified geometry catalog. Catalog purpose is explicit geometry identification by class / family / subtype.",
   "families": [
-    {"family": "euclidean_geometry", "geometry_class": "euclidean", "subtypes": ["euclidean_2d", "euclidean_3d", "euclidean_nd", "euclidean_affine_chart"]},
-    {"family": "affine_geometry", "geometry_class": "euclidean", "subtypes": ["real_affine_space", "affine_transformation_geometry", "coordinate_affine_chart"]},
-    {"family": "projective_geometry", "geometry_class": "non_euclidean", "subtypes": ["real_projective_geometry", "complex_projective_geometry", "projective_incidence_geometry"]},
-    {"family": "manifold_geometry", "geometry_class": "non_euclidean", "subtypes": ["topological_manifold", "smooth_manifold", "differentiable_charted_manifold"]},
-    {"family": "riemannian_geometry", "geometry_class": "non_euclidean", "subtypes": ["riemannian_manifold", "riemannian_metric_geometry", "sectional_curvature_geometry"]},
-    {"family": "pseudo_riemannian_geometry", "geometry_class": "non_euclidean", "subtypes": ["pseudo_riemannian_manifold", "lorentzian_geometry", "minkowski_geometry"]},
-    {"family": "hilbert_geometry", "geometry_class": "non_euclidean", "subtypes": ["real_hilbert_space", "complex_hilbert_space", "separable_hilbert_space"]},
-    {"family": "projective_hilbert_geometry", "geometry_class": "non_euclidean", "subtypes": ["projective_hilbert_space", "ray_space_geometry", "state_equivalence_projective_geometry"]},
-    {"family": "complex_geometry", "geometry_class": "non_euclidean", "subtypes": ["complex_manifold", "hermitian_geometry", "complex_projective_space"]},
-    {"family": "symplectic_geometry", "geometry_class": "non_euclidean", "subtypes": ["symplectic_manifold", "phase_space_geometry", "hamiltonian_symplectic_geometry"]},
-    {"family": "poisson_geometry", "geometry_class": "non_euclidean", "subtypes": ["poisson_manifold", "bracket_geometry", "hamiltonian_poisson_geometry"]},
-    {"family": "bundle_geometry", "geometry_class": "non_euclidean", "subtypes": ["fiber_bundle", "principal_bundle", "vector_bundle", "connection_curvature_geometry"]},
-    {"family": "kahler_geometry", "geometry_class": "non_euclidean", "subtypes": ["kahler_manifold", "complex_symplectic_compatible_geometry", "fubini_study_geometry"]},
-    {"family": "noncommutative_geometry", "geometry_class": "non_euclidean", "subtypes": ["operator_algebra_geometry", "spectral_triple_geometry", "quantum_noncommutative_space"]},
-    {"family": "information_geometry", "geometry_class": "non_euclidean", "subtypes": ["fisher_metric_geometry", "statistical_manifold", "divergence_geometry"]}
+    {
+      "family": "euclidean_geometry",
+      "geometry_class": "euclidean",
+      "subtypes": [
+        "euclidean_2d",
+        "euclidean_3d",
+        "euclidean_nd",
+        "euclidean_affine_chart",
+        "euclidean_3d_newtonian_limit",
+        "euclidean_weak_field_post_newtonian",
+        "euclidean_local_inertial_chart",
+        "euclidean_laboratory_reduction",
+        "euclidean_configuration_space",
+        "euclidean_wick_rotated_field_theory",
+        "euclidean_lattice_gauge",
+        "euclidean_momentum_regularization"
+      ]
+    },
+    {
+      "family": "affine_geometry",
+      "geometry_class": "euclidean",
+      "subtypes": [
+        "real_affine_space",
+        "affine_transformation_geometry",
+        "coordinate_affine_chart"
+      ]
+    },
+    {
+      "family": "projective_geometry",
+      "geometry_class": "non_euclidean",
+      "subtypes": [
+        "real_projective_geometry",
+        "complex_projective_geometry",
+        "projective_incidence_geometry"
+      ]
+    },
+    {
+      "family": "manifold_geometry",
+      "geometry_class": "non_euclidean",
+      "subtypes": [
+        "topological_manifold",
+        "smooth_manifold",
+        "differentiable_charted_manifold"
+      ]
+    },
+    {
+      "family": "riemannian_geometry",
+      "geometry_class": "non_euclidean",
+      "subtypes": [
+        "riemannian_manifold",
+        "riemannian_metric_geometry",
+        "sectional_curvature_geometry"
+      ]
+    },
+    {
+      "family": "pseudo_riemannian_geometry",
+      "geometry_class": "non_euclidean",
+      "subtypes": [
+        "pseudo_riemannian_manifold",
+        "lorentzian_geometry",
+        "minkowski_geometry",
+        "lorentzian_pseudo_riemannian",
+        "minkowski",
+        "riemannian_adm_slice",
+        "de_sitter_anti_de_sitter",
+        "flrw_curved_cosmology",
+        "black_hole_manifold"
+      ]
+    },
+    {
+      "family": "hilbert_geometry",
+      "geometry_class": "non_euclidean",
+      "subtypes": [
+        "real_hilbert_space",
+        "complex_hilbert_space",
+        "separable_hilbert_space"
+      ]
+    },
+    {
+      "family": "projective_hilbert_geometry",
+      "geometry_class": "non_euclidean",
+      "subtypes": [
+        "projective_hilbert_space",
+        "ray_space_geometry",
+        "state_equivalence_projective_geometry",
+        "projective_hilbert"
+      ]
+    },
+    {
+      "family": "complex_geometry",
+      "geometry_class": "non_euclidean",
+      "subtypes": [
+        "complex_manifold",
+        "hermitian_geometry",
+        "complex_projective_space"
+      ]
+    },
+    {
+      "family": "symplectic_geometry",
+      "geometry_class": "non_euclidean",
+      "subtypes": [
+        "symplectic_manifold",
+        "phase_space_geometry",
+        "hamiltonian_symplectic_geometry",
+        "symplectic"
+      ]
+    },
+    {
+      "family": "poisson_geometry",
+      "geometry_class": "non_euclidean",
+      "subtypes": [
+        "poisson_manifold",
+        "bracket_geometry",
+        "hamiltonian_poisson_geometry",
+        "poisson"
+      ]
+    },
+    {
+      "family": "bundle_geometry",
+      "geometry_class": "non_euclidean",
+      "subtypes": [
+        "fiber_bundle",
+        "principal_bundle",
+        "vector_bundle",
+        "connection_curvature_geometry"
+      ]
+    },
+    {
+      "family": "kahler_geometry",
+      "geometry_class": "non_euclidean",
+      "subtypes": [
+        "kahler_manifold",
+        "complex_symplectic_compatible_geometry",
+        "fubini_study_geometry"
+      ]
+    },
+    {
+      "family": "noncommutative_geometry",
+      "geometry_class": "non_euclidean",
+      "subtypes": [
+        "operator_algebra_geometry",
+        "spectral_triple_geometry",
+        "quantum_noncommutative_space",
+        "noncommutative_geometry"
+      ]
+    },
+    {
+      "family": "information_geometry",
+      "geometry_class": "non_euclidean",
+      "subtypes": [
+        "fisher_metric_geometry",
+        "statistical_manifold",
+        "divergence_geometry",
+        "information_geometry"
+      ]
+    }
   ]
 }

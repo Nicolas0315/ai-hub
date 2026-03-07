@@ -1,6 +1,6 @@
 {
   "schema": "inf-brain-p1-compile-summary-v3",
-  "compiled_count": 55,
+  "compiled_count": 66,
   "all_pass": true,
   "all_ready_for_p2": true,
   "results": [
@@ -239,6 +239,42 @@
       "ready_for_p2": true
     },
     {
+      "geom_id": "q_euc_001",
+      "artifact_dir": "/mnt/c/Users/ogosh/Documents/NICOLAS/Katala/inf-Coding/inf-Coding-Assist/P1_artifacts_20260307_v3/q_euc_001",
+      "pass": true,
+      "runtime_type": "euclidean_single_geometry_runtime",
+      "family": "euclidean_geometry",
+      "subtype": "euclidean_configuration_space",
+      "ready_for_p2": true
+    },
+    {
+      "geom_id": "q_euc_002",
+      "artifact_dir": "/mnt/c/Users/ogosh/Documents/NICOLAS/Katala/inf-Coding/inf-Coding-Assist/P1_artifacts_20260307_v3/q_euc_002",
+      "pass": true,
+      "runtime_type": "euclidean_single_geometry_runtime",
+      "family": "euclidean_geometry",
+      "subtype": "euclidean_wick_rotated_field_theory",
+      "ready_for_p2": true
+    },
+    {
+      "geom_id": "q_euc_003",
+      "artifact_dir": "/mnt/c/Users/ogosh/Documents/NICOLAS/Katala/inf-Coding/inf-Coding-Assist/P1_artifacts_20260307_v3/q_euc_003",
+      "pass": true,
+      "runtime_type": "euclidean_single_geometry_runtime",
+      "family": "euclidean_geometry",
+      "subtype": "euclidean_lattice_gauge",
+      "ready_for_p2": true
+    },
+    {
+      "geom_id": "q_euc_004",
+      "artifact_dir": "/mnt/c/Users/ogosh/Documents/NICOLAS/Katala/inf-Coding/inf-Coding-Assist/P1_artifacts_20260307_v3/q_euc_004",
+      "pass": true,
+      "runtime_type": "euclidean_single_geometry_runtime",
+      "family": "euclidean_geometry",
+      "subtype": "euclidean_momentum_regularization",
+      "ready_for_p2": true
+    },
+    {
       "geom_id": "q_non_001",
       "artifact_dir": "/mnt/c/Users/ogosh/Documents/NICOLAS/Katala/inf-Coding/inf-Coding-Assist/P1_artifacts_20260307_v3/q_non_001",
       "pass": true,
@@ -302,6 +338,42 @@
       "ready_for_p2": true
     },
     {
+      "geom_id": "rel_euc_001",
+      "artifact_dir": "/mnt/c/Users/ogosh/Documents/NICOLAS/Katala/inf-Coding/inf-Coding-Assist/P1_artifacts_20260307_v3/rel_euc_001",
+      "pass": true,
+      "runtime_type": "euclidean_single_geometry_runtime",
+      "family": "euclidean_geometry",
+      "subtype": "euclidean_3d_newtonian_limit",
+      "ready_for_p2": true
+    },
+    {
+      "geom_id": "rel_euc_002",
+      "artifact_dir": "/mnt/c/Users/ogosh/Documents/NICOLAS/Katala/inf-Coding/inf-Coding-Assist/P1_artifacts_20260307_v3/rel_euc_002",
+      "pass": true,
+      "runtime_type": "euclidean_single_geometry_runtime",
+      "family": "euclidean_geometry",
+      "subtype": "euclidean_weak_field_post_newtonian",
+      "ready_for_p2": true
+    },
+    {
+      "geom_id": "rel_euc_003",
+      "artifact_dir": "/mnt/c/Users/ogosh/Documents/NICOLAS/Katala/inf-Coding/inf-Coding-Assist/P1_artifacts_20260307_v3/rel_euc_003",
+      "pass": true,
+      "runtime_type": "euclidean_single_geometry_runtime",
+      "family": "euclidean_geometry",
+      "subtype": "euclidean_local_inertial_chart",
+      "ready_for_p2": true
+    },
+    {
+      "geom_id": "rel_euc_004",
+      "artifact_dir": "/mnt/c/Users/ogosh/Documents/NICOLAS/Katala/inf-Coding/inf-Coding-Assist/P1_artifacts_20260307_v3/rel_euc_004",
+      "pass": true,
+      "runtime_type": "euclidean_single_geometry_runtime",
+      "family": "euclidean_geometry",
+      "subtype": "euclidean_laboratory_reduction",
+      "ready_for_p2": true
+    },
+    {
       "geom_id": "rel_non_001",
       "artifact_dir": "/mnt/c/Users/ogosh/Documents/NICOLAS/Katala/inf-Coding/inf-Coding-Assist/P1_artifacts_20260307_v3/rel_non_001",
       "pass": true,
@@ -326,6 +398,33 @@
       "runtime_type": "manifold_runtime",
       "family": "riemannian_geometry",
       "subtype": "riemannian_adm_slice",
+      "ready_for_p2": true
+    },
+    {
+      "geom_id": "rel_non_004",
+      "artifact_dir": "/mnt/c/Users/ogosh/Documents/NICOLAS/Katala/inf-Coding/inf-Coding-Assist/P1_artifacts_20260307_v3/rel_non_004",
+      "pass": true,
+      "runtime_type": "manifold_runtime",
+      "family": "pseudo_riemannian_geometry",
+      "subtype": "de_sitter_anti_de_sitter",
+      "ready_for_p2": true
+    },
+    {
+      "geom_id": "rel_non_005",
+      "artifact_dir": "/mnt/c/Users/ogosh/Documents/NICOLAS/Katala/inf-Coding/inf-Coding-Assist/P1_artifacts_20260307_v3/rel_non_005",
+      "pass": true,
+      "runtime_type": "manifold_runtime",
+      "family": "pseudo_riemannian_geometry",
+      "subtype": "flrw_curved_cosmology",
+      "ready_for_p2": true
+    },
+    {
+      "geom_id": "rel_non_006",
+      "artifact_dir": "/mnt/c/Users/ogosh/Documents/NICOLAS/Katala/inf-Coding/inf-Coding-Assist/P1_artifacts_20260307_v3/rel_non_006",
+      "pass": true,
+      "runtime_type": "manifold_runtime",
+      "family": "pseudo_riemannian_geometry",
+      "subtype": "black_hole_manifold",
       "ready_for_p2": true
     },
     {

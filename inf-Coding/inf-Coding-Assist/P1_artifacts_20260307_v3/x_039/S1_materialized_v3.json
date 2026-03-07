@@ -51,7 +51,7 @@
   "asset_kind": "geometry_normalized_source",
   "binary_format": "json",
   "producer": "inf_brain_p1_compiler_v3_20260307.py",
-  "created_at": "2026-03-07T05:29:53.486071+00:00",
+  "created_at": "2026-03-07T05:32:47.649781+00:00",
   "intended_consumers": [
     "P1",
     "P2",
@@ -60,5 +60,5 @@
   "family": "pseudo_riemannian_geometry",
   "catalog_geometry_class": "non_euclidean",
   "catalog_formalization_target": "ready_for_program",
-  "sha256": "851891a6dc8ba253207f687de91c1f954edd9325557625f8317a0b2b28c20cfc"
+  "sha256": "635c8ed8cdec01018a3fb08caf7346758d6e5a5d3e29b75b2ad95780317b2ce9"
 }

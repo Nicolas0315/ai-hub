@@ -63,7 +63,7 @@
     "catalog_geometry_class": "non_euclidean",
     "catalog_formalization_target": "ready_for_program"
   },
-  "compiled_at": "2026-03-07T05:29:52.068715+00:00",
-  "input_hash": "37bd700a3c99a5c2ce2a4e4f3b1a433aca79ed83ab3aa27adb3edafd04f037f2",
-  "program_sha256": "0781b62f895feed32b49495e1e8129fb8c97c641aa8c603cc6f2c2640d07f652"
+  "compiled_at": "2026-03-07T05:32:44.374568+00:00",
+  "input_hash": "5c2567646ea857390710c83ee453d4fa0dddde763746734aad35c7d9fec1a615",
+  "program_sha256": "f21bfa6cdd86ea2601324152923df124ccefd2ae44123f26cef423fea0e79f9d"
 }

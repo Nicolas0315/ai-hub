@@ -1,0 +1,69 @@
+{
+  "program_id": "P1::rel_euc_003",
+  "geom_id": "rel_euc_003",
+  "program_layer": "P1",
+  "compiled_from": "S1::rel_euc_003",
+  "geometry_class": "euclidean",
+  "family": "euclidean_geometry",
+  "subtype": "euclidean_local_inertial_chart",
+  "catalog_subtype": "euclidean_local_inertial_chart",
+  "runtime_type": "euclidean_single_geometry_runtime",
+  "object_model": {
+    "objects": [
+      "point",
+      "line",
+      "distance",
+      "coordinate_chart"
+    ],
+    "object_runtime_family": "typed_geometry_objects",
+    "family": "euclidean_geometry",
+    "subtype": "euclidean_local_inertial_chart"
+  },
+  "relation_model": {
+    "relations": [
+      "identity",
+      "distance",
+      "angle",
+      "parallelism",
+      "local_euclid_recovery_reference"
+    ],
+    "relation_runtime_family": "typed_geometry_relations",
+    "family": "euclidean_geometry"
+  },
+  "operation_stubs": [
+    "identify_geometry",
+    "tag_for_program",
+    "distance_evaluate",
+    "coordinate_compare",
+    "local_limit_recover"
+  ],
+  "serialization_format": "json",
+  "verification_contract": {
+    "geom_id_match_required": true,
+    "source_hash_required": true,
+    "operation_stub_presence_required": true,
+    "compiled_from_expected_input_required": true,
+    "catalog_alignment_required": true
+  },
+  "ready_for_p2": true,
+  "p2_handoff": {
+    "intended_role": "iut_mediation_input",
+    "used_in_domains": [
+      "relativity"
+    ],
+    "usage_modes": [
+      "approximation",
+      "local"
+    ],
+    "family": "euclidean_geometry",
+    "subtype": "euclidean_local_inertial_chart"
+  },
+  "catalog_alignment": {
+    "catalog_family": "euclidean_geometry",
+    "catalog_geometry_class": "euclidean",
+    "catalog_formalization_target": "ready_for_program"
+  },
+  "compiled_at": "2026-03-07T05:32:46.676049+00:00",
+  "input_hash": "6f9ae27a8dd5c0767d211f04c706c29884b43f8b5b703ca53d229247136731f5",
+  "program_sha256": "45a52d81897e0b50e91cb6d57e62ca74a4f9392f5f6131056f7618fff4f396e7"
+}

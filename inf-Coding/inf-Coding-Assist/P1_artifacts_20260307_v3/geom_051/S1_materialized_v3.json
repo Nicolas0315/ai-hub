@@ -50,7 +50,7 @@
   "asset_kind": "geometry_normalized_source",
   "binary_format": "json",
   "producer": "inf_brain_p1_compiler_v3_20260307.py",
-  "created_at": "2026-03-07T05:29:52.104040+00:00",
+  "created_at": "2026-03-07T05:32:44.393489+00:00",
   "intended_consumers": [
     "P1",
     "P2",
@@ -59,5 +59,5 @@
   "family": "symplectic_geometry",
   "catalog_geometry_class": "non_euclidean",
   "catalog_formalization_target": "normalized",
-  "sha256": "54214fd68585857bd2c3f06f884b9349ee79de1ce2203cfef7aacc819914972a"
+  "sha256": "9ffc29f1f3e3b6f616e418c5150333a01643657200eee12e69779ffc1297e35c"
 }

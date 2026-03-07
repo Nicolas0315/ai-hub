@@ -47,7 +47,7 @@
   "asset_kind": "geometry_normalized_source",
   "binary_format": "json",
   "producer": "inf_brain_p1_compiler_v3_20260307.py",
-  "created_at": "2026-03-07T05:29:52.011960+00:00",
+  "created_at": "2026-03-07T05:32:44.258681+00:00",
   "intended_consumers": [
     "P1",
     "P2",
@@ -56,5 +56,5 @@
   "family": "projective_hilbert_geometry",
   "catalog_geometry_class": "non_euclidean",
   "catalog_formalization_target": "normalized",
-  "sha256": "c916a1157bb93d5a4c50dbb7d7889ad25bb3a4d96195766c1269893b4bd1d838"
+  "sha256": "a703c41a463ff34de696c8453ec10ef854653b2f5fa1e2b5125284d75429f328"
 }

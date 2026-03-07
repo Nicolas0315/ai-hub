@@ -50,7 +50,7 @@
   "asset_kind": "geometry_normalized_source",
   "binary_format": "json",
   "producer": "inf_brain_p1_compiler_v3_20260307.py",
-  "created_at": "2026-03-07T05:29:52.217889+00:00",
+  "created_at": "2026-03-07T05:32:44.840374+00:00",
   "intended_consumers": [
     "P1",
     "P2",
@@ -59,5 +59,5 @@
   "family": "kahler_geometry",
   "catalog_geometry_class": "non_euclidean",
   "catalog_formalization_target": "normalized",
-  "sha256": "73dcb139ebc4aad6f91b0f975d31fc55853dcc3385c25f1ca62cfdc69d07c9a2"
+  "sha256": "a3afc7766186d7e167f86ec7418537ced1bd4d0d0df2e5aef5765227389034d0"
 }
