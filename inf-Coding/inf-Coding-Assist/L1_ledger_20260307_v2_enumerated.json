@@ -1,6 +1,32 @@
 {
-  "schema": "inf-model-l1-ledger-v2",
+  "schema": "inf-model-l1-ledger-v3",
   "description": "L1 exhaustive-first enumeration (relativity/quantum x euclidean/non-euclidean)",
+  "layer_role": "semantic-language-layer",
+  "traceability_stack": [
+    "L1",
+    "S1",
+    "P1",
+    "M1"
+  ],
+  "design_reflection": {
+    "source_layers_enabled": [
+      "S1",
+      "S2",
+      "S3"
+    ],
+    "program_layers_enabled": [
+      "P1",
+      "P2",
+      "P3"
+    ],
+    "model_layers_enabled": [
+      "M1",
+      "M2",
+      "M3"
+    ],
+    "shared_key": "geom_id",
+    "s_layer_hash_policy": "sha256-required-on-materialized-binary"
+  },
   "blocks": {
     "relativity_euclidean": [
       {

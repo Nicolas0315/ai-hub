@@ -7,12 +7,22 @@ from pathlib import Path
 ROOT = Path('/mnt/c/Users/ogosh/Documents/NICOLAS/Katala')
 OUT_ENUM = ROOT / 'inf-Coding' / 'inf-Coding-Assist' / 'L1_ledger_20260307_v2_enumerated.json'
 OUT_NORM = ROOT / 'inf-Coding' / 'inf-Coding-Assist' / 'L1_normalized_20260307.json'
+OUT_S1 = ROOT / 'inf-Coding' / 'inf-Coding-Assist' / 'S1_source_ledger_20260307.json'
 
 
 def build_catalog() -> dict:
     return {
-        "schema": "inf-model-l1-ledger-v2",
+        "schema": "inf-model-l1-ledger-v3",
         "description": "L1 exhaustive-first enumeration (relativity/quantum x euclidean/non-euclidean)",
+        "layer_role": "semantic-language-layer",
+        "traceability_stack": ["L1", "S1", "P1", "M1"],
+        "design_reflection": {
+            "source_layers_enabled": ["S1", "S2", "S3"],
+            "program_layers_enabled": ["P1", "P2", "P3"],
+            "model_layers_enabled": ["M1", "M2", "M3"],
+            "shared_key": "geom_id",
+            "s_layer_hash_policy": "sha256-required-on-materialized-binary"
+        },
         "blocks": {
             "relativity_euclidean": [
                 {"geom_id": "rel_euc_001", "name": "Newtonian-limit 3D Euclidean space", "usage_mode": "limit"},
@@ -51,7 +61,7 @@ def normalize(catalog: dict) -> dict:
     records = []
     for block, items in (catalog.get('blocks') or {}).items():
         domain = 'relativity' if block.startswith('relativity_') else 'quantum'
-        geom_class = 'euclidean' if block.endswith('euclidean') else 'non_euclidean'
+        geom_class = 'non_euclidean' if 'non_euclidean' in block else 'euclidean'
         for it in items:
             records.append(
                 {
@@ -60,6 +70,8 @@ def normalize(catalog: dict) -> dict:
                     'geometry_class': geom_class,
                     'name': it['name'],
                     'usage_mode': it.get('usage_mode', 'unknown'),
+                    'layer_anchor': 'L1',
+                    'expected_source_layer': 'S1',
                     'euclid_property_profile': {
                         'is_euclidean': geom_class == 'euclidean',
                         'local_euclid_recoverable': True,
@@ -68,7 +80,39 @@ def normalize(catalog: dict) -> dict:
                 }
             )
     return {
-        'schema': 'inf-model-l1-normalized-v1',
+        'schema': 'inf-model-l1-normalized-v2',
+        'record_count': len(records),
+        'records': records,
+    }
+
+
+def build_s1(catalog: dict) -> dict:
+    records = []
+    for block, items in (catalog.get('blocks') or {}).items():
+        domain = 'relativity' if block.startswith('relativity_') else 'quantum'
+        geometry_class = 'non_euclidean' if 'non_euclidean' in block else 'euclidean'
+        for it in items:
+            geom_id = it['geom_id']
+            records.append(
+                {
+                    'source_id': f'S1::{geom_id}',
+                    'geom_id': geom_id,
+                    'source_layer': 'S1',
+                    'domain': domain,
+                    'geometry_class': geometry_class,
+                    'semantic_name': it['name'],
+                    'asset_kind': 'geometry_binary_placeholder',
+                    'materialization_status': 'planned',
+                    'sha256': None,
+                    'hash_required_when_materialized': True,
+                    'intended_consumers': ['P1', 'M1'],
+                    'notes': 'Enumerated geometry asset placeholder mirrored from L1 semantic ledger.'
+                }
+            )
+    return {
+        'schema': 'inf-model-s1-source-ledger-v1',
+        'description': 'S1 source ledger for geometry binaries corresponding to L1 semantic entries',
+        'shared_key': 'geom_id',
         'record_count': len(records),
         'records': records,
     }
@@ -81,7 +125,16 @@ def main() -> int:
     normalized = normalize(catalog)
     OUT_NORM.write_text(json.dumps(normalized, ensure_ascii=False, indent=2), encoding='utf-8')
 
-    print(json.dumps({'ok': True, 'enumerated_out': str(OUT_ENUM), 'normalized_out': str(OUT_NORM), 'count': normalized['record_count']}, ensure_ascii=False))
+    s1 = build_s1(catalog)
+    OUT_S1.write_text(json.dumps(s1, ensure_ascii=False, indent=2), encoding='utf-8')
+
+    print(json.dumps({
+        'ok': True,
+        'enumerated_out': str(OUT_ENUM),
+        'normalized_out': str(OUT_NORM),
+        's1_out': str(OUT_S1),
+        'count': normalized['record_count']
+    }, ensure_ascii=False))
     return 0
 
 
