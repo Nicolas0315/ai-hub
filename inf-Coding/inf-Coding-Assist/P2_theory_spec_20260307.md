@@ -3,8 +3,11 @@
 ## Core role
 
 P2 is the IUT bridge layer of Katala GUT.
-It does **not** perform final unified computation by itself.
-Its role is to bridge the source components of relativity and quantum theory so that L3 can run unified computation and attempt Euclidean recovery.
+Its role is to take **all P1-submitted geometry programs** and bridge them into either:
+1. a structure directly bridgeable into Euclidean geometry, or
+2. a structure bridgeable into Euclidean geometry through local and/or limit recovery.
+
+P2 is therefore the layer that organizes all submitted geometry programs into Euclid-direct or Euclid-recoverable bridge structures.
 
 ## Six source components
 
@@ -38,17 +41,19 @@ And then expose these as:
 
 for L3 computation.
 
-## L3 objective after P2
+## P3 objective after P2
 
-L3 is the unified computation layer.
-If the unified computation can be reduced directly into Euclidean geometry, that is sufficient.
-If not, local and/or limit Euclidean recovery is acceptable.
+P3 is the layer where the Euclidean-recovered program actually runs.
+P2 should already have produced either:
+- a direct Euclidean bridge structure, or
+- a local/limit Euclidean bridge structure.
 
 So the intended logic is:
-1. P2 bridges quantum and relativity components through IUT.
-2. L3 computes in the unified higher layer.
-3. If possible, L3 reduces the result into continuous-dimensional Euclidean geometry.
-4. Otherwise L3 accepts local/limit Euclidean recovery.
+1. P2 bridges all relevant P1-submitted geometry programs through IUT.
+2. P2 outputs either direct-Euclid or local/limit-Euclid bridge structure.
+3. P3 runs the Euclidean-recovered program.
+4. If the program cannot be run in direct Euclidean form, P3 accepts local/limit recovery execution.
+5. If even that fails, the result becomes feedback for revising P2.
 
 ## Dimensional note
 
