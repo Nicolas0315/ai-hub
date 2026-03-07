@@ -1,0 +1,129 @@
+{
+  "handoff_id": "P2::geom_041__q_euc_004",
+  "geom_ids": [
+    "geom_041",
+    "q_euc_004"
+  ],
+  "mediation_profiles": [
+    "P2_PROFILE::space_bridge"
+  ],
+  "unified_fields": [
+    "unified_space"
+  ],
+  "iut_operator_family": "kq_iut_space_bridge",
+  "kernel_results": [
+    {
+      "kernel": "hol_kernel",
+      "expr": "forall bridge in ['P2_PROFILE::space_bridge']. preserves(unified_space)",
+      "result": {
+        "ok": false,
+        "proof_status": "failed",
+        "solver": "hol-lite",
+        "error": "node not allowed: Call",
+        "normalization_notes": [
+          "grammar:quantifier:canonical"
+        ],
+        "linguistic_trace": {
+          "language_family": "unknown",
+          "confidence": 0.0,
+          "family_scores": {
+            "indo-european": 0,
+            "semitic": 0,
+            "sino-tibetan": 0,
+            "japonic": 0,
+            "koreanic": 0,
+            "indo-aryan": 0,
+            "constructed": 0,
+            "ancient-mesopotamian": 0
+          },
+          "grammar_quality": {
+            "family": "unknown",
+            "solver": "hol",
+            "transform_count": 1,
+            "structural_transforms": 1,
+            "aggressive_transforms": 0,
+            "misconversion_risk": 0.06,
+            "priority": "low"
+          },
+          "grammar_auto_adjust": {
+            "mode": "balanced",
+            "applied": false,
+            "reason": "normal-risk"
+          }
+        }
+      },
+      "ok": false
+    },
+    {
+      "kernel": "smt_kernel",
+      "expr": "vars: q>=0, r>=0; formula: bridge(unified_space)",
+      "result": {
+        "ok": false,
+        "error": "not enough values to unpack (expected 2, got 1)",
+        "proof_status": "failed",
+        "solver": "smt-kq-native-fallback",
+        "proof_trace": {
+          "mode": "fallback",
+          "reason": "no_domain_declaration",
+          "normalization_notes": [],
+          "linguistic_trace": {
+            "language_family": "unknown",
+            "confidence": 0.0,
+            "family_scores": {
+              "indo-european": 0,
+              "semitic": 0,
+              "sino-tibetan": 0,
+              "japonic": 0,
+              "koreanic": 0,
+              "indo-aryan": 0,
+              "constructed": 0,
+              "ancient-mesopotamian": 0
+            },
+            "grammar_quality": {
+              "family": "unknown",
+              "solver": "smt",
+              "transform_count": 0,
+              "structural_transforms": 0,
+              "aggressive_transforms": 0,
+              "misconversion_risk": 0.0,
+              "priority": "low"
+            },
+            "grammar_auto_adjust": {
+              "mode": "balanced",
+              "applied": false,
+              "reason": "normal-risk"
+            }
+          }
+        }
+      },
+      "ok": false
+    },
+    {
+      "kernel": "uf_kernel",
+      "expr": "eq: map(geom_041)=unified_space, map(q_euc_004)=unified_space",
+      "result": {
+        "ok": true,
+        "proof_status": "checked",
+        "solver": "smt-uf-lite",
+        "consistent": true,
+        "mapping": {
+          "map(geom_041)": "unified_space",
+          "map(q_euc_004)": "unified_space"
+        }
+      },
+      "ok": true
+    }
+  ],
+  "compatibility_contract": {
+    "all_inputs_ready_for_p2": true,
+    "geom_ids_distinct": true,
+    "source_hashes_present": true,
+    "runtime_specs_verified": true,
+    "profile_match_required": true,
+    "profile_match_found": true
+  },
+  "mediation_pass": false,
+  "ready_for_l3": false,
+  "left_family": "hilbert_geometry",
+  "right_family": "euclidean_geometry"
+}
