@@ -1,0 +1,185 @@
+{
+  "schema": "inf-physics-seed-metadata-v1",
+  "source_seed_file": "quantum_seed_papers_20260307.json",
+  "record_count": 12,
+  "records": [
+    {
+      "seed_id": "q_seed_001",
+      "seed_title": "Zur Theorie des Gesetzes der Energieverteilung im Normalspectrum",
+      "seed_topic": "planck_quantum_origin",
+      "matched_title": "FAKSIMILE AUS DEN VERHANDLUNGEN DER DEUTSCHEN PHYSIKALISCHEN GESELLSCHAFT 2 (1900) S. 237: <i>Zur Theorie des Gesetzes der Energieverteilung im Normalspectrum; von M. Planck</i>",
+      "authors": [],
+      "year": 1948,
+      "doi": "10.1002/phbl.19480040404",
+      "type": "journal-article",
+      "publisher": "Wiley",
+      "container_title": "Physikalische Blätter",
+      "url": "https://doi.org/10.1002/phbl.19480040404"
+    },
+    {
+      "seed_id": "q_seed_002",
+      "seed_title": "Über einen die Erzeugung und Verwandlung des Lichtes betreffenden heuristischen Gesichtspunkt",
+      "seed_topic": "light_quantum",
+      "matched_title": "Über einen die Erzeugung und Verwandlung des Lichtes betreffenden heuristischen Gesichtspunkt",
+      "authors": [
+        "A. Einstein"
+      ],
+      "year": 1905,
+      "doi": "10.1002/andp.19053220607",
+      "type": "journal-article",
+      "publisher": "Wiley",
+      "container_title": "Annalen der Physik",
+      "url": "https://doi.org/10.1002/andp.19053220607"
+    },
+    {
+      "seed_id": "q_seed_003",
+      "seed_title": "On the Constitution of Atoms and Molecules",
+      "seed_topic": "bohr_model",
+      "matched_title": "On the Constitution of Atoms and Molecules",
+      "authors": [
+        "Helge Kragh"
+      ],
+      "year": 2012,
+      "doi": "10.1093/acprof:oso/9780199654987.003.0002",
+      "type": "book-chapter",
+      "publisher": "Oxford University Press",
+      "container_title": "Niels Bohr and the Quantum Atom",
+      "url": "https://doi.org/10.1093/acprof:oso/9780199654987.003.0002"
+    },
+    {
+      "seed_id": "q_seed_004",
+      "seed_title": "Recherches sur la théorie des quanta",
+      "seed_topic": "matter_waves",
+      "matched_title": "Recherches sur la théorie des Quanta",
+      "authors": [
+        "Louis De Broglie"
+      ],
+      "year": 1925,
+      "doi": "10.1051/anphys/192510030022",
+      "type": "journal-article",
+      "publisher": "EDP Sciences",
+      "container_title": "Annales de Physique",
+      "url": "https://doi.org/10.1051/anphys/192510030022"
+    },
+    {
+      "seed_id": "q_seed_005",
+      "seed_title": "Über quantentheoretische Umdeutung kinematischer und mechanischer Beziehungen",
+      "seed_topic": "matrix_mechanics",
+      "matched_title": "6. Über quantentheoretische Umdeutung kinematischer und mechanischer Beziehungen",
+      "authors": [
+        "Werner Heisenberg"
+      ],
+      "year": 1969,
+      "doi": "10.1515/9783112596647-011",
+      "type": "book-chapter",
+      "publisher": "De Gruyter",
+      "container_title": "Wellenmechanik",
+      "url": "https://doi.org/10.1515/9783112596647-011"
+    },
+    {
+      "seed_id": "q_seed_006",
+      "seed_title": "Quantisierung als Eigenwertproblem",
+      "seed_topic": "wave_mechanics",
+      "matched_title": "3. Quantisierung als Eigenwertproblem",
+      "authors": [
+        "Erwin Schrödinger"
+      ],
+      "year": 1969,
+      "doi": "10.1515/9783112596647-008",
+      "type": "book-chapter",
+      "publisher": "De Gruyter",
+      "container_title": "Wellenmechanik",
+      "url": "https://doi.org/10.1515/9783112596647-008"
+    },
+    {
+      "seed_id": "q_seed_007",
+      "seed_title": "Zur Quantenmechanik der Stoßvorgänge",
+      "seed_topic": "probabilistic_interpretation",
+      "matched_title": "Zur Quantenmechanik der Stoßvorgänge (1926)",
+      "authors": [
+        "Max Born"
+      ],
+      "year": 1984,
+      "doi": "10.1007/978-3-663-14179-2_5",
+      "type": "book-chapter",
+      "publisher": "Vieweg+Teubner Verlag",
+      "container_title": "Die Deutungen der Quantentheorie",
+      "url": "https://doi.org/10.1007/978-3-663-14179-2_5"
+    },
+    {
+      "seed_id": "q_seed_008",
+      "seed_title": "The Quantum Theory of the Emission and Absorption of Radiation",
+      "seed_topic": "qed_origin",
+      "matched_title": "The Quantum Theory of the Emission and Absorption of Radiation",
+      "authors": [
+        "P. A. M. Dirac"
+      ],
+      "year": 1988,
+      "doi": "10.1007/978-94-009-3051-3_9",
+      "type": "book-chapter",
+      "publisher": "Springer Netherlands",
+      "container_title": "Special Relativity and Quantum Theory",
+      "url": "https://doi.org/10.1007/978-94-009-3051-3_9"
+    },
+    {
+      "seed_id": "q_seed_009",
+      "seed_title": "The Quantum Theory of the Electron",
+      "seed_topic": "dirac_equation",
+      "matched_title": "Dirac Theory of the Electron",
+      "authors": [
+        "P.J.E. Peebles"
+      ],
+      "year": 2019,
+      "doi": "10.23943/princeton/9780691209821.003.0008",
+      "type": "book-chapter",
+      "publisher": "Princeton University Press",
+      "container_title": "Quantum Mechanics",
+      "url": "https://doi.org/10.23943/princeton/9780691209821.003.0008"
+    },
+    {
+      "seed_id": "q_seed_010",
+      "seed_title": "Mathematische Grundlagen der Quantenmechanik",
+      "seed_topic": "hilbert_space_foundation",
+      "matched_title": "Mathematische Grundlagen der Quantenmechanik",
+      "authors": [
+        "John von Neumann"
+      ],
+      "year": 1996,
+      "doi": "10.1007/978-3-642-61409-5",
+      "type": "book",
+      "publisher": "Springer Berlin Heidelberg",
+      "container_title": "",
+      "url": "https://doi.org/10.1007/978-3-642-61409-5"
+    },
+    {
+      "seed_id": "q_seed_011",
+      "seed_title": "A Suggested Interpretation of the Quantum Theory in Terms of 'Hidden Variables' I",
+      "seed_topic": "bohmian_mechanics",
+      "matched_title": "A Suggested Interpretation of the Quantum Theory in Terms of \"Hidden\" Variables. II",
+      "authors": [
+        "David Bohm"
+      ],
+      "year": 1952,
+      "doi": "10.1103/physrev.85.180",
+      "type": "journal-article",
+      "publisher": "American Physical Society (APS)",
+      "container_title": "Physical Review",
+      "url": "https://doi.org/10.1103/physrev.85.180"
+    },
+    {
+      "seed_id": "q_seed_012",
+      "seed_title": "Can Quantum-Mechanical Description of Physical Reality Be Considered Complete?",
+      "seed_topic": "epr_problem",
+      "matched_title": "Can Quantum-Mechanical Description of Physical Reality Be Considered Complete?",
+      "authors": [
+        "Nathan Rosen"
+      ],
+      "year": 1979,
+      "doi": "10.1007/978-3-322-91080-6_6",
+      "type": "book-chapter",
+      "publisher": "Vieweg+Teubner Verlag",
+      "container_title": "Albert Einstein",
+      "url": "https://doi.org/10.1007/978-3-322-91080-6_6"
+    }
+  ]
+}

@@ -1,0 +1,189 @@
+{
+  "schema": "inf-physics-seed-metadata-v1",
+  "source_seed_file": "relativity_seed_papers_20260307.json",
+  "record_count": 12,
+  "records": [
+    {
+      "seed_id": "rel_seed_001",
+      "seed_title": "Zur Elektrodynamik bewegter Körper",
+      "seed_topic": "special_relativity",
+      "matched_title": "Zur Elektrodynamik bewegter Körper",
+      "authors": [
+        "Wolfgang Trageser"
+      ],
+      "year": 2015,
+      "doi": "10.1007/978-3-662-48039-7_4",
+      "type": "book-chapter",
+      "publisher": "Springer Berlin Heidelberg",
+      "container_title": "Das Relativitätsprinzip",
+      "url": "https://doi.org/10.1007/978-3-662-48039-7_4"
+    },
+    {
+      "seed_id": "rel_seed_002",
+      "seed_title": "Ist die Trägheit eines Körpers von seinem Energieinhalt abhängig?",
+      "seed_topic": "mass_energy_equivalence",
+      "matched_title": "Ist die Trägheit eines Körpers von seinem Energieinhalt abhängig?",
+      "authors": [
+        "A. Einstein"
+      ],
+      "year": 1905,
+      "doi": "10.1002/andp.19053231314",
+      "type": "journal-article",
+      "publisher": "Wiley",
+      "container_title": "Annalen der Physik",
+      "url": "https://doi.org/10.1002/andp.19053231314"
+    },
+    {
+      "seed_id": "rel_seed_003",
+      "seed_title": "Raum und Zeit",
+      "seed_topic": "spacetime_formalization",
+      "matched_title": "Raum und Zeit",
+      "authors": [
+        "Wolfgang Trageser"
+      ],
+      "year": 2015,
+      "doi": "10.1007/978-3-662-48039-7_6",
+      "type": "book-chapter",
+      "publisher": "Springer Berlin Heidelberg",
+      "container_title": "Das Relativitätsprinzip",
+      "url": "https://doi.org/10.1007/978-3-662-48039-7_6"
+    },
+    {
+      "seed_id": "rel_seed_004",
+      "seed_title": "Die Feldgleichungen der Gravitation",
+      "seed_topic": "general_relativity_field_equations",
+      "matched_title": "Die Feldgleichungen der Gravitation",
+      "authors": [
+        "A. Einstein"
+      ],
+      "year": 2005,
+      "doi": "10.1002/3527608958.ch5",
+      "type": "other",
+      "publisher": "Wiley",
+      "container_title": "Albert Einstein: Akademie‐Vorträge",
+      "url": "https://doi.org/10.1002/3527608958.ch5"
+    },
+    {
+      "seed_id": "rel_seed_005",
+      "seed_title": "Die Grundlage der allgemeinen Relativitätstheorie",
+      "seed_topic": "general_relativity_foundation",
+      "matched_title": "Die Grundlage der allgemeinen Relativitätstheorie",
+      "authors": [
+        "Wolfgang Trageser"
+      ],
+      "year": 2018,
+      "doi": "10.1007/978-3-662-57411-9_14",
+      "type": "book-chapter",
+      "publisher": "Springer Berlin Heidelberg",
+      "container_title": "Das Relativitätsprinzip",
+      "url": "https://doi.org/10.1007/978-3-662-57411-9_14"
+    },
+    {
+      "seed_id": "rel_seed_006",
+      "seed_title": "Über das Gravitationsfeld eines Massenpunktes nach der Einsteinschen Theorie",
+      "seed_topic": "schwarzschild_solution",
+      "matched_title": "Über das Gravitationsfeld eines Massenpunktes nach der EINSTEINschen Theorie",
+      "authors": [
+        "Karl Schwarzschild"
+      ],
+      "year": 1992,
+      "doi": "10.1007/978-3-642-58084-0_21",
+      "type": "book-chapter",
+      "publisher": "Springer Berlin Heidelberg",
+      "container_title": "Gesammelte Werke/Collected Works",
+      "url": "https://doi.org/10.1007/978-3-642-58084-0_21"
+    },
+    {
+      "seed_id": "rel_seed_007",
+      "seed_title": "Über die Krümmung des Raumes",
+      "seed_topic": "friedmann_cosmology",
+      "matched_title": "Einstein’sche Feldgleichung: Masse und die Krümmung des Raumes",
+      "authors": [
+        "Holger Göbel"
+      ],
+      "year": 2018,
+      "doi": "10.1515/physiko.28.87",
+      "type": "dataset",
+      "publisher": "De Gruyter",
+      "container_title": "Physik Online",
+      "url": "https://doi.org/10.1515/physiko.28.87"
+    },
+    {
+      "seed_id": "rel_seed_008",
+      "seed_title": "A homogeneous universe of constant mass and increasing radius accounting for the radial velocity of extragalactic nebulae",
+      "seed_topic": "lemaitre_cosmology",
+      "matched_title": "126. A Homogeneous Universe of Constant Mass and Increasing Radius accounting for the Radial Velocity of Extra-Galactic Nebulae",
+      "authors": [
+        "Georges Lemaître"
+      ],
+      "year": 1979,
+      "doi": "10.4159/harvard.9780674366688.c135",
+      "type": "book-chapter",
+      "publisher": "Harvard University Press",
+      "container_title": "A Source Book in Astronomy and Astrophysics, 1900–1975",
+      "url": "https://doi.org/10.4159/harvard.9780674366688.c135"
+    },
+    {
+      "seed_id": "rel_seed_009",
+      "seed_title": "Gravitational Collapse and Space-Time Singularities",
+      "seed_topic": "singularity_theorem",
+      "matched_title": "Gravitational Collapse and Space-Time Singularities",
+      "authors": [
+        "Roger Penrose"
+      ],
+      "year": 1965,
+      "doi": "10.1103/physrevlett.14.57",
+      "type": "journal-article",
+      "publisher": "American Physical Society (APS)",
+      "container_title": "Physical Review Letters",
+      "url": "https://doi.org/10.1103/physrevlett.14.57"
+    },
+    {
+      "seed_id": "rel_seed_010",
+      "seed_title": "The occurrence of singularities in cosmology. III. Causality and singularities",
+      "seed_topic": "hawking_singularity",
+      "matched_title": "The occurrence of singularities in cosmology",
+      "authors": [
+        "Stephen William Hawking"
+      ],
+      "year": 1966,
+      "doi": "10.1098/rspa.1966.0221",
+      "type": "journal-article",
+      "publisher": "The Royal Society",
+      "container_title": "Proceedings of the Royal Society of London. Series A. Mathematical and Physical Sciences",
+      "url": "https://doi.org/10.1098/rspa.1966.0221"
+    },
+    {
+      "seed_id": "rel_seed_011",
+      "seed_title": "The Dynamics of General Relativity",
+      "seed_topic": "adm_formalism",
+      "matched_title": "Richard Arnowitt, Stanley Deser and Charles W. Misner 1962, the dynamics of general relativity",
+      "authors": [
+        "Andrzej Krasiński",
+        "George F. R. Ellis",
+        "Malcolm A. H. MacCallum"
+      ],
+      "year": 2012,
+      "doi": "10.1007/978-3-642-34505-0_3",
+      "type": "book-chapter",
+      "publisher": "Springer Berlin Heidelberg",
+      "container_title": "Golden Oldies in General Relativity",
+      "url": "https://doi.org/10.1007/978-3-642-34505-0_3"
+    },
+    {
+      "seed_id": "rel_seed_012",
+      "seed_title": "Gravitational collapse: the role of general relativity",
+      "seed_topic": "kerr_solution",
+      "matched_title": "“Golden Oldie”: Gravitational Collapse: The Role of General Relativity",
+      "authors": [
+        "R. Penrose"
+      ],
+      "year": 2002,
+      "doi": "10.1023/a:1016578408204",
+      "type": "journal-article",
+      "publisher": "Springer Science and Business Media LLC",
+      "container_title": "General Relativity and Gravitation",
+      "url": "https://doi.org/10.1023/a:1016578408204"
+    }
+  ]
+}
