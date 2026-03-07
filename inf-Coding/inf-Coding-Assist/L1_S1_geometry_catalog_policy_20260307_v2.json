@@ -1,0 +1,22 @@
+{
+  "schema": "inf-brain-l1-s1-geometry-catalog-policy-v2",
+  "status": "active",
+  "core_definition": "L1 and S1 catalogs exist to state what geometry a record is. The essential disclosure is geometry_class + family + subtype.",
+  "coverage_unit": {
+    "minimum_required_unit": "family_plus_subtype",
+    "variant_policy": "Variants are optional refinements below subtype and are not required for first-pass completeness."
+  },
+  "tier_policy": {
+    "enabled": false,
+    "note": "Tier segmentation is retired. Catalog completeness is defined by explicit geometry identification, not by tier rank."
+  },
+  "layer_roles": {
+    "L1": "Theory-facing semantic catalog of geometries.",
+    "S1": "Machine-readable geometry-first source catalog aligned to the same class/family/subtype structure for downstream P-layer use."
+  },
+  "required_identity_fields": [
+    "geometry_class",
+    "family",
+    "subtype"
+  ]
+}
