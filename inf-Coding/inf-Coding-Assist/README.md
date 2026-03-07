@@ -5,6 +5,18 @@ inf-Coding から利用する補助ツール層。
 - `assist-exec.sh` を経由してコマンドを実行
 - Orderレイヤの設定で使用可否を強制（`assist-on` でのみ実行可）
 
+## Layout
+
+- `diagrams/` : 生成済みPNG/JPGなどの図版
+- `docs/` : handoff/spec/plan などの補助資料
+- `cache/` : 一時キャッシュ置き場（現状は空）
+- ルート直下 : 実行スクリプト (`.py` / `.sh`) と主要JSONアーティファクト
+
+方針:
+- **実行ファイルは極力動かさない**
+- まずは参照専用の成果物だけを分離
+- 削除はせず、壊しにくい整理を優先
+
 ## Workflow Tools
 
 ### 1) 3-cycle task workflow（絶対条件）
