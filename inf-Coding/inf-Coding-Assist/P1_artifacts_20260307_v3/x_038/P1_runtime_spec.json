@@ -1,0 +1,68 @@
+{
+  "program_id": "P1::x_038",
+  "geom_id": "x_038",
+  "program_layer": "P1",
+  "compiled_from": "S1::x_038",
+  "geometry_class": "non_euclidean",
+  "family": "pseudo_riemannian_geometry",
+  "subtype": "pseudo_riemannian_manifold",
+  "catalog_subtype": "pseudo_riemannian_manifold",
+  "runtime_type": "manifold_runtime",
+  "object_model": {
+    "objects": [
+      "manifold",
+      "chart",
+      "atlas"
+    ],
+    "object_runtime_family": "typed_geometry_objects",
+    "family": "pseudo_riemannian_geometry",
+    "subtype": "pseudo_riemannian_manifold"
+  },
+  "relation_model": {
+    "relations": [
+      "identity",
+      "curvature",
+      "comparison_map",
+      "causal_structure",
+      "local_euclid_recovery_reference"
+    ],
+    "relation_runtime_family": "typed_geometry_relations",
+    "family": "pseudo_riemannian_geometry"
+  },
+  "operation_stubs": [
+    "identify_geometry",
+    "tag_for_program",
+    "map_compare",
+    "invariant_check",
+    "local_limit_recover"
+  ],
+  "serialization_format": "json",
+  "verification_contract": {
+    "geom_id_match_required": true,
+    "source_hash_required": true,
+    "operation_stub_presence_required": true,
+    "compiled_from_expected_input_required": true,
+    "catalog_alignment_required": true
+  },
+  "ready_for_p2": true,
+  "p2_handoff": {
+    "intended_role": "iut_mediation_input",
+    "used_in_domains": [
+      "relativity",
+      "cross_domain"
+    ],
+    "usage_modes": [
+      "core"
+    ],
+    "family": "pseudo_riemannian_geometry",
+    "subtype": "pseudo_riemannian_manifold"
+  },
+  "catalog_alignment": {
+    "catalog_family": "pseudo_riemannian_geometry",
+    "catalog_geometry_class": "non_euclidean",
+    "catalog_formalization_target": "ready_for_program"
+  },
+  "compiled_at": "2026-03-07T05:29:53.477782+00:00",
+  "input_hash": "90fa48a48e040175366b6cbbcf4af1965d2cfbba42c702e32db7fc77ff03c699",
+  "program_sha256": "0dcfa132fc6994998092b6e019ca99952f8ae951ee16919722646d119aa86e26"
+}

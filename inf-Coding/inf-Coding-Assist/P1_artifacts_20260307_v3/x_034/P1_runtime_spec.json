@@ -1,0 +1,67 @@
+{
+  "program_id": "P1::x_034",
+  "geom_id": "x_034",
+  "program_layer": "P1",
+  "compiled_from": "S1::x_034",
+  "geometry_class": "non_euclidean",
+  "family": "manifold_geometry",
+  "subtype": "differentiable_charted_manifold",
+  "catalog_subtype": "differentiable_charted_manifold",
+  "runtime_type": "manifold_runtime",
+  "object_model": {
+    "objects": [
+      "manifold",
+      "chart",
+      "atlas"
+    ],
+    "object_runtime_family": "typed_geometry_objects",
+    "family": "manifold_geometry",
+    "subtype": "differentiable_charted_manifold"
+  },
+  "relation_model": {
+    "relations": [
+      "identity",
+      "curvature",
+      "comparison_map",
+      "local_euclid_recovery_reference"
+    ],
+    "relation_runtime_family": "typed_geometry_relations",
+    "family": "manifold_geometry"
+  },
+  "operation_stubs": [
+    "identify_geometry",
+    "tag_for_program",
+    "map_compare",
+    "invariant_check",
+    "local_limit_recover"
+  ],
+  "serialization_format": "json",
+  "verification_contract": {
+    "geom_id_match_required": true,
+    "source_hash_required": true,
+    "operation_stub_presence_required": true,
+    "compiled_from_expected_input_required": true,
+    "catalog_alignment_required": true
+  },
+  "ready_for_p2": true,
+  "p2_handoff": {
+    "intended_role": "iut_mediation_input",
+    "used_in_domains": [
+      "relativity",
+      "cross_domain"
+    ],
+    "usage_modes": [
+      "general"
+    ],
+    "family": "manifold_geometry",
+    "subtype": "differentiable_charted_manifold"
+  },
+  "catalog_alignment": {
+    "catalog_family": "manifold_geometry",
+    "catalog_geometry_class": "non_euclidean",
+    "catalog_formalization_target": "ready_for_program"
+  },
+  "compiled_at": "2026-03-07T05:29:53.306212+00:00",
+  "input_hash": "c3b7e032477e8c3f11e824973f50e9fc5ef647bbada9571061355b75857ef485",
+  "program_sha256": "f2bcc60d28946292ecf9aa037ab5e107799906f6f35033947ae7b4e83f7db7a4"
+}

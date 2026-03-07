@@ -1,0 +1,66 @@
+{
+  "program_id": "P1::rel_non_003",
+  "geom_id": "rel_non_003",
+  "program_layer": "P1",
+  "compiled_from": "S1::rel_non_003",
+  "geometry_class": "non_euclidean",
+  "family": "riemannian_geometry",
+  "subtype": "riemannian_adm_slice",
+  "catalog_subtype": "riemannian_manifold",
+  "runtime_type": "manifold_runtime",
+  "object_model": {
+    "objects": [
+      "slice_manifold",
+      "spatial_metric",
+      "curvature_tensor"
+    ],
+    "object_runtime_family": "typed_geometry_objects",
+    "family": "riemannian_geometry",
+    "subtype": "riemannian_adm_slice"
+  },
+  "relation_model": {
+    "relations": [
+      "identity",
+      "curvature",
+      "comparison_map",
+      "local_euclid_recovery_reference"
+    ],
+    "relation_runtime_family": "typed_geometry_relations",
+    "family": "riemannian_geometry"
+  },
+  "operation_stubs": [
+    "identify_geometry",
+    "tag_for_program",
+    "map_compare",
+    "invariant_check",
+    "local_limit_recover"
+  ],
+  "serialization_format": "json",
+  "verification_contract": {
+    "geom_id_match_required": true,
+    "source_hash_required": true,
+    "operation_stub_presence_required": true,
+    "compiled_from_expected_input_required": true,
+    "catalog_alignment_required": true
+  },
+  "ready_for_p2": true,
+  "p2_handoff": {
+    "intended_role": "iut_mediation_input",
+    "used_in_domains": [
+      "relativity"
+    ],
+    "usage_modes": [
+      "general"
+    ],
+    "family": "riemannian_geometry",
+    "subtype": "riemannian_adm_slice"
+  },
+  "catalog_alignment": {
+    "catalog_family": "riemannian_geometry",
+    "catalog_geometry_class": "non_euclidean",
+    "catalog_formalization_target": "ready_for_program"
+  },
+  "compiled_at": "2026-03-07T05:29:52.441811+00:00",
+  "input_hash": "c20e4e5345a96065073ffb4f252c6cbebb98d2e5753c25c5566f220e596eb7d4",
+  "program_sha256": "f092d032448eabd6b30e294cd1fa4062cd157cda8b1c8d31882c767d7655ff94"
+}

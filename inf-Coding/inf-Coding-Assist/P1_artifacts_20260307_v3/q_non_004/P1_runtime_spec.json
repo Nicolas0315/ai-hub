@@ -1,0 +1,67 @@
+{
+  "program_id": "P1::q_non_004",
+  "geom_id": "q_non_004",
+  "program_layer": "P1",
+  "compiled_from": "S1::q_non_004",
+  "geometry_class": "non_euclidean",
+  "family": "symplectic_geometry",
+  "subtype": "symplectic",
+  "catalog_subtype": "symplectic_manifold",
+  "runtime_type": "phase_space_runtime",
+  "object_model": {
+    "objects": [
+      "phase_space",
+      "symplectic_form"
+    ],
+    "object_runtime_family": "typed_geometry_objects",
+    "family": "symplectic_geometry",
+    "subtype": "symplectic"
+  },
+  "relation_model": {
+    "relations": [
+      "identity",
+      "curvature",
+      "comparison_map",
+      "phase_relation",
+      "local_euclid_recovery_reference"
+    ],
+    "relation_runtime_family": "typed_geometry_relations",
+    "family": "symplectic_geometry"
+  },
+  "operation_stubs": [
+    "identify_geometry",
+    "tag_for_program",
+    "map_compare",
+    "invariant_check",
+    "form_evaluate",
+    "bracket_compare"
+  ],
+  "serialization_format": "json",
+  "verification_contract": {
+    "geom_id_match_required": true,
+    "source_hash_required": true,
+    "operation_stub_presence_required": true,
+    "compiled_from_expected_input_required": true,
+    "catalog_alignment_required": true
+  },
+  "ready_for_p2": true,
+  "p2_handoff": {
+    "intended_role": "iut_mediation_input",
+    "used_in_domains": [
+      "quantum"
+    ],
+    "usage_modes": [
+      "general"
+    ],
+    "family": "symplectic_geometry",
+    "subtype": "symplectic"
+  },
+  "catalog_alignment": {
+    "catalog_family": "symplectic_geometry",
+    "catalog_geometry_class": "non_euclidean",
+    "catalog_formalization_target": "ready_for_program"
+  },
+  "compiled_at": "2026-03-07T05:29:52.369824+00:00",
+  "input_hash": "243b9d823420fc9e6304843585181ee01e2d582405c0257e388349b6f80b7a4f",
+  "program_sha256": "8d660120ad4a06471a4e1d964879159eb9097de1b1f941d0fe4ebf5f14c89a46"
+}

@@ -1,0 +1,69 @@
+{
+  "program_id": "P1::x_029",
+  "geom_id": "x_029",
+  "program_layer": "P1",
+  "compiled_from": "S1::x_029",
+  "geometry_class": "non_euclidean",
+  "family": "projective_geometry",
+  "subtype": "real_projective_geometry",
+  "catalog_subtype": "real_projective_geometry",
+  "runtime_type": "non_euclidean_single_geometry_runtime",
+  "object_model": {
+    "objects": [
+      "point_class",
+      "line_class",
+      "incidence_structure"
+    ],
+    "object_runtime_family": "typed_geometry_objects",
+    "family": "projective_geometry",
+    "subtype": "real_projective_geometry"
+  },
+  "relation_model": {
+    "relations": [
+      "identity",
+      "curvature",
+      "comparison_map",
+      "state_equivalence",
+      "local_euclid_recovery_reference"
+    ],
+    "relation_runtime_family": "typed_geometry_relations",
+    "family": "projective_geometry"
+  },
+  "operation_stubs": [
+    "identify_geometry",
+    "tag_for_program",
+    "map_compare",
+    "invariant_check",
+    "state_project",
+    "ray_compare"
+  ],
+  "serialization_format": "json",
+  "verification_contract": {
+    "geom_id_match_required": true,
+    "source_hash_required": true,
+    "operation_stub_presence_required": true,
+    "compiled_from_expected_input_required": true,
+    "catalog_alignment_required": true
+  },
+  "ready_for_p2": true,
+  "p2_handoff": {
+    "intended_role": "iut_mediation_input",
+    "used_in_domains": [
+      "relativity",
+      "cross_domain"
+    ],
+    "usage_modes": [
+      "general"
+    ],
+    "family": "projective_geometry",
+    "subtype": "real_projective_geometry"
+  },
+  "catalog_alignment": {
+    "catalog_family": "projective_geometry",
+    "catalog_geometry_class": "non_euclidean",
+    "catalog_formalization_target": "normalized"
+  },
+  "compiled_at": "2026-03-07T05:29:52.662222+00:00",
+  "input_hash": "e97063ad5b0b3ea04043a0a21f9c72e7f8bac85ba3ff7a57e0175695e1a04206",
+  "program_sha256": "133ba8e85735f7b268bcfb1c780ef3b89e82a40fe6b669403793e81c2f5c2f3a"
+}

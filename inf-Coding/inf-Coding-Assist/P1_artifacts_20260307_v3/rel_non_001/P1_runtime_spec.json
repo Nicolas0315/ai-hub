@@ -1,0 +1,68 @@
+{
+  "program_id": "P1::rel_non_001",
+  "geom_id": "rel_non_001",
+  "program_layer": "P1",
+  "compiled_from": "S1::rel_non_001",
+  "geometry_class": "non_euclidean",
+  "family": "pseudo_riemannian_geometry",
+  "subtype": "minkowski",
+  "catalog_subtype": "minkowski_geometry",
+  "runtime_type": "manifold_runtime",
+  "object_model": {
+    "objects": [
+      "event",
+      "interval",
+      "frame"
+    ],
+    "object_runtime_family": "typed_geometry_objects",
+    "family": "pseudo_riemannian_geometry",
+    "subtype": "minkowski"
+  },
+  "relation_model": {
+    "relations": [
+      "identity",
+      "curvature",
+      "comparison_map",
+      "causal_structure",
+      "local_euclid_recovery_reference"
+    ],
+    "relation_runtime_family": "typed_geometry_relations",
+    "family": "pseudo_riemannian_geometry"
+  },
+  "operation_stubs": [
+    "identify_geometry",
+    "tag_for_program",
+    "map_compare",
+    "invariant_check",
+    "causal_compare",
+    "local_limit_recover"
+  ],
+  "serialization_format": "json",
+  "verification_contract": {
+    "geom_id_match_required": true,
+    "source_hash_required": true,
+    "operation_stub_presence_required": true,
+    "compiled_from_expected_input_required": true,
+    "catalog_alignment_required": true
+  },
+  "ready_for_p2": true,
+  "p2_handoff": {
+    "intended_role": "iut_mediation_input",
+    "used_in_domains": [
+      "relativity"
+    ],
+    "usage_modes": [
+      "general"
+    ],
+    "family": "pseudo_riemannian_geometry",
+    "subtype": "minkowski"
+  },
+  "catalog_alignment": {
+    "catalog_family": "pseudo_riemannian_geometry",
+    "catalog_geometry_class": "non_euclidean",
+    "catalog_formalization_target": "ready_for_program"
+  },
+  "compiled_at": "2026-03-07T05:29:52.418350+00:00",
+  "input_hash": "91fbed1231cdd1ebbe9f0069ae845e404a84db1dc4056702e7df85483ac0c660",
+  "program_sha256": "c95ac7330b905cea5a993615d1636c1b3a2d9575904d2a9c8c3934edbd4adf7c"
+}

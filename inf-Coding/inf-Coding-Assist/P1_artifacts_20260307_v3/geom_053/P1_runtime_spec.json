@@ -1,0 +1,66 @@
+{
+  "program_id": "P1::geom_053",
+  "geom_id": "geom_053",
+  "program_layer": "P1",
+  "compiled_from": "S1::geom_053",
+  "geometry_class": "non_euclidean",
+  "family": "poisson_geometry",
+  "subtype": "bracket_geometry",
+  "catalog_subtype": "bracket_geometry",
+  "runtime_type": "phase_space_runtime",
+  "object_model": {
+    "objects": [
+      "phase_space",
+      "poisson_bracket"
+    ],
+    "object_runtime_family": "typed_geometry_objects",
+    "family": "poisson_geometry",
+    "subtype": "bracket_geometry"
+  },
+  "relation_model": {
+    "relations": [
+      "identity",
+      "curvature",
+      "comparison_map",
+      "local_euclid_recovery_reference"
+    ],
+    "relation_runtime_family": "typed_geometry_relations",
+    "family": "poisson_geometry"
+  },
+  "operation_stubs": [
+    "identify_geometry",
+    "tag_for_program",
+    "map_compare",
+    "invariant_check",
+    "local_limit_recover"
+  ],
+  "serialization_format": "json",
+  "verification_contract": {
+    "geom_id_match_required": true,
+    "source_hash_required": true,
+    "operation_stub_presence_required": true,
+    "compiled_from_expected_input_required": true,
+    "catalog_alignment_required": true
+  },
+  "ready_for_p2": true,
+  "p2_handoff": {
+    "intended_role": "iut_mediation_input",
+    "used_in_domains": [
+      "quantum",
+      "cross_domain"
+    ],
+    "usage_modes": [
+      "general"
+    ],
+    "family": "poisson_geometry",
+    "subtype": "bracket_geometry"
+  },
+  "catalog_alignment": {
+    "catalog_family": "poisson_geometry",
+    "catalog_geometry_class": "non_euclidean",
+    "catalog_formalization_target": "normalized"
+  },
+  "compiled_at": "2026-03-07T05:29:52.130644+00:00",
+  "input_hash": "7ed5aa13d0efec54f84fcae660dfb3f1889e954be4b4e56091b2b225da9d99a4",
+  "program_sha256": "3f6b464c85e770f1a2cc8cf42547322ed490ec262e2677e41d66f2fa4a7fac3a"
+}

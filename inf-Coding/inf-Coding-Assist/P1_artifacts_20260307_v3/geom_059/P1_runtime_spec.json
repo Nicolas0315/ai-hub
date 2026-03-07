@@ -1,0 +1,68 @@
+{
+  "program_id": "P1::geom_059",
+  "geom_id": "geom_059",
+  "program_layer": "P1",
+  "compiled_from": "S1::geom_059",
+  "geometry_class": "non_euclidean",
+  "family": "kahler_geometry",
+  "subtype": "complex_symplectic_compatible_geometry",
+  "catalog_subtype": "complex_symplectic_compatible_geometry",
+  "runtime_type": "non_euclidean_single_geometry_runtime",
+  "object_model": {
+    "objects": [
+      "complex_coordinate",
+      "metric",
+      "compatible_structure"
+    ],
+    "object_runtime_family": "typed_geometry_objects",
+    "family": "kahler_geometry",
+    "subtype": "complex_symplectic_compatible_geometry"
+  },
+  "relation_model": {
+    "relations": [
+      "identity",
+      "curvature",
+      "comparison_map",
+      "phase_relation",
+      "local_euclid_recovery_reference"
+    ],
+    "relation_runtime_family": "typed_geometry_relations",
+    "family": "kahler_geometry"
+  },
+  "operation_stubs": [
+    "identify_geometry",
+    "tag_for_program",
+    "map_compare",
+    "invariant_check",
+    "form_evaluate",
+    "bracket_compare"
+  ],
+  "serialization_format": "json",
+  "verification_contract": {
+    "geom_id_match_required": true,
+    "source_hash_required": true,
+    "operation_stub_presence_required": true,
+    "compiled_from_expected_input_required": true,
+    "catalog_alignment_required": true
+  },
+  "ready_for_p2": true,
+  "p2_handoff": {
+    "intended_role": "iut_mediation_input",
+    "used_in_domains": [
+      "cross_domain"
+    ],
+    "usage_modes": [
+      "general"
+    ],
+    "family": "kahler_geometry",
+    "subtype": "complex_symplectic_compatible_geometry"
+  },
+  "catalog_alignment": {
+    "catalog_family": "kahler_geometry",
+    "catalog_geometry_class": "non_euclidean",
+    "catalog_formalization_target": "normalized"
+  },
+  "compiled_at": "2026-03-07T05:29:52.217959+00:00",
+  "input_hash": "73dcb139ebc4aad6f91b0f975d31fc55853dcc3385c25f1ca62cfdc69d07c9a2",
+  "program_sha256": "d9baad8781f78a26d8851bdcf86e3b86d232bd3f24b7c33d47483ed7362d2876"
+}

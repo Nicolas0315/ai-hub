@@ -1,0 +1,69 @@
+{
+  "program_id": "P1::x_039",
+  "geom_id": "x_039",
+  "program_layer": "P1",
+  "compiled_from": "S1::x_039",
+  "geometry_class": "non_euclidean",
+  "family": "pseudo_riemannian_geometry",
+  "subtype": "lorentzian_geometry",
+  "catalog_subtype": "lorentzian_geometry",
+  "runtime_type": "manifold_runtime",
+  "object_model": {
+    "objects": [
+      "manifold",
+      "metric_tensor",
+      "connection",
+      "causal_frame"
+    ],
+    "object_runtime_family": "typed_geometry_objects",
+    "family": "pseudo_riemannian_geometry",
+    "subtype": "lorentzian_geometry"
+  },
+  "relation_model": {
+    "relations": [
+      "identity",
+      "curvature",
+      "comparison_map",
+      "causal_structure",
+      "local_euclid_recovery_reference"
+    ],
+    "relation_runtime_family": "typed_geometry_relations",
+    "family": "pseudo_riemannian_geometry"
+  },
+  "operation_stubs": [
+    "identify_geometry",
+    "tag_for_program",
+    "map_compare",
+    "invariant_check",
+    "local_limit_recover"
+  ],
+  "serialization_format": "json",
+  "verification_contract": {
+    "geom_id_match_required": true,
+    "source_hash_required": true,
+    "operation_stub_presence_required": true,
+    "compiled_from_expected_input_required": true,
+    "catalog_alignment_required": true
+  },
+  "ready_for_p2": true,
+  "p2_handoff": {
+    "intended_role": "iut_mediation_input",
+    "used_in_domains": [
+      "relativity",
+      "cross_domain"
+    ],
+    "usage_modes": [
+      "core"
+    ],
+    "family": "pseudo_riemannian_geometry",
+    "subtype": "lorentzian_geometry"
+  },
+  "catalog_alignment": {
+    "catalog_family": "pseudo_riemannian_geometry",
+    "catalog_geometry_class": "non_euclidean",
+    "catalog_formalization_target": "ready_for_program"
+  },
+  "compiled_at": "2026-03-07T05:29:53.486131+00:00",
+  "input_hash": "851891a6dc8ba253207f687de91c1f954edd9325557625f8317a0b2b28c20cfc",
+  "program_sha256": "17c0a6e22aed71fcc70f0b8a3b24f6840cabd16857c7eaa1381c40ed62caf600"
+}

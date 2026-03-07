@@ -1,0 +1,67 @@
+{
+  "program_id": "P1::geom_048",
+  "geom_id": "geom_048",
+  "program_layer": "P1",
+  "compiled_from": "S1::geom_048",
+  "geometry_class": "non_euclidean",
+  "family": "complex_geometry",
+  "subtype": "hermitian_geometry",
+  "catalog_subtype": "hermitian_geometry",
+  "runtime_type": "non_euclidean_single_geometry_runtime",
+  "object_model": {
+    "objects": [
+      "complex_coordinate",
+      "metric",
+      "compatible_structure"
+    ],
+    "object_runtime_family": "typed_geometry_objects",
+    "family": "complex_geometry",
+    "subtype": "hermitian_geometry"
+  },
+  "relation_model": {
+    "relations": [
+      "identity",
+      "curvature",
+      "comparison_map",
+      "local_euclid_recovery_reference"
+    ],
+    "relation_runtime_family": "typed_geometry_relations",
+    "family": "complex_geometry"
+  },
+  "operation_stubs": [
+    "identify_geometry",
+    "tag_for_program",
+    "map_compare",
+    "invariant_check",
+    "local_limit_recover"
+  ],
+  "serialization_format": "json",
+  "verification_contract": {
+    "geom_id_match_required": true,
+    "source_hash_required": true,
+    "operation_stub_presence_required": true,
+    "compiled_from_expected_input_required": true,
+    "catalog_alignment_required": true
+  },
+  "ready_for_p2": true,
+  "p2_handoff": {
+    "intended_role": "iut_mediation_input",
+    "used_in_domains": [
+      "quantum",
+      "cross_domain"
+    ],
+    "usage_modes": [
+      "general"
+    ],
+    "family": "complex_geometry",
+    "subtype": "hermitian_geometry"
+  },
+  "catalog_alignment": {
+    "catalog_family": "complex_geometry",
+    "catalog_geometry_class": "non_euclidean",
+    "catalog_formalization_target": "normalized"
+  },
+  "compiled_at": "2026-03-07T05:29:52.053288+00:00",
+  "input_hash": "24327ad55ae55f390bc070869135a00108e350df957820599f2c43eace4e5070",
+  "program_sha256": "aecc8826ce7d522a1c46a53c009a250cd1972662d1b959e8fcf52a5a74663c79"
+}

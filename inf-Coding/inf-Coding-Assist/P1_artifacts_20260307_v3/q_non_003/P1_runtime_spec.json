@@ -1,0 +1,66 @@
+{
+  "program_id": "P1::q_non_003",
+  "geom_id": "q_non_003",
+  "program_layer": "P1",
+  "compiled_from": "S1::q_non_003",
+  "geometry_class": "non_euclidean",
+  "family": "bundle_geometry",
+  "subtype": "fiber_bundle",
+  "catalog_subtype": "fiber_bundle",
+  "runtime_type": "bundle_runtime",
+  "object_model": {
+    "objects": [
+      "base_space",
+      "fiber",
+      "connection"
+    ],
+    "object_runtime_family": "typed_geometry_objects",
+    "family": "bundle_geometry",
+    "subtype": "fiber_bundle"
+  },
+  "relation_model": {
+    "relations": [
+      "identity",
+      "curvature",
+      "comparison_map",
+      "local_euclid_recovery_reference"
+    ],
+    "relation_runtime_family": "typed_geometry_relations",
+    "family": "bundle_geometry"
+  },
+  "operation_stubs": [
+    "identify_geometry",
+    "tag_for_program",
+    "map_compare",
+    "invariant_check",
+    "local_limit_recover"
+  ],
+  "serialization_format": "json",
+  "verification_contract": {
+    "geom_id_match_required": true,
+    "source_hash_required": true,
+    "operation_stub_presence_required": true,
+    "compiled_from_expected_input_required": true,
+    "catalog_alignment_required": true
+  },
+  "ready_for_p2": true,
+  "p2_handoff": {
+    "intended_role": "iut_mediation_input",
+    "used_in_domains": [
+      "quantum"
+    ],
+    "usage_modes": [
+      "general"
+    ],
+    "family": "bundle_geometry",
+    "subtype": "fiber_bundle"
+  },
+  "catalog_alignment": {
+    "catalog_family": "bundle_geometry",
+    "catalog_geometry_class": "non_euclidean",
+    "catalog_formalization_target": "ready_for_program"
+  },
+  "compiled_at": "2026-03-07T05:29:52.355565+00:00",
+  "input_hash": "2faa3c7e994a9f2885b7f2be710dcfe1558f2105da2a7995f65d8fb788f9d6ad",
+  "program_sha256": "c4b270b22874413f30a9859911a83d26bfd33877b6b78dc9e25071026d0731d7"
+}

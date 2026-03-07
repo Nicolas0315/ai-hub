@@ -1,0 +1,64 @@
+{
+  "source_id": "S1::x_029",
+  "geom_id": "x_029",
+  "source_layer": "S1",
+  "name": "real projective geometry",
+  "geometry_class": "non_euclidean",
+  "subtype": "real_projective_geometry",
+  "used_in_domains": [
+    "relativity",
+    "cross_domain"
+  ],
+  "usage_modes": [
+    "general"
+  ],
+  "definition_level": "normalized_source",
+  "core_objects": [
+    "point_class",
+    "line_class",
+    "incidence_structure"
+  ],
+  "core_relations": [
+    "identity",
+    "curvature",
+    "comparison_map",
+    "state_equivalence",
+    "local_euclid_recovery_reference"
+  ],
+  "required_operations": [
+    "identify_geometry",
+    "tag_for_program",
+    "map_compare",
+    "invariant_check",
+    "state_project",
+    "ray_compare"
+  ],
+  "p_layer_target": {
+    "program_family": "projective_geometry_compiler",
+    "compiler_profile": "projective_geometry_normalized"
+  },
+  "formalization_status": "normalized",
+  "source_refs": [
+    "L1::projective_geometry::real_projective_geometry"
+  ],
+  "legacy_fields": {
+    "tier": 1,
+    "family_id": "projective_geometry",
+    "formalization_target": "normalized",
+    "augmentation_note": "Added from Tier1 catalog expansion"
+  },
+  "catalog_subtype": "real_projective_geometry",
+  "asset_kind": "geometry_normalized_source",
+  "binary_format": "json",
+  "producer": "inf_brain_p1_compiler_v3_20260307.py",
+  "created_at": "2026-03-07T05:29:52.661981+00:00",
+  "intended_consumers": [
+    "P1",
+    "P2",
+    "M1"
+  ],
+  "family": "projective_geometry",
+  "catalog_geometry_class": "non_euclidean",
+  "catalog_formalization_target": "normalized",
+  "sha256": "e97063ad5b0b3ea04043a0a21f9c72e7f8bac85ba3ff7a57e0175695e1a04206"
+}

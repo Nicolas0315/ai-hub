@@ -1,0 +1,66 @@
+{
+  "program_id": "P1::geom_055",
+  "geom_id": "geom_055",
+  "program_layer": "P1",
+  "compiled_from": "S1::geom_055",
+  "geometry_class": "non_euclidean",
+  "family": "bundle_geometry",
+  "subtype": "principal_bundle",
+  "catalog_subtype": "principal_bundle",
+  "runtime_type": "bundle_runtime",
+  "object_model": {
+    "objects": [
+      "base_space",
+      "fiber",
+      "connection"
+    ],
+    "object_runtime_family": "typed_geometry_objects",
+    "family": "bundle_geometry",
+    "subtype": "principal_bundle"
+  },
+  "relation_model": {
+    "relations": [
+      "identity",
+      "curvature",
+      "comparison_map",
+      "local_euclid_recovery_reference"
+    ],
+    "relation_runtime_family": "typed_geometry_relations",
+    "family": "bundle_geometry"
+  },
+  "operation_stubs": [
+    "identify_geometry",
+    "tag_for_program",
+    "map_compare",
+    "invariant_check",
+    "local_limit_recover"
+  ],
+  "serialization_format": "json",
+  "verification_contract": {
+    "geom_id_match_required": true,
+    "source_hash_required": true,
+    "operation_stub_presence_required": true,
+    "compiled_from_expected_input_required": true,
+    "catalog_alignment_required": true
+  },
+  "ready_for_p2": true,
+  "p2_handoff": {
+    "intended_role": "iut_mediation_input",
+    "used_in_domains": [
+      "cross_domain"
+    ],
+    "usage_modes": [
+      "extended"
+    ],
+    "family": "bundle_geometry",
+    "subtype": "principal_bundle"
+  },
+  "catalog_alignment": {
+    "catalog_family": "bundle_geometry",
+    "catalog_geometry_class": "non_euclidean",
+    "catalog_formalization_target": "normalized"
+  },
+  "compiled_at": "2026-03-07T05:29:52.154545+00:00",
+  "input_hash": "a9cec672d03a431e638c5eb6015a1c64ecee7416b815858b4a8ed0a59cc218be",
+  "program_sha256": "6e6496b57addc83313efe96cea8f9288d2609f2346cae2a0d1d30776f0543f5e"
+}

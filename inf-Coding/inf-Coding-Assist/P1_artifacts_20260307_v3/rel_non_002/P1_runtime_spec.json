@@ -1,0 +1,69 @@
+{
+  "program_id": "P1::rel_non_002",
+  "geom_id": "rel_non_002",
+  "program_layer": "P1",
+  "compiled_from": "S1::rel_non_002",
+  "geometry_class": "non_euclidean",
+  "family": "pseudo_riemannian_geometry",
+  "subtype": "lorentzian_pseudo_riemannian",
+  "catalog_subtype": "lorentzian_geometry",
+  "runtime_type": "manifold_runtime",
+  "object_model": {
+    "objects": [
+      "manifold",
+      "metric_tensor",
+      "connection",
+      "geodesic"
+    ],
+    "object_runtime_family": "typed_geometry_objects",
+    "family": "pseudo_riemannian_geometry",
+    "subtype": "lorentzian_pseudo_riemannian"
+  },
+  "relation_model": {
+    "relations": [
+      "identity",
+      "curvature",
+      "comparison_map",
+      "causal_structure",
+      "local_euclid_recovery_reference"
+    ],
+    "relation_runtime_family": "typed_geometry_relations",
+    "family": "pseudo_riemannian_geometry"
+  },
+  "operation_stubs": [
+    "identify_geometry",
+    "tag_for_program",
+    "map_compare",
+    "invariant_check",
+    "causal_compare",
+    "local_limit_recover"
+  ],
+  "serialization_format": "json",
+  "verification_contract": {
+    "geom_id_match_required": true,
+    "source_hash_required": true,
+    "operation_stub_presence_required": true,
+    "compiled_from_expected_input_required": true,
+    "catalog_alignment_required": true
+  },
+  "ready_for_p2": true,
+  "p2_handoff": {
+    "intended_role": "iut_mediation_input",
+    "used_in_domains": [
+      "relativity"
+    ],
+    "usage_modes": [
+      "general"
+    ],
+    "family": "pseudo_riemannian_geometry",
+    "subtype": "lorentzian_pseudo_riemannian"
+  },
+  "catalog_alignment": {
+    "catalog_family": "pseudo_riemannian_geometry",
+    "catalog_geometry_class": "non_euclidean",
+    "catalog_formalization_target": "ready_for_program"
+  },
+  "compiled_at": "2026-03-07T05:29:52.432302+00:00",
+  "input_hash": "88f91e1b229550a5ccbe0c68eb0f896ad4027829dee5f1f964994c6d9c44e016",
+  "program_sha256": "7166fd5ec761f3ca9982567cffb404e18f6a94e52908ea3dc4a8b4303d18fb7d"
+}

@@ -1,0 +1,67 @@
+{
+  "program_id": "P1::x_032",
+  "geom_id": "x_032",
+  "program_layer": "P1",
+  "compiled_from": "S1::x_032",
+  "geometry_class": "non_euclidean",
+  "family": "manifold_geometry",
+  "subtype": "topological_manifold",
+  "catalog_subtype": "topological_manifold",
+  "runtime_type": "manifold_runtime",
+  "object_model": {
+    "objects": [
+      "manifold",
+      "chart",
+      "atlas"
+    ],
+    "object_runtime_family": "typed_geometry_objects",
+    "family": "manifold_geometry",
+    "subtype": "topological_manifold"
+  },
+  "relation_model": {
+    "relations": [
+      "identity",
+      "curvature",
+      "comparison_map",
+      "local_euclid_recovery_reference"
+    ],
+    "relation_runtime_family": "typed_geometry_relations",
+    "family": "manifold_geometry"
+  },
+  "operation_stubs": [
+    "identify_geometry",
+    "tag_for_program",
+    "map_compare",
+    "invariant_check",
+    "local_limit_recover"
+  ],
+  "serialization_format": "json",
+  "verification_contract": {
+    "geom_id_match_required": true,
+    "source_hash_required": true,
+    "operation_stub_presence_required": true,
+    "compiled_from_expected_input_required": true,
+    "catalog_alignment_required": true
+  },
+  "ready_for_p2": true,
+  "p2_handoff": {
+    "intended_role": "iut_mediation_input",
+    "used_in_domains": [
+      "relativity",
+      "cross_domain"
+    ],
+    "usage_modes": [
+      "general"
+    ],
+    "family": "manifold_geometry",
+    "subtype": "topological_manifold"
+  },
+  "catalog_alignment": {
+    "catalog_family": "manifold_geometry",
+    "catalog_geometry_class": "non_euclidean",
+    "catalog_formalization_target": "normalized"
+  },
+  "compiled_at": "2026-03-07T05:29:52.889735+00:00",
+  "input_hash": "6374d1919095ad514b9ce69af0f0c5d864c3bde069c637bf721e5c61ad270fbb",
+  "program_sha256": "468642f4cf3376f322b3cc4c89a356de0f18b243a823cd9100cdef2fc4cf24a9"
+}

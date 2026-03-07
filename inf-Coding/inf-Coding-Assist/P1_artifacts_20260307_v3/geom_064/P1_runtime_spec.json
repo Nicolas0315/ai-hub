@@ -1,0 +1,67 @@
+{
+  "program_id": "P1::geom_064",
+  "geom_id": "geom_064",
+  "program_layer": "P1",
+  "compiled_from": "S1::geom_064",
+  "geometry_class": "non_euclidean",
+  "family": "information_geometry",
+  "subtype": "fisher_metric_geometry",
+  "catalog_subtype": "fisher_metric_geometry",
+  "runtime_type": "non_euclidean_single_geometry_runtime",
+  "object_model": {
+    "objects": [
+      "statistical_state",
+      "metric",
+      "divergence"
+    ],
+    "object_runtime_family": "typed_geometry_objects",
+    "family": "information_geometry",
+    "subtype": "fisher_metric_geometry"
+  },
+  "relation_model": {
+    "relations": [
+      "identity",
+      "curvature",
+      "comparison_map",
+      "local_euclid_recovery_reference"
+    ],
+    "relation_runtime_family": "typed_geometry_relations",
+    "family": "information_geometry"
+  },
+  "operation_stubs": [
+    "identify_geometry",
+    "tag_for_program",
+    "map_compare",
+    "invariant_check",
+    "local_limit_recover"
+  ],
+  "serialization_format": "json",
+  "verification_contract": {
+    "geom_id_match_required": true,
+    "source_hash_required": true,
+    "operation_stub_presence_required": true,
+    "compiled_from_expected_input_required": true,
+    "catalog_alignment_required": true
+  },
+  "ready_for_p2": true,
+  "p2_handoff": {
+    "intended_role": "iut_mediation_input",
+    "used_in_domains": [
+      "quantum",
+      "cross_domain"
+    ],
+    "usage_modes": [
+      "extended"
+    ],
+    "family": "information_geometry",
+    "subtype": "fisher_metric_geometry"
+  },
+  "catalog_alignment": {
+    "catalog_family": "information_geometry",
+    "catalog_geometry_class": "non_euclidean",
+    "catalog_formalization_target": "normalized"
+  },
+  "compiled_at": "2026-03-07T05:29:52.289965+00:00",
+  "input_hash": "32778e2605f1c0e52c7bd32e89ce740a5ddf93c523cd63fac7207a33af1575b0",
+  "program_sha256": "0c67ec50b19671344ecdb24e9d4e5849ad7b6faa9203afd71b681eb1474a5dc1"
+}

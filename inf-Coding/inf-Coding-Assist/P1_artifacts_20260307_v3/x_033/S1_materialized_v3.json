@@ -1,0 +1,62 @@
+{
+  "source_id": "S1::x_033",
+  "geom_id": "x_033",
+  "source_layer": "S1",
+  "name": "smooth manifold",
+  "geometry_class": "non_euclidean",
+  "subtype": "smooth_manifold",
+  "used_in_domains": [
+    "relativity",
+    "cross_domain"
+  ],
+  "usage_modes": [
+    "general"
+  ],
+  "definition_level": "normalized_source",
+  "core_objects": [
+    "manifold",
+    "chart",
+    "atlas"
+  ],
+  "core_relations": [
+    "identity",
+    "curvature",
+    "comparison_map",
+    "local_euclid_recovery_reference"
+  ],
+  "required_operations": [
+    "identify_geometry",
+    "tag_for_program",
+    "map_compare",
+    "invariant_check",
+    "local_limit_recover"
+  ],
+  "p_layer_target": {
+    "program_family": "manifold_geometry_compiler",
+    "compiler_profile": "manifold_geometry_normalized"
+  },
+  "formalization_status": "normalized",
+  "source_refs": [
+    "L1::manifold_geometry::smooth_manifold"
+  ],
+  "legacy_fields": {
+    "tier": 1,
+    "family_id": "manifold_geometry",
+    "formalization_target": "normalized",
+    "augmentation_note": "Added from Tier1 catalog expansion"
+  },
+  "catalog_subtype": "smooth_manifold",
+  "asset_kind": "geometry_normalized_source",
+  "binary_format": "json",
+  "producer": "inf_brain_p1_compiler_v3_20260307.py",
+  "created_at": "2026-03-07T05:29:53.138969+00:00",
+  "intended_consumers": [
+    "P1",
+    "P2",
+    "M1"
+  ],
+  "family": "manifold_geometry",
+  "catalog_geometry_class": "non_euclidean",
+  "catalog_formalization_target": "normalized",
+  "sha256": "9c877dc039ad3614b6ce57011b54a01c74d52087d6b494e72be98a07dbfcd634"
+}

@@ -1,0 +1,68 @@
+{
+  "source_id": "S1::rel_non_001",
+  "geom_id": "rel_non_001",
+  "source_layer": "S1",
+  "name": "Minkowski geometry",
+  "geometry_class": "non_euclidean",
+  "subtype": "minkowski",
+  "used_in_domains": [
+    "relativity"
+  ],
+  "usage_modes": [
+    "general"
+  ],
+  "definition_level": "normalized_source",
+  "core_objects": [
+    "event",
+    "interval",
+    "frame"
+  ],
+  "core_relations": [
+    "identity",
+    "curvature",
+    "comparison_map",
+    "causal_structure",
+    "local_euclid_recovery_reference"
+  ],
+  "required_operations": [
+    "identify_geometry",
+    "tag_for_program",
+    "map_compare",
+    "invariant_check",
+    "causal_compare",
+    "local_limit_recover"
+  ],
+  "p_layer_target": {
+    "program_family": "relativity_geometry_compiler",
+    "compiler_profile": "relativity_non_euclidean_general"
+  },
+  "formalization_status": "normalized",
+  "source_refs": [
+    "L1::rel_non_001"
+  ],
+  "legacy_fields": {
+    "asset_kind": "geometry_binary_placeholder",
+    "materialization_status": "planned",
+    "sha256": null,
+    "hash_required_when_materialized": true,
+    "intended_consumers": [
+      "P1",
+      "M1"
+    ],
+    "notes": "Enumerated geometry asset placeholder mirrored from L1 semantic ledger."
+  },
+  "catalog_subtype": "minkowski_geometry",
+  "asset_kind": "geometry_normalized_source",
+  "binary_format": "json",
+  "producer": "inf_brain_p1_compiler_v3_20260307.py",
+  "created_at": "2026-03-07T05:29:52.418277+00:00",
+  "intended_consumers": [
+    "P1",
+    "P2",
+    "M1"
+  ],
+  "family": "pseudo_riemannian_geometry",
+  "catalog_geometry_class": "non_euclidean",
+  "catalog_formalization_target": "ready_for_program",
+  "sha256": "91fbed1231cdd1ebbe9f0069ae845e404a84db1dc4056702e7df85483ac0c660"
+}

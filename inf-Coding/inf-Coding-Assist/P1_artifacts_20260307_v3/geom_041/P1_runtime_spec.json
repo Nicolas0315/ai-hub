@@ -1,0 +1,69 @@
+{
+  "program_id": "P1::geom_041",
+  "geom_id": "geom_041",
+  "program_layer": "P1",
+  "compiled_from": "S1::geom_041",
+  "geometry_class": "non_euclidean",
+  "family": "hilbert_geometry",
+  "subtype": "real_hilbert_space",
+  "catalog_subtype": "real_hilbert_space",
+  "runtime_type": "hilbert_runtime",
+  "object_model": {
+    "objects": [
+      "state",
+      "ray",
+      "inner_product"
+    ],
+    "object_runtime_family": "typed_geometry_objects",
+    "family": "hilbert_geometry",
+    "subtype": "real_hilbert_space"
+  },
+  "relation_model": {
+    "relations": [
+      "identity",
+      "curvature",
+      "comparison_map",
+      "state_equivalence",
+      "local_euclid_recovery_reference"
+    ],
+    "relation_runtime_family": "typed_geometry_relations",
+    "family": "hilbert_geometry"
+  },
+  "operation_stubs": [
+    "identify_geometry",
+    "tag_for_program",
+    "map_compare",
+    "invariant_check",
+    "state_project",
+    "ray_compare"
+  ],
+  "serialization_format": "json",
+  "verification_contract": {
+    "geom_id_match_required": true,
+    "source_hash_required": true,
+    "operation_stub_presence_required": true,
+    "compiled_from_expected_input_required": true,
+    "catalog_alignment_required": true
+  },
+  "ready_for_p2": true,
+  "p2_handoff": {
+    "intended_role": "iut_mediation_input",
+    "used_in_domains": [
+      "quantum",
+      "cross_domain"
+    ],
+    "usage_modes": [
+      "core"
+    ],
+    "family": "hilbert_geometry",
+    "subtype": "real_hilbert_space"
+  },
+  "catalog_alignment": {
+    "catalog_family": "hilbert_geometry",
+    "catalog_geometry_class": "non_euclidean",
+    "catalog_formalization_target": "normalized"
+  },
+  "compiled_at": "2026-03-07T05:29:51.756457+00:00",
+  "input_hash": "c05b218b8a9bc08a2cfc6e655df2a34f04c4f449507528053e5704a44b8febdb",
+  "program_sha256": "eb9908c19e299e04a10d8a25bfea31ef88bf966da090e3df2c37e805d92f882c"
+}

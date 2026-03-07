@@ -1,0 +1,69 @@
+{
+  "program_id": "P1::geom_052",
+  "geom_id": "geom_052",
+  "program_layer": "P1",
+  "compiled_from": "S1::geom_052",
+  "geometry_class": "non_euclidean",
+  "family": "poisson_geometry",
+  "subtype": "poisson_manifold",
+  "catalog_subtype": "poisson_manifold",
+  "runtime_type": "phase_space_runtime",
+  "object_model": {
+    "objects": [
+      "manifold",
+      "chart",
+      "atlas"
+    ],
+    "object_runtime_family": "typed_geometry_objects",
+    "family": "poisson_geometry",
+    "subtype": "poisson_manifold"
+  },
+  "relation_model": {
+    "relations": [
+      "identity",
+      "curvature",
+      "comparison_map",
+      "phase_relation",
+      "local_euclid_recovery_reference"
+    ],
+    "relation_runtime_family": "typed_geometry_relations",
+    "family": "poisson_geometry"
+  },
+  "operation_stubs": [
+    "identify_geometry",
+    "tag_for_program",
+    "map_compare",
+    "invariant_check",
+    "form_evaluate",
+    "bracket_compare"
+  ],
+  "serialization_format": "json",
+  "verification_contract": {
+    "geom_id_match_required": true,
+    "source_hash_required": true,
+    "operation_stub_presence_required": true,
+    "compiled_from_expected_input_required": true,
+    "catalog_alignment_required": true
+  },
+  "ready_for_p2": true,
+  "p2_handoff": {
+    "intended_role": "iut_mediation_input",
+    "used_in_domains": [
+      "quantum",
+      "cross_domain"
+    ],
+    "usage_modes": [
+      "general"
+    ],
+    "family": "poisson_geometry",
+    "subtype": "poisson_manifold"
+  },
+  "catalog_alignment": {
+    "catalog_family": "poisson_geometry",
+    "catalog_geometry_class": "non_euclidean",
+    "catalog_formalization_target": "ready_for_program"
+  },
+  "compiled_at": "2026-03-07T05:29:52.117785+00:00",
+  "input_hash": "406148ccbd892da6f267855b1deea22e19eb89d4e40c803deb8de503a033e539",
+  "program_sha256": "4aeeb37fd1dee70b17af3e46a9b10473485b0109f40e522a997465018a4a4164"
+}
