@@ -1,0 +1,25 @@
+{
+  "schema": "inf-brain-p2-unified-fields-v1",
+  "layer": "P2",
+  "description": "Unified fields emitted from P2 mediation into L3 unified computation.",
+  "fields": [
+    {
+      "field": "unified_time",
+      "built_from": ["Q_time", "R_time"],
+      "meaning": "higher-layer temporal description after IUT mediation",
+      "acceptance_goal": "direct Euclidean reduction if possible, otherwise local/limit temporal recovery"
+    },
+    {
+      "field": "unified_space",
+      "built_from": ["Q_space", "R_space"],
+      "meaning": "higher-layer spatial description after IUT mediation",
+      "acceptance_goal": "direct Euclidean reduction if possible, otherwise local/limit spatial recovery"
+    },
+    {
+      "field": "unified_dimension",
+      "built_from": ["Q_dimension", "R_dimension"],
+      "meaning": "higher-layer continuous-dimension description after IUT mediation",
+      "acceptance_goal": "direct Euclidean reduction if possible, otherwise local/limit dimensional recovery"
+    }
+  ]
+}
