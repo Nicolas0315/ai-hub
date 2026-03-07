@@ -1,0 +1,57 @@
+{
+  "schema": "inf-brain-s1-asset-format-spec-v1",
+  "layer": "S1",
+  "purpose": "Canonical materialization format for geometry assets inside inf-Brain",
+  "required_fields": [
+    "source_id",
+    "geom_id",
+    "source_layer",
+    "domain",
+    "geometry_class",
+    "semantic_name",
+    "asset_kind",
+    "binary_format",
+    "payload_path",
+    "sha256",
+    "producer",
+    "created_at",
+    "intended_consumers"
+  ],
+  "binary_formats_allowed": [
+    "json",
+    "jsonl",
+    "npz",
+    "bin",
+    "onnx",
+    "csv"
+  ],
+  "hash_policy": {
+    "algorithm": "sha256",
+    "required_on_materialized_binary": true,
+    "p1_must_verify_before_compile": true
+  },
+  "identity_policy": {
+    "shared_cross_layer_key": "geom_id",
+    "source_id_format": "S1::<geom_id>",
+    "program_id_format": "P1::<geom_id>",
+    "model_id_format": "M1::<geom_id>"
+  },
+  "example_materialized_record": {
+    "source_id": "S1::rel_non_002",
+    "geom_id": "rel_non_002",
+    "source_layer": "S1",
+    "domain": "relativity",
+    "geometry_class": "non_euclidean",
+    "semantic_name": "Lorentzian pseudo-Riemannian spacetime",
+    "asset_kind": "geometry_binary",
+    "binary_format": "json",
+    "payload_path": "inf-Brain/S1/relativity/rel_non_002.json",
+    "sha256": "<filled-on-materialization>",
+    "producer": "inf_brain_asset_builder",
+    "created_at": "<iso8601>",
+    "intended_consumers": [
+      "P1",
+      "M1"
+    ]
+  }
+}
