@@ -16,8 +16,8 @@ SEED_CORPUS = NORM / 'physics_seed_corpus_20260307.json'
 OUT_RAW = RAW / 'physics_seed_expansion_pilot_20260307.json'
 OUT_INDEX = ROOT / 'indexed' / 'physics_seed_expansion_pilot_index_20260307.json'
 
-TRIAL_PER_CATEGORY = 1000
-ROWS_PER_QUERY = 20
+TRIAL_PER_CATEGORY = 2000
+ROWS_PER_QUERY = 30
 
 
 def fetch_json(url: str) -> dict:
@@ -26,10 +26,12 @@ def fetch_json(url: str) -> dict:
         return json.loads(r.read().decode('utf-8', 'ignore'))
 
 
-def crossref_search(title: str, author: str | None, year: int | None) -> list[dict]:
+def crossref_search(title: str, author: str | None, year: int | None, topic: str | None = None) -> list[dict]:
     q = title
     if author:
         q += ' ' + author
+    if topic:
+        q += ' ' + topic.replace('_', ' ')
     params = {
         'query.bibliographic': q,
         'rows': ROWS_PER_QUERY,
@@ -37,7 +39,7 @@ def crossref_search(title: str, author: str | None, year: int | None) -> list[di
         'order': 'desc',
     }
     if year:
-        params['filter'] = f'from-pub-date:{year-2},until-pub-date:{year+25}'
+        params['filter'] = f'from-pub-date:{year-5},until-pub-date:{year+40}'
     url = 'https://api.crossref.org/works?' + urllib.parse.urlencode(params)
     data = fetch_json(url)
     return (data.get('message') or {}).get('items') or []
@@ -99,7 +101,7 @@ def main() -> int:
         if counts[seed['category']] >= TRIAL_PER_CATEGORY:
             continue
         author = (seed.get('authors') or [None])[0]
-        items = crossref_search(seed['title'], author, seed.get('year'))
+        items = crossref_search(seed['title'], author, seed.get('year'), seed.get('topic'))
         for item in items:
             rec = item_to_record(seed, item)
             doi = rec.get('doi')
