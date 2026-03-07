@@ -1,0 +1,54 @@
+{
+  "program_id": "P1::q_non_001",
+  "geom_id": "q_non_001",
+  "program_layer": "P1",
+  "compiled_from": "S1::q_non_001",
+  "runtime_type": "non_euclidean_single_geometry_runtime",
+  "object_model": {
+    "objects": [
+      "hilbert_state",
+      "ray",
+      "inner_product"
+    ],
+    "object_runtime_family": "typed_geometry_objects",
+    "subtype": "projective_hilbert"
+  },
+  "relation_model": {
+    "relations": [
+      "identity",
+      "curvature",
+      "comparison_map",
+      "state_equivalence",
+      "local_euclid_recovery_reference"
+    ],
+    "relation_runtime_family": "typed_geometry_relations"
+  },
+  "operation_stubs": [
+    "identify_geometry",
+    "tag_for_program",
+    "map_compare",
+    "invariant_check",
+    "state_project",
+    "ray_compare"
+  ],
+  "serialization_format": "json",
+  "verification_contract": {
+    "geom_id_match_required": true,
+    "source_hash_required": true,
+    "operation_stub_presence_required": true,
+    "compiled_from_expected_input_required": true
+  },
+  "ready_for_p2": true,
+  "p2_handoff": {
+    "intended_role": "iut_mediation_input",
+    "used_in_domains": [
+      "quantum"
+    ],
+    "usage_modes": [
+      "general"
+    ]
+  },
+  "compiled_at": "2026-03-07T04:49:33.640736+00:00",
+  "input_hash": "dd5c91e9013db43908a109ba387dca8aa3b4b23ca7c75213b18c2df6627c8e6b",
+  "program_sha256": "c9aaac2eba7a9353114c5e5b8cdff0b99851658f3c66a2be896e12202333fd34"
+}

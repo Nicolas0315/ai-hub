@@ -1,0 +1,52 @@
+{
+  "program_id": "P1::rel_non_003",
+  "geom_id": "rel_non_003",
+  "program_layer": "P1",
+  "compiled_from": "S1::rel_non_003",
+  "runtime_type": "non_euclidean_single_geometry_runtime",
+  "object_model": {
+    "objects": [
+      "slice_manifold",
+      "spatial_metric",
+      "curvature_tensor"
+    ],
+    "object_runtime_family": "typed_geometry_objects",
+    "subtype": "riemannian_adm_slice"
+  },
+  "relation_model": {
+    "relations": [
+      "identity",
+      "curvature",
+      "comparison_map",
+      "local_euclid_recovery_reference"
+    ],
+    "relation_runtime_family": "typed_geometry_relations"
+  },
+  "operation_stubs": [
+    "identify_geometry",
+    "tag_for_program",
+    "map_compare",
+    "invariant_check",
+    "local_limit_recover"
+  ],
+  "serialization_format": "json",
+  "verification_contract": {
+    "geom_id_match_required": true,
+    "source_hash_required": true,
+    "operation_stub_presence_required": true,
+    "compiled_from_expected_input_required": true
+  },
+  "ready_for_p2": true,
+  "p2_handoff": {
+    "intended_role": "iut_mediation_input",
+    "used_in_domains": [
+      "relativity"
+    ],
+    "usage_modes": [
+      "general"
+    ]
+  },
+  "compiled_at": "2026-03-07T04:49:34.094986+00:00",
+  "input_hash": "cac0a41cc5fc75e6d7824789bb47e5590353f2152b0b7a8bee47b1aa641edcad",
+  "program_sha256": "432585d3f2e11561f077e85e1fcf9015948d9bb910cbee72d18e20e7f953a6bc"
+}

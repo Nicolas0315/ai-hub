@@ -1,0 +1,65 @@
+{
+  "source_id": "S1::rel_non_002",
+  "geom_id": "rel_non_002",
+  "source_layer": "S1",
+  "name": "Lorentzian pseudo-Riemannian spacetime",
+  "geometry_class": "non_euclidean",
+  "subtype": "lorentzian_pseudo_riemannian",
+  "used_in_domains": [
+    "relativity"
+  ],
+  "usage_modes": [
+    "general"
+  ],
+  "definition_level": "normalized_source",
+  "core_objects": [
+    "manifold",
+    "metric_tensor",
+    "connection",
+    "geodesic"
+  ],
+  "core_relations": [
+    "identity",
+    "curvature",
+    "comparison_map",
+    "causal_structure",
+    "local_euclid_recovery_reference"
+  ],
+  "required_operations": [
+    "identify_geometry",
+    "tag_for_program",
+    "map_compare",
+    "invariant_check",
+    "causal_compare",
+    "local_limit_recover"
+  ],
+  "p_layer_target": {
+    "program_family": "relativity_geometry_compiler",
+    "compiler_profile": "relativity_non_euclidean_general"
+  },
+  "formalization_status": "normalized",
+  "source_refs": [
+    "L1::rel_non_002"
+  ],
+  "legacy_fields": {
+    "asset_kind": "geometry_binary_placeholder",
+    "materialization_status": "planned",
+    "sha256": null,
+    "hash_required_when_materialized": true,
+    "intended_consumers": [
+      "P1",
+      "M1"
+    ],
+    "notes": "Enumerated geometry asset placeholder mirrored from L1 semantic ledger."
+  },
+  "asset_kind": "geometry_normalized_source",
+  "binary_format": "json",
+  "producer": "inf_brain_p1_compiler_v2_20260307.py",
+  "created_at": "2026-03-07T04:49:34.083744+00:00",
+  "intended_consumers": [
+    "P1",
+    "P2",
+    "M1"
+  ],
+  "sha256": "c5a4d6dde5042dd5064cf5ac1e898f220e68d0e070b0c9d8c290f72b10f48705"
+}

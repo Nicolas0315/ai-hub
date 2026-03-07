@@ -1,0 +1,63 @@
+{
+  "source_id": "S1::q_non_005",
+  "geom_id": "q_non_005",
+  "source_layer": "S1",
+  "name": "Poisson geometry for classical-quantum correspondence",
+  "geometry_class": "non_euclidean",
+  "subtype": "poisson",
+  "used_in_domains": [
+    "quantum"
+  ],
+  "usage_modes": [
+    "general"
+  ],
+  "definition_level": "normalized_source",
+  "core_objects": [
+    "phase_space",
+    "poisson_bracket"
+  ],
+  "core_relations": [
+    "identity",
+    "curvature",
+    "comparison_map",
+    "phase_relation",
+    "local_euclid_recovery_reference"
+  ],
+  "required_operations": [
+    "identify_geometry",
+    "tag_for_program",
+    "map_compare",
+    "invariant_check",
+    "form_evaluate",
+    "bracket_compare"
+  ],
+  "p_layer_target": {
+    "program_family": "quantum_geometry_compiler",
+    "compiler_profile": "quantum_non_euclidean_general"
+  },
+  "formalization_status": "normalized",
+  "source_refs": [
+    "L1::q_non_005"
+  ],
+  "legacy_fields": {
+    "asset_kind": "geometry_binary_placeholder",
+    "materialization_status": "planned",
+    "sha256": null,
+    "hash_required_when_materialized": true,
+    "intended_consumers": [
+      "P1",
+      "M1"
+    ],
+    "notes": "Enumerated geometry asset placeholder mirrored from L1 semantic ledger."
+  },
+  "asset_kind": "geometry_normalized_source",
+  "binary_format": "json",
+  "producer": "inf_brain_p1_compiler_v2_20260307.py",
+  "created_at": "2026-03-07T04:49:33.987724+00:00",
+  "intended_consumers": [
+    "P1",
+    "P2",
+    "M1"
+  ],
+  "sha256": "605d3a38d40425140f7f5b21bfe10701d4e3a8b485880f744ba7e926ef0771a6"
+}

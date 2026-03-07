@@ -1,0 +1,156 @@
+{
+  "schema": "inf-brain-p1-compile-summary-v2",
+  "compiled_count": 21,
+  "all_pass": true,
+  "all_ready_for_p2": true,
+  "results": [
+    {
+      "geom_id": "q_euc_001",
+      "artifact_dir": "/mnt/c/Users/ogosh/Documents/NICOLAS/Katala/inf-Coding/inf-Coding-Assist/P1_artifacts_20260307_v2/q_euc_001",
+      "pass": true,
+      "runtime_type": "euclidean_single_geometry_runtime",
+      "ready_for_p2": true
+    },
+    {
+      "geom_id": "q_euc_002",
+      "artifact_dir": "/mnt/c/Users/ogosh/Documents/NICOLAS/Katala/inf-Coding/inf-Coding-Assist/P1_artifacts_20260307_v2/q_euc_002",
+      "pass": true,
+      "runtime_type": "euclidean_single_geometry_runtime",
+      "ready_for_p2": true
+    },
+    {
+      "geom_id": "q_euc_003",
+      "artifact_dir": "/mnt/c/Users/ogosh/Documents/NICOLAS/Katala/inf-Coding/inf-Coding-Assist/P1_artifacts_20260307_v2/q_euc_003",
+      "pass": true,
+      "runtime_type": "euclidean_single_geometry_runtime",
+      "ready_for_p2": true
+    },
+    {
+      "geom_id": "q_euc_004",
+      "artifact_dir": "/mnt/c/Users/ogosh/Documents/NICOLAS/Katala/inf-Coding/inf-Coding-Assist/P1_artifacts_20260307_v2/q_euc_004",
+      "pass": true,
+      "runtime_type": "euclidean_single_geometry_runtime",
+      "ready_for_p2": true
+    },
+    {
+      "geom_id": "q_non_001",
+      "artifact_dir": "/mnt/c/Users/ogosh/Documents/NICOLAS/Katala/inf-Coding/inf-Coding-Assist/P1_artifacts_20260307_v2/q_non_001",
+      "pass": true,
+      "runtime_type": "non_euclidean_single_geometry_runtime",
+      "ready_for_p2": true
+    },
+    {
+      "geom_id": "q_non_002",
+      "artifact_dir": "/mnt/c/Users/ogosh/Documents/NICOLAS/Katala/inf-Coding/inf-Coding-Assist/P1_artifacts_20260307_v2/q_non_002",
+      "pass": true,
+      "runtime_type": "non_euclidean_single_geometry_runtime",
+      "ready_for_p2": true
+    },
+    {
+      "geom_id": "q_non_003",
+      "artifact_dir": "/mnt/c/Users/ogosh/Documents/NICOLAS/Katala/inf-Coding/inf-Coding-Assist/P1_artifacts_20260307_v2/q_non_003",
+      "pass": true,
+      "runtime_type": "non_euclidean_single_geometry_runtime",
+      "ready_for_p2": true
+    },
+    {
+      "geom_id": "q_non_004",
+      "artifact_dir": "/mnt/c/Users/ogosh/Documents/NICOLAS/Katala/inf-Coding/inf-Coding-Assist/P1_artifacts_20260307_v2/q_non_004",
+      "pass": true,
+      "runtime_type": "non_euclidean_single_geometry_runtime",
+      "ready_for_p2": true
+    },
+    {
+      "geom_id": "q_non_005",
+      "artifact_dir": "/mnt/c/Users/ogosh/Documents/NICOLAS/Katala/inf-Coding/inf-Coding-Assist/P1_artifacts_20260307_v2/q_non_005",
+      "pass": true,
+      "runtime_type": "non_euclidean_single_geometry_runtime",
+      "ready_for_p2": true
+    },
+    {
+      "geom_id": "q_non_006",
+      "artifact_dir": "/mnt/c/Users/ogosh/Documents/NICOLAS/Katala/inf-Coding/inf-Coding-Assist/P1_artifacts_20260307_v2/q_non_006",
+      "pass": true,
+      "runtime_type": "non_euclidean_single_geometry_runtime",
+      "ready_for_p2": true
+    },
+    {
+      "geom_id": "q_non_007",
+      "artifact_dir": "/mnt/c/Users/ogosh/Documents/NICOLAS/Katala/inf-Coding/inf-Coding-Assist/P1_artifacts_20260307_v2/q_non_007",
+      "pass": true,
+      "runtime_type": "non_euclidean_single_geometry_runtime",
+      "ready_for_p2": true
+    },
+    {
+      "geom_id": "rel_euc_001",
+      "artifact_dir": "/mnt/c/Users/ogosh/Documents/NICOLAS/Katala/inf-Coding/inf-Coding-Assist/P1_artifacts_20260307_v2/rel_euc_001",
+      "pass": true,
+      "runtime_type": "euclidean_single_geometry_runtime",
+      "ready_for_p2": true
+    },
+    {
+      "geom_id": "rel_euc_002",
+      "artifact_dir": "/mnt/c/Users/ogosh/Documents/NICOLAS/Katala/inf-Coding/inf-Coding-Assist/P1_artifacts_20260307_v2/rel_euc_002",
+      "pass": true,
+      "runtime_type": "euclidean_single_geometry_runtime",
+      "ready_for_p2": true
+    },
+    {
+      "geom_id": "rel_euc_003",
+      "artifact_dir": "/mnt/c/Users/ogosh/Documents/NICOLAS/Katala/inf-Coding/inf-Coding-Assist/P1_artifacts_20260307_v2/rel_euc_003",
+      "pass": true,
+      "runtime_type": "euclidean_single_geometry_runtime",
+      "ready_for_p2": true
+    },
+    {
+      "geom_id": "rel_euc_004",
+      "artifact_dir": "/mnt/c/Users/ogosh/Documents/NICOLAS/Katala/inf-Coding/inf-Coding-Assist/P1_artifacts_20260307_v2/rel_euc_004",
+      "pass": true,
+      "runtime_type": "euclidean_single_geometry_runtime",
+      "ready_for_p2": true
+    },
+    {
+      "geom_id": "rel_non_001",
+      "artifact_dir": "/mnt/c/Users/ogosh/Documents/NICOLAS/Katala/inf-Coding/inf-Coding-Assist/P1_artifacts_20260307_v2/rel_non_001",
+      "pass": true,
+      "runtime_type": "non_euclidean_single_geometry_runtime",
+      "ready_for_p2": true
+    },
+    {
+      "geom_id": "rel_non_002",
+      "artifact_dir": "/mnt/c/Users/ogosh/Documents/NICOLAS/Katala/inf-Coding/inf-Coding-Assist/P1_artifacts_20260307_v2/rel_non_002",
+      "pass": true,
+      "runtime_type": "non_euclidean_single_geometry_runtime",
+      "ready_for_p2": true
+    },
+    {
+      "geom_id": "rel_non_003",
+      "artifact_dir": "/mnt/c/Users/ogosh/Documents/NICOLAS/Katala/inf-Coding/inf-Coding-Assist/P1_artifacts_20260307_v2/rel_non_003",
+      "pass": true,
+      "runtime_type": "non_euclidean_single_geometry_runtime",
+      "ready_for_p2": true
+    },
+    {
+      "geom_id": "rel_non_004",
+      "artifact_dir": "/mnt/c/Users/ogosh/Documents/NICOLAS/Katala/inf-Coding/inf-Coding-Assist/P1_artifacts_20260307_v2/rel_non_004",
+      "pass": true,
+      "runtime_type": "non_euclidean_single_geometry_runtime",
+      "ready_for_p2": true
+    },
+    {
+      "geom_id": "rel_non_005",
+      "artifact_dir": "/mnt/c/Users/ogosh/Documents/NICOLAS/Katala/inf-Coding/inf-Coding-Assist/P1_artifacts_20260307_v2/rel_non_005",
+      "pass": true,
+      "runtime_type": "non_euclidean_single_geometry_runtime",
+      "ready_for_p2": true
+    },
+    {
+      "geom_id": "rel_non_006",
+      "artifact_dir": "/mnt/c/Users/ogosh/Documents/NICOLAS/Katala/inf-Coding/inf-Coding-Assist/P1_artifacts_20260307_v2/rel_non_006",
+      "pass": true,
+      "runtime_type": "non_euclidean_single_geometry_runtime",
+      "ready_for_p2": true
+    }
+  ],
+  "output_root": "/mnt/c/Users/ogosh/Documents/NICOLAS/Katala/inf-Coding/inf-Coding-Assist/P1_artifacts_20260307_v2"
+}

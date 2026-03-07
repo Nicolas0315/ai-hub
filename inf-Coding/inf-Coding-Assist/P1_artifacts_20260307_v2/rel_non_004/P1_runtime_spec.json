@@ -1,0 +1,52 @@
+{
+  "program_id": "P1::rel_non_004",
+  "geom_id": "rel_non_004",
+  "program_layer": "P1",
+  "compiled_from": "S1::rel_non_004",
+  "runtime_type": "non_euclidean_single_geometry_runtime",
+  "object_model": {
+    "objects": [
+      "manifold",
+      "metric_tensor",
+      "curvature_scale"
+    ],
+    "object_runtime_family": "typed_geometry_objects",
+    "subtype": "de_sitter_anti_de_sitter"
+  },
+  "relation_model": {
+    "relations": [
+      "identity",
+      "curvature",
+      "comparison_map",
+      "local_euclid_recovery_reference"
+    ],
+    "relation_runtime_family": "typed_geometry_relations"
+  },
+  "operation_stubs": [
+    "identify_geometry",
+    "tag_for_program",
+    "map_compare",
+    "invariant_check",
+    "local_limit_recover"
+  ],
+  "serialization_format": "json",
+  "verification_contract": {
+    "geom_id_match_required": true,
+    "source_hash_required": true,
+    "operation_stub_presence_required": true,
+    "compiled_from_expected_input_required": true
+  },
+  "ready_for_p2": true,
+  "p2_handoff": {
+    "intended_role": "iut_mediation_input",
+    "used_in_domains": [
+      "relativity"
+    ],
+    "usage_modes": [
+      "general"
+    ]
+  },
+  "compiled_at": "2026-03-07T04:49:34.138881+00:00",
+  "input_hash": "59d659a1cc759a6ff0cfdbcf8a611af918b6d9e173cdda7797595ba79c8811b6",
+  "program_sha256": "4f9fdf750f60c3e3b72c66315c2ab3e446a5fd40b8b5ea78b61e2421adc28a4a"
+}
