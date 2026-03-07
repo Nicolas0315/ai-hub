@@ -1,0 +1,20 @@
+{
+  "schema": "inf-physics-formula-inventory-seed-v1",
+  "description": "Seed inventory placeholder for physics equations to be collected under inf-Physics.",
+  "planned_groups": [
+    "special_relativity",
+    "general_relativity",
+    "quantum_mechanics",
+    "quantum_field_theory",
+    "gauge_theory",
+    "cosmology",
+    "statistical_physics",
+    "information_physics"
+  ],
+  "planned_assets": [
+    "relativity_core_quantity_table",
+    "quantum_core_quantity_table",
+    "category1_category2_correspondence_table",
+    "katala_unified_equation_candidates"
+  ]
+}
