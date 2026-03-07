@@ -12,9 +12,9 @@
         "geom_041",
         "q_euc_001"
       ],
-      "direct_euclid_reduction": false,
-      "local_euclid_recovery": false,
-      "limit_euclid_recovery": false,
+      "direct_euclid_execution": false,
+      "local_euclid_execution": false,
+      "limit_euclid_execution": false,
       "failure_reason": [
         "invariant_preservation_failure",
         "p2_mediation_failure"
@@ -38,9 +38,9 @@
         "geom_041",
         "q_euc_002"
       ],
-      "direct_euclid_reduction": false,
-      "local_euclid_recovery": false,
-      "limit_euclid_recovery": false,
+      "direct_euclid_execution": false,
+      "local_euclid_execution": false,
+      "limit_euclid_execution": false,
       "failure_reason": [
         "invariant_preservation_failure",
         "p2_mediation_failure"
@@ -64,9 +64,9 @@
         "geom_041",
         "q_euc_003"
       ],
-      "direct_euclid_reduction": false,
-      "local_euclid_recovery": false,
-      "limit_euclid_recovery": false,
+      "direct_euclid_execution": false,
+      "local_euclid_execution": false,
+      "limit_euclid_execution": false,
       "failure_reason": [
         "invariant_preservation_failure",
         "p2_mediation_failure"
@@ -90,9 +90,9 @@
         "geom_041",
         "q_euc_004"
       ],
-      "direct_euclid_reduction": false,
-      "local_euclid_recovery": false,
-      "limit_euclid_recovery": false,
+      "direct_euclid_execution": false,
+      "local_euclid_execution": false,
+      "limit_euclid_execution": false,
       "failure_reason": [
         "invariant_preservation_failure",
         "p2_mediation_failure"
@@ -116,9 +116,9 @@
         "geom_041",
         "rel_euc_001"
       ],
-      "direct_euclid_reduction": false,
-      "local_euclid_recovery": false,
-      "limit_euclid_recovery": false,
+      "direct_euclid_execution": false,
+      "local_euclid_execution": false,
+      "limit_euclid_execution": false,
       "failure_reason": [
         "invariant_preservation_failure",
         "p2_mediation_failure"
@@ -142,9 +142,9 @@
         "geom_041",
         "rel_euc_002"
       ],
-      "direct_euclid_reduction": false,
-      "local_euclid_recovery": false,
-      "limit_euclid_recovery": false,
+      "direct_euclid_execution": false,
+      "local_euclid_execution": false,
+      "limit_euclid_execution": false,
       "failure_reason": [
         "invariant_preservation_failure",
         "p2_mediation_failure"
@@ -168,9 +168,9 @@
         "geom_041",
         "rel_euc_003"
       ],
-      "direct_euclid_reduction": false,
-      "local_euclid_recovery": false,
-      "limit_euclid_recovery": false,
+      "direct_euclid_execution": false,
+      "local_euclid_execution": false,
+      "limit_euclid_execution": false,
       "failure_reason": [
         "invariant_preservation_failure",
         "p2_mediation_failure"
@@ -194,9 +194,9 @@
         "geom_041",
         "rel_euc_004"
       ],
-      "direct_euclid_reduction": false,
-      "local_euclid_recovery": false,
-      "limit_euclid_recovery": false,
+      "direct_euclid_execution": false,
+      "local_euclid_execution": false,
+      "limit_euclid_execution": false,
       "failure_reason": [
         "invariant_preservation_failure",
         "p2_mediation_failure"
@@ -220,9 +220,9 @@
         "geom_041",
         "rel_non_001"
       ],
-      "direct_euclid_reduction": false,
-      "local_euclid_recovery": false,
-      "limit_euclid_recovery": false,
+      "direct_euclid_execution": false,
+      "local_euclid_execution": false,
+      "limit_euclid_execution": false,
       "failure_reason": [
         "dimensional_inconsistency",
         "invariant_preservation_failure",
@@ -249,9 +249,9 @@
         "geom_041",
         "rel_non_002"
       ],
-      "direct_euclid_reduction": false,
-      "local_euclid_recovery": false,
-      "limit_euclid_recovery": false,
+      "direct_euclid_execution": false,
+      "local_euclid_execution": false,
+      "limit_euclid_execution": false,
       "failure_reason": [
         "dimensional_inconsistency",
         "invariant_preservation_failure",
@@ -278,9 +278,9 @@
         "geom_041",
         "rel_non_003"
       ],
-      "direct_euclid_reduction": false,
-      "local_euclid_recovery": false,
-      "limit_euclid_recovery": false,
+      "direct_euclid_execution": false,
+      "local_euclid_execution": false,
+      "limit_euclid_execution": false,
       "failure_reason": [
         "dimensional_inconsistency",
         "invariant_preservation_failure",
@@ -307,9 +307,9 @@
         "geom_041",
         "rel_non_004"
       ],
-      "direct_euclid_reduction": false,
-      "local_euclid_recovery": false,
-      "limit_euclid_recovery": false,
+      "direct_euclid_execution": false,
+      "local_euclid_execution": false,
+      "limit_euclid_execution": false,
       "failure_reason": [
         "dimensional_inconsistency",
         "invariant_preservation_failure",
@@ -336,9 +336,9 @@
         "geom_041",
         "rel_non_005"
       ],
-      "direct_euclid_reduction": false,
-      "local_euclid_recovery": false,
-      "limit_euclid_recovery": false,
+      "direct_euclid_execution": false,
+      "local_euclid_execution": false,
+      "limit_euclid_execution": false,
       "failure_reason": [
         "dimensional_inconsistency",
         "invariant_preservation_failure",
@@ -365,9 +365,9 @@
         "geom_041",
         "rel_non_006"
       ],
-      "direct_euclid_reduction": false,
-      "local_euclid_recovery": false,
-      "limit_euclid_recovery": false,
+      "direct_euclid_execution": false,
+      "local_euclid_execution": false,
+      "limit_euclid_execution": false,
       "failure_reason": [
         "dimensional_inconsistency",
         "invariant_preservation_failure",
@@ -394,9 +394,9 @@
         "geom_041",
         "x_022"
       ],
-      "direct_euclid_reduction": false,
-      "local_euclid_recovery": false,
-      "limit_euclid_recovery": false,
+      "direct_euclid_execution": false,
+      "local_euclid_execution": false,
+      "limit_euclid_execution": false,
       "failure_reason": [
         "invariant_preservation_failure",
         "p2_mediation_failure"
@@ -420,9 +420,9 @@
         "geom_041",
         "x_023"
       ],
-      "direct_euclid_reduction": false,
-      "local_euclid_recovery": false,
-      "limit_euclid_recovery": false,
+      "direct_euclid_execution": false,
+      "local_euclid_execution": false,
+      "limit_euclid_execution": false,
       "failure_reason": [
         "invariant_preservation_failure",
         "p2_mediation_failure"
@@ -446,9 +446,9 @@
         "geom_041",
         "x_024"
       ],
-      "direct_euclid_reduction": false,
-      "local_euclid_recovery": false,
-      "limit_euclid_recovery": false,
+      "direct_euclid_execution": false,
+      "local_euclid_execution": false,
+      "limit_euclid_execution": false,
       "failure_reason": [
         "invariant_preservation_failure",
         "p2_mediation_failure"
@@ -472,9 +472,9 @@
         "geom_041",
         "x_025"
       ],
-      "direct_euclid_reduction": false,
-      "local_euclid_recovery": false,
-      "limit_euclid_recovery": false,
+      "direct_euclid_execution": false,
+      "local_euclid_execution": false,
+      "limit_euclid_execution": false,
       "failure_reason": [
         "invariant_preservation_failure",
         "p2_mediation_failure"
@@ -498,9 +498,9 @@
         "geom_041",
         "x_032"
       ],
-      "direct_euclid_reduction": false,
-      "local_euclid_recovery": false,
-      "limit_euclid_recovery": false,
+      "direct_euclid_execution": false,
+      "local_euclid_execution": false,
+      "limit_euclid_execution": false,
       "failure_reason": [
         "dimensional_inconsistency",
         "invariant_preservation_failure",
@@ -527,9 +527,9 @@
         "geom_041",
         "x_033"
       ],
-      "direct_euclid_reduction": false,
-      "local_euclid_recovery": false,
-      "limit_euclid_recovery": false,
+      "direct_euclid_execution": false,
+      "local_euclid_execution": false,
+      "limit_euclid_execution": false,
       "failure_reason": [
         "dimensional_inconsistency",
         "invariant_preservation_failure",

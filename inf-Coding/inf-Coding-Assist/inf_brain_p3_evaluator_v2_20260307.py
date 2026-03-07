@@ -101,9 +101,9 @@ def main() -> int:
             'p3_id': f"P3::{rep['handoff_id']}",
             'computation_input': rep['handoff_id'],
             'geom_ids': rep['geom_ids'],
-            'direct_euclid_reduction': direct_ok,
-            'local_euclid_recovery': local_ok,
-            'limit_euclid_recovery': limit_ok,
+            'direct_euclid_execution': direct_ok,
+            'local_euclid_execution': local_ok,
+            'limit_euclid_execution': limit_ok,
             'failure_reason': reasons,
             'feedback_to_p2': feedback,
             'final_status': 'success' if direct_ok else ('conditional_success' if (local_ok or limit_ok) else 'revise_p2')

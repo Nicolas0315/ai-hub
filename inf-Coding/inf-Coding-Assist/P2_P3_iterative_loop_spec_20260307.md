@@ -35,7 +35,8 @@ P2 must define:
 - `input_geometries`
 - `bridge_fields`
 - `invariant_targets`
-- `unified_outputs`
+- `euclid_bridge_mode`
+- `euclidean_usable_outputs`
 - `revision_id`
 
 ## P3 responsibilities
@@ -49,22 +50,22 @@ P3 must:
 
 ### Required P3 output fields
 - `computation_input`
-- `direct_euclid_reduction`
-- `local_euclid_recovery`
-- `limit_euclid_recovery`
+- `direct_euclid_execution`
+- `local_euclid_execution`
+- `limit_euclid_execution`
 - `failure_reason`
 - `feedback_to_p2`
 
 ## Acceptance logic
 
 ### Case A
-If `direct_euclid_reduction == true`, the loop is considered successful.
+If `direct_euclid_execution == true`, the loop is considered successful.
 
 ### Case B
-If direct reduction fails but `local_euclid_recovery == true`, the loop is conditionally successful.
+If direct execution fails but `local_euclid_execution == true`, the loop is conditionally successful.
 
 ### Case C
-If direct and local reduction fail but `limit_euclid_recovery == true`, the loop is conditionally successful.
+If direct and local execution fail but `limit_euclid_execution == true`, the loop is conditionally successful.
 
 ### Case D
 If all three fail, then P2 must be revised.
