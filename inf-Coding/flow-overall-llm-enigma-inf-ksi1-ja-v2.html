@@ -1,0 +1,44 @@
+<!doctype html><html><head><meta charset="utf-8"><title>全体フロー v2</title><style>body{margin:0;background:#fff;font-family:'Noto Sans CJK JP',Arial,sans-serif}svg{display:block;margin:auto;background:#fff}.box{fill:#fff;stroke:#1f2937;stroke-width:2;rx:14;ry:14}.decision{fill:#fff;stroke:#1f2937;stroke-width:2}.block{fill:#ffecec;stroke:#b91c1c;stroke-width:2;rx:14;ry:14}.group{fill:#f8fafc;stroke:#94a3b8;stroke-width:1.5;stroke-dasharray:7 6;rx:14;ry:14}.txt{font-size:15px;fill:#0f172a;text-anchor:middle;dominant-baseline:middle}.small{font-size:13px;fill:#334155}.title{font-size:25px;font-weight:700;fill:#111827;text-anchor:middle}.line{stroke:#334155;stroke-width:2.2;fill:none;marker-end:url(#arrow)}.loop{stroke:#0ea5e9;stroke-width:2.4;fill:none;marker-end:url(#arrow2)}.note{font-size:12px;fill:#0369a1}.lane{font-size:12px;fill:#475569}</style></head><body><svg width="2100" height="3300" viewBox="0 0 2100 3300" xmlns="http://www.w3.org/2000/svg"><defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#334155"/></marker><marker id="arrow2" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#0ea5e9"/></marker></defs><text class="title" x="1050" y="36">LLM → Enigma → inf-Coding → KSi1（内部）→ 出力（見やすさ強化版）</text><text class="lane" x="200" y="85">外部入力</text><text class="lane" x="200" y="650">実行制御</text><text class="lane" x="200" y="980">KSi1 内部</text><text class="lane" x="200" y="2400">出力/改善</text>
+
+<rect class="box" x="760" y="80" width="580" height="92"/><text class="txt" x="1050" y="112">LLM 出力</text><text class="txt small" x="1050" y="138">応答 / ツール計画</text>
+<rect class="box" x="760" y="214" width="580" height="92"/><text class="txt" x="1050" y="246">Enigma (OpenClaw Agent)</text><text class="txt small" x="1050" y="272">意図解釈 + ツールオーケストレーション</text>
+<rect class="box" x="760" y="348" width="580" height="92"/><text class="txt" x="1050" y="380">inf-Coding 入口</text><text class="txt small" x="1050" y="406">guard.sh + order-enforce.sh</text>
+<polygon class="decision" points="1050,480 1220,545 1050,610 880,545"/><text class="txt" x="1050" y="545">assist-on ?</text>
+<rect class="block" x="1420" y="510" width="330" height="72"/><text class="txt" x="1585" y="546">BLOCKED</text>
+<rect class="box" x="760" y="660" width="580" height="92"/><text class="txt" x="1050" y="692">inf-Coding-Assist</text><text class="txt small" x="1050" y="718">ksi1-route.sh</text>
+<rect class="box" x="760" y="794" width="580" height="92"/><text class="txt" x="1050" y="826">KSi1 Router</text><text class="txt small" x="1050" y="852">ksi1-router.py（fast / strict）</text>
+
+<rect class="group" x="300" y="930" width="1500" height="1380"/><text class="small" x="390" y="952">KSi1 内部処理領域</text>
+<rect class="box" x="760" y="980" width="580" height="92"/><text class="txt" x="1050" y="1012">KSi1 エントリ</text><text class="txt small" x="1050" y="1038">Katala_Samurai_inf_000001.verify</text>
+<polygon class="decision" points="1050,1112 1250,1188 1050,1264 850,1188"/><text class="txt" x="1050" y="1182">KSバックエンド利用可?</text>
+<rect class="box" x="360" y="1330" width="560" height="108"/><text class="txt" x="640" y="1365">フル経路</text><text class="txt small" x="640" y="1392">KS42c → L1 S1..S28 ソルバー</text>
+<rect class="box" x="1180" y="1330" width="560" height="108"/><text class="txt" x="1460" y="1365">フォールバック経路</text><text class="txt small" x="1460" y="1392">fallback-no-ks42c</text>
+<rect class="box" x="760" y="1505" width="580" height="92"/><text class="txt" x="1050" y="1538">結果正規化</text><text class="txt small" x="1050" y="1564">verdict / confidence / final_score</text>
+<rect class="box" x="760" y="1640" width="580" height="92"/><text class="txt" x="1050" y="1672">bridge payload 生成</text><text class="txt small" x="1050" y="1698">alias=KSi1 + route reason + metrics</text>
+<rect class="box" x="760" y="1775" width="580" height="92"/><text class="txt" x="1050" y="1807">Adapter emit</text><text class="txt small" x="1050" y="1833">emit_router_event / emit_bridge_output</text>
+<rect class="box" x="760" y="1910" width="580" height="92"/><text class="txt" x="1050" y="1942">Router に返却</text><text class="txt small" x="1050" y="1968">route + reason + verdict</text>
+
+<rect class="box" x="760" y="2055" width="580" height="92"/><text class="txt" x="1050" y="2087">ルート決定</text><text class="txt small" x="1050" y="2113">fast / strict</text>
+<rect class="box" x="760" y="2190" width="580" height="92"/><text class="txt" x="1050" y="2222">コマンド実行</text><text class="txt small" x="1050" y="2248">assist-exec 経由（Katala）</text>
+<rect class="box" x="760" y="2325" width="580" height="72"/><text class="txt" x="1050" y="2361">実行出力</text>
+<rect class="box" x="760" y="2445" width="580" height="92"/><text class="txt" x="1050" y="2477">NDJSON 書き込み</text><text class="txt small" x="1050" y="2503">inf-Coding-run/ksi-bridge.ndjson</text>
+<rect class="box" x="760" y="2580" width="580" height="92"/><text class="txt" x="1050" y="2612">分析</text><text class="txt small" x="1050" y="2638">ksi1-analyze.sh</text>
+<rect class="box" x="760" y="2715" width="580" height="92"/><text class="txt" x="1050" y="2747">閾値 / パターン調整</text><text class="txt small" x="1050" y="2773">strict率最適化</text>
+<rect class="box" x="760" y="2850" width="580" height="92"/><text class="txt" x="1050" y="2882">最終ユーザー出力</text><text class="txt small" x="1050" y="2908">Discord 返信 / レポート</text>
+
+<!-- normal arrows -->
+<path class="line" d="M1050,172 L1050,214"/><path class="line" d="M1050,306 L1050,348"/><path class="line" d="M1050,440 L1050,480"/>
+<path class="line" d="M1220,545 L1420,546"/><text class="small" x="1305" y="526">No</text>
+<path class="line" d="M1050,610 L1050,660"/><text class="small" x="1072" y="636">Yes</text>
+<path class="line" d="M1050,752 L1050,794"/><path class="line" d="M1050,886 L1050,980"/><path class="line" d="M1050,1072 L1050,1112"/>
+<path class="line" d="M960,1244 L640,1330"/><text class="small" x="785" y="1265">Yes</text>
+<path class="line" d="M1140,1244 L1460,1330"/><text class="small" x="1320" y="1265">No</text>
+<path class="line" d="M640,1438 L640,1470 L1050,1470 L1050,1505"/><path class="line" d="M1460,1438 L1460,1470 L1050,1470 L1050,1505"/>
+<path class="line" d="M1050,1597 L1050,1640"/><path class="line" d="M1050,1732 L1050,1775"/><path class="line" d="M1050,1867 L1050,1910"/><path class="line" d="M1050,2002 L1050,2055"/><path class="line" d="M1050,2147 L1050,2190"/><path class="line" d="M1050,2282 L1050,2325"/><path class="line" d="M1050,2397 L1050,2445"/><path class="line" d="M1050,2537 L1050,2580"/><path class="line" d="M1050,2672 L1050,2715"/><path class="line" d="M1050,2807 L1050,2850"/>
+
+<!-- enhanced loop arrows -->
+<path class="loop" d="M760,2625 C500,2625 500,2125 760,2125"/><text class="note" x="490" y="2380">分析結果でルータ閾値更新</text>
+<path class="loop" d="M1340,2760 C1700,2760 1700,860 1340,860"/><text class="note" x="1710" y="1820">調整内容を次回実行に反映</text>
+<path class="loop" d="M1740,546 C1890,546 1890,305 1220,305"/><text class="note" x="1865" y="430">assist-off時は停止して入口へ戻る</text>
+<path class="loop" d="M1340,1940 C1530,1940 1530,2050 1340,2050"/><text class="note" x="1545" y="2008">返却結果で最終route確定</text>
+</svg></body></html>

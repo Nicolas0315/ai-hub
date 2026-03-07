@@ -1,0 +1,75 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Overall Flow</title>
+<style>
+body{margin:0;background:#fff;font-family:Arial,sans-serif}
+svg{display:block;margin:auto;background:#fff}
+.box{fill:#fff;stroke:#222;stroke-width:2;rx:12;ry:12}
+.decision{fill:#fff;stroke:#222;stroke-width:2}
+.block{fill:#ffecec;stroke:#b33;stroke-width:2;rx:12;ry:12}
+.group{fill:none;stroke:#888;stroke-width:1.5;stroke-dasharray:6 5;rx:14;ry:14}
+.txt{font-size:15px;fill:#111;text-anchor:middle;dominant-baseline:middle}
+.small{font-size:13px;fill:#333}
+.title{font-size:24px;font-weight:700;fill:#111;text-anchor:middle}
+.line{stroke:#444;stroke-width:2;fill:none;marker-end:url(#arrow)}
+</style></head><body>
+<svg width="1900" height="3200" viewBox="0 0 1900 3200" xmlns="http://www.w3.org/2000/svg">
+<defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#444"/></marker></defs>
+<text class="title" x="950" y="38">LLM → Enigma → inf-Coding → KSi1 (Internal) → Output : Overall Flow</text>
+
+<!-- outer stages -->
+<rect class="box" x="670" y="80" width="560" height="90"/><text class="txt" x="950" y="112">LLM (Model Output)</text><text class="txt small" x="950" y="138">prompt response / tool plans</text>
+<rect class="box" x="670" y="210" width="560" height="90"/><text class="txt" x="950" y="242">Enigma (OpenClaw Agent)</text><text class="txt small" x="950" y="268">intent parse + tool orchestration</text>
+<rect class="box" x="670" y="340" width="560" height="90"/><text class="txt" x="950" y="372">inf-Coding Entry</text><text class="txt small" x="950" y="398">guard.sh + order-enforce.sh</text>
+<polygon class="decision" points="950,470 1110,530 950,590 790,530"/><text class="txt" x="950" y="530">assist-on ?</text>
+<rect class="block" x="1260" y="495" width="320" height="70"/><text class="txt" x="1420" y="530">BLOCKED</text>
+<rect class="box" x="670" y="640" width="560" height="90"/><text class="txt" x="950" y="672">inf-Coding-Assist</text><text class="txt small" x="950" y="698">ksi1-route.sh</text>
+<rect class="box" x="670" y="770" width="560" height="90"/><text class="txt" x="950" y="802">KSi1 Router</text><text class="txt small" x="950" y="828">ksi1-router.py (fast/strict)</text>
+
+<!-- internal KSi1 group -->
+<rect class="group" x="260" y="900" width="1380" height="1320"/>
+<text class="small" x="340" y="922">KSi1 Internal</text>
+
+<rect class="box" x="670" y="940" width="560" height="90"/><text class="txt" x="950" y="972">KSi1 Entry</text><text class="txt small" x="950" y="998">Katala_Samurai_inf_000001.verify</text>
+<polygon class="decision" points="950,1065 1140,1135 950,1205 760,1135"/><text class="txt" x="950" y="1125">KS backend ready?</text>
+
+<rect class="box" x="320" y="1270" width="520" height="100"/><text class="txt" x="580" y="1304">Full Path Branch</text><text class="txt small" x="580" y="1330">KS42c verify → L1 S1..S28 solvers</text>
+<rect class="box" x="1060" y="1270" width="520" height="100"/><text class="txt" x="1320" y="1304">Fallback Branch</text><text class="txt small" x="1320" y="1330">fallback-no-ks42c heuristic scoring</text>
+
+<rect class="box" x="670" y="1430" width="560" height="90"/><text class="txt" x="950" y="1462">Result Normalize</text><text class="txt small" x="950" y="1488">verdict / confidence / final_score</text>
+<rect class="box" x="670" y="1560" width="560" height="90"/><text class="txt" x="950" y="1592">Bridge Payload Build</text><text class="txt small" x="950" y="1618">alias=KSi1 + status + metrics</text>
+<rect class="box" x="670" y="1690" width="560" height="90"/><text class="txt" x="950" y="1722">emit_router_event / emit_bridge_output</text><text class="txt small" x="950" y="1748">inf_coding_adapter.py</text>
+<rect class="box" x="670" y="1820" width="560" height="90"/><text class="txt" x="950" y="1852">Return to Router</text><text class="txt small" x="950" y="1878">route reason + verdict</text>
+
+<rect class="box" x="670" y="1980" width="560" height="90"/><text class="txt" x="950" y="2012">Route Decision</text><text class="txt small" x="950" y="2038">fast / strict</text>
+<rect class="box" x="670" y="2110" width="560" height="90"/><text class="txt" x="950" y="2142">Execute Command</text><text class="txt small" x="950" y="2168">Katala workspace via assist-exec</text>
+<rect class="box" x="670" y="2240" width="560" height="70"/><text class="txt" x="950" y="2275">Command Output</text>
+<rect class="box" x="670" y="2350" width="560" height="90"/><text class="txt" x="950" y="2382">Adapter NDJSON Write</text><text class="txt small" x="950" y="2408">inf-Coding-run/ksi-bridge.ndjson</text>
+<rect class="box" x="670" y="2480" width="560" height="90"/><text class="txt" x="950" y="2512">Analyze</text><text class="txt small" x="950" y="2538">ksi1-analyze.sh summary</text>
+<rect class="box" x="670" y="2610" width="560" height="90"/><text class="txt" x="950" y="2642">Feedback / Tuning</text><text class="txt small" x="950" y="2668">threshold + patterns update</text>
+<rect class="box" x="670" y="2740" width="560" height="90"/><text class="txt" x="950" y="2772">Final User-visible Output</text><text class="txt small" x="950" y="2798">Discord message / report</text>
+
+<!-- edges -->
+<path class="line" d="M950,170 L950,210"/>
+<path class="line" d="M950,300 L950,340"/>
+<path class="line" d="M950,430 L950,470"/>
+<path class="line" d="M1110,530 L1260,530"/><text class="small" x="1170" y="514">No</text>
+<path class="line" d="M950,590 L950,640"/><text class="small" x="970" y="620">Yes</text>
+<path class="line" d="M950,730 L950,770"/>
+<path class="line" d="M950,860 L950,940"/>
+<path class="line" d="M950,1030 L950,1065"/>
+<path class="line" d="M870,1180 L580,1270"/><text class="small" x="690" y="1200">Yes</text>
+<path class="line" d="M1030,1180 L1320,1270"/><text class="small" x="1170" y="1200">No</text>
+<path class="line" d="M580,1370 L580,1400 L950,1400 L950,1430"/>
+<path class="line" d="M1320,1370 L1320,1400 L950,1400 L950,1430"/>
+<path class="line" d="M950,1520 L950,1560"/>
+<path class="line" d="M950,1650 L950,1690"/>
+<path class="line" d="M950,1780 L950,1820"/>
+<path class="line" d="M950,1910 L950,1980"/>
+<path class="line" d="M950,2070 L950,2110"/>
+<path class="line" d="M950,2200 L950,2240"/>
+<path class="line" d="M950,2310 L950,2350"/>
+<path class="line" d="M950,2440 L950,2480"/>
+<path class="line" d="M950,2570 L950,2610"/>
+<path class="line" d="M950,2700 L950,2740"/>
+</svg>
+</body></html>

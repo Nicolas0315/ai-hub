@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="900" viewBox="0 0 1400 900">
+  <defs>
+    <style>
+      .title { font: 700 34px Arial, sans-serif; fill: #111; }
+      .box { fill: #f8fafc; stroke: #1e3a8a; stroke-width: 2; rx: 14; ry: 14; }
+      .label { font: 700 20px Arial, sans-serif; fill: #0f172a; }
+      .sub { font: 400 15px Arial, sans-serif; fill: #334155; }
+      .arrow { stroke: #1d4ed8; stroke-width: 3; fill: none; marker-end: url(#arrowhead); }
+      .rule { font: 600 16px Arial, sans-serif; fill: #111827; }
+    </style>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#1d4ed8" />
+    </marker>
+  </defs>
+
+  <text x="40" y="55" class="title">Enigma / inf-Coding / Katala State Flow (Order-coupled)</text>
+
+  <rect x="60" y="120" width="220" height="90" class="box"/>
+  <text x="110" y="155" class="label">Human Order</text>
+  <text x="95" y="180" class="sub">katala-on/off, assist-on/off</text>
+
+  <rect x="340" y="120" width="260" height="90" class="box"/>
+  <text x="380" y="155" class="label">inf-Coding-Order</text>
+  <text x="360" y="180" class="sub">order-set.sh + normalize_state()</text>
+
+  <rect x="680" y="80" width="300" height="120" class="box"/>
+  <text x="735" y="120" class="label">State: Assist ON</text>
+  <text x="705" y="145" class="sub">assist-exec: allowed</text>
+  <text x="705" y="168" class="sub">katala: on/off possible</text>
+
+  <rect x="680" y="260" width="300" height="120" class="box"/>
+  <text x="735" y="300" class="label">State: Assist OFF</text>
+  <text x="705" y="325" class="sub">assist-exec: blocked</text>
+  <text x="705" y="348" class="sub">katala forced OFF</text>
+
+  <rect x="1060" y="80" width="280" height="120" class="box"/>
+  <text x="1125" y="120" class="label">Katala ON</text>
+  <text x="1085" y="145" class="sub">requires assist=on</text>
+  <text x="1085" y="168" class="sub">order-enforce checks invariant</text>
+
+  <rect x="1060" y="260" width="280" height="120" class="box"/>
+  <text x="1125" y="300" class="label">Katala OFF</text>
+  <text x="1085" y="325" class="sub">all katala paths blocked</text>
+  <text x="1085" y="348" class="sub">assist may be on/off</text>
+
+  <path d="M280 165 L340 165" class="arrow"/>
+  <path d="M600 165 L680 140" class="arrow"/>
+  <path d="M600 165 L680 320" class="arrow"/>
+
+  <path d="M980 140 L1060 140" class="arrow"/>
+  <path d="M980 320 L1060 320" class="arrow"/>
+
+  <text x="60" y="470" class="rule">Rule A: assist-on  ⇒ katala-on OR katala-off</text>
+  <text x="60" y="500" class="rule">Rule B: assist-off ⇒ katala-off (forced)</text>
+  <text x="60" y="530" class="rule">Rule C: katala-on  ⇒ assist-on (forced)</text>
+  <text x="60" y="560" class="rule">Rule D: katala-off ⇒ assist-on OR assist-off</text>
+
+  <text x="60" y="630" class="sub">Execution gateways: guard.sh -> order-enforce.sh -> (katala-exec.sh / assist-exec.sh)</text>
+  <text x="60" y="655" class="sub">Logs: inf-Coding-cache/activity.log (command text hashed)</text>
+</svg>

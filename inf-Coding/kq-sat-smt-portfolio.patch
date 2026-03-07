@@ -1,0 +1,506 @@
+From 572d289093d33208c46c755613753624c7270b6b Mon Sep 17 00:00:00 2001
+From: Nicolas Ogoshi <nicolas@ogoshi.com>
+Date: Thu, 5 Mar 2026 19:04:31 +0900
+Subject: [PATCH] kq: add first-pass SAT/SMT portfolio and inprocessing hooks
+
+---
+ src/katala_samurai/kq_symbolic_bridge.py | 364 +++++++++++++++++++++--
+ 1 file changed, 335 insertions(+), 29 deletions(-)
+
+diff --git a/src/katala_samurai/kq_symbolic_bridge.py b/src/katala_samurai/kq_symbolic_bridge.py
+index b5bc2a5..5836626 100644
+--- a/src/katala_samurai/kq_symbolic_bridge.py
++++ b/src/katala_samurai/kq_symbolic_bridge.py
+@@ -8,7 +8,7 @@ import re
+ import shutil
+ import subprocess
+ import tempfile
+-from itertools import product, combinations
++from itertools import product, combinations, islice
+ from typing import Any
+ 
+ 
+@@ -672,6 +672,163 @@ def _interval_propagate(formula: str, doms: dict[str, tuple[int, int]]) -> tuple
+     return cur, notes
+ 
+ 
++def _safe_env_int(name: str, default: int, minimum: int | None = None) -> int:
++    try:
++        value = int(os.getenv(name, str(default)))
++    except Exception:
++        value = int(default)
++    if minimum is not None:
++        value = max(int(minimum), value)
++    return value
++
++
++def _select_smt_portfolio(total_space: int, var_count: int, nn_rank_limit: int, exhaustive_limit: int) -> dict[str, Any]:
++    chunk_size = _safe_env_int("KQ_SMT_PORTFOLIO_CHUNK_SIZE", 384, 32)
++    inprocess_every = _safe_env_int("KQ_SMT_INPROCESS_EVERY", 1024, 64)
++    stream_switch = _safe_env_int("KQ_SMT_PORTFOLIO_STREAM_SWITCH", max(nn_rank_limit, min(exhaustive_limit * 2, 280000)), 1024)
++
++    if total_space <= nn_rank_limit:
++        return {
++            "strategy": "nn-ranked-enumeration",
++            "chunk_size": 0,
++            "inprocess_every": inprocess_every,
++        }
++    if total_space <= stream_switch or (var_count <= 8 and total_space <= exhaustive_limit * 2):
++        return {
++            "strategy": "chunked-nn-stream",
++            "chunk_size": chunk_size,
++            "inprocess_every": inprocess_every,
++        }
++    return {
++        "strategy": "plain-stream",
++        "chunk_size": chunk_size,
++        "inprocess_every": inprocess_every,
++    }
++
++
++def _iter_env_chunks(names: list[str], ranges: list[range], chunk_size: int):
++    raw_iter = product(*ranges)
++    while True:
++        block = list(islice(raw_iter, max(1, int(chunk_size))))
++        if not block:
++            break
++        yield [{k: int(v) for k, v in zip(names, values)} for values in block]
++
++
++def _smt_inprocess_decay(feature_bias: dict[str, float]) -> None:
++    for key in list(feature_bias.keys()):
++        cur = float(feature_bias.get(key, 0.0))
++        feature_bias[key] = max(-0.75, min(0.75, cur * 0.92))
++
++
++def _select_sat_portfolio(var_count: int, clause_count: int, internal: bool = False) -> dict[str, Any]:
++    inprocess_every = _safe_env_int("KQ_SAT_INPROCESS_EVERY", 96, 16)
++    if internal:
++        return {
++            "strategy": "internal-cdcl",
++            "prepass_budget": 0,
++            "prepass_exhaustive": False,
++            "inprocess_every": inprocess_every,
++        }
++
++    small_var_limit = _safe_env_int("KQ_SAT_PORTFOLIO_SMALL_VAR_LIMIT", 14, 4)
++    exhaustive_cap = _safe_env_int("KQ_SAT_PORTFOLIO_ENUM_CAP", 32768, 128)
++    prepass_budget = _safe_env_int("KQ_SAT_PORTFOLIO_PREPASS_BUDGET", 768, 0)
++    total_space = (1 << var_count) if var_count <= 30 else exhaustive_cap + 1
++
++    if var_count <= small_var_limit and total_space <= exhaustive_cap:
++        return {
++            "strategy": "nn-ranked-exhaustive-prepass",
++            "prepass_budget": int(total_space),
++            "prepass_exhaustive": True,
++            "inprocess_every": inprocess_every,
++        }
++    if prepass_budget > 0 and var_count <= (small_var_limit + 8) and clause_count <= 1024:
++        return {
++            "strategy": "nn-ranked-seed-prepass",
++            "prepass_budget": int(prepass_budget),
++            "prepass_exhaustive": False,
++            "inprocess_every": inprocess_every,
++        }
++    return {
++        "strategy": "cdcl-primary",
++        "prepass_budget": 0,
++        "prepass_exhaustive": False,
++        "inprocess_every": inprocess_every,
++    }
++
++
++def _sat_seed_portfolio_envs(vars_list: list[str], budget: int, var_activity: dict[str, int]) -> list[dict[str, bool]]:
++    if budget <= 0 or not vars_list:
++        return []
++
++    ranked = sorted(vars_list, key=lambda key: var_activity.get(key, 0), reverse=True)
++    top = ranked[: min(10, len(ranked))]
++    base_false = {name: False for name in vars_list}
++    base_true = {name: True for name in vars_list}
++
++    seen: set[tuple[int, ...]] = set()
++    out: list[dict[str, bool]] = []
++
++    def _add(env: dict[str, bool]) -> None:
++        if len(out) >= budget:
++            return
++        key = tuple(1 if env.get(name, False) else 0 for name in vars_list)
++        if key in seen:
++            return
++        seen.add(key)
++        out.append(dict(env))
++
++    _add(base_false)
++    _add(base_true)
++
++    for name in top:
++        env = dict(base_false)
++        env[name] = True
++        _add(env)
++
++    for name in top:
++        env = dict(base_true)
++        env[name] = False
++        _add(env)
++
++    for i in range(len(top)):
++        if len(out) >= budget:
++            break
++        for j in range(i + 1, len(top)):
++            env = dict(base_false)
++            env[top[i]] = True
++            env[top[j]] = True
++            _add(env)
++            if len(out) >= budget:
++                break
++
++    return _rank_envs_nn_qemu(vars_list, out)[:budget]
++
++
++def _sat_subsumption_pass(clauses: list[list[tuple[str, bool]]]) -> tuple[list[list[tuple[str, bool]]], int]:
++    if len(clauses) <= 1:
++        return clauses, 0
++
++    clause_sets = [set(clause) for clause in clauses]
++    order = sorted(range(len(clauses)), key=lambda idx: len(clause_sets[idx]))
++    removed: set[int] = set()
++
++    for pos, left in enumerate(order):
++        if left in removed:
++            continue
++        left_set = clause_sets[left]
++        for right in order[pos + 1 :]:
++            if right in removed:
++                continue
++            if left_set.issubset(clause_sets[right]):
++                removed.add(right)
++
++    if not removed:
++        return clauses, 0
++    return [clause for idx, clause in enumerate(clauses) if idx not in removed], len(removed)
++
++
+ def solve_smt_optional(expr: str) -> dict[str, Any]:
+     """KQ-native standalone SMT solver (external solver independent).
+ 
+@@ -712,25 +869,69 @@ def solve_smt_optional(expr: str) -> dict[str, Any]:
+         exhaustive_limit = int(os.getenv("KQ_SMT_EXHAUSTIVE_LIMIT", "200000"))
+         max_solutions = int(os.getenv("KQ_SMT_MAX_SOLUTIONS", "512"))
+         nn_rank_limit = int(os.getenv("KQ_SMT_NN_RANK_LIMIT", "120000"))
++        portfolio = _select_smt_portfolio(total_space, len(names), nn_rank_limit, exhaustive_limit)
++        inprocess_every = int(portfolio.get("inprocess_every", 0))
++        inprocess_stats = {
++            "hooks": 0,
++            "bias_updates": 0,
++        }
++        feature_bias = {name: 0.0 for name in names}
+ 
+         sols: list[dict[str, int]] = []
+         checks = 0
+-
+-        if total_space <= nn_rank_limit:
++        stop_due_budget = False
++
++        def _maybe_inprocess() -> None:
++            if inprocess_every <= 0:
++                return
++            if checks <= 0 or (checks % inprocess_every) != 0:
++                return
++            _smt_inprocess_decay(feature_bias)
++            inprocess_stats["hooks"] += 1
++
++        def _register_solution_bias(env: dict[str, int]) -> None:
++            for name, value in env.items():
++                current = float(feature_bias.get(name, 0.0))
++                delta = 0.02 if bool(value) else -0.01
++                nxt = max(-0.75, min(0.75, current + delta))
++                if nxt != current:
++                    feature_bias[name] = nxt
++                    inprocess_stats["bias_updates"] += 1
++
++        if portfolio.get("strategy") == "nn-ranked-enumeration":
+             cand_envs = [{k: int(v) for k, v in zip(names, values)} for values in product(*ranges)]
+-            cand_envs = _rank_envs_nn_qemu(names, cand_envs)
++            cand_envs = _rank_envs_nn_qemu(names, cand_envs, feature_bias=feature_bias)
++            for env in cand_envs:
++                if total_space > exhaustive_limit and checks >= exhaustive_limit:
++                    stop_due_budget = True
++                    break
++                checks += 1
++                ev = _eval_symbolic_env(formula, env)
++                if ev.get("ok") and bool(ev.get("result")):
++                    sols.append(env)
++                    _register_solution_bias(env)
++                    if len(sols) >= max_solutions:
++                        break
++                _maybe_inprocess()
+         else:
+-            # memory-efficient stream mode for huge spaces
+-            cand_envs = ({k: int(v) for k, v in zip(names, values)} for values in product(*ranges))
+-
+-        for env in cand_envs:
+-            if total_space > exhaustive_limit and checks >= exhaustive_limit:
+-                break
+-            checks += 1
+-            ev = _eval_symbolic_env(formula, env)
+-            if ev.get("ok") and bool(ev.get("result")):
+-                sols.append(env)
+-                if len(sols) >= max_solutions:
++            chunk_size = int(portfolio.get("chunk_size", 256))
++            use_chunk_rank = portfolio.get("strategy") == "chunked-nn-stream"
++            for chunk in _iter_env_chunks(names, ranges, chunk_size):
++                if use_chunk_rank:
++                    chunk = _rank_envs_nn_qemu(names, chunk, feature_bias=feature_bias)
++                for env in chunk:
++                    if total_space > exhaustive_limit and checks >= exhaustive_limit:
++                        stop_due_budget = True
++                        break
++                    checks += 1
++                    ev = _eval_symbolic_env(formula, env)
++                    if ev.get("ok") and bool(ev.get("result")):
++                        sols.append(env)
++                        _register_solution_bias(env)
++                        if len(sols) >= max_solutions:
++                            break
++                    _maybe_inprocess()
++                if stop_due_budget or len(sols) >= max_solutions:
+                     break
+ 
+         exhaustive = (total_space <= exhaustive_limit and checks >= total_space)
+@@ -746,6 +947,13 @@ def solve_smt_optional(expr: str) -> dict[str, Any]:
+             "exhaustive": bool(exhaustive),
+             "exhaustive_limit": int(exhaustive_limit),
+             "interval_pruning": prune_notes,
++            "portfolio": {
++                "strategy": portfolio.get("strategy"),
++                "chunk_size": int(portfolio.get("chunk_size", 0)),
++                "inprocess_every": int(portfolio.get("inprocess_every", 0)),
++                "budget_limited": bool(stop_due_budget),
++            },
++            "inprocessing": inprocess_stats,
+         }
+         return {
+             "ok": True,
+@@ -865,6 +1073,20 @@ def solve_sat_lite(expr: str, _internal: bool = False) -> dict[str, Any]:
+             normalized.append(list(key))
+ 
+         clauses = normalized if normalized else []
++        sat_portfolio = _select_sat_portfolio(len(vars_list), len(clauses), internal=_internal)
++        portfolio_trace = {
++            "strategy": sat_portfolio.get("strategy"),
++            "prepass_budget": int(sat_portfolio.get("prepass_budget", 0)),
++            "prepass_exhaustive": bool(sat_portfolio.get("prepass_exhaustive", False)),
++            "prepass_checked": 0,
++            "prepass_hit": False,
++            "inprocess_every": int(sat_portfolio.get("inprocess_every", 0)),
++        }
++        inprocessing_trace = {
++            "hooks": 0,
++            "subsumed_clauses": 0,
++            "activity_rescales": 0,
++        }
+         if not clauses:
+             return {
+                 "ok": True,
+@@ -872,7 +1094,12 @@ def solve_sat_lite(expr: str, _internal: bool = False) -> dict[str, Any]:
+                 "solver": "sat-lite-nn-qemu" if _HAS_QEMU else "sat-lite-nn",
+                 "satisfiable": True,
+                 "model": {},
+-                "proof_trace": {"mode": "preprocess-only", "removed_tautologies": removed_taut},
++                "proof_trace": {
++                    "mode": "preprocess-only",
++                    "removed_tautologies": removed_taut,
++                    "portfolio": portfolio_trace,
++                    "inprocessing": inprocessing_trace,
++                },
+                 "proof_certificate": _proof_fingerprint({"solver": "sat-lite", "status": "sat-empty-after-preprocess", "removed_tautologies": removed_taut}),
+             }
+ 
+@@ -893,7 +1120,13 @@ def solve_sat_lite(expr: str, _internal: bool = False) -> dict[str, Any]:
+                         "solver": "sat-lite-nn-qemu" if _HAS_QEMU else "sat-lite-nn",
+                         "satisfiable": False,
+                         "unsat_core_lite": core_txt,
+-                        "proof_trace": {"mode": "preprocess-unit-unsat", "removed_tautologies": removed_taut, "pre_units": pre_env},
++                        "proof_trace": {
++                            "mode": "preprocess-unit-unsat",
++                            "removed_tautologies": removed_taut,
++                            "pre_units": pre_env,
++                            "portfolio": portfolio_trace,
++                            "inprocessing": inprocessing_trace,
++                        },
+                         "proof_certificate": _proof_fingerprint({"solver": "sat-lite", "status": "unsat-preprocess", "core": core_txt}),
+                     }
+                 if len(un) == 1:
+@@ -906,7 +1139,13 @@ def solve_sat_lite(expr: str, _internal: bool = False) -> dict[str, Any]:
+                             "solver": "sat-lite-nn-qemu" if _HAS_QEMU else "sat-lite-nn",
+                             "satisfiable": False,
+                             "unsat_core_lite": core_txt,
+-                            "proof_trace": {"mode": "preprocess-unit-conflict", "removed_tautologies": removed_taut, "pre_units": pre_env},
++                            "proof_trace": {
++                                "mode": "preprocess-unit-conflict",
++                                "removed_tautologies": removed_taut,
++                                "pre_units": pre_env,
++                                "portfolio": portfolio_trace,
++                                "inprocessing": inprocessing_trace,
++                            },
+                             "proof_certificate": _proof_fingerprint({"solver": "sat-lite", "status": "unsat-preprocess-conflict", "core": core_txt}),
+                         }
+                     if v not in pre_env:
+@@ -936,6 +1175,11 @@ def solve_sat_lite(expr: str, _internal: bool = False) -> dict[str, Any]:
+             vivified.append([(v, sgn) for v, sgn in sorted(lit_map.items(), key=lambda x: x[0])])
+         vivified.sort(key=len)
+         clauses = vivified
++        clauses, subsumed_pre = _sat_subsumption_pass(clauses)
++        if subsumed_pre > 0:
++            inprocessing_trace["hooks"] += 1
++            inprocessing_trace["subsumed_clauses"] += int(subsumed_pre)
++        portfolio_trace["post_preprocess_clauses"] = len(clauses)
+ 
+         # decomposition step (close to very-large SAT): solve independent variable components separately
+         if (not _internal) and clauses:
+@@ -990,6 +1234,8 @@ def solve_sat_lite(expr: str, _internal: bool = False) -> dict[str, Any]:
+                                 "mode": "component-decomposition",
+                                 "components": len(comps),
+                                 "sub_traces": sub_traces,
++                                "portfolio": portfolio_trace,
++                                "inprocessing": inprocessing_trace,
+                             },
+                             "proof_certificate": _proof_fingerprint({"solver": "sat-lite", "status": "unsat-component", "sub": sub_traces}),
+                         }
+@@ -1007,6 +1253,8 @@ def solve_sat_lite(expr: str, _internal: bool = False) -> dict[str, Any]:
+                         "mode": "component-decomposition",
+                         "components": len(comps),
+                         "sub_traces": sub_traces,
++                        "portfolio": portfolio_trace,
++                        "inprocessing": inprocessing_trace,
+                     },
+                     "proof_certificate": _proof_fingerprint({"solver": "sat-lite", "status": "sat-component", "sub": sub_traces}),
+                 }
+@@ -1050,6 +1298,57 @@ def solve_sat_lite(expr: str, _internal: bool = False) -> dict[str, Any]:
+             for v, _ in cl:
+                 var_activity[v] = var_activity.get(v, 0) + 1
+ 
++        sat_inprocess_every = max(16, int(sat_portfolio.get("inprocess_every", 0)))
++        inprocess_tick = -1
++
++        def _run_sat_inprocessing(env: dict[str, bool], force: bool = False) -> None:
++            nonlocal clauses, watched_literals, inprocess_tick
++            if not force:
++                if sat_inprocess_every <= 0 or trace["checked_points"] <= 0:
++                    return
++                tick = trace["checked_points"] // sat_inprocess_every
++                if tick <= inprocess_tick:
++                    return
++                inprocess_tick = tick
++
++            inprocessing_trace["hooks"] += 1
++            reduced_clauses, removed = _sat_subsumption_pass(clauses)
++            if removed > 0:
++                clauses = reduced_clauses
++                inprocessing_trace["subsumed_clauses"] += int(removed)
++                learned_clauses.append(f"inproc_subsumed({removed})")
++
++            if var_activity:
++                peak = max(var_activity.values())
++                if peak > 128:
++                    for key in list(var_activity.keys()):
++                        var_activity[key] = max(1, int(var_activity[key] * 0.5))
++                    inprocessing_trace["activity_rescales"] += 1
++
++            watched_literals = _refresh_watches(env)
++
++        _run_sat_inprocessing(dict(pre_env), force=True)
++
++        prepass_budget = int(sat_portfolio.get("prepass_budget", 0))
++        sat_model = None
++        if prepass_budget > 0 and clauses:
++            if bool(sat_portfolio.get("prepass_exhaustive", False)):
++                prepass_envs = _rank_bool_assignments_nn(vars_list)
++            else:
++                prepass_envs = _sat_seed_portfolio_envs(vars_list, prepass_budget, var_activity)
++
++            checked_prepass = 0
++            for env in prepass_envs:
++                if checked_prepass >= prepass_budget:
++                    break
++                checked_prepass += 1
++                if all(any((env.get(v, False) is sign) for v, sign in cl) for cl in clauses):
++                    sat_model = dict(pre_env)
++                    sat_model.update(env)
++                    portfolio_trace["prepass_hit"] = True
++                    break
++            portfolio_trace["prepass_checked"] = int(checked_prepass)
++
+         restart_conf_base = 0
+         restart_conf_budget = 10**9
+         restart_triggered = False
+@@ -1062,6 +1361,7 @@ def solve_sat_lite(expr: str, _internal: bool = False) -> dict[str, Any]:
+             trace["checked_points"] += 1
+             current_watches = _refresh_watches(env)
+             watched_literals = current_watches
++            _run_sat_inprocessing(env)
+             # unit propagation
+             changed = True
+             while changed:
+@@ -1070,6 +1370,8 @@ def solve_sat_lite(expr: str, _internal: bool = False) -> dict[str, Any]:
+                     st = _clause_state(cl, env)
+                     if st == -1:
+                         trace["conflicts"] += 1
++                        for vv, _ in cl:
++                            var_activity[vv] = var_activity.get(vv, 0) + 2
+                         # tiny clause-learning surrogate: learn negation of current decision frontier
+                         if env:
+                             learnt = " or ".join([f"not {k}" if v else k for k, v in sorted(env.items())[:4]])
+@@ -1129,19 +1431,19 @@ def solve_sat_lite(expr: str, _internal: bool = False) -> dict[str, Any]:
+ 
+         # Luby-lite restart schedule (shortest-path practical boost)
+         restart_budgets = [64, 128, 256]
+-        sat_model = None
+         restart_used = 0
+-        for budget in restart_budgets:
+-            restart_conf_base = trace["conflicts"]
+-            restart_conf_budget = int(budget)
+-            restart_triggered = False
+-            sat_model = dpll(dict(pre_env), 0)
+-            if sat_model is not None:
++        if sat_model is None:
++            for budget in restart_budgets:
++                restart_conf_base = trace["conflicts"]
++                restart_conf_budget = int(budget)
++                restart_triggered = False
++                sat_model = dpll(dict(pre_env), 0)
++                if sat_model is not None:
++                    break
++                if restart_triggered:
++                    restart_used += 1
++                    continue
+                 break
+-            if restart_triggered:
+-                restart_used += 1
+-                continue
+-            break
+ 
+         if sat_model is not None:
+             proof_trace = {
+@@ -1151,6 +1453,8 @@ def solve_sat_lite(expr: str, _internal: bool = False) -> dict[str, Any]:
+                 "learned_clauses": learned_clauses,
+                 "preprocess": {"removed_tautologies": removed_taut, "unit_assignments": len(pre_env)},
+                 "restart": {"strategy": "luby-lite", "used": restart_used, "budgets": restart_budgets},
++                "portfolio": portfolio_trace,
++                "inprocessing": inprocessing_trace,
+                 **trace,
+             }
+             return {
+@@ -1242,6 +1546,8 @@ def solve_sat_lite(expr: str, _internal: bool = False) -> dict[str, Any]:
+             "unsat_core_exact_minimized": exact_min_applied,
+             "unsat_core_minimal_verified": core_minimal,
+             "unsat_core_quality": "high" if core_minimal else "medium",
++            "portfolio": portfolio_trace,
++            "inprocessing": inprocessing_trace,
+             **trace,
+         }
+         return {
+-- 
+2.43.0
+

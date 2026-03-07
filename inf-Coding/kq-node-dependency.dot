@@ -1,0 +1,46 @@
+digraph KQNodes {
+  graph [rankdir=LR, bgcolor="white", fontname="Arial"];
+  node [shape=box, style="rounded,filled", fillcolor="white", color="#222", fontname="Arial", fontsize=10];
+  edge [color="#444", arrowsize=0.8];
+  subgraph cluster_foundation {
+    label="foundation"; color="#999"; style="rounded";
+    "N01_intent" [label="N01_intent\n(w=0.1)", fillcolor="#dbeafe"];
+    "N02_constraint" [label="N02_constraint\n(w=0.1)", fillcolor="#dbeafe"];
+    "N03_evidence" [label="N03_evidence\n(w=0.08)", fillcolor="#dbeafe"];
+    "N04_consistency" [label="N04_consistency\n(w=0.08)", fillcolor="#dbeafe"];
+    "N05_risk" [label="N05_risk\n(w=0.08)", fillcolor="#dbeafe"];
+  }
+  subgraph cluster_expansion {
+    label="expansion"; color="#999"; style="rounded";
+    "N06_resource" [label="N06_resource\n(w=0.08)", fillcolor="#dcfce7"];
+    "N07_temporal" [label="N07_temporal\n(w=0.07)", fillcolor="#dcfce7"];
+    "N08_semantic" [label="N08_semantic\n(w=0.08)", fillcolor="#dcfce7"];
+    "N09_structural" [label="N09_structural\n(w=0.09)", fillcolor="#dcfce7"];
+  }
+  subgraph cluster_synthesis {
+    label="synthesis"; color="#999"; style="rounded";
+    "N10_counterfactual" [label="N10_counterfactual\n(w=0.08)", fillcolor="#fee2e2"];
+    "N11_reproducibility" [label="N11_reproducibility\n(w=0.08)", fillcolor="#fee2e2"];
+    "N12_operability" [label="N12_operability\n(w=0.08)", fillcolor="#fee2e2"];
+  }
+  "N01_intent" -> "N06_resource";
+  "N02_constraint" -> "N07_temporal";
+  "N03_evidence" -> "N08_semantic";
+  "N04_consistency" -> "N09_structural";
+  "N06_resource" -> "N10_counterfactual";
+  "N07_temporal" -> "N11_reproducibility";
+  "N08_semantic" -> "N12_operability";
+  "KQ_Final_Score" [shape=oval, fillcolor="#fff7cc", label="KQ_Final_Score"];
+  "N01_intent" -> "KQ_Final_Score" [color="#888"];
+  "N02_constraint" -> "KQ_Final_Score" [color="#888"];
+  "N03_evidence" -> "KQ_Final_Score" [color="#888"];
+  "N04_consistency" -> "KQ_Final_Score" [color="#888"];
+  "N05_risk" -> "KQ_Final_Score" [color="#888"];
+  "N06_resource" -> "KQ_Final_Score" [color="#888"];
+  "N07_temporal" -> "KQ_Final_Score" [color="#888"];
+  "N08_semantic" -> "KQ_Final_Score" [color="#888"];
+  "N09_structural" -> "KQ_Final_Score" [color="#888"];
+  "N10_counterfactual" -> "KQ_Final_Score" [color="#888"];
+  "N11_reproducibility" -> "KQ_Final_Score" [color="#888"];
+  "N12_operability" -> "KQ_Final_Score" [color="#888"];
+}

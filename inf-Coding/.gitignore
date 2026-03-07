@@ -1,3 +1,14 @@
 inf-Coding-cache/activity.log
 inf-Coding-cache/tasks/
 inf-Coding-run/*.ndjson
+
+# local environments / build outputs
+.venv-tools/
+../.venv/
+../rust/katala_rust_hotpath/target/
+../rust/katala_rust_hotpath/Cargo.lock
+
+# transient run caches
+inf-Coding-run/.tmp-audit/
+inf-Coding-run/.tmp-goal-history/
+inf-Coding-run/.tmp-openalex-cache/

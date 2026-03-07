@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="950" viewBox="0 0 1400 950">
+  <defs>
+    <style>
+      .title { font: 700 34px Arial, sans-serif; fill: #111; }
+      .box { fill: #f8fafc; stroke: #1e3a8a; stroke-width: 2; rx: 14; ry: 14; }
+      .label { font: 700 22px Arial, sans-serif; fill: #0f172a; }
+      .sub { font: 400 15px Arial, sans-serif; fill: #334155; }
+      .rule { font: 600 18px Arial, sans-serif; fill: #111827; }
+      .ok { font: 700 18px Arial, sans-serif; fill: #065f46; }
+      .ng { font: 700 18px Arial, sans-serif; fill: #991b1b; }
+      .arrow { stroke: #1d4ed8; stroke-width: 3; fill: none; marker-end: url(#arrowhead); }
+    </style>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#1d4ed8" />
+    </marker>
+  </defs>
+
+  <text x="40" y="55" class="title">Order State Rule Map (A/B/C/D exact)</text>
+
+  <rect x="120" y="140" width="260" height="120" class="box"/>
+  <text x="185" y="185" class="label">Assist = ON</text>
+  <text x="165" y="212" class="sub">assist-exec allowed</text>
+
+  <rect x="120" y="340" width="260" height="120" class="box"/>
+  <text x="182" y="385" class="label">Assist = OFF</text>
+  <text x="152" y="412" class="sub">assist-exec blocked</text>
+
+  <rect x="560" y="140" width="260" height="120" class="box"/>
+  <text x="635" y="185" class="label">Katala = ON</text>
+  <text x="615" y="212" class="sub">katala path usable</text>
+
+  <rect x="560" y="340" width="260" height="120" class="box"/>
+  <text x="630" y="385" class="label">Katala = OFF</text>
+  <text x="600" y="412" class="sub">katala path blocked</text>
+
+  <path d="M380 180 L560 180" class="arrow"/>
+  <path d="M380 180 L560 380" class="arrow"/>
+  <path d="M380 380 L560 380" class="arrow"/>
+  <path d="M560 180 L380 180" class="arrow"/>
+  <path d="M560 380 L380 180" class="arrow"/>
+  <path d="M560 380 L380 380" class="arrow"/>
+
+  <text x="860" y="180" class="rule">A. Assist ON  ⇒ Katala ON or OFF</text>
+  <text x="860" y="210" class="ok">(allowed transitions: ON→ON / ON→OFF)</text>
+
+  <text x="860" y="300" class="rule">B. Assist OFF ⇒ 必ず Katala OFF</text>
+  <text x="860" y="330" class="ng">(Assist OFF + Katala ON は禁止)</text>
+
+  <text x="860" y="420" class="rule">C. Katala ON  ⇒ 必ず Assist ON</text>
+  <text x="860" y="450" class="ng">(Katala ON + Assist OFF は禁止)</text>
+
+  <text x="860" y="540" class="rule">D. Katala OFF ⇒ Assist ON or OFF</text>
+  <text x="860" y="570" class="ok">(allowed transitions: OFF→ON / OFF→OFF)</text>
+
+  <rect x="120" y="560" width="700" height="220" class="box"/>
+  <text x="145" y="600" class="label">Enforcement in current implementation</text>
+  <text x="145" y="635" class="sub">• order-set normalize: assist-off ⇒ katala-off</text>
+  <text x="145" y="665" class="sub">• order-set normalize: katala-on ⇒ assist-on</text>
+  <text x="145" y="695" class="sub">• order-enforce: invalid state (katala-on + assist!=on) is blocked</text>
+  <text x="145" y="725" class="sub">• assist-exec: only when assist=on</text>
+  <text x="145" y="755" class="sub">• katala paths: blocked when katala=off</text>
+</svg>

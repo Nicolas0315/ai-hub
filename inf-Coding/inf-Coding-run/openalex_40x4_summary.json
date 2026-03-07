@@ -1,0 +1,793 @@
+{
+  "meta": "openalex_40x4_abstract_level",
+  "summaries": {
+    "neuro_recent": {
+      "n": 40,
+      "year_range": [
+        2022,
+        2024
+      ],
+      "median_cites": 853,
+      "top_journals": [
+        [
+          "Nature",
+          5
+        ],
+        [
+          "The Lancet",
+          4
+        ],
+        [
+          "Nature Neuroscience",
+          3
+        ],
+        [
+          "Nature Genetics",
+          2
+        ],
+        [
+          "Computational Visual Media",
+          2
+        ],
+        [
+          "Nature Methods",
+          2
+        ],
+        [
+          "Proceedings of the IEEE",
+          2
+        ],
+        [
+          "Journal of Extracellular Vesicles",
+          1
+        ]
+      ],
+      "top_terms": [
+        [
+          "this",
+          27
+        ],
+        [
+          "learning",
+          25
+        ],
+        [
+          "that",
+          18
+        ],
+        [
+          "disease",
+          15
+        ],
+        [
+          "research",
+          15
+        ],
+        [
+          "attention",
+          14
+        ],
+        [
+          "deep",
+          13
+        ],
+        [
+          "are",
+          12
+        ],
+        [
+          "including",
+          11
+        ],
+        [
+          "also",
+          11
+        ],
+        [
+          "new",
+          11
+        ],
+        [
+          "studies",
+          10
+        ],
+        [
+          "can",
+          10
+        ],
+        [
+          "agents",
+          10
+        ],
+        [
+          "concussion",
+          10
+        ],
+        [
+          "global",
+          9
+        ],
+        [
+          "their",
+          9
+        ],
+        [
+          "challenges",
+          9
+        ],
+        [
+          "metaverse",
+          9
+        ],
+        [
+          "networks",
+          9
+        ],
+        [
+          "systematic",
+          8
+        ],
+        [
+          "burden",
+          8
+        ],
+        [
+          "have",
+          8
+        ],
+        [
+          "techniques",
+          8
+        ],
+        [
+          "vision",
+          8
+        ]
+      ],
+      "examples": [
+        {
+          "title": "Global incidence, prevalence, years lived with disability (YLDs), disability-adjusted life-years (DALYs), and healthy life expectancy (HALE) for 371 diseases and injuries in 204 countries and territories and 811 subnational locations, 1990–2021: a systematic analysis for the Global Burden of Disease Study 2021",
+          "year": 2024,
+          "journal": "The Lancet",
+          "cites": 3781
+        },
+        {
+          "title": "Global, regional, and national burden of diabetes from 1990 to 2021, with projections of prevalence to 2050: a systematic analysis for the Global Burden of Disease Study 2021",
+          "year": 2023,
+          "journal": "The Lancet",
+          "cites": 3740
+        },
+        {
+          "title": "Minimal information for studies of extracellular vesicles (MISEV2023): From basic to advanced approaches",
+          "year": 2024,
+          "journal": "Journal of Extracellular Vesicles",
+          "cites": 2984
+        },
+        {
+          "title": "New insights into the genetic etiology of Alzheimer’s disease and related dementias",
+          "year": 2022,
+          "journal": "Nature Genetics",
+          "cites": 2309
+        },
+        {
+          "title": "Attention mechanisms in computer vision: A survey",
+          "year": 2022,
+          "journal": "Computational Visual Media",
+          "cites": 2205
+        }
+      ]
+    },
+    "neuro_old": {
+      "n": 40,
+      "year_range": [
+        1973,
+        1977
+      ],
+      "median_cites": 211,
+      "top_journals": [
+        [
+          "Brain Research",
+          7
+        ],
+        [
+          "The Journal of Cell Biology",
+          4
+        ],
+        [
+          "Journal of Neurology Neurosurgery & Psychiatry",
+          3
+        ],
+        [
+          "Canadian Journal of Neurological Sciences / Journal Canadien des Sciences Neurologiques",
+          3
+        ],
+        [
+          "The Journal of Comparative Neurology",
+          2
+        ],
+        [
+          "British Journal of Pharmacology",
+          2
+        ],
+        [
+          "Perception & Psychophysics",
+          2
+        ],
+        [
+          "Biochemical Journal",
+          2
+        ]
+      ],
+      "top_terms": [
+        [
+          "cross",
+          97
+        ],
+        [
+          "ref",
+          96
+        ],
+        [
+          "vol",
+          89
+        ],
+        [
+          "journal",
+          82
+        ],
+        [
+          "speech",
+          49
+        ],
+        [
+          "stochastic",
+          46
+        ],
+        [
+          "language",
+          42
+        ],
+        [
+          "time",
+          36
+        ],
+        [
+          "voice",
+          35
+        ],
+        [
+          "that",
+          34
+        ],
+        [
+          "differential",
+          34
+        ],
+        [
+          "onset",
+          32
+        ],
+        [
+          "was",
+          31
+        ],
+        [
+          "are",
+          31
+        ],
+        [
+          "were",
+          26
+        ],
+        [
+          "voicing",
+          26
+        ],
+        [
+          "cells",
+          25
+        ],
+        [
+          "development",
+          25
+        ],
+        [
+          "production",
+          24
+        ],
+        [
+          "these",
+          23
+        ],
+        [
+          "equations",
+          23
+        ],
+        [
+          "activity",
+          22
+        ],
+        [
+          "child",
+          22
+        ],
+        [
+          "children",
+          22
+        ],
+        [
+          "which",
+          20
+        ]
+      ],
+      "examples": [
+        {
+          "title": "A functional analysis of circadian pacemakers in nocturnal rodents",
+          "year": 1976,
+          "journal": "Journal of Comparative Physiology A",
+          "cites": 2128
+        },
+        {
+          "title": "The neurosciences. Third study program",
+          "year": 1975,
+          "journal": "Comparative Biochemistry and Physiology Part A Physiology",
+          "cites": 1435
+        },
+        {
+          "title": "The slow component of axonal transport. Identification of major structural polypeptides of the axon and their generality among mammalian neurons.",
+          "year": 1975,
+          "journal": "The Journal of Cell Biology",
+          "cites": 935
+        },
+        {
+          "title": "Approximate Integration of Stochastic Differential Equations",
+          "year": 1975,
+          "journal": "Theory of Probability and Its Applications",
+          "cites": 487
+        },
+        {
+          "title": "EMG analysis of stereotyped voluntary movements in man.",
+          "year": 1975,
+          "journal": "Journal of Neurology Neurosurgery & Psychiatry",
+          "cites": 463
+        }
+      ]
+    },
+    "ai_recent": {
+      "n": 40,
+      "year_range": [
+        2022,
+        2024
+      ],
+      "median_cites": 1569,
+      "top_journals": [
+        [
+          "Nature Communications",
+          3
+        ],
+        [
+          "Nature Methods",
+          2
+        ],
+        [
+          "Nucleic Acids Research",
+          2
+        ],
+        [
+          "Nature",
+          2
+        ],
+        [
+          "Computational Visual Media",
+          2
+        ],
+        [
+          "IEEE Access",
+          2
+        ],
+        [
+          "Multimedia Tools and Applications",
+          2
+        ],
+        [
+          "International Journal of Educational Technology in Higher Education",
+          2
+        ]
+      ],
+      "top_terms": [
+        [
+          "chatgpt",
+          49
+        ],
+        [
+          "this",
+          47
+        ],
+        [
+          "that",
+          39
+        ],
+        [
+          "education",
+          27
+        ],
+        [
+          "are",
+          26
+        ],
+        [
+          "learning",
+          26
+        ],
+        [
+          "potential",
+          21
+        ],
+        [
+          "research",
+          18
+        ],
+        [
+          "applications",
+          18
+        ],
+        [
+          "sup",
+          18
+        ],
+        [
+          "have",
+          17
+        ],
+        [
+          "has",
+          17
+        ],
+        [
+          "artificial",
+          17
+        ],
+        [
+          "intelligence",
+          17
+        ],
+        [
+          "networks",
+          16
+        ],
+        [
+          "can",
+          15
+        ],
+        [
+          "these",
+          15
+        ],
+        [
+          "performance",
+          14
+        ],
+        [
+          "medical",
+          14
+        ],
+        [
+          "language",
+          14
+        ],
+        [
+          "its",
+          14
+        ],
+        [
+          "paper",
+          14
+        ],
+        [
+          "than",
+          14
+        ],
+        [
+          "higher",
+          14
+        ],
+        [
+          "pso",
+          14
+        ]
+      ],
+      "examples": [
+        {
+          "title": "ColabFold: making protein folding accessible to all",
+          "year": 2022,
+          "journal": "Nature Methods",
+          "cites": 9166
+        },
+        {
+          "title": "Global, regional, and national burden of diabetes from 1990 to 2021, with projections of prevalence to 2050: a systematic analysis for the Global Burden of Disease Study 2021",
+          "year": 2023,
+          "journal": "The Lancet",
+          "cites": 3740
+        },
+        {
+          "title": "Instant neural graphics primitives with a multiresolution hash encoding",
+          "year": 2022,
+          "journal": "ACM Transactions on Graphics",
+          "cites": 3378
+        },
+        {
+          "title": "Performance of ChatGPT on USMLE: Potential for AI-assisted medical education using large language models",
+          "year": 2023,
+          "journal": "PLOS Digital Health",
+          "cites": 3293
+        },
+        {
+          "title": "Opinion Paper: “So what if ChatGPT wrote it?” Multidisciplinary perspectives on opportunities, challenges and implications of generative conversational AI for research, practice and policy",
+          "year": 2023,
+          "journal": "International Journal of Information Management",
+          "cites": 3253
+        }
+      ]
+    },
+    "ai_old": {
+      "n": 40,
+      "year_range": [
+        1973,
+        1977
+      ],
+      "median_cites": 267,
+      "top_journals": [
+        [
+          "Perception & Psychophysics",
+          4
+        ],
+        [
+          "Journal of the ACM",
+          4
+        ],
+        [
+          "Communications of the ACM",
+          2
+        ],
+        [
+          "Heart",
+          2
+        ],
+        [
+          "The Journal of Experimental Medicine",
+          2
+        ],
+        [
+          "Information Sciences",
+          1
+        ],
+        [
+          "Journal of the Royal Statistical Society Series A (General)",
+          1
+        ],
+        [
+          "Behavior Research Methods",
+          1
+        ]
+      ],
+      "top_terms": [
+        [
+          "are",
+          53
+        ],
+        [
+          "urology",
+          52
+        ],
+        [
+          "vol",
+          51
+        ],
+        [
+          "online",
+          51
+        ],
+        [
+          "publication",
+          51
+        ],
+        [
+          "date",
+          51
+        ],
+        [
+          "that",
+          37
+        ],
+        [
+          "urinary",
+          28
+        ],
+        [
+          "this",
+          27
+        ],
+        [
+          "was",
+          24
+        ],
+        [
+          "recognition",
+          23
+        ],
+        [
+          "between",
+          18
+        ],
+        [
+          "were",
+          18
+        ],
+        [
+          "which",
+          17
+        ],
+        [
+          "treatment",
+          16
+        ],
+        [
+          "incontinence",
+          16
+        ],
+        [
+          "mitochondria",
+          16
+        ],
+        [
+          "two",
+          15
+        ],
+        [
+          "given",
+          15
+        ],
+        [
+          "injection",
+          15
+        ],
+        [
+          "can",
+          14
+        ],
+        [
+          "search",
+          14
+        ],
+        [
+          "periurethral",
+          14
+        ],
+        [
+          "incontinencejournal",
+          14
+        ],
+        [
+          "have",
+          13
+        ]
+      ],
+      "examples": [
+        {
+          "title": "The concept of a linguistic variable and its application to approximate reasoning—I",
+          "year": 1975,
+          "journal": "Information Sciences",
+          "cites": 11934
+        },
+        {
+          "title": "Visual perception of biological motion and a model for its analysis",
+          "year": 1973,
+          "journal": "Perception & Psychophysics",
+          "cites": 4453
+        },
+        {
+          "title": "Pattern Classification and Scene Analysis.",
+          "year": 1974,
+          "journal": "Journal of the Royal Statistical Society Series A (General)",
+          "cites": 3241
+        },
+        {
+          "title": "An Algorithm for Subgraph Isomorphism",
+          "year": 1976,
+          "journal": "Journal of the ACM",
+          "cites": 2236
+        },
+        {
+          "title": "Efficient Planarity Testing",
+          "year": 1974,
+          "journal": "Journal of the ACM",
+          "cites": 1069
+        }
+      ]
+    }
+  },
+  "comparisons": {
+    "neuro": {
+      "emerging": [
+        "agents",
+        "also",
+        "attention",
+        "can",
+        "challenges",
+        "concussion",
+        "deep",
+        "disease",
+        "global",
+        "including",
+        "learning",
+        "metaverse",
+        "networks",
+        "new",
+        "research",
+        "studies",
+        "their",
+        "this"
+      ],
+      "declining": [
+        "cells",
+        "cross",
+        "development",
+        "differential",
+        "journal",
+        "language",
+        "onset",
+        "production",
+        "ref",
+        "speech",
+        "stochastic",
+        "these",
+        "time",
+        "voice",
+        "voicing",
+        "vol",
+        "was",
+        "were"
+      ]
+    },
+    "ai": {
+      "emerging": [
+        "applications",
+        "artificial",
+        "can",
+        "chatgpt",
+        "education",
+        "has",
+        "have",
+        "intelligence",
+        "language",
+        "learning",
+        "medical",
+        "networks",
+        "performance",
+        "potential",
+        "research",
+        "sup",
+        "these"
+      ],
+      "declining": [
+        "between",
+        "date",
+        "given",
+        "incontinence",
+        "injection",
+        "mitochondria",
+        "online",
+        "publication",
+        "recognition",
+        "treatment",
+        "two",
+        "urinary",
+        "urology",
+        "vol",
+        "was",
+        "were",
+        "which"
+      ]
+    }
+  }
+}

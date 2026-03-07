@@ -1,0 +1,33 @@
+digraph KSi1Flow {
+  graph [rankdir=TB, bgcolor="white", pad="0.3", nodesep="0.35", ranksep="0.45", fontname="Arial"];
+  node  [shape=box, style="rounded,filled", fillcolor="white", color="#222222", fontname="Arial", fontsize=11];
+  edge  [color="#444444", arrowsize=0.8, penwidth=1.1, fontname="Arial", fontsize=10];
+
+  A [label="User / Enigma Input"];
+  B [label="inf-Coding Entry\nguard.sh + order-enforce"];
+  C [shape=diamond, label="assist-on ?", style="filled", fillcolor="#ffffff"];
+  Z1 [label="BLOCKED", fillcolor="#ffecec", color="#bb3333"];
+  D [label="inf-Coding-Assist\nksi1-route.sh"];
+  E [label="KSi1 Router\nksi1-router.py"];
+  F [label="KSi1 Verify\nKatala_Samurai_inf_000001.verify"];
+  G [shape=diamond, label="KS42c backend\navailable?", style="filled", fillcolor="#ffffff"];
+  H [label="Full KS Path\nKS42c -> L1 S1..S28"];
+  I [label="Fallback Path\nfallback-no-ks42c"];
+  J [label="Route Decision\nfast / strict"];
+  K [label="Execute Command\n(Katala workspace)"];
+  L [label="Result"];
+  M [label="Adapter Output\ninf_coding_adapter.py"];
+  N [label="NDJSON Sink\ninf-Coding-run/ksi-bridge.ndjson"];
+  O [label="Analysis\nksi1-analyze.sh"];
+  P [label="Tuning Feedback\nthreshold/pattern update"];
+
+  A -> B -> C;
+  C -> Z1 [label="No"];
+  C -> D  [label="Yes"];
+  D -> E -> F -> G;
+  G -> H [label="Yes"];
+  G -> I [label="No"];
+  H -> J;
+  I -> J;
+  J -> K -> L -> M -> N -> O -> P;
+}

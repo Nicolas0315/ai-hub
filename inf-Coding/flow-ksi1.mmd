@@ -1,0 +1,18 @@
+flowchart TD
+    A[User/Enigma Input] --> B[inf-Coding Entry\nguard.sh + order-enforce]
+    B --> C{assist-on ?}
+    C -- No --> Z1[BLOCKED]
+    C -- Yes --> D[inf-Coding-Assist\nksi1-route.sh]
+    D --> E[KSi1 Router\nksi1-router.py]
+    E --> F[KSi1 Verify\nKatala_Samurai_inf_000001.verify]
+    F --> G{KS42c backend available?}
+    G -- Yes --> H[Full KS Path\nKS42c -> L1 S1..S28]
+    G -- No --> I[Fallback Path\nfallback-no-ks42c]
+    H --> J[Route Decision\nfast / strict]
+    I --> J
+    J --> K[Execute Command\n(Katala workspace)]
+    K --> L[Result]
+    L --> M[Adapter Output\ninf_coding_adapter.py]
+    M --> N[NDJSON Sink\ninf-Coding-run/ksi-bridge.ndjson]
+    N --> O[Analysis\nksi1-analyze.sh]
+    O --> P[Tuning Feedback\nthreshold/pattern update]

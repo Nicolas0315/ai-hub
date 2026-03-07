@@ -1,0 +1,59 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>LLM → Enigma → inf-Coding → KSi1</title>
+<style>
+body{margin:0;background:#fff;font-family:Arial,sans-serif}
+svg{display:block;margin:auto;background:#fff}
+.box{fill:#fff;stroke:#222;stroke-width:2;rx:12;ry:12}
+.decision{fill:#fff;stroke:#222;stroke-width:2}
+.block{fill:#ffecec;stroke:#b33;stroke-width:2;rx:12;ry:12}
+.txt{font-size:16px;fill:#111;text-anchor:middle;dominant-baseline:middle}
+.small{font-size:14px;fill:#333}
+.line{stroke:#444;stroke-width:2;fill:none;marker-end:url(#arrow)}
+</style></head><body>
+<svg width="1700" height="2500" viewBox="0 0 1700 2500" xmlns="http://www.w3.org/2000/svg">
+<defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#444"/></marker></defs>
+
+<text x="850" y="40" style="font-size:24px;font-weight:700;fill:#111;text-anchor:middle;">LLM → Enigma → inf-Coding → KSi1 Flow</text>
+
+<rect class="box" x="570" y="80" width="560" height="90"/><text class="txt" x="850" y="112">LLM (Model Output)</text><text class="txt small" x="850" y="138">openai-codex / other providers</text>
+<rect class="box" x="570" y="210" width="560" height="90"/><text class="txt" x="850" y="242">Enigma (OpenClaw Agent)</text><text class="txt small" x="850" y="268">message/tool orchestration</text>
+<rect class="box" x="570" y="340" width="560" height="90"/><text class="txt" x="850" y="372">inf-Coding Entry</text><text class="txt small" x="850" y="398">guard.sh + order-enforce.sh</text>
+<polygon class="decision" points="850,470 1010,530 850,590 690,530"/><text class="txt" x="850" y="530">assist-on ?</text>
+<rect class="block" x="1150" y="495" width="320" height="70"/><text class="txt" x="1310" y="530">BLOCKED</text>
+
+<rect class="box" x="570" y="640" width="560" height="90"/><text class="txt" x="850" y="672">inf-Coding-Assist</text><text class="txt small" x="850" y="698">ksi1-route.sh</text>
+<rect class="box" x="570" y="770" width="560" height="90"/><text class="txt" x="850" y="802">KSi1 Router</text><text class="txt small" x="850" y="828">ksi1-router.py (fast/strict)</text>
+<rect class="box" x="570" y="900" width="560" height="90"/><text class="txt" x="850" y="932">KSi1 Core</text><text class="txt small" x="850" y="958">Katala_Samurai_inf_000001.verify</text>
+<polygon class="decision" points="850,1030 1030,1100 850,1170 670,1100"/><text class="txt" x="850" y="1090">KS42c backend</text><text class="txt small" x="850" y="1114">available?</text>
+
+<rect class="box" x="200" y="1230" width="520" height="100"/><text class="txt" x="460" y="1264">Full KS Path</text><text class="txt small" x="460" y="1290">KS42c → L1 S1..S28 Solver Chain</text>
+<rect class="box" x="980" y="1230" width="520" height="100"/><text class="txt" x="1240" y="1264">Fallback Path</text><text class="txt small" x="1240" y="1290">fallback-no-ks42c</text>
+
+<rect class="box" x="570" y="1390" width="560" height="90"/><text class="txt" x="850" y="1422">Route Decision</text><text class="txt small" x="850" y="1448">fast / strict + reason</text>
+<rect class="box" x="570" y="1520" width="560" height="90"/><text class="txt" x="850" y="1552">Command Execute</text><text class="txt small" x="850" y="1578">Katala workspace (assist-exec)</text>
+<rect class="box" x="570" y="1650" width="560" height="70"/><text class="txt" x="850" y="1685">Result</text>
+<rect class="box" x="570" y="1760" width="560" height="90"/><text class="txt" x="850" y="1792">Adapter Output</text><text class="txt small" x="850" y="1818">inf_coding_adapter.py</text>
+<rect class="box" x="570" y="1890" width="560" height="90"/><text class="txt" x="850" y="1922">NDJSON Sink</text><text class="txt small" x="850" y="1948">inf-Coding-run/ksi-bridge.ndjson</text>
+<rect class="box" x="570" y="2020" width="560" height="90"/><text class="txt" x="850" y="2052">Analyze</text><text class="txt small" x="850" y="2078">ksi1-analyze.sh</text>
+<rect class="box" x="570" y="2150" width="560" height="90"/><text class="txt" x="850" y="2182">Feedback Loop</text><text class="txt small" x="850" y="2208">threshold/pattern tuning</text>
+
+<path class="line" d="M850,170 L850,210"/>
+<path class="line" d="M850,300 L850,340"/>
+<path class="line" d="M850,430 L850,470"/>
+<path class="line" d="M1010,530 L1150,530"/><text class="small" x="1065" y="516">No</text>
+<path class="line" d="M850,590 L850,640"/><text class="small" x="870" y="620">Yes</text>
+<path class="line" d="M850,730 L850,770"/>
+<path class="line" d="M850,860 L850,900"/>
+<path class="line" d="M850,990 L850,1030"/>
+<path class="line" d="M780,1145 L460,1230"/><text class="small" x="600" y="1170">Yes</text>
+<path class="line" d="M920,1145 L1240,1230"/><text class="small" x="1080" y="1170">No</text>
+<path class="line" d="M460,1330 L460,1360 L850,1360 L850,1390"/>
+<path class="line" d="M1240,1330 L1240,1360 L850,1360 L850,1390"/>
+<path class="line" d="M850,1480 L850,1520"/>
+<path class="line" d="M850,1610 L850,1650"/>
+<path class="line" d="M850,1720 L850,1760"/>
+<path class="line" d="M850,1850 L850,1890"/>
+<path class="line" d="M850,1980 L850,2020"/>
+<path class="line" d="M850,2110 L850,2150"/>
+</svg>
+</body></html>
