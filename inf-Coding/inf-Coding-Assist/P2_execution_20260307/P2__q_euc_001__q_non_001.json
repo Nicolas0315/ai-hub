@@ -1,0 +1,366 @@
+{
+  "handoff_id": "P2::q_euc_001__q_non_001",
+  "geom_ids": [
+    "q_euc_001",
+    "q_non_001"
+  ],
+  "input_program_ids": [
+    "P1::q_euc_001",
+    "P1::q_non_001"
+  ],
+  "mediation_mode": "single_domain",
+  "iut_operator_family": "kq_iut_mediation_core",
+  "kernel_results": [
+    {
+      "kernel": "hol_kernel",
+      "expr": "forall x in [0,1]. true",
+      "result": {
+        "ok": true,
+        "proof_status": "checked",
+        "solver": "hol-lite",
+        "result": true,
+        "ast": "('quant', 'forall', 'x', [0, 1], ('leaf', 'true'), None)",
+        "ast_normalized": "('quant', 'forall', 'x', [0, 1], ('leaf', 'true'), None)",
+        "mode": "general-formula+typecheck+higher-order-unification+proofsearch",
+        "normalization_notes": [
+          "grammar:quantifier:canonical"
+        ],
+        "linguistic_trace": {
+          "language_family": "unknown",
+          "confidence": 0.0,
+          "family_scores": {
+            "indo-european": 0,
+            "semitic": 0,
+            "sino-tibetan": 0,
+            "japonic": 0,
+            "koreanic": 0,
+            "indo-aryan": 0,
+            "constructed": 0,
+            "ancient-mesopotamian": 0
+          },
+          "grammar_quality": {
+            "family": "unknown",
+            "solver": "hol",
+            "transform_count": 1,
+            "structural_transforms": 1,
+            "aggressive_transforms": 0,
+            "misconversion_risk": 0.06,
+            "priority": "low"
+          },
+          "grammar_auto_adjust": {
+            "mode": "balanced",
+            "applied": false,
+            "reason": "normal-risk"
+          }
+        },
+        "inferred_type": "bool",
+        "typecheck": {
+          "ok": true,
+          "unification": {
+            "enabled": true,
+            "substitutions": {},
+            "count": 0,
+            "higher_order_pattern": true,
+            "unknown_lifting": true
+          },
+          "strict_function_application": true
+        },
+        "proof_search": {
+          "checked_models": 1,
+          "counterexample": null,
+          "theorem_like": null
+        },
+        "strategy_search": {
+          "selected": {
+            "name": "general",
+            "seed_domain": [
+              false,
+              true,
+              0,
+              1,
+              -1
+            ]
+          },
+          "candidates": [
+            {
+              "strategy": {
+                "name": "general",
+                "seed_domain": [
+                  false,
+                  true,
+                  0,
+                  1,
+                  -1
+                ]
+              },
+              "pilot": {
+                "checked_models": 1,
+                "counterexample": null,
+                "theorem_like": null
+              },
+              "score": 0.5
+            },
+            {
+              "strategy": {
+                "name": "bool-first",
+                "seed_domain": [
+                  false,
+                  true,
+                  0,
+                  1,
+                  -1
+                ]
+              },
+              "pilot": {
+                "checked_models": 1,
+                "counterexample": null,
+                "theorem_like": null
+              },
+              "score": 0.5
+            },
+            {
+              "strategy": {
+                "name": "int-first",
+                "seed_domain": [
+                  0,
+                  1,
+                  -1,
+                  2,
+                  -2,
+                  false,
+                  true
+                ]
+              },
+              "pilot": {
+                "checked_models": 1,
+                "counterexample": null,
+                "theorem_like": null
+              },
+              "score": 0.5
+            }
+          ]
+        },
+        "proof_search_sync": {
+          "checked_models": 1,
+          "counterexample": null,
+          "theorem_like": null
+        },
+        "proof_sync_consistency": true,
+        "proof_trace_machine": {
+          "ast": "('quant', 'forall', 'x', [0, 1], ('leaf', 'true'), None)",
+          "inferred_type": "bool",
+          "unification_subst": {},
+          "strategy_search": {
+            "selected": {
+              "name": "general",
+              "seed_domain": [
+                false,
+                true,
+                0,
+                1,
+                -1
+              ]
+            },
+            "candidates": [
+              {
+                "strategy": {
+                  "name": "general",
+                  "seed_domain": [
+                    false,
+                    true,
+                    0,
+                    1,
+                    -1
+                  ]
+                },
+                "pilot": {
+                  "checked_models": 1,
+                  "counterexample": null,
+                  "theorem_like": null
+                },
+                "score": 0.5
+              },
+              {
+                "strategy": {
+                  "name": "bool-first",
+                  "seed_domain": [
+                    false,
+                    true,
+                    0,
+                    1,
+                    -1
+                  ]
+                },
+                "pilot": {
+                  "checked_models": 1,
+                  "counterexample": null,
+                  "theorem_like": null
+                },
+                "score": 0.5
+              },
+              {
+                "strategy": {
+                  "name": "int-first",
+                  "seed_domain": [
+                    0,
+                    1,
+                    -1,
+                    2,
+                    -2,
+                    false,
+                    true
+                  ]
+                },
+                "pilot": {
+                  "checked_models": 1,
+                  "counterexample": null,
+                  "theorem_like": null
+                },
+                "score": 0.5
+              }
+            ]
+          },
+          "proof_search": {
+            "checked_models": 1,
+            "counterexample": null,
+            "theorem_like": null
+          }
+        },
+        "proof_trace_human": {
+          "strategy": "general",
+          "checked_models": 1,
+          "theorem_like": null,
+          "has_counterexample": false
+        },
+        "proof_certificate": "91b3c5232f2091b7"
+      },
+      "ok": true
+    },
+    {
+      "kernel": "smt_kernel",
+      "expr": "vars: x in [0,1], y in [0,1]; formula: x >= 0 and y >= 0",
+      "result": {
+        "ok": true,
+        "solver": "smt-kq-native-nn-qemu",
+        "proof_status": "checked",
+        "solutions": [],
+        "solution_count": 0,
+        "proof_trace": {
+          "mode": "nn-ranked+nn-qemu-priority+standalone-enumeration+interval-propagation+env-safe-eval",
+          "variables": [
+            "and",
+            "x"
+          ],
+          "normalization_notes": [
+            "replace:y->and"
+          ],
+          "linguistic_trace": {
+            "language_family": "indo-european",
+            "confidence": 1.0,
+            "family_scores": {
+              "indo-european": 1,
+              "semitic": 0,
+              "sino-tibetan": 0,
+              "japonic": 0,
+              "koreanic": 0,
+              "indo-aryan": 0,
+              "constructed": 0,
+              "ancient-mesopotamian": 0
+            },
+            "grammar_quality": {
+              "family": "indo-european",
+              "solver": "smt",
+              "transform_count": 0,
+              "structural_transforms": 0,
+              "aggressive_transforms": 0,
+              "misconversion_risk": 0.0,
+              "priority": "low"
+            },
+            "grammar_auto_adjust": {
+              "mode": "balanced",
+              "applied": false,
+              "reason": "normal-risk"
+            }
+          },
+          "strategy": "nn-ranked",
+          "strategy_search": {
+            "enabled": true,
+            "selected": "nn-ranked",
+            "candidates": [
+              {
+                "strategy": "nn-ranked",
+                "score": 0.95
+              },
+              {
+                "strategy": "stream",
+                "score": 0.58
+              }
+            ]
+          },
+          "search_space": 4,
+          "checked_points": 4,
+          "coverage": 1.0,
+          "exhaustive": true,
+          "exhaustive_limit": 200000,
+          "interval_pruning": [
+            "x>=0 -> [0,1]"
+          ]
+        },
+        "proof_certificate": "1bf8a93d22fde766"
+      },
+      "ok": true
+    },
+    {
+      "kernel": "ctl_kernel",
+      "expr": "AG p @ [['p'],['p']]",
+      "result": {
+        "ok": true,
+        "proof_status": "checked",
+        "solver": "ctl-lite",
+        "result": true,
+        "formula": "AG p",
+        "ast": "('ag', ('atom', 'p'))",
+        "mode": "model-check+memo",
+        "supported_ops": [
+          "!",
+          "&",
+          "|",
+          "->",
+          "<->",
+          "X",
+          "Y",
+          "F",
+          "G",
+          "O",
+          "H",
+          "U",
+          "R",
+          "W",
+          "S",
+          "T",
+          "EX",
+          "AX",
+          "EF",
+          "AF",
+          "EG",
+          "AG"
+        ],
+        "memo_entries": 3,
+        "counterexample_trace": null,
+        "counterexample_human": null,
+        "proof_certificate": "c8785fd68e96ecdb"
+      },
+      "ok": true
+    }
+  ],
+  "kernel_pass_count": 3,
+  "kernel_total_count": 3,
+  "compatibility_contract": {
+    "all_inputs_ready_for_p2": true,
+    "geom_ids_distinct": true,
+    "source_hashes_present": true,
+    "runtime_specs_verified": true
+  },
+  "mediation_pass": true,
+  "ready_for_l3": true
+}
