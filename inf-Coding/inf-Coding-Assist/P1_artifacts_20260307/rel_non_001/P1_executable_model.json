@@ -1,0 +1,21 @@
+{
+  "program_id": "P1::rel_non_001",
+  "program_layer": "P1",
+  "geom_id": "rel_non_001",
+  "compiler_profile": "relativity_non_euclidean_core",
+  "program_family": "relativity_geometry_compiler",
+  "compiled_from": "S1::rel_non_001",
+  "compiled_at": "2026-03-07T03:11:10.786352+00:00",
+  "semantic_contract": {
+    "domain": "relativity",
+    "geometry_class": "non_euclidean",
+    "usage_mode": "core"
+  },
+  "runtime_stub": {
+    "entrypoint": "simulate_geometry_model",
+    "status": "stubbed",
+    "next_requirement": "Replace stub with geometry-specific solver/runtime implementation."
+  },
+  "input_hash": "d18e0bc1f324311ce82c306a4f6901564b966b70f05aa01a26a31e208c38a7b5",
+  "program_sha256": "9a297d763a3f3409a609a680122408cc37636e88d341e8f5286faacc1f812870"
+}

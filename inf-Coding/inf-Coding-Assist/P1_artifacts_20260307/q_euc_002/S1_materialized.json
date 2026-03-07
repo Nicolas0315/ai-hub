@@ -1,0 +1,28 @@
+{
+  "source_id": "S1::q_euc_002",
+  "geom_id": "q_euc_002",
+  "source_layer": "S1",
+  "domain": "quantum",
+  "geometry_class": "euclidean",
+  "semantic_name": "Wick-rotated Euclidean-time field theory",
+  "usage_mode": "analytic",
+  "euclid_property_profile": {
+    "is_euclidean": true,
+    "local_euclid_recoverable": true,
+    "limit_euclid_recoverable": true
+  },
+  "asset_kind": "geometry_binary",
+  "binary_format": "json",
+  "producer": "inf_brain_p1_compiler_20260307.py",
+  "created_at": "2026-03-07T03:11:10.333436+00:00",
+  "intended_consumers": [
+    "P1",
+    "M1"
+  ],
+  "semantic_snapshot": {
+    "layer_anchor": "L1",
+    "expected_source_layer": "S1",
+    "name": "Wick-rotated Euclidean-time field theory"
+  },
+  "sha256": "1c3e65fd39e797c1b7e1bcbf3929a22c05b3f37391e02f852f21c41956b6e2ce"
+}

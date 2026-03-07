@@ -1,0 +1,21 @@
+{
+  "program_id": "P1::q_euc_004",
+  "program_layer": "P1",
+  "geom_id": "q_euc_004",
+  "compiler_profile": "quantum_euclidean_regularization",
+  "program_family": "quantum_geometry_compiler",
+  "compiled_from": "S1::q_euc_004",
+  "compiled_at": "2026-03-07T03:11:10.421315+00:00",
+  "semantic_contract": {
+    "domain": "quantum",
+    "geometry_class": "euclidean",
+    "usage_mode": "regularization"
+  },
+  "runtime_stub": {
+    "entrypoint": "simulate_geometry_model",
+    "status": "stubbed",
+    "next_requirement": "Replace stub with geometry-specific solver/runtime implementation."
+  },
+  "input_hash": "bfd5b585d9a3cfc3c1555f5fe82eaf8035d4f4ff839ec56c95077a3f8bfad957",
+  "program_sha256": "e222320516c081e1ad0c6fca9cd0f3b2555c1f88ffe7a8a88c3984bf22fdf87d"
+}

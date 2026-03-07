@@ -1,0 +1,28 @@
+{
+  "source_id": "S1::rel_non_003",
+  "geom_id": "rel_non_003",
+  "source_layer": "S1",
+  "domain": "relativity",
+  "geometry_class": "non_euclidean",
+  "semantic_name": "Riemannian 3-geometry on ADM spatial slices",
+  "usage_mode": "formalism",
+  "euclid_property_profile": {
+    "is_euclidean": false,
+    "local_euclid_recoverable": true,
+    "limit_euclid_recoverable": true
+  },
+  "asset_kind": "geometry_binary",
+  "binary_format": "json",
+  "producer": "inf_brain_p1_compiler_20260307.py",
+  "created_at": "2026-03-07T03:11:10.820094+00:00",
+  "intended_consumers": [
+    "P1",
+    "M1"
+  ],
+  "semantic_snapshot": {
+    "layer_anchor": "L1",
+    "expected_source_layer": "S1",
+    "name": "Riemannian 3-geometry on ADM spatial slices"
+  },
+  "sha256": "b462180ed1cca1b8b488602db61e643a5221b09f2d00336267c65594454d6e0d"
+}

@@ -1,0 +1,17 @@
+{
+  "program_id": "P1::q_euc_004",
+  "geom_id": "q_euc_004",
+  "verified_at": "2026-03-07T03:11:10.421336+00:00",
+  "verification_contract": {
+    "sha256_match_required": true,
+    "geom_id_match_required": true,
+    "schema_validation_required": true
+  },
+  "checks": {
+    "geom_id_match": true,
+    "sha256_present": true,
+    "schema_fields_present": true,
+    "compiled_from_expected_input": true
+  },
+  "pass": true
+}

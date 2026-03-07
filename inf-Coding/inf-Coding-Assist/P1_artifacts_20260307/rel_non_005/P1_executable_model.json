@@ -1,0 +1,21 @@
+{
+  "program_id": "P1::rel_non_005",
+  "program_layer": "P1",
+  "geom_id": "rel_non_005",
+  "compiler_profile": "relativity_non_euclidean_cosmology",
+  "program_family": "relativity_geometry_compiler",
+  "compiled_from": "S1::rel_non_005",
+  "compiled_at": "2026-03-07T03:11:10.856249+00:00",
+  "semantic_contract": {
+    "domain": "relativity",
+    "geometry_class": "non_euclidean",
+    "usage_mode": "cosmology"
+  },
+  "runtime_stub": {
+    "entrypoint": "simulate_geometry_model",
+    "status": "stubbed",
+    "next_requirement": "Replace stub with geometry-specific solver/runtime implementation."
+  },
+  "input_hash": "70ac6b9a67ce10e69efde60701f86bede592a242f452ebb452409569712347c1",
+  "program_sha256": "8aa93fbee201b38b486e1fd0ef484a245ee18344fffb570b5ebb0fcff5ba3ce1"
+}

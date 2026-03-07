@@ -1,0 +1,28 @@
+{
+  "source_id": "S1::rel_euc_002",
+  "geom_id": "rel_euc_002",
+  "source_layer": "S1",
+  "domain": "relativity",
+  "geometry_class": "euclidean",
+  "semantic_name": "Weak-field post-Newtonian spatial approximation",
+  "usage_mode": "approximation",
+  "euclid_property_profile": {
+    "is_euclidean": true,
+    "local_euclid_recoverable": true,
+    "limit_euclid_recoverable": true
+  },
+  "asset_kind": "geometry_binary",
+  "binary_format": "json",
+  "producer": "inf_brain_p1_compiler_20260307.py",
+  "created_at": "2026-03-07T03:11:10.631796+00:00",
+  "intended_consumers": [
+    "P1",
+    "M1"
+  ],
+  "semantic_snapshot": {
+    "layer_anchor": "L1",
+    "expected_source_layer": "S1",
+    "name": "Weak-field post-Newtonian spatial approximation"
+  },
+  "sha256": "8db5a4a45509ba15627128fd43ed2256cfc70a4a14c5782754f3960059713fbb"
+}

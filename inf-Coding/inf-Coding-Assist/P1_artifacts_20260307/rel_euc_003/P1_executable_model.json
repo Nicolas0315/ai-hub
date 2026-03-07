@@ -1,0 +1,21 @@
+{
+  "program_id": "P1::rel_euc_003",
+  "program_layer": "P1",
+  "geom_id": "rel_euc_003",
+  "compiler_profile": "relativity_euclidean_local",
+  "program_family": "relativity_geometry_compiler",
+  "compiled_from": "S1::rel_euc_003",
+  "compiled_at": "2026-03-07T03:11:10.668180+00:00",
+  "semantic_contract": {
+    "domain": "relativity",
+    "geometry_class": "euclidean",
+    "usage_mode": "local"
+  },
+  "runtime_stub": {
+    "entrypoint": "simulate_geometry_model",
+    "status": "stubbed",
+    "next_requirement": "Replace stub with geometry-specific solver/runtime implementation."
+  },
+  "input_hash": "8a7490851d08918b39b0d9d26a56f746fc383886a6ebb431d9693fba61c88164",
+  "program_sha256": "2c8eae57d5b18888f16cf961eda9e417b99e0e90e1f119b17142b50a64364dc4"
+}
