@@ -1,0 +1,10 @@
+{"id":"L01","text":"多言語（日本語/English）で書かれた研究要約の主張整合性を検証し、翻訳損失を評価する"}
+{"id":"L02","text":"Given theorem-style formal text and natural-language explanation, estimate cross-layer consistency and translation loss."}
+{"id":"L03","text":"査読論文引用を含む政策議論の要点抽出において、要約圧縮で意味がどれだけ欠損するかを推定せよ"}
+{"id":"L04","text":"Analyze coding design notes with mixed symbolic notation (A->B, ∀x) and prose; report translation loss profile."}
+{"id":"L05","text":"音楽理論の専門用語を一般説明に翻訳した際の意味保存率を推定し、一貫性を判定する"}
+{"id":"L06","text":"Compare claim and source text across layers (formal_language, natural_language) and output consistency confidence."}
+{"id":"L07","text":"複数セクションの長文を圧縮したとき、階層復元時の連続性と損失率を出力する"}
+{"id":"L08","text":"Estimate citation grounding loss when references are sparse and fulltext reachability is low."}
+{"id":"L09","text":"安全ポリシー文章と実装仕様の差分を検証し、意味ドリフトを評価する"}
+{"id":"L10","text":"Cross-lingual science summary: preserve fact anchors while translating output; compute expected translation loss."}
