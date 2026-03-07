@@ -1,4 +1,4 @@
-# inf-Mathematical-Papers
+# inf-Mathematica
 
 数学論文コーパスを保管する inf-Memory カテゴリ。
 

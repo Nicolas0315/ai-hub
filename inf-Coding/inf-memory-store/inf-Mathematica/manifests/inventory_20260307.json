@@ -1,6 +1,6 @@
 {
   "schema": "inf-memory-category-inventory-v1",
-  "category": "inf-Mathematical-Papers",
+  "category": "inf-Mathematica",
   "description": "Peer-reviewed mathematical paper corpus category for future collection.",
   "created_at": "2026-03-07",
   "storage_policy": {
