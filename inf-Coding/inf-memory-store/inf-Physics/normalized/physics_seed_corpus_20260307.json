@@ -1,0 +1,438 @@
+{
+  "schema": "inf-physics-seed-corpus-v1",
+  "record_count": 24,
+  "records": [
+    {
+      "seed_id": "rel_seed_001",
+      "category": "Category1",
+      "theory_domain": "relativity",
+      "topic": "special_relativity",
+      "title": "Zur Elektrodynamik bewegter Körper",
+      "seed_title": "Zur Elektrodynamik bewegter Körper",
+      "authors": [
+        "Wolfgang Trageser"
+      ],
+      "year": 2015,
+      "doi": "10.1007/978-3-662-48039-7_4",
+      "url": "https://doi.org/10.1007/978-3-662-48039-7_4",
+      "publisher": "Springer Berlin Heidelberg",
+      "container_title": "Das Relativitätsprinzip",
+      "source_kind": "chapter",
+      "doi_present": true
+    },
+    {
+      "seed_id": "rel_seed_002",
+      "category": "Category1",
+      "theory_domain": "relativity",
+      "topic": "mass_energy_equivalence",
+      "title": "Ist die Trägheit eines Körpers von seinem Energieinhalt abhängig?",
+      "seed_title": "Ist die Trägheit eines Körpers von seinem Energieinhalt abhängig?",
+      "authors": [
+        "A. Einstein"
+      ],
+      "year": 1905,
+      "doi": "10.1002/andp.19053231314",
+      "url": "https://doi.org/10.1002/andp.19053231314",
+      "publisher": "Wiley",
+      "container_title": "Annalen der Physik",
+      "source_kind": "journal_or_primary",
+      "doi_present": true
+    },
+    {
+      "seed_id": "rel_seed_003",
+      "category": "Category1",
+      "theory_domain": "relativity",
+      "topic": "spacetime_formalization",
+      "title": "Raum und Zeit",
+      "seed_title": "Raum und Zeit",
+      "authors": [
+        "Wolfgang Trageser"
+      ],
+      "year": 2015,
+      "doi": "10.1007/978-3-662-48039-7_6",
+      "url": "https://doi.org/10.1007/978-3-662-48039-7_6",
+      "publisher": "Springer Berlin Heidelberg",
+      "container_title": "Das Relativitätsprinzip",
+      "source_kind": "chapter",
+      "doi_present": true
+    },
+    {
+      "seed_id": "rel_seed_004",
+      "category": "Category1",
+      "theory_domain": "relativity",
+      "topic": "general_relativity_field_equations",
+      "title": "Die Feldgleichungen der Gravitation",
+      "seed_title": "Die Feldgleichungen der Gravitation",
+      "authors": [
+        "A. Einstein"
+      ],
+      "year": 2005,
+      "doi": "10.1002/3527608958.ch5",
+      "url": "https://doi.org/10.1002/3527608958.ch5",
+      "publisher": "Wiley",
+      "container_title": "Albert Einstein: Akademie‐Vorträge",
+      "source_kind": "journal_or_primary",
+      "doi_present": true
+    },
+    {
+      "seed_id": "rel_seed_005",
+      "category": "Category1",
+      "theory_domain": "relativity",
+      "topic": "general_relativity_foundation",
+      "title": "Die Grundlage der allgemeinen Relativitätstheorie",
+      "seed_title": "Die Grundlage der allgemeinen Relativitätstheorie",
+      "authors": [
+        "Wolfgang Trageser"
+      ],
+      "year": 2018,
+      "doi": "10.1007/978-3-662-57411-9_14",
+      "url": "https://doi.org/10.1007/978-3-662-57411-9_14",
+      "publisher": "Springer Berlin Heidelberg",
+      "container_title": "Das Relativitätsprinzip",
+      "source_kind": "chapter",
+      "doi_present": true
+    },
+    {
+      "seed_id": "rel_seed_006",
+      "category": "Category1",
+      "theory_domain": "relativity",
+      "topic": "schwarzschild_solution",
+      "title": "Über das Gravitationsfeld eines Massenpunktes nach der EINSTEINschen Theorie",
+      "seed_title": "Über das Gravitationsfeld eines Massenpunktes nach der Einsteinschen Theorie",
+      "authors": [
+        "Karl Schwarzschild"
+      ],
+      "year": 1992,
+      "doi": "10.1007/978-3-642-58084-0_21",
+      "url": "https://doi.org/10.1007/978-3-642-58084-0_21",
+      "publisher": "Springer Berlin Heidelberg",
+      "container_title": "Gesammelte Werke/Collected Works",
+      "source_kind": "chapter",
+      "doi_present": true
+    },
+    {
+      "seed_id": "rel_seed_007",
+      "category": "Category1",
+      "theory_domain": "relativity",
+      "topic": "friedmann_cosmology",
+      "title": "Einstein’sche Feldgleichung: Masse und die Krümmung des Raumes",
+      "seed_title": "Über die Krümmung des Raumes",
+      "authors": [
+        "Holger Göbel"
+      ],
+      "year": 2018,
+      "doi": "10.1515/physiko.28.87",
+      "url": "https://doi.org/10.1515/physiko.28.87",
+      "publisher": "De Gruyter",
+      "container_title": "Physik Online",
+      "source_kind": "journal_or_primary",
+      "doi_present": true
+    },
+    {
+      "seed_id": "rel_seed_008",
+      "category": "Category1",
+      "theory_domain": "relativity",
+      "topic": "lemaitre_cosmology",
+      "title": "126. A Homogeneous Universe of Constant Mass and Increasing Radius accounting for the Radial Velocity of Extra-Galactic Nebulae",
+      "seed_title": "A homogeneous universe of constant mass and increasing radius accounting for the radial velocity of extragalactic nebulae",
+      "authors": [
+        "Georges Lemaître"
+      ],
+      "year": 1979,
+      "doi": "10.4159/harvard.9780674366688.c135",
+      "url": "https://doi.org/10.4159/harvard.9780674366688.c135",
+      "publisher": "Harvard University Press",
+      "container_title": "A Source Book in Astronomy and Astrophysics, 1900–1975",
+      "source_kind": "journal_or_primary",
+      "doi_present": true
+    },
+    {
+      "seed_id": "rel_seed_009",
+      "category": "Category1",
+      "theory_domain": "relativity",
+      "topic": "singularity_theorem",
+      "title": "Gravitational Collapse and Space-Time Singularities",
+      "seed_title": "Gravitational Collapse and Space-Time Singularities",
+      "authors": [
+        "Roger Penrose"
+      ],
+      "year": 1965,
+      "doi": "10.1103/physrevlett.14.57",
+      "url": "https://doi.org/10.1103/physrevlett.14.57",
+      "publisher": "American Physical Society (APS)",
+      "container_title": "Physical Review Letters",
+      "source_kind": "journal_or_primary",
+      "doi_present": true
+    },
+    {
+      "seed_id": "rel_seed_010",
+      "category": "Category1",
+      "theory_domain": "relativity",
+      "topic": "hawking_singularity",
+      "title": "The occurrence of singularities in cosmology",
+      "seed_title": "The occurrence of singularities in cosmology. III. Causality and singularities",
+      "authors": [
+        "Stephen William Hawking"
+      ],
+      "year": 1966,
+      "doi": "10.1098/rspa.1966.0221",
+      "url": "https://doi.org/10.1098/rspa.1966.0221",
+      "publisher": "The Royal Society",
+      "container_title": "Proceedings of the Royal Society of London. Series A. Mathematical and Physical Sciences",
+      "source_kind": "journal_or_primary",
+      "doi_present": true
+    },
+    {
+      "seed_id": "rel_seed_011",
+      "category": "Category1",
+      "theory_domain": "relativity",
+      "topic": "adm_formalism",
+      "title": "Richard Arnowitt, Stanley Deser and Charles W. Misner 1962, the dynamics of general relativity",
+      "seed_title": "The Dynamics of General Relativity",
+      "authors": [
+        "Andrzej Krasiński",
+        "George F. R. Ellis",
+        "Malcolm A. H. MacCallum"
+      ],
+      "year": 2012,
+      "doi": "10.1007/978-3-642-34505-0_3",
+      "url": "https://doi.org/10.1007/978-3-642-34505-0_3",
+      "publisher": "Springer Berlin Heidelberg",
+      "container_title": "Golden Oldies in General Relativity",
+      "source_kind": "chapter",
+      "doi_present": true
+    },
+    {
+      "seed_id": "rel_seed_012",
+      "category": "Category1",
+      "theory_domain": "relativity",
+      "topic": "kerr_solution",
+      "title": "“Golden Oldie”: Gravitational Collapse: The Role of General Relativity",
+      "seed_title": "Gravitational collapse: the role of general relativity",
+      "authors": [
+        "R. Penrose"
+      ],
+      "year": 2002,
+      "doi": "10.1023/a:1016578408204",
+      "url": "https://doi.org/10.1023/a:1016578408204",
+      "publisher": "Springer Science and Business Media LLC",
+      "container_title": "General Relativity and Gravitation",
+      "source_kind": "journal_or_primary",
+      "doi_present": true
+    },
+    {
+      "seed_id": "q_seed_001",
+      "category": "Category2",
+      "theory_domain": "quantum",
+      "topic": "planck_quantum_origin",
+      "title": "FAKSIMILE AUS DEN VERHANDLUNGEN DER DEUTSCHEN PHYSIKALISCHEN GESELLSCHAFT 2 (1900) S. 237: <i>Zur Theorie des Gesetzes der Energieverteilung im Normalspectrum; von M. Planck</i>",
+      "seed_title": "Zur Theorie des Gesetzes der Energieverteilung im Normalspectrum",
+      "authors": [],
+      "year": 1948,
+      "doi": "10.1002/phbl.19480040404",
+      "url": "https://doi.org/10.1002/phbl.19480040404",
+      "publisher": "Wiley",
+      "container_title": "Physikalische Blätter",
+      "source_kind": "reprint",
+      "doi_present": true
+    },
+    {
+      "seed_id": "q_seed_002",
+      "category": "Category2",
+      "theory_domain": "quantum",
+      "topic": "light_quantum",
+      "title": "Über einen die Erzeugung und Verwandlung des Lichtes betreffenden heuristischen Gesichtspunkt",
+      "seed_title": "Über einen die Erzeugung und Verwandlung des Lichtes betreffenden heuristischen Gesichtspunkt",
+      "authors": [
+        "A. Einstein"
+      ],
+      "year": 1905,
+      "doi": "10.1002/andp.19053220607",
+      "url": "https://doi.org/10.1002/andp.19053220607",
+      "publisher": "Wiley",
+      "container_title": "Annalen der Physik",
+      "source_kind": "journal_or_primary",
+      "doi_present": true
+    },
+    {
+      "seed_id": "q_seed_003",
+      "category": "Category2",
+      "theory_domain": "quantum",
+      "topic": "bohr_model",
+      "title": "On the Constitution of Atoms and Molecules",
+      "seed_title": "On the Constitution of Atoms and Molecules",
+      "authors": [
+        "Helge Kragh"
+      ],
+      "year": 2012,
+      "doi": "10.1093/acprof:oso/9780199654987.003.0002",
+      "url": "https://doi.org/10.1093/acprof:oso/9780199654987.003.0002",
+      "publisher": "Oxford University Press",
+      "container_title": "Niels Bohr and the Quantum Atom",
+      "source_kind": "journal_or_primary",
+      "doi_present": true
+    },
+    {
+      "seed_id": "q_seed_004",
+      "category": "Category2",
+      "theory_domain": "quantum",
+      "topic": "matter_waves",
+      "title": "Recherches sur la théorie des Quanta",
+      "seed_title": "Recherches sur la théorie des quanta",
+      "authors": [
+        "Louis De Broglie"
+      ],
+      "year": 1925,
+      "doi": "10.1051/anphys/192510030022",
+      "url": "https://doi.org/10.1051/anphys/192510030022",
+      "publisher": "EDP Sciences",
+      "container_title": "Annales de Physique",
+      "source_kind": "journal_or_primary",
+      "doi_present": true
+    },
+    {
+      "seed_id": "q_seed_005",
+      "category": "Category2",
+      "theory_domain": "quantum",
+      "topic": "matrix_mechanics",
+      "title": "6. Über quantentheoretische Umdeutung kinematischer und mechanischer Beziehungen",
+      "seed_title": "Über quantentheoretische Umdeutung kinematischer und mechanischer Beziehungen",
+      "authors": [
+        "Werner Heisenberg"
+      ],
+      "year": 1969,
+      "doi": "10.1515/9783112596647-011",
+      "url": "https://doi.org/10.1515/9783112596647-011",
+      "publisher": "De Gruyter",
+      "container_title": "Wellenmechanik",
+      "source_kind": "journal_or_primary",
+      "doi_present": true
+    },
+    {
+      "seed_id": "q_seed_006",
+      "category": "Category2",
+      "theory_domain": "quantum",
+      "topic": "wave_mechanics",
+      "title": "3. Quantisierung als Eigenwertproblem",
+      "seed_title": "Quantisierung als Eigenwertproblem",
+      "authors": [
+        "Erwin Schrödinger"
+      ],
+      "year": 1969,
+      "doi": "10.1515/9783112596647-008",
+      "url": "https://doi.org/10.1515/9783112596647-008",
+      "publisher": "De Gruyter",
+      "container_title": "Wellenmechanik",
+      "source_kind": "journal_or_primary",
+      "doi_present": true
+    },
+    {
+      "seed_id": "q_seed_007",
+      "category": "Category2",
+      "theory_domain": "quantum",
+      "topic": "probabilistic_interpretation",
+      "title": "Zur Quantenmechanik der Stoßvorgänge (1926)",
+      "seed_title": "Zur Quantenmechanik der Stoßvorgänge",
+      "authors": [
+        "Max Born"
+      ],
+      "year": 1984,
+      "doi": "10.1007/978-3-663-14179-2_5",
+      "url": "https://doi.org/10.1007/978-3-663-14179-2_5",
+      "publisher": "Vieweg+Teubner Verlag",
+      "container_title": "Die Deutungen der Quantentheorie",
+      "source_kind": "chapter",
+      "doi_present": true
+    },
+    {
+      "seed_id": "q_seed_008",
+      "category": "Category2",
+      "theory_domain": "quantum",
+      "topic": "qed_origin",
+      "title": "The Quantum Theory of the Emission and Absorption of Radiation",
+      "seed_title": "The Quantum Theory of the Emission and Absorption of Radiation",
+      "authors": [
+        "P. A. M. Dirac"
+      ],
+      "year": 1988,
+      "doi": "10.1007/978-94-009-3051-3_9",
+      "url": "https://doi.org/10.1007/978-94-009-3051-3_9",
+      "publisher": "Springer Netherlands",
+      "container_title": "Special Relativity and Quantum Theory",
+      "source_kind": "chapter",
+      "doi_present": true
+    },
+    {
+      "seed_id": "q_seed_009",
+      "category": "Category2",
+      "theory_domain": "quantum",
+      "topic": "dirac_equation",
+      "title": "Dirac Theory of the Electron",
+      "seed_title": "The Quantum Theory of the Electron",
+      "authors": [
+        "P.J.E. Peebles"
+      ],
+      "year": 2019,
+      "doi": "10.23943/princeton/9780691209821.003.0008",
+      "url": "https://doi.org/10.23943/princeton/9780691209821.003.0008",
+      "publisher": "Princeton University Press",
+      "container_title": "Quantum Mechanics",
+      "source_kind": "journal_or_primary",
+      "doi_present": true
+    },
+    {
+      "seed_id": "q_seed_010",
+      "category": "Category2",
+      "theory_domain": "quantum",
+      "topic": "hilbert_space_foundation",
+      "title": "Mathematische Grundlagen der Quantenmechanik",
+      "seed_title": "Mathematische Grundlagen der Quantenmechanik",
+      "authors": [
+        "John von Neumann"
+      ],
+      "year": 1996,
+      "doi": "10.1007/978-3-642-61409-5",
+      "url": "https://doi.org/10.1007/978-3-642-61409-5",
+      "publisher": "Springer Berlin Heidelberg",
+      "container_title": "",
+      "source_kind": "chapter",
+      "doi_present": true
+    },
+    {
+      "seed_id": "q_seed_011",
+      "category": "Category2",
+      "theory_domain": "quantum",
+      "topic": "bohmian_mechanics",
+      "title": "A Suggested Interpretation of the Quantum Theory in Terms of \"Hidden\" Variables. II",
+      "seed_title": "A Suggested Interpretation of the Quantum Theory in Terms of 'Hidden Variables' I",
+      "authors": [
+        "David Bohm"
+      ],
+      "year": 1952,
+      "doi": "10.1103/physrev.85.180",
+      "url": "https://doi.org/10.1103/physrev.85.180",
+      "publisher": "American Physical Society (APS)",
+      "container_title": "Physical Review",
+      "source_kind": "journal_or_primary",
+      "doi_present": true
+    },
+    {
+      "seed_id": "q_seed_012",
+      "category": "Category2",
+      "theory_domain": "quantum",
+      "topic": "epr_problem",
+      "title": "Can Quantum-Mechanical Description of Physical Reality Be Considered Complete?",
+      "seed_title": "Can Quantum-Mechanical Description of Physical Reality Be Considered Complete?",
+      "authors": [
+        "Nathan Rosen"
+      ],
+      "year": 1979,
+      "doi": "10.1007/978-3-322-91080-6_6",
+      "url": "https://doi.org/10.1007/978-3-322-91080-6_6",
+      "publisher": "Vieweg+Teubner Verlag",
+      "container_title": "Albert Einstein",
+      "source_kind": "chapter",
+      "doi_present": true
+    }
+  ]
+}

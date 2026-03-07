@@ -1,0 +1,139 @@
+{
+  "schema": "inf-physics-seed-corpus-index-v1",
+  "by_category": {
+    "Category1": [
+      "rel_seed_001",
+      "rel_seed_002",
+      "rel_seed_003",
+      "rel_seed_004",
+      "rel_seed_005",
+      "rel_seed_006",
+      "rel_seed_007",
+      "rel_seed_008",
+      "rel_seed_009",
+      "rel_seed_010",
+      "rel_seed_011",
+      "rel_seed_012"
+    ],
+    "Category2": [
+      "q_seed_001",
+      "q_seed_002",
+      "q_seed_003",
+      "q_seed_004",
+      "q_seed_005",
+      "q_seed_006",
+      "q_seed_007",
+      "q_seed_008",
+      "q_seed_009",
+      "q_seed_010",
+      "q_seed_011",
+      "q_seed_012"
+    ]
+  },
+  "by_theory_domain": {
+    "relativity": [
+      "rel_seed_001",
+      "rel_seed_002",
+      "rel_seed_003",
+      "rel_seed_004",
+      "rel_seed_005",
+      "rel_seed_006",
+      "rel_seed_007",
+      "rel_seed_008",
+      "rel_seed_009",
+      "rel_seed_010",
+      "rel_seed_011",
+      "rel_seed_012"
+    ],
+    "quantum": [
+      "q_seed_001",
+      "q_seed_002",
+      "q_seed_003",
+      "q_seed_004",
+      "q_seed_005",
+      "q_seed_006",
+      "q_seed_007",
+      "q_seed_008",
+      "q_seed_009",
+      "q_seed_010",
+      "q_seed_011",
+      "q_seed_012"
+    ]
+  },
+  "by_topic": {
+    "special_relativity": [
+      "rel_seed_001"
+    ],
+    "mass_energy_equivalence": [
+      "rel_seed_002"
+    ],
+    "spacetime_formalization": [
+      "rel_seed_003"
+    ],
+    "general_relativity_field_equations": [
+      "rel_seed_004"
+    ],
+    "general_relativity_foundation": [
+      "rel_seed_005"
+    ],
+    "schwarzschild_solution": [
+      "rel_seed_006"
+    ],
+    "friedmann_cosmology": [
+      "rel_seed_007"
+    ],
+    "lemaitre_cosmology": [
+      "rel_seed_008"
+    ],
+    "singularity_theorem": [
+      "rel_seed_009"
+    ],
+    "hawking_singularity": [
+      "rel_seed_010"
+    ],
+    "adm_formalism": [
+      "rel_seed_011"
+    ],
+    "kerr_solution": [
+      "rel_seed_012"
+    ],
+    "planck_quantum_origin": [
+      "q_seed_001"
+    ],
+    "light_quantum": [
+      "q_seed_002"
+    ],
+    "bohr_model": [
+      "q_seed_003"
+    ],
+    "matter_waves": [
+      "q_seed_004"
+    ],
+    "matrix_mechanics": [
+      "q_seed_005"
+    ],
+    "wave_mechanics": [
+      "q_seed_006"
+    ],
+    "probabilistic_interpretation": [
+      "q_seed_007"
+    ],
+    "qed_origin": [
+      "q_seed_008"
+    ],
+    "dirac_equation": [
+      "q_seed_009"
+    ],
+    "hilbert_space_foundation": [
+      "q_seed_010"
+    ],
+    "bohmian_mechanics": [
+      "q_seed_011"
+    ],
+    "epr_problem": [
+      "q_seed_012"
+    ]
+  },
+  "doi_present_count": 24,
+  "record_count": 24
+}
