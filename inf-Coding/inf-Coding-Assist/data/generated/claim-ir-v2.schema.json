@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://katala.local/schemas/claim-ir-v2.schema.json",
+  "title": "ClaimIR v2",
+  "type": "object",
+  "required": ["version", "source_modality", "payload", "quality", "formal", "evidence"],
+  "properties": {
+    "version": { "const": "claim-ir-v2" },
+    "source_modality": { "type": "string" },
+    "payload": { "type": "object" },
+    "quality": { "type": "object" },
+    "formal": {
+      "type": "object",
+      "required": ["backend", "proof_status_summary"],
+      "properties": {
+        "backend": { "type": "string" },
+        "proof_status_summary": {
+          "type": "object",
+          "required": ["total", "checked", "failed", "undecidable_or_inconclusive", "checked_ratio", "failed_ratio", "undecidable_ratio"],
+          "properties": {
+            "total": { "type": "number" },
+            "checked": { "type": "number" },
+            "failed": { "type": "number" },
+            "undecidable_or_inconclusive": { "type": "number" },
+            "checked_ratio": { "type": "number" },
+            "failed_ratio": { "type": "number" },
+            "undecidable_ratio": { "type": "number" }
+          }
+        }
+      }
+    },
+    "evidence": {
+      "type": "object",
+      "required": ["spml_profile", "spml_score"],
+      "properties": {
+        "spml_profile": { "type": "string" },
+        "spml_score": { "type": "number" }
+      }
+    }
+  },
+  "additionalProperties": true
+}

@@ -1,0 +1,553 @@
+{
+  "schema": "katala-p3-evaluation-v2",
+  "record_count": 20,
+  "success_count": 0,
+  "conditional_success_count": 0,
+  "revise_p2_count": 20,
+  "records": [
+    {
+      "p3_id": "P3::P2::geom_041__q_euc_001",
+      "computation_input": "P2::geom_041__q_euc_001",
+      "geom_ids": [
+        "geom_041",
+        "q_euc_001"
+      ],
+      "direct_euclid_execution": false,
+      "local_euclid_execution": false,
+      "limit_euclid_execution": false,
+      "failure_reason": [
+        "invariant_preservation_failure",
+        "p2_mediation_failure"
+      ],
+      "feedback_to_p2": {
+        "handoff_id": "P2::geom_041__q_euc_001",
+        "reasons": [
+          "invariant_preservation_failure",
+          "p2_mediation_failure"
+        ],
+        "suggestions": [
+          "tighten_invariant_targets"
+        ]
+      },
+      "final_status": "revise_p2"
+    },
+    {
+      "p3_id": "P3::P2::geom_041__q_euc_002",
+      "computation_input": "P2::geom_041__q_euc_002",
+      "geom_ids": [
+        "geom_041",
+        "q_euc_002"
+      ],
+      "direct_euclid_execution": false,
+      "local_euclid_execution": false,
+      "limit_euclid_execution": false,
+      "failure_reason": [
+        "invariant_preservation_failure",
+        "p2_mediation_failure"
+      ],
+      "feedback_to_p2": {
+        "handoff_id": "P2::geom_041__q_euc_002",
+        "reasons": [
+          "invariant_preservation_failure",
+          "p2_mediation_failure"
+        ],
+        "suggestions": [
+          "tighten_invariant_targets"
+        ]
+      },
+      "final_status": "revise_p2"
+    },
+    {
+      "p3_id": "P3::P2::geom_041__q_euc_003",
+      "computation_input": "P2::geom_041__q_euc_003",
+      "geom_ids": [
+        "geom_041",
+        "q_euc_003"
+      ],
+      "direct_euclid_execution": false,
+      "local_euclid_execution": false,
+      "limit_euclid_execution": false,
+      "failure_reason": [
+        "invariant_preservation_failure",
+        "p2_mediation_failure"
+      ],
+      "feedback_to_p2": {
+        "handoff_id": "P2::geom_041__q_euc_003",
+        "reasons": [
+          "invariant_preservation_failure",
+          "p2_mediation_failure"
+        ],
+        "suggestions": [
+          "tighten_invariant_targets"
+        ]
+      },
+      "final_status": "revise_p2"
+    },
+    {
+      "p3_id": "P3::P2::geom_041__q_euc_004",
+      "computation_input": "P2::geom_041__q_euc_004",
+      "geom_ids": [
+        "geom_041",
+        "q_euc_004"
+      ],
+      "direct_euclid_execution": false,
+      "local_euclid_execution": false,
+      "limit_euclid_execution": false,
+      "failure_reason": [
+        "invariant_preservation_failure",
+        "p2_mediation_failure"
+      ],
+      "feedback_to_p2": {
+        "handoff_id": "P2::geom_041__q_euc_004",
+        "reasons": [
+          "invariant_preservation_failure",
+          "p2_mediation_failure"
+        ],
+        "suggestions": [
+          "tighten_invariant_targets"
+        ]
+      },
+      "final_status": "revise_p2"
+    },
+    {
+      "p3_id": "P3::P2::geom_041__rel_euc_001",
+      "computation_input": "P2::geom_041__rel_euc_001",
+      "geom_ids": [
+        "geom_041",
+        "rel_euc_001"
+      ],
+      "direct_euclid_execution": false,
+      "local_euclid_execution": false,
+      "limit_euclid_execution": false,
+      "failure_reason": [
+        "invariant_preservation_failure",
+        "p2_mediation_failure"
+      ],
+      "feedback_to_p2": {
+        "handoff_id": "P2::geom_041__rel_euc_001",
+        "reasons": [
+          "invariant_preservation_failure",
+          "p2_mediation_failure"
+        ],
+        "suggestions": [
+          "tighten_invariant_targets"
+        ]
+      },
+      "final_status": "revise_p2"
+    },
+    {
+      "p3_id": "P3::P2::geom_041__rel_euc_002",
+      "computation_input": "P2::geom_041__rel_euc_002",
+      "geom_ids": [
+        "geom_041",
+        "rel_euc_002"
+      ],
+      "direct_euclid_execution": false,
+      "local_euclid_execution": false,
+      "limit_euclid_execution": false,
+      "failure_reason": [
+        "invariant_preservation_failure",
+        "p2_mediation_failure"
+      ],
+      "feedback_to_p2": {
+        "handoff_id": "P2::geom_041__rel_euc_002",
+        "reasons": [
+          "invariant_preservation_failure",
+          "p2_mediation_failure"
+        ],
+        "suggestions": [
+          "tighten_invariant_targets"
+        ]
+      },
+      "final_status": "revise_p2"
+    },
+    {
+      "p3_id": "P3::P2::geom_041__rel_euc_003",
+      "computation_input": "P2::geom_041__rel_euc_003",
+      "geom_ids": [
+        "geom_041",
+        "rel_euc_003"
+      ],
+      "direct_euclid_execution": false,
+      "local_euclid_execution": false,
+      "limit_euclid_execution": false,
+      "failure_reason": [
+        "invariant_preservation_failure",
+        "p2_mediation_failure"
+      ],
+      "feedback_to_p2": {
+        "handoff_id": "P2::geom_041__rel_euc_003",
+        "reasons": [
+          "invariant_preservation_failure",
+          "p2_mediation_failure"
+        ],
+        "suggestions": [
+          "tighten_invariant_targets"
+        ]
+      },
+      "final_status": "revise_p2"
+    },
+    {
+      "p3_id": "P3::P2::geom_041__rel_euc_004",
+      "computation_input": "P2::geom_041__rel_euc_004",
+      "geom_ids": [
+        "geom_041",
+        "rel_euc_004"
+      ],
+      "direct_euclid_execution": false,
+      "local_euclid_execution": false,
+      "limit_euclid_execution": false,
+      "failure_reason": [
+        "invariant_preservation_failure",
+        "p2_mediation_failure"
+      ],
+      "feedback_to_p2": {
+        "handoff_id": "P2::geom_041__rel_euc_004",
+        "reasons": [
+          "invariant_preservation_failure",
+          "p2_mediation_failure"
+        ],
+        "suggestions": [
+          "tighten_invariant_targets"
+        ]
+      },
+      "final_status": "revise_p2"
+    },
+    {
+      "p3_id": "P3::P2::geom_041__rel_non_001",
+      "computation_input": "P2::geom_041__rel_non_001",
+      "geom_ids": [
+        "geom_041",
+        "rel_non_001"
+      ],
+      "direct_euclid_execution": false,
+      "local_euclid_execution": false,
+      "limit_euclid_execution": false,
+      "failure_reason": [
+        "dimensional_inconsistency",
+        "invariant_preservation_failure",
+        "p2_mediation_failure"
+      ],
+      "feedback_to_p2": {
+        "handoff_id": "P2::geom_041__rel_non_001",
+        "reasons": [
+          "dimensional_inconsistency",
+          "invariant_preservation_failure",
+          "p2_mediation_failure"
+        ],
+        "suggestions": [
+          "revise_dimension_bridge_profile",
+          "tighten_invariant_targets"
+        ]
+      },
+      "final_status": "revise_p2"
+    },
+    {
+      "p3_id": "P3::P2::geom_041__rel_non_002",
+      "computation_input": "P2::geom_041__rel_non_002",
+      "geom_ids": [
+        "geom_041",
+        "rel_non_002"
+      ],
+      "direct_euclid_execution": false,
+      "local_euclid_execution": false,
+      "limit_euclid_execution": false,
+      "failure_reason": [
+        "dimensional_inconsistency",
+        "invariant_preservation_failure",
+        "p2_mediation_failure"
+      ],
+      "feedback_to_p2": {
+        "handoff_id": "P2::geom_041__rel_non_002",
+        "reasons": [
+          "dimensional_inconsistency",
+          "invariant_preservation_failure",
+          "p2_mediation_failure"
+        ],
+        "suggestions": [
+          "revise_dimension_bridge_profile",
+          "tighten_invariant_targets"
+        ]
+      },
+      "final_status": "revise_p2"
+    },
+    {
+      "p3_id": "P3::P2::geom_041__rel_non_003",
+      "computation_input": "P2::geom_041__rel_non_003",
+      "geom_ids": [
+        "geom_041",
+        "rel_non_003"
+      ],
+      "direct_euclid_execution": false,
+      "local_euclid_execution": false,
+      "limit_euclid_execution": false,
+      "failure_reason": [
+        "dimensional_inconsistency",
+        "invariant_preservation_failure",
+        "p2_mediation_failure"
+      ],
+      "feedback_to_p2": {
+        "handoff_id": "P2::geom_041__rel_non_003",
+        "reasons": [
+          "dimensional_inconsistency",
+          "invariant_preservation_failure",
+          "p2_mediation_failure"
+        ],
+        "suggestions": [
+          "revise_dimension_bridge_profile",
+          "tighten_invariant_targets"
+        ]
+      },
+      "final_status": "revise_p2"
+    },
+    {
+      "p3_id": "P3::P2::geom_041__rel_non_004",
+      "computation_input": "P2::geom_041__rel_non_004",
+      "geom_ids": [
+        "geom_041",
+        "rel_non_004"
+      ],
+      "direct_euclid_execution": false,
+      "local_euclid_execution": false,
+      "limit_euclid_execution": false,
+      "failure_reason": [
+        "dimensional_inconsistency",
+        "invariant_preservation_failure",
+        "p2_mediation_failure"
+      ],
+      "feedback_to_p2": {
+        "handoff_id": "P2::geom_041__rel_non_004",
+        "reasons": [
+          "dimensional_inconsistency",
+          "invariant_preservation_failure",
+          "p2_mediation_failure"
+        ],
+        "suggestions": [
+          "revise_dimension_bridge_profile",
+          "tighten_invariant_targets"
+        ]
+      },
+      "final_status": "revise_p2"
+    },
+    {
+      "p3_id": "P3::P2::geom_041__rel_non_005",
+      "computation_input": "P2::geom_041__rel_non_005",
+      "geom_ids": [
+        "geom_041",
+        "rel_non_005"
+      ],
+      "direct_euclid_execution": false,
+      "local_euclid_execution": false,
+      "limit_euclid_execution": false,
+      "failure_reason": [
+        "dimensional_inconsistency",
+        "invariant_preservation_failure",
+        "p2_mediation_failure"
+      ],
+      "feedback_to_p2": {
+        "handoff_id": "P2::geom_041__rel_non_005",
+        "reasons": [
+          "dimensional_inconsistency",
+          "invariant_preservation_failure",
+          "p2_mediation_failure"
+        ],
+        "suggestions": [
+          "revise_dimension_bridge_profile",
+          "tighten_invariant_targets"
+        ]
+      },
+      "final_status": "revise_p2"
+    },
+    {
+      "p3_id": "P3::P2::geom_041__rel_non_006",
+      "computation_input": "P2::geom_041__rel_non_006",
+      "geom_ids": [
+        "geom_041",
+        "rel_non_006"
+      ],
+      "direct_euclid_execution": false,
+      "local_euclid_execution": false,
+      "limit_euclid_execution": false,
+      "failure_reason": [
+        "dimensional_inconsistency",
+        "invariant_preservation_failure",
+        "p2_mediation_failure"
+      ],
+      "feedback_to_p2": {
+        "handoff_id": "P2::geom_041__rel_non_006",
+        "reasons": [
+          "dimensional_inconsistency",
+          "invariant_preservation_failure",
+          "p2_mediation_failure"
+        ],
+        "suggestions": [
+          "revise_dimension_bridge_profile",
+          "tighten_invariant_targets"
+        ]
+      },
+      "final_status": "revise_p2"
+    },
+    {
+      "p3_id": "P3::P2::geom_041__x_022",
+      "computation_input": "P2::geom_041__x_022",
+      "geom_ids": [
+        "geom_041",
+        "x_022"
+      ],
+      "direct_euclid_execution": false,
+      "local_euclid_execution": false,
+      "limit_euclid_execution": false,
+      "failure_reason": [
+        "invariant_preservation_failure",
+        "p2_mediation_failure"
+      ],
+      "feedback_to_p2": {
+        "handoff_id": "P2::geom_041__x_022",
+        "reasons": [
+          "invariant_preservation_failure",
+          "p2_mediation_failure"
+        ],
+        "suggestions": [
+          "tighten_invariant_targets"
+        ]
+      },
+      "final_status": "revise_p2"
+    },
+    {
+      "p3_id": "P3::P2::geom_041__x_023",
+      "computation_input": "P2::geom_041__x_023",
+      "geom_ids": [
+        "geom_041",
+        "x_023"
+      ],
+      "direct_euclid_execution": false,
+      "local_euclid_execution": false,
+      "limit_euclid_execution": false,
+      "failure_reason": [
+        "invariant_preservation_failure",
+        "p2_mediation_failure"
+      ],
+      "feedback_to_p2": {
+        "handoff_id": "P2::geom_041__x_023",
+        "reasons": [
+          "invariant_preservation_failure",
+          "p2_mediation_failure"
+        ],
+        "suggestions": [
+          "tighten_invariant_targets"
+        ]
+      },
+      "final_status": "revise_p2"
+    },
+    {
+      "p3_id": "P3::P2::geom_041__x_024",
+      "computation_input": "P2::geom_041__x_024",
+      "geom_ids": [
+        "geom_041",
+        "x_024"
+      ],
+      "direct_euclid_execution": false,
+      "local_euclid_execution": false,
+      "limit_euclid_execution": false,
+      "failure_reason": [
+        "invariant_preservation_failure",
+        "p2_mediation_failure"
+      ],
+      "feedback_to_p2": {
+        "handoff_id": "P2::geom_041__x_024",
+        "reasons": [
+          "invariant_preservation_failure",
+          "p2_mediation_failure"
+        ],
+        "suggestions": [
+          "tighten_invariant_targets"
+        ]
+      },
+      "final_status": "revise_p2"
+    },
+    {
+      "p3_id": "P3::P2::geom_041__x_025",
+      "computation_input": "P2::geom_041__x_025",
+      "geom_ids": [
+        "geom_041",
+        "x_025"
+      ],
+      "direct_euclid_execution": false,
+      "local_euclid_execution": false,
+      "limit_euclid_execution": false,
+      "failure_reason": [
+        "invariant_preservation_failure",
+        "p2_mediation_failure"
+      ],
+      "feedback_to_p2": {
+        "handoff_id": "P2::geom_041__x_025",
+        "reasons": [
+          "invariant_preservation_failure",
+          "p2_mediation_failure"
+        ],
+        "suggestions": [
+          "tighten_invariant_targets"
+        ]
+      },
+      "final_status": "revise_p2"
+    },
+    {
+      "p3_id": "P3::P2::geom_041__x_032",
+      "computation_input": "P2::geom_041__x_032",
+      "geom_ids": [
+        "geom_041",
+        "x_032"
+      ],
+      "direct_euclid_execution": false,
+      "local_euclid_execution": false,
+      "limit_euclid_execution": false,
+      "failure_reason": [
+        "dimensional_inconsistency",
+        "invariant_preservation_failure",
+        "p2_mediation_failure"
+      ],
+      "feedback_to_p2": {
+        "handoff_id": "P2::geom_041__x_032",
+        "reasons": [
+          "dimensional_inconsistency",
+          "invariant_preservation_failure",
+          "p2_mediation_failure"
+        ],
+        "suggestions": [
+          "revise_dimension_bridge_profile",
+          "tighten_invariant_targets"
+        ]
+      },
+      "final_status": "revise_p2"
+    },
+    {
+      "p3_id": "P3::P2::geom_041__x_033",
+      "computation_input": "P2::geom_041__x_033",
+      "geom_ids": [
+        "geom_041",
+        "x_033"
+      ],
+      "direct_euclid_execution": false,
+      "local_euclid_execution": false,
+      "limit_euclid_execution": false,
+      "failure_reason": [
+        "dimensional_inconsistency",
+        "invariant_preservation_failure",
+        "p2_mediation_failure"
+      ],
+      "feedback_to_p2": {
+        "handoff_id": "P2::geom_041__x_033",
+        "reasons": [
+          "dimensional_inconsistency",
+          "invariant_preservation_failure",
+          "p2_mediation_failure"
+        ],
+        "suggestions": [
+          "revise_dimension_bridge_profile",
+          "tighten_invariant_targets"
+        ]
+      },
+      "final_status": "revise_p2"
+    }
+  ]
+}

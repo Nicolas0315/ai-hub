@@ -1,0 +1,72 @@
+{
+  "schema": "inf-brain-p1-schema-v1",
+  "layer": "P1",
+  "purpose": "P1 converts each single geometry source in S1 into a program-manipulable geometry runtime object. P1 does not perform IUT mediation; that belongs to P2.",
+  "design_rule": {
+    "core_definition": "P1 is the first program layer. It compiles S1 geometry-first records into runtime geometry objects with object/relation/operation models.",
+    "not_required": [
+      "iut_mediation",
+      "cross_geometry_unification",
+      "final_model_adoption"
+    ],
+    "required": [
+      "single_geometry_program_objectification",
+      "operation_interface_generation",
+      "verification_contract",
+      "readiness_for_p2"
+    ]
+  },
+  "required_fields": [
+    "program_id",
+    "geom_id",
+    "program_layer",
+    "compiled_from",
+    "runtime_type",
+    "object_model",
+    "relation_model",
+    "operation_stubs",
+    "serialization_format",
+    "verification_contract",
+    "ready_for_p2"
+  ],
+  "field_notes": {
+    "program_id": "Canonical P-layer id. Format: P1::<geom_id>",
+    "geom_id": "Cross-layer geometry identity key.",
+    "compiled_from": "S1 source id that generated this program object.",
+    "runtime_type": "High-level program runtime family for this geometry.",
+    "object_model": "Program-level object abstraction generated from S1 core objects.",
+    "relation_model": "Program-level relation abstraction generated from S1 core relations.",
+    "operation_stubs": "Program-callable operations generated from S1 required operations.",
+    "serialization_format": "How this runtime object can be serialized for downstream layers.",
+    "verification_contract": "Checks required for accepting this P1 object as valid.",
+    "ready_for_p2": "Boolean indicating that this single-geometry runtime object is ready for IUT-mediated P2 use."
+  },
+  "example_record": {
+    "program_id": "P1::rel_non_002",
+    "geom_id": "rel_non_002",
+    "program_layer": "P1",
+    "compiled_from": "S1::rel_non_002",
+    "runtime_type": "single_geometry_runtime",
+    "object_model": {
+      "objects": ["manifold", "metric_tensor", "connection", "geodesic"],
+      "object_runtime_family": "typed_geometry_objects"
+    },
+    "relation_model": {
+      "relations": ["signature", "curvature", "causal_structure", "local_euclid_recovery_reference"],
+      "relation_runtime_family": "typed_geometry_relations"
+    },
+    "operation_stubs": [
+      "metric_evaluate",
+      "curvature_compute",
+      "chart_compare",
+      "local_limit_recover"
+    ],
+    "serialization_format": "json",
+    "verification_contract": {
+      "geom_id_match_required": true,
+      "source_hash_required": true,
+      "operation_stub_presence_required": true
+    },
+    "ready_for_p2": true
+  }
+}

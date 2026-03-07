@@ -1,0 +1,42 @@
+{
+  "schema": "katala-stability-repro-v1",
+  "phase": "stability_and_reproducibility_after_scaffold",
+  "inputs": {
+    "assimilation_bundle": {
+      "path": "/mnt/c/Users/ogosh/Documents/NICOLAS/Katala/inf-Coding/inf-Coding-Assist/observation_assimilation_prod_20260306.json",
+      "sha256": "024230c969b4f64dcdf9250aae5fb4e2607a95368333df202dd1dfcb7895b970",
+      "assimilated_records": 2896
+    },
+    "mapping_table": {
+      "path": "/mnt/c/Users/ogosh/Documents/NICOLAS/Katala/inf-Coding/inf-Coding-Assist/inf_model_mapping_fix_table_20260306.json",
+      "sha256": "27db450058f85071936292b2b111e77b4daa104a895d3971cdab8aeaafb74c76",
+      "rows": 3
+    },
+    "mismatch_confirmation": {
+      "path": "/mnt/c/Users/ogosh/Documents/NICOLAS/Katala/inf-Coding/inf-Coding-Assist/inf_model_mismatch_confirmation_20260306.json",
+      "sha256": "504dd56384a6411c75390a80eb768fe0edb8e1a19e4b7ee8a103f02dc2f094fa",
+      "confirmed": [
+        "R3_hubble_tension",
+        "R8_modified_gravity_vs_LCDM",
+        "Q5_muon_gminus2_tension"
+      ]
+    }
+  },
+  "frozen_rules": {
+    "adoption_rule": "consistency+projection+chi2_strict",
+    "retain_rejected_variants": true,
+    "rejected_status": "rejected_consistent_variant"
+  },
+  "stability_gate": {
+    "required": [
+      "same_inputs_same_outputs",
+      "confirmed_mismatch_set_stable",
+      "no_backflow_policy_kept"
+    ],
+    "current": {
+      "same_inputs_same_outputs": "ready_for_next_run_check",
+      "confirmed_mismatch_set_stable": true,
+      "no_backflow_policy_kept": true
+    }
+  }
+}

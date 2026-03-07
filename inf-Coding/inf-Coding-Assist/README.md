@@ -9,8 +9,9 @@ inf-Coding から利用する補助ツール層。
 
 - `diagrams/` : 生成済みPNG/JPGなどの図版
 - `docs/` : handoff/spec/plan などの補助資料
+- `data/generated/` : 生成済みJSON/JSONL成果物
 - `cache/` : 一時キャッシュ置き場（現状は空）
-- ルート直下 : 実行スクリプト (`.py` / `.sh`) と主要JSONアーティファクト
+- ルート直下 : 実行スクリプト (`.py` / `.sh`) と実行起点に近いファイル
 
 方針:
 - **実行ファイルは極力動かさない**

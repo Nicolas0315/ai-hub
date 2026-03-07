@@ -1,0 +1,18 @@
+{
+  "schema": "kq-route-audit-v1",
+  "checks": {
+    "router_has_kq_mandatory_gate": true,
+    "router_blocks_on_violation": true,
+    "router_exports_packet_env": true,
+    "katala_exec_has_fail_close_gate": true,
+    "katala_exec_validates_packet_json": true
+  },
+  "pending": {
+    "chat_ingress_hard_binding": "unknown_or_pending",
+    "note": "No direct gateway chat-ingress gate file was updated in this pass."
+  },
+  "summary": {
+    "no3_router_external_fail_close": true,
+    "no1_chat_ingress_forced": false
+  }
+}

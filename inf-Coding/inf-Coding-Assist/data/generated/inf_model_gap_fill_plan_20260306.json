@@ -1,0 +1,42 @@
+{
+  "schema": "katala-gap-fill-plan-v1",
+  "phase": "theory_scaffold_gap_fill",
+  "confirmed_mismatch_tracks": [
+    "R3_hubble_tension",
+    "R8_modified_gravity_vs_LCDM",
+    "Q5_muon_gminus2_tension"
+  ],
+  "steps": [
+    {
+      "track": "R3_hubble_tension",
+      "iut_patch": "iut_patch_late_universe_calibration_bridge_v1",
+      "gap_block": {
+        "status": "open",
+        "required_math_link": "local-vs-early inference reconciliation under IUT invariants",
+        "priority": "P0"
+      },
+      "action": "implement_math_link_then_reproject"
+    },
+    {
+      "track": "R8_modified_gravity_vs_LCDM",
+      "iut_patch": "iut_patch_scale_dependent_growth_bridge_v1",
+      "gap_block": {
+        "status": "open",
+        "required_math_link": "scale-dependent structure-growth projection consistency",
+        "priority": "P0"
+      },
+      "action": "implement_math_link_then_reproject"
+    },
+    {
+      "track": "Q5_muon_gminus2_tension",
+      "iut_patch": "iut_patch_muon_effective_operator_bridge_v1",
+      "gap_block": {
+        "status": "open",
+        "required_math_link": "precision-operator correction under preserved unitarity",
+        "priority": "P0"
+      },
+      "action": "implement_math_link_then_reproject"
+    }
+  ],
+  "next": "observation_to_theory_to_model_mapping_fix"
+}

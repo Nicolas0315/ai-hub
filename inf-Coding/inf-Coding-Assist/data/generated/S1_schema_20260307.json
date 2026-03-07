@@ -1,0 +1,76 @@
+{
+  "schema": "inf-brain-s1-schema-v1",
+  "layer": "S1",
+  "purpose": "S1 is the machine-readable geometry source layer. Its role is not to fully implement geometry, but to identify what geometry it is in a normalized form so that P-layer programs can later compile from it.",
+  "design_rule": {
+    "core_definition": "S1 stores normalized geometry source definitions for future P-layer implementation.",
+    "not_required": [
+      "full_executable_implementation",
+      "complete_solver_realization",
+      "final_model_adoption_logic"
+    ],
+    "required": [
+      "geometry_identity",
+      "domain_identity",
+      "geometry_class_identity",
+      "future_program_targetability"
+    ]
+  },
+  "required_fields": [
+    "source_id",
+    "geom_id",
+    "source_layer",
+    "name",
+    "domain",
+    "geometry_class",
+    "subtype",
+    "definition_level",
+    "core_objects",
+    "core_relations",
+    "required_operations",
+    "p_layer_target",
+    "formalization_status",
+    "source_refs"
+  ],
+  "field_notes": {
+    "source_id": "Canonical S-layer id. Format: S1::<geom_id>",
+    "geom_id": "Cross-layer stable geometry identity key shared with L/P/M.",
+    "source_layer": "Must be S1 for this schema.",
+    "name": "Human-readable geometry name.",
+    "domain": "relativity | quantum | cross_domain",
+    "geometry_class": "euclidean | non_euclidean",
+    "subtype": "Specific normalized subtype such as minkowski, lorentzian, projective_hilbert, symplectic, etc.",
+    "definition_level": "semantic | normalized_source | binary_materialized",
+    "core_objects": "Primary mathematical objects relevant to this geometry.",
+    "core_relations": "Primary relations/invariants/structures relevant to this geometry.",
+    "required_operations": "Operations needed so P-layer can eventually compile or manipulate this geometry.",
+    "p_layer_target": "Expected future P-layer implementation family/profile.",
+    "formalization_status": "enumerated | normalized | ready_for_program | materialized",
+    "source_refs": "References or provenance pointers for where this geometry definition comes from."
+  },
+  "allowed_values": {
+    "domain": ["relativity", "quantum", "cross_domain"],
+    "geometry_class": ["euclidean", "non_euclidean"],
+    "definition_level": ["semantic", "normalized_source", "binary_materialized"],
+    "formalization_status": ["enumerated", "normalized", "ready_for_program", "materialized"]
+  },
+  "example_record": {
+    "source_id": "S1::rel_non_002",
+    "geom_id": "rel_non_002",
+    "source_layer": "S1",
+    "name": "Lorentzian pseudo-Riemannian spacetime",
+    "domain": "relativity",
+    "geometry_class": "non_euclidean",
+    "subtype": "lorentzian_pseudo_riemannian",
+    "definition_level": "normalized_source",
+    "core_objects": ["manifold", "metric_tensor", "connection", "geodesic"],
+    "core_relations": ["signature", "curvature", "causal_structure", "local_euclid_recovery_reference"],
+    "required_operations": ["metric_evaluate", "curvature_compute", "chart_compare", "local_limit_recover"],
+    "p_layer_target": {
+      "program_family": "relativity_geometry_compiler",
+      "compiler_profile": "relativity_non_euclidean_core"
+    },
+    "formalization_status": "ready_for_program",
+    "source_refs": ["L1::rel_non_002", "GR_standard_reference"]
+  }
+}

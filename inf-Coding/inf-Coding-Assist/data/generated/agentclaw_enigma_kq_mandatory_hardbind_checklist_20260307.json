@@ -1,0 +1,22 @@
+{
+  "schema": "agentclaw-kq-hardbind-checklist-v1",
+  "title": "AgentClaw Enigma KQ mandatory hard-bind checklist",
+  "owner": "Nicolas handoff",
+  "required": {
+    "ingress_packet_generation": true,
+    "ingress_fail_close_on_missing_packet": true,
+    "outbound_fail_close_on_missing_packet": true,
+    "exec_path_packet_propagation": true,
+    "audit_flags": [
+      "ingress_kq_packet_created",
+      "kq_packet_propagated_to_exec",
+      "ingress_blocked_reason",
+      "outbound_blocked_reason"
+    ]
+  },
+  "acceptance": {
+    "no1_chat_ingress_forced": true,
+    "no3_router_external_fail_close": true,
+    "all_conversation_paths_require_kq_packet": true
+  }
+}

@@ -1,0 +1,68 @@
+{
+  "schema": "inf-brain-p2-mediation-profiles-v1",
+  "layer": "P2",
+  "description": "Initial P2 mediation profiles for time, space, and dimension bridges between quantum and relativity components.",
+  "profiles": [
+    {
+      "profile_id": "P2_PROFILE::time_bridge",
+      "bridge": ["Q_time", "R_time"],
+      "unified_field": "unified_time",
+      "quantum_side": {
+        "meaning": "evolution parameter / temporal ordering / time dependence in quantum description",
+        "geometry_families": ["hilbert_geometry", "projective_hilbert_geometry", "symplectic_geometry"],
+        "candidate_subtypes": ["complex_hilbert_space", "projective_hilbert_space", "hamiltonian_symplectic_geometry"]
+      },
+      "relativity_side": {
+        "meaning": "time as spacetime component",
+        "geometry_families": ["pseudo_riemannian_geometry"],
+        "candidate_subtypes": ["lorentzian_geometry", "lorentzian_pseudo_riemannian", "minkowski_geometry", "minkowski"]
+      },
+      "comparison_targets": ["temporal_order", "causal_structure", "evolution_structure"],
+      "invariant_targets": ["ordering_consistency", "causal_compatibility", "local_temporal_recovery"],
+      "iut_operator_family": "kq_iut_time_bridge",
+      "l3_output": "unified_time"
+    },
+    {
+      "profile_id": "P2_PROFILE::space_bridge",
+      "bridge": ["Q_space", "R_space"],
+      "unified_field": "unified_space",
+      "quantum_side": {
+        "meaning": "position / configuration / support space in quantum description",
+        "geometry_families": ["euclidean_geometry", "projective_hilbert_geometry", "bundle_geometry"],
+        "candidate_subtypes": ["euclidean_configuration_space", "ray_space_geometry", "fiber_bundle"]
+      },
+      "relativity_side": {
+        "meaning": "space embedded within spacetime and spatial slicing",
+        "geometry_families": ["euclidean_geometry", "riemannian_geometry", "manifold_geometry"],
+        "candidate_subtypes": ["euclidean_3d", "riemannian_manifold", "riemannian_adm_slice", "smooth_manifold"]
+      },
+      "comparison_targets": ["spatial_carrier", "position_structure", "local_chart_structure"],
+      "invariant_targets": ["spatial_locality", "chart_consistency", "local_spatial_recovery"],
+      "iut_operator_family": "kq_iut_space_bridge",
+      "l3_output": "unified_space"
+    },
+    {
+      "profile_id": "P2_PROFILE::dimension_bridge",
+      "bridge": ["Q_dimension", "R_dimension"],
+      "unified_field": "unified_dimension",
+      "quantum_side": {
+        "meaning": "state-space dimension / degrees of freedom / representation dimension",
+        "geometry_families": ["hilbert_geometry", "information_geometry", "noncommutative_geometry"],
+        "candidate_subtypes": ["separable_hilbert_space", "fisher_metric_geometry", "spectral_triple_geometry"]
+      },
+      "relativity_side": {
+        "meaning": "spacetime dimension and higher-dimensional extension candidate",
+        "geometry_families": ["pseudo_riemannian_geometry", "manifold_geometry", "riemannian_geometry"],
+        "candidate_subtypes": ["lorentzian_geometry", "pseudo_riemannian_manifold", "smooth_manifold", "riemannian_manifold"]
+      },
+      "comparison_targets": ["dimension_counting", "degrees_of_freedom", "carrier_dimensionality"],
+      "invariant_targets": ["dimension_consistency", "continuous_dimension_compatibility", "recovery_dimensional_bound"],
+      "iut_operator_family": "kq_iut_dimension_bridge",
+      "l3_output": "unified_dimension",
+      "working_estimate": {
+        "relativity_counting_lower_bound": 8,
+        "status": "working_estimate"
+      }
+    }
+  ]
+}

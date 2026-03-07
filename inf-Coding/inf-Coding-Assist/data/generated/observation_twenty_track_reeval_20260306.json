@@ -1,0 +1,202 @@
+{
+  "ok": true,
+  "schema": "katala-observation-reeval-v1",
+  "weighted_total": 0.937,
+  "all_ugt_pass": true,
+  "tracks": {
+    "R1_singularity": {
+      "assigned_dataset_count": 0,
+      "dof": 0,
+      "chi2": null,
+      "chi2_reduced": null,
+      "contrib": [],
+      "decision": "hold"
+    },
+    "R2_early_universe": {
+      "assigned_dataset_count": 1,
+      "dof": 1,
+      "chi2": 0.0,
+      "chi2_reduced": 0.0,
+      "contrib": [
+        {
+          "dataset_id": "obs_cmb_bao_early_universe_constraints",
+          "z": 0.0
+        }
+      ],
+      "decision": "adopt"
+    },
+    "R3_hubble_tension": {
+      "assigned_dataset_count": 2,
+      "dof": 2,
+      "chi2": 29.40976331360947,
+      "chi2_reduced": 14.704881656804735,
+      "contrib": [
+        {
+          "dataset_id": "obs_h0_local_distance_ladder",
+          "z": 5.423076923076923
+        },
+        {
+          "dataset_id": "obs_h0_cmb_inferred",
+          "z": 0.0
+        }
+      ],
+      "decision": "reject"
+    },
+    "R4_cosmological_constant": {
+      "assigned_dataset_count": 0,
+      "dof": 0,
+      "chi2": null,
+      "chi2_reduced": null,
+      "contrib": [],
+      "decision": "hold"
+    },
+    "R5_strong_gravity_tests": {
+      "assigned_dataset_count": 1,
+      "dof": 1,
+      "chi2": 0.006755488834678175,
+      "chi2_reduced": 0.006755488834678175,
+      "contrib": [
+        {
+          "dataset_id": "obs_gw_strong_field_ringdown",
+          "z": 0.0821917808219178
+        }
+      ],
+      "decision": "adopt"
+    },
+    "R6_global_topology": {
+      "assigned_dataset_count": 0,
+      "dof": 0,
+      "chi2": null,
+      "chi2_reduced": null,
+      "contrib": [],
+      "decision": "hold"
+    },
+    "R7_gravitational_wave_background_origin": {
+      "assigned_dataset_count": 0,
+      "dof": 0,
+      "chi2": null,
+      "chi2_reduced": null,
+      "contrib": [],
+      "decision": "hold"
+    },
+    "R8_modified_gravity_vs_LCDM": {
+      "assigned_dataset_count": 1,
+      "dof": 1,
+      "chi2": 6.249999999999976,
+      "chi2_reduced": 6.249999999999976,
+      "contrib": [
+        {
+          "dataset_id": "obs_s8_lss",
+          "z": -2.499999999999995
+        }
+      ],
+      "decision": "reject"
+    },
+    "R9_initial_fluctuation_to_classical": {
+      "assigned_dataset_count": 0,
+      "dof": 0,
+      "chi2": null,
+      "chi2_reduced": null,
+      "contrib": [],
+      "decision": "hold"
+    },
+    "R10_blackhole_interior_consistency": {
+      "assigned_dataset_count": 0,
+      "dof": 0,
+      "chi2": null,
+      "chi2_reduced": null,
+      "contrib": [],
+      "decision": "hold"
+    },
+    "Q1_quantum_gravity_interface": {
+      "assigned_dataset_count": 0,
+      "dof": 0,
+      "chi2": null,
+      "chi2_reduced": null,
+      "contrib": [],
+      "decision": "hold"
+    },
+    "Q2_information_problem": {
+      "assigned_dataset_count": 0,
+      "dof": 0,
+      "chi2": null,
+      "chi2_reduced": null,
+      "contrib": [],
+      "decision": "hold"
+    },
+    "Q3_vacuum_energy": {
+      "assigned_dataset_count": 0,
+      "dof": 0,
+      "chi2": null,
+      "chi2_reduced": null,
+      "contrib": [],
+      "decision": "hold"
+    },
+    "Q4_measurement_boundary": {
+      "assigned_dataset_count": 0,
+      "dof": 0,
+      "chi2": null,
+      "chi2_reduced": null,
+      "contrib": [],
+      "decision": "hold"
+    },
+    "Q5_muon_gminus2_tension": {
+      "assigned_dataset_count": 1,
+      "dof": 1,
+      "chi2": 23.35973116523276,
+      "chi2_reduced": 23.35973116523276,
+      "contrib": [
+        {
+          "dataset_id": "obs_muon_gminus2_fnal",
+          "z": 4.83319057820326
+        }
+      ],
+      "decision": "reject"
+    },
+    "Q6_hierarchy_problem": {
+      "assigned_dataset_count": 0,
+      "dof": 0,
+      "chi2": null,
+      "chi2_reduced": null,
+      "contrib": [],
+      "decision": "hold"
+    },
+    "Q7_strong_CP_problem": {
+      "assigned_dataset_count": 0,
+      "dof": 0,
+      "chi2": null,
+      "chi2_reduced": null,
+      "contrib": [],
+      "decision": "hold"
+    },
+    "Q8_neutrino_mass_origin": {
+      "assigned_dataset_count": 0,
+      "dof": 0,
+      "chi2": null,
+      "chi2_reduced": null,
+      "contrib": [],
+      "decision": "hold"
+    },
+    "Q9_baryogenesis_asymmetry": {
+      "assigned_dataset_count": 0,
+      "dof": 0,
+      "chi2": null,
+      "chi2_reduced": null,
+      "contrib": [],
+      "decision": "hold"
+    },
+    "Q10_dark_matter_candidate_screening": {
+      "assigned_dataset_count": 0,
+      "dof": 0,
+      "chi2": null,
+      "chi2_reduced": null,
+      "contrib": [],
+      "decision": "hold"
+    }
+  },
+  "summary": {
+    "adopt": 2,
+    "hold": 15,
+    "reject": 3
+  }
+}

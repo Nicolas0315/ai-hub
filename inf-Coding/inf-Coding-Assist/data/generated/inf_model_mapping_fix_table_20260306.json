@@ -1,0 +1,79 @@
+{
+  "schema": "katala-observation-theory-model-mapping-v1",
+  "phase": "observation_to_theory_to_model_mapping_fix",
+  "rows": [
+    {
+      "track": "R3_hubble_tension",
+      "iut_patch": "iut_patch_late_universe_calibration_bridge_v1",
+      "required_math_link": "local-vs-early inference reconciliation under IUT invariants",
+      "observation_links": {
+        "count": 500,
+        "genre_counts": {
+          "cosmology_tensions": 500
+        },
+        "sample_doi": [
+          "10.5281/zenodo.18552862",
+          "10.1140/epjc/s10052-025-15230-6",
+          "10.1016/j.physletb.2026.140180",
+          "10.1103/n46p-zd3j",
+          "10.1140/epjc/s10052-025-15114-9",
+          "10.5281/zenodo.18114362",
+          "10.5281/zenodo.18119459",
+          "10.5281/zenodo.18119458",
+          "10.5281/zenodo.18114361",
+          "10.5281/zenodo.18132582"
+        ]
+      },
+      "status": "mapped"
+    },
+    {
+      "track": "R8_modified_gravity_vs_LCDM",
+      "iut_patch": "iut_patch_scale_dependent_growth_bridge_v1",
+      "required_math_link": "scale-dependent structure-growth projection consistency",
+      "observation_links": {
+        "count": 1000,
+        "genre_counts": {
+          "cosmology_tensions": 500,
+          "dark_sector": 500
+        },
+        "sample_doi": [
+          "10.5281/zenodo.18552862",
+          "10.1140/epjc/s10052-025-15230-6",
+          "10.1016/j.physletb.2026.140180",
+          "10.1103/n46p-zd3j",
+          "10.1140/epjc/s10052-025-15114-9",
+          "10.5281/zenodo.18114362",
+          "10.5281/zenodo.18119459",
+          "10.5281/zenodo.18119458",
+          "10.5281/zenodo.18114361",
+          "10.5281/zenodo.18132582"
+        ]
+      },
+      "status": "mapped"
+    },
+    {
+      "track": "Q5_muon_gminus2_tension",
+      "iut_patch": "iut_patch_muon_effective_operator_bridge_v1",
+      "required_math_link": "precision-operator correction under preserved unitarity",
+      "observation_links": {
+        "count": 500,
+        "genre_counts": {
+          "precision_anomalies": 500
+        },
+        "sample_doi": [
+          "10.1140/epjc/s10052-025-13829-3",
+          "10.1007/jhep01(2025)014",
+          "10.1016/j.dark.2025.101947",
+          "10.5281/zenodo.17755383",
+          "10.5281/zenodo.17755738",
+          "10.5281/zenodo.17754492",
+          "10.5281/zenodo.17754648",
+          "10.5281/zenodo.17755547",
+          "10.5281/zenodo.17755328",
+          "10.5281/zenodo.17754493"
+        ]
+      },
+      "status": "mapped"
+    }
+  ]
+}

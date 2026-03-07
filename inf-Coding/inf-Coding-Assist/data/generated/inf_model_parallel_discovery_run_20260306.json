@@ -1,0 +1,55 @@
+{
+  "schema": "inf-model-parallel-discovery-run-v1",
+  "policy": {
+    "mode": "parallel_required",
+    "track_A": "discover_independent_axiom_candidates_under_euclidean_baseline",
+    "track_B": "formalize_requirements_for_gravity-referenced_max_speed_statement",
+    "track_C": "classify_each_candidate_as_derivable_theorem_or_independent_axiom",
+    "selection_rule": "intersection_A_and_B_and_C_only"
+  },
+  "tracks": {
+    "A_independent_axiom_discovery": [
+      "ax_gravity_causal_primacy_v1",
+      "ax_add_mul_layer_separation_v1",
+      "ax_continuous_dimension_effective_field_v1"
+    ],
+    "B_gravity_speed_requirements": [
+      "ax_gravity_causal_primacy_v1",
+      "ax_continuous_dimension_effective_field_v1"
+    ],
+    "C_derivability_filter": {
+      "accepted_as_independent": [
+        "ax_gravity_causal_primacy_v1",
+        "ax_add_mul_layer_separation_v1",
+        "ax_continuous_dimension_effective_field_v1"
+      ],
+      "derivability_map": {
+        "ax_gravity_causal_primacy_v1": false,
+        "ax_add_mul_layer_separation_v1": false,
+        "ax_continuous_dimension_effective_field_v1": false
+      }
+    }
+  },
+  "intersection_A_B_C": [
+    "ax_continuous_dimension_effective_field_v1",
+    "ax_gravity_causal_primacy_v1"
+  ],
+  "candidates": [
+    {
+      "id": "ax_gravity_causal_primacy_v1",
+      "statement": "Maximum causal reference is gravity-defined; light is derived signal layer.",
+      "euclid_anchor": "comparison-morphism over Euclidean baseline"
+    },
+    {
+      "id": "ax_add_mul_layer_separation_v1",
+      "statement": "Additive and multiplicative geometric invariants are independently defined and only joined at projection.",
+      "euclid_anchor": "metric/area relation separation"
+    },
+    {
+      "id": "ax_continuous_dimension_effective_field_v1",
+      "statement": "Dimension is continuous as effective parameter and recovers integer value in classical limit.",
+      "euclid_anchor": "dimension handled via layer mapping, not fixed primitive"
+    }
+  ],
+  "next_action": "promote intersection candidates into inf-model candidate_axioms for observational stress tests"
+}

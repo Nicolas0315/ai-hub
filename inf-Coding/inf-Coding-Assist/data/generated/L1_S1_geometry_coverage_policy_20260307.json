@@ -1,0 +1,18 @@
+{
+  "schema": "inf-brain-l1-s1-geometry-coverage-policy-v1",
+  "status": "draft_fixed",
+  "core_change": "Coverage is not considered complete at family level only. L1 and S1 must both enumerate at least down to subtype groups.",
+  "coverage_unit": {
+    "minimum_required_unit": "family_plus_subtype",
+    "variant_policy": "Variants are auxiliary refinements below subtype and do not define first-pass completeness by themselves."
+  },
+  "layer_roles": {
+    "L1": "Theory-facing semantic enumeration of geometry families and subtype groups.",
+    "S1": "Machine-readable geometry-first source layer that must preserve the same family/subtype coverage structure for future P-layer compilation."
+  },
+  "tier_policy": {
+    "tier_1": "minimum stable core needed to avoid early theoretical breakage across relativity / quantum / gauge / unification discussions",
+    "tier_2": "extended coverage",
+    "tier_3": "advanced / frontier extensions"
+  }
+}

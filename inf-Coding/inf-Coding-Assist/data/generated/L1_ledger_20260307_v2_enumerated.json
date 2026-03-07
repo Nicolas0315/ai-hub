@@ -1,0 +1,145 @@
+{
+  "schema": "inf-model-l1-ledger-v3",
+  "description": "L1 exhaustive-first enumeration (relativity/quantum x euclidean/non-euclidean)",
+  "layer_role": "semantic-language-layer",
+  "traceability_stack": [
+    "L1",
+    "S1",
+    "P1",
+    "M1"
+  ],
+  "design_reflection": {
+    "source_layers_enabled": [
+      "S1",
+      "S2",
+      "S3"
+    ],
+    "program_layers_enabled": [
+      "P1",
+      "P2",
+      "P3"
+    ],
+    "model_layers_enabled": [
+      "M1",
+      "M2",
+      "M3"
+    ],
+    "shared_key": "geom_id",
+    "s_layer_hash_policy": "sha256-required-on-materialized-binary"
+  },
+  "blocks": {
+    "relativity_euclidean": [
+      {
+        "geom_id": "rel_euc_001",
+        "name": "Newtonian-limit 3D Euclidean space",
+        "usage_mode": "limit"
+      },
+      {
+        "geom_id": "rel_euc_002",
+        "name": "Weak-field post-Newtonian spatial approximation",
+        "usage_mode": "approximation"
+      },
+      {
+        "geom_id": "rel_euc_003",
+        "name": "Local inertial chart spatial Euclidean approximation",
+        "usage_mode": "local"
+      },
+      {
+        "geom_id": "rel_euc_004",
+        "name": "Euclidean 3-space in laboratory coordinate reductions",
+        "usage_mode": "computational"
+      }
+    ],
+    "relativity_non_euclidean": [
+      {
+        "geom_id": "rel_non_001",
+        "name": "Minkowski geometry",
+        "usage_mode": "core"
+      },
+      {
+        "geom_id": "rel_non_002",
+        "name": "Lorentzian pseudo-Riemannian spacetime",
+        "usage_mode": "core"
+      },
+      {
+        "geom_id": "rel_non_003",
+        "name": "Riemannian 3-geometry on ADM spatial slices",
+        "usage_mode": "formalism"
+      },
+      {
+        "geom_id": "rel_non_004",
+        "name": "de Sitter / anti-de Sitter curved geometry",
+        "usage_mode": "solution-space"
+      },
+      {
+        "geom_id": "rel_non_005",
+        "name": "FLRW curved cosmological geometry",
+        "usage_mode": "cosmology"
+      },
+      {
+        "geom_id": "rel_non_006",
+        "name": "Black-hole manifold geometry (Schwarzschild/Kerr)",
+        "usage_mode": "strong-gravity"
+      }
+    ],
+    "quantum_euclidean": [
+      {
+        "geom_id": "q_euc_001",
+        "name": "Euclidean 3D configuration space in non-relativistic QM",
+        "usage_mode": "baseline"
+      },
+      {
+        "geom_id": "q_euc_002",
+        "name": "Wick-rotated Euclidean-time field theory",
+        "usage_mode": "analytic"
+      },
+      {
+        "geom_id": "q_euc_003",
+        "name": "Lattice gauge theory on Euclidean lattices",
+        "usage_mode": "computational"
+      },
+      {
+        "geom_id": "q_euc_004",
+        "name": "Euclidean momentum-space regularization frames",
+        "usage_mode": "regularization"
+      }
+    ],
+    "quantum_non_euclidean": [
+      {
+        "geom_id": "q_non_001",
+        "name": "Projective Hilbert-state geometry",
+        "usage_mode": "core"
+      },
+      {
+        "geom_id": "q_non_002",
+        "name": "Complex projective space CP^n for pure states",
+        "usage_mode": "core"
+      },
+      {
+        "geom_id": "q_non_003",
+        "name": "Fiber-bundle geometry in gauge theories",
+        "usage_mode": "core"
+      },
+      {
+        "geom_id": "q_non_004",
+        "name": "Symplectic geometry in phase-space formulations",
+        "usage_mode": "formalism"
+      },
+      {
+        "geom_id": "q_non_005",
+        "name": "Poisson geometry for classical-quantum correspondence",
+        "usage_mode": "formalism"
+      },
+      {
+        "geom_id": "q_non_006",
+        "name": "Quantum information geometry (Bures/Fisher structures)",
+        "usage_mode": "information"
+      },
+      {
+        "geom_id": "q_non_007",
+        "name": "Noncommutative geometry frameworks",
+        "usage_mode": "extended"
+      }
+    ]
+  }
+}
