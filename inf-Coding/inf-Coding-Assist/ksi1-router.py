@@ -289,6 +289,7 @@ def decide_route(command: str, input_packet: dict | None = None) -> tuple[str, d
     detail = {
         'route': route,
         'reason': reason,
+        'inf_coding_passed': True,
         'kq_input_layer': input_packet,
         'confidence': conf,
         'risky_pattern': risky,
@@ -440,6 +441,7 @@ def main() -> int:
         env['KSI1_ROUTE'] = route
         env['KSI_MODEL_ACTIVE'] = detail.get('model', '')
         env['INF_BRIDGE_TRUST'] = (((detail.get('inf_bridge') or {}).get('input') or {}).get('source_trust') or 'untrusted')
+        env['INF_CODING_PASSED'] = '1'
         env['KQ_MANDATORY_GATE_ACTIVE'] = '1' if _kq_mandatory_gate_enabled() else '0'
         env['KQ_INPUT_PACKET_JSON'] = json.dumps(input_packet, ensure_ascii=False)
 
