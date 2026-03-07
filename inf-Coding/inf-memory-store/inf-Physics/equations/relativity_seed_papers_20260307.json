@@ -1,0 +1,103 @@
+{
+  "schema": "inf-physics-seed-paper-list-v1",
+  "category": "relativity",
+  "description": "Initial relativity seed paper list for expanding to a larger source corpus.",
+  "seed_papers": [
+    {
+      "seed_id": "rel_seed_001",
+      "title": "Zur Elektrodynamik bewegter Körper",
+      "author": ["Albert Einstein"],
+      "year": 1905,
+      "topic": "special_relativity",
+      "notes": "Foundational special relativity paper."
+    },
+    {
+      "seed_id": "rel_seed_002",
+      "title": "Ist die Trägheit eines Körpers von seinem Energieinhalt abhängig?",
+      "author": ["Albert Einstein"],
+      "year": 1905,
+      "topic": "mass_energy_equivalence",
+      "notes": "Mass-energy equivalence; core symbolic source for E=mc^2 lineage."
+    },
+    {
+      "seed_id": "rel_seed_003",
+      "title": "Raum und Zeit",
+      "author": ["Hermann Minkowski"],
+      "year": 1908,
+      "topic": "spacetime_formalization",
+      "notes": "Spacetime formulation of relativity."
+    },
+    {
+      "seed_id": "rel_seed_004",
+      "title": "Die Feldgleichungen der Gravitation",
+      "author": ["Albert Einstein"],
+      "year": 1915,
+      "topic": "general_relativity_field_equations",
+      "notes": "Field equations of gravitation."
+    },
+    {
+      "seed_id": "rel_seed_005",
+      "title": "Die Grundlage der allgemeinen Relativitätstheorie",
+      "author": ["Albert Einstein"],
+      "year": 1916,
+      "topic": "general_relativity_foundation",
+      "notes": "Foundational general relativity exposition."
+    },
+    {
+      "seed_id": "rel_seed_006",
+      "title": "Über das Gravitationsfeld eines Massenpunktes nach der Einsteinschen Theorie",
+      "author": ["Karl Schwarzschild"],
+      "year": 1916,
+      "topic": "schwarzschild_solution",
+      "notes": "First exact GR solution."
+    },
+    {
+      "seed_id": "rel_seed_007",
+      "title": "Über die Krümmung des Raumes",
+      "author": ["Alexander Friedmann"],
+      "year": 1922,
+      "topic": "friedmann_cosmology",
+      "notes": "Early expanding-universe cosmology."
+    },
+    {
+      "seed_id": "rel_seed_008",
+      "title": "A homogeneous universe of constant mass and increasing radius accounting for the radial velocity of extragalactic nebulae",
+      "author": ["Georges Lemaître"],
+      "year": 1927,
+      "topic": "lemaitre_cosmology",
+      "notes": "Expanding universe / Hubble-Lemaître lineage."
+    },
+    {
+      "seed_id": "rel_seed_009",
+      "title": "Gravitational Collapse and Space-Time Singularities",
+      "author": ["Roger Penrose"],
+      "year": 1965,
+      "topic": "singularity_theorem",
+      "notes": "Singularity theorem era seed."
+    },
+    {
+      "seed_id": "rel_seed_010",
+      "title": "The occurrence of singularities in cosmology. III. Causality and singularities",
+      "author": ["Stephen Hawking"],
+      "year": 1966,
+      "topic": "hawking_singularity",
+      "notes": "Hawking singularity theorem lineage."
+    },
+    {
+      "seed_id": "rel_seed_011",
+      "title": "The Dynamics of General Relativity",
+      "author": ["Richard Arnowitt", "Stanley Deser", "Charles Misner"],
+      "year": 1962,
+      "topic": "adm_formalism",
+      "notes": "ADM Hamiltonian formulation."
+    },
+    {
+      "seed_id": "rel_seed_012",
+      "title": "Gravitational collapse: the role of general relativity",
+      "author": ["Roy P. Kerr"],
+      "year": 1963,
+      "topic": "kerr_solution",
+      "notes": "Rotating black hole solution lineage."
+    }
+  ]
+}

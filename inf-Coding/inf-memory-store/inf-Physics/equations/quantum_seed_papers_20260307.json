@@ -1,0 +1,103 @@
+{
+  "schema": "inf-physics-seed-paper-list-v1",
+  "category": "quantum",
+  "description": "Initial quantum-theory seed paper list for expanding to a larger source corpus.",
+  "seed_papers": [
+    {
+      "seed_id": "q_seed_001",
+      "title": "Zur Theorie des Gesetzes der Energieverteilung im Normalspectrum",
+      "author": ["Max Planck"],
+      "year": 1900,
+      "topic": "planck_quantum_origin",
+      "notes": "Quantum origin / black-body radiation seed."
+    },
+    {
+      "seed_id": "q_seed_002",
+      "title": "Über einen die Erzeugung und Verwandlung des Lichtes betreffenden heuristischen Gesichtspunkt",
+      "author": ["Albert Einstein"],
+      "year": 1905,
+      "topic": "light_quantum",
+      "notes": "Light quantum / photoelectric effect lineage."
+    },
+    {
+      "seed_id": "q_seed_003",
+      "title": "On the Constitution of Atoms and Molecules",
+      "author": ["Niels Bohr"],
+      "year": 1913,
+      "topic": "bohr_model",
+      "notes": "Old quantum theory seed."
+    },
+    {
+      "seed_id": "q_seed_004",
+      "title": "Recherches sur la théorie des quanta",
+      "author": ["Louis de Broglie"],
+      "year": 1924,
+      "topic": "matter_waves",
+      "notes": "Matter-wave seed."
+    },
+    {
+      "seed_id": "q_seed_005",
+      "title": "Über quantentheoretische Umdeutung kinematischer und mechanischer Beziehungen",
+      "author": ["Werner Heisenberg"],
+      "year": 1925,
+      "topic": "matrix_mechanics",
+      "notes": "Matrix mechanics."
+    },
+    {
+      "seed_id": "q_seed_006",
+      "title": "Quantisierung als Eigenwertproblem",
+      "author": ["Erwin Schrödinger"],
+      "year": 1926,
+      "topic": "wave_mechanics",
+      "notes": "Wave mechanics formulation."
+    },
+    {
+      "seed_id": "q_seed_007",
+      "title": "Zur Quantenmechanik der Stoßvorgänge",
+      "author": ["Max Born"],
+      "year": 1926,
+      "topic": "probabilistic_interpretation",
+      "notes": "Born rule lineage."
+    },
+    {
+      "seed_id": "q_seed_008",
+      "title": "The Quantum Theory of the Emission and Absorption of Radiation",
+      "author": ["Paul A. M. Dirac"],
+      "year": 1927,
+      "topic": "qed_origin",
+      "notes": "Early QED seed."
+    },
+    {
+      "seed_id": "q_seed_009",
+      "title": "The Quantum Theory of the Electron",
+      "author": ["Paul A. M. Dirac"],
+      "year": 1928,
+      "topic": "dirac_equation",
+      "notes": "Relativistic quantum equation seed."
+    },
+    {
+      "seed_id": "q_seed_010",
+      "title": "Mathematische Grundlagen der Quantenmechanik",
+      "author": ["John von Neumann"],
+      "year": 1932,
+      "topic": "hilbert_space_foundation",
+      "notes": "Hilbert-space formal foundations."
+    },
+    {
+      "seed_id": "q_seed_011",
+      "title": "A Suggested Interpretation of the Quantum Theory in Terms of 'Hidden Variables' I",
+      "author": ["David Bohm"],
+      "year": 1952,
+      "topic": "bohmian_mechanics",
+      "notes": "Alternative formulation seed."
+    },
+    {
+      "seed_id": "q_seed_012",
+      "title": "Can Quantum-Mechanical Description of Physical Reality Be Considered Complete?",
+      "author": ["Albert Einstein", "Boris Podolsky", "Nathan Rosen"],
+      "year": 1935,
+      "topic": "epr_problem",
+      "notes": "EPR foundational seed."
+    }
+  ]
+}
