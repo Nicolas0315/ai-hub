@@ -10,6 +10,9 @@ from dataclasses import dataclass
 from collections import defaultdict
 from typing import Any
 
+from .kq_input_layer import build_meaning_boundary
+from .kq_hyper_reasoner import KQHyperReasoner
+
 PATTERN_DETECTORS: dict[str, list[str]] = {
     "destructive_ops": [r"\brm\b", r"\bdrop\b", r"\btruncate\b", r"\breset\b"],
     "history_ops": [r"\brebase\b", r"\bcherry-pick\b", r"\bpush\b", r"\btag\b"],
@@ -625,6 +628,27 @@ def _build_execution_role_plan(compute_meta: dict[str, Any], hw: dict[str, Any])
 
 def run_inf_bridge(command: str) -> dict[str, Any]:
     payload = build_inf_bridge_payload(command)
+
+    initial_boundary = build_meaning_boundary(command)
+    refiner = KQHyperReasoner()
+    refined_boundary = refiner.refine_meaning_boundary(command, initial_boundary)
+    payload["meaning_boundary_loop"] = {
+        "mode": "fixed_two_pass",
+        "pass_1": {"owner": "inf-bridge", "boundary": initial_boundary},
+        "pass_2": {"owner": "kq", "boundary": refined_boundary},
+        "loop_count": 1,
+        "further_refinement_forbidden": True,
+    }
+    try:
+        payload["kq_payload"]["meta"]["meaning_boundary"] = refined_boundary
+        payload["kq_payload"]["meta"]["meaning_boundary_loop"] = {
+            "mode": "fixed_two_pass",
+            "mandatory": True,
+            "max_refinement_passes": 1,
+        }
+    except Exception:
+        pass
+
     plan = plan_step(payload)
     ext = external_signals(payload)
     adv = adversarial_pretest(payload, plan)

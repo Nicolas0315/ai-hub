@@ -2,11 +2,22 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass, asdict
+from typing import Any
 
 
 _PHYSICS_TERMS = [
     "重力", "光", "時空", "場", "ブラックホール", "ニュートリノ",
     "gravity", "light", "spacetime", "field", "black hole", "neutrino",
+]
+
+_THEORY_TERMS = [
+    "大統一理論", "単一モデル", "3層", "第1層", "第2層", "第3層", "連続次元",
+    "katala gut", "grand unified theory", "single model", "continuous dimension", "iut",
+]
+
+_IMPLEMENTATION_TERMS = [
+    "実装", "コード", "台帳", "保存", "source層", "program層", "model層", "inf-bridge", "kq",
+    "implement", "code", "ledger", "storage", "source layer", "program layer", "model layer",
 ]
 
 
@@ -145,11 +156,70 @@ def _find_violations(normalized: str, constraints: dict, classifications: dict) 
     return violations
 
 
+def build_meaning_boundary(user_input: str) -> dict[str, Any]:
+    normalized = _normalize_text(user_input)
+    low = normalized.lower()
+
+    theory_axis = _has_any(normalized, _THEORY_TERMS)
+    implementation_axis = _has_any(normalized, _IMPLEMENTATION_TERMS)
+    physics_axis = _has_any(normalized, _PHYSICS_TERMS)
+
+    primary_goal = "general_dialogue"
+    if ("大統一理論" in normalized) or ("grand unified theory" in low) or ("katala" in low and "gut" in low):
+        primary_goal = "katala_gut_construction"
+    elif theory_axis and implementation_axis:
+        primary_goal = "theory_implementation_alignment"
+    elif theory_axis:
+        primary_goal = "theory_clarification"
+    elif implementation_axis:
+        primary_goal = "implementation_planning"
+
+    origin_signal = []
+    if ("ブラックホール" in normalized) or ("black hole" in low):
+        origin_signal.append("bh_causality_gravity_tension")
+    if ("連続次元" in normalized) or ("continuous dimension" in low):
+        origin_signal.append("continuous_dimension")
+    if ("重力" in normalized and "光" in normalized) or ("gravity" in low and "light" in low):
+        origin_signal.append("gravity_speed_vs_light")
+
+    conceptual_axis = []
+    if theory_axis:
+        conceptual_axis.append("theory_axis")
+    if implementation_axis:
+        conceptual_axis.append("implementation_axis")
+    if physics_axis:
+        conceptual_axis.append("physics_axis")
+
+    preserve_terms = [term for term in ["大統一理論", "単一モデル", "連続次元", "IUT", "局所極限", "ユークリッド幾何学"] if term in normalized]
+    anti_flatten_rules = [
+        "do_not_flatten_theory_axis_into_implementation_axis",
+        "do_not_reduce_model_to_storage_only",
+        "preserve_user_core_terms",
+    ]
+    if primary_goal == "katala_gut_construction":
+        anti_flatten_rules.append("do_not_downgrade_gut_to_bookkeeping")
+
+    return {
+        "version": "meaning-boundary-v1",
+        "primary_goal": primary_goal,
+        "origin_signal": origin_signal,
+        "conceptual_axis": conceptual_axis,
+        "non_goals": ["mere_bookkeeping"] if primary_goal == "katala_gut_construction" else [],
+        "preserve_terms": preserve_terms,
+        "anti_flatten_rules": anti_flatten_rules,
+        "loop_policy": {
+            "fixed_two_pass_required": True,
+            "max_boundary_refinement_passes": 1,
+        },
+    }
+
+
 def build_kq_input_packet(user_input: str) -> KQInputPacket:
     normalized = _normalize_text(user_input)
     constraints = _extract_constraints(normalized)
     classifications = _build_classifications(normalized, constraints)
     violations = _find_violations(normalized, constraints, classifications)
+    meaning_boundary = build_meaning_boundary(user_input)
 
     kq_prompt = (
         "[KQ_INPUT_LAYER]\n"
@@ -157,6 +227,7 @@ def build_kq_input_packet(user_input: str) -> KQInputPacket:
         f"constraints: {constraints}\n"
         f"classifications: {classifications}\n"
         f"violations: {violations}\n"
+        f"meaning_boundary: {meaning_boundary}\n"
         "instruction: Apply constraints/classifications before any LLM-facing interpretation."
     )
 
