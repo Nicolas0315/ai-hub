@@ -1,0 +1,47 @@
+{
+  "schema": "katala-p2-p3-iterative-loop-v1",
+  "purpose": "Define the core iterative loop for Katala GUT after L1/S1/P1 preparation.",
+  "loop": [
+    "P2 bridges relativity-side geometry and quantum-side geometry using IUT mediation.",
+    "P3 performs unified computation on the mediated result.",
+    "P3 attempts direct Euclidean reduction.",
+    "If direct reduction fails, P3 attempts local Euclidean recovery.",
+    "If local recovery fails, P3 attempts limit Euclidean recovery.",
+    "If all recovery modes fail, feedback is returned to P2 for revision."
+  ],
+  "p2_required_outputs": [
+    "mediation_profile",
+    "input_geometries",
+    "bridge_fields",
+    "invariant_targets",
+    "unified_outputs",
+    "revision_id"
+  ],
+  "p3_required_outputs": [
+    "computation_input",
+    "direct_euclid_reduction",
+    "local_euclid_recovery",
+    "limit_euclid_recovery",
+    "failure_reason",
+    "feedback_to_p2"
+  ],
+  "acceptance_logic": {
+    "direct_euclid_reduction": "success",
+    "local_euclid_recovery": "conditional_success",
+    "limit_euclid_recovery": "conditional_success",
+    "all_fail": "revise_p2"
+  },
+  "feedback_categories": [
+    "time_bridge_mismatch",
+    "space_bridge_mismatch",
+    "dimension_bridge_mismatch",
+    "invariant_preservation_failure",
+    "causality_evolution_incompatibility",
+    "dimensional_inconsistency",
+    "nonrecoverable_geometry_pairing"
+  ],
+  "new_axiom_policy": {
+    "required_initially": false,
+    "introduction_condition": "Only consider new axioms if repeated P2↔P3 loop failures remain structurally irreducible."
+  }
+}
