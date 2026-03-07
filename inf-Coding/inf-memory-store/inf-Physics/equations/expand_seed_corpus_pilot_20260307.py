@@ -16,8 +16,8 @@ SEED_CORPUS = NORM / 'physics_seed_corpus_20260307.json'
 OUT_RAW = RAW / 'physics_seed_expansion_pilot_20260307.json'
 OUT_INDEX = ROOT / 'indexed' / 'physics_seed_expansion_pilot_index_20260307.json'
 
-TRIAL_PER_CATEGORY = 200
-ROWS_PER_QUERY = 8
+TRIAL_PER_CATEGORY = 1000
+ROWS_PER_QUERY = 20
 
 
 def fetch_json(url: str) -> dict:
