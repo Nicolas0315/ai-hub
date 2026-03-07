@@ -1,0 +1,33 @@
+{
+  "schema": "inf-physics-10k-expansion-policy-v1",
+  "purpose": "Expand Category1 and Category2 from seed corpus toward 10k papers each with peer-reviewed priority.",
+  "target_categories": {
+    "Category1": {
+      "theory_domain": "relativity",
+      "target_count": 10000
+    },
+    "Category2": {
+      "theory_domain": "quantum",
+      "target_count": 10000
+    }
+  },
+  "priority_rules": [
+    "peer_reviewed_priority",
+    "doi_present_priority",
+    "seed_lineage_priority",
+    "citation_neighborhood_priority",
+    "topic_similarity_priority"
+  ],
+  "acceptance_rules": [
+    "prefer journal articles and recognized proceedings",
+    "allow reprint/chapter/facsimile when historically important or when original-source metadata is sparse",
+    "deduplicate by DOI first, then by normalized title+year",
+    "keep category tags Category1/Category2",
+    "store raw before normalized"
+  ],
+  "pilot_plan": {
+    "initial_trial_per_category": 200,
+    "success_condition": "metadata quality and duplicate rate acceptable",
+    "then_scale_to": 10000
+  }
+}
