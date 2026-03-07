@@ -30,6 +30,23 @@ if [[ "${ASSIST_MODE:-off}" != "on" ]]; then
   exit 78
 fi
 
+cleanup_ephemeral_caches() {
+  rm -rf \
+    "$SCRIPT_DIR/inf-Coding-cache" \
+    "$SCRIPT_DIR/inf-Coding-run/.tmp-audit" \
+    "$SCRIPT_DIR/inf-Coding-run/.tmp-goal-history" \
+    "$SCRIPT_DIR/inf-Coding-run/.tmp-openalex-cache" \
+    "$SCRIPT_DIR/.pytest_cache" \
+    "$SCRIPT_DIR/.mypy_cache" \
+    "$SCRIPT_DIR/.ruff_cache" \
+    "$SCRIPT_DIR/.cache" 2>/dev/null || true
+
+  find "$SCRIPT_DIR/inf-Coding-Assist" "$SCRIPT_DIR/inf-Coding-run" "$KATALA_ROOT/src" \
+    -type d -name '__pycache__' -prune -exec rm -rf {} + 2>/dev/null || true
+}
+
+trap cleanup_ephemeral_caches EXIT
+
 "$SCRIPT_DIR/order-enforce.sh"
 
 cd "$KATALA_ROOT"

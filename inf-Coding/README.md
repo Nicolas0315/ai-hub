@@ -67,3 +67,4 @@ INF_CODING_USE_RUST_CORE=1 ./assist-exec.sh git status
 - 内部処理は構造化（条件/禁止/例外）を維持する
 
 ※ 現在は stateless 優先のため、実行イベントは保存しません。
+※ キャッシュは **1回の実行完了時に必ず全て削除** する方針です（`inf-Coding-cache`, `inf-Coding-run/.tmp-*`, 各種 `__pycache__`, `.pytest_cache`, `.mypy_cache`, `.ruff_cache`, `.cache`）。
