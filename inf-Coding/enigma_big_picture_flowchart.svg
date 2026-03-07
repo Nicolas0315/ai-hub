@@ -26,7 +26,7 @@
 
   <rect width="1600" height="960" fill="url(#bg)"/>
   <text x="56" y="68" class="title">Enigma 全体フローチャート（Big Picture）</text>
-  <text x="56" y="98" class="sub">Enigma → LLM → OpenClaw → Katala の大枠構成</text>
+  <text x="56" y="98" class="sub">Enigma → LLM → OpenClaw → inf-Coding / inf-Bridge / KL → Katala の大枠構成</text>
 
   <!-- Top line -->
   <g filter="url(#shadow)">
@@ -46,7 +46,7 @@
   </g>
 
   <g filter="url(#shadow)">
-    <rect x="850" y="210" width="300" height="180" rx="18" ry="18" fill="#ede9fe" stroke="#8b5cf6" stroke-width="2.5"/>
+    <rect x="850" y="210" width="260" height="180" rx="18" ry="18" fill="#ede9fe" stroke="#8b5cf6" stroke-width="2.5"/>
     <text x="882" y="262" class="h">3. OpenClaw</text>
     <text x="882" y="292" class="t">ツール実行オーケストレーション</text>
     <text x="882" y="318" class="t">Discord/WSL/Browser連携</text>
@@ -54,17 +54,26 @@
   </g>
 
   <g filter="url(#shadow)">
-    <rect x="1230" y="210" width="300" height="180" rx="18" ry="18" fill="#fef3c7" stroke="#f59e0b" stroke-width="2.5"/>
-    <text x="1262" y="262" class="h">4. Katala</text>
-    <text x="1262" y="292" class="t">実装・データ処理・検証</text>
-    <text x="1262" y="318" class="t">成果物生成（図/コード/分析）</text>
-    <text x="1262" y="344" class="t">結果を運用に反映</text>
+    <rect x="1170" y="210" width="220" height="180" rx="18" ry="18" fill="#ecfccb" stroke="#65a30d" stroke-width="2.5"/>
+    <text x="1202" y="262" class="h">4. inf-Coding / KL</text>
+    <text x="1202" y="292" class="t">guard / inf-Bridge</text>
+    <text x="1202" y="318" class="t">KL gate / fail-close</text>
+    <text x="1202" y="344" class="t">表示条件を固定</text>
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="1430" y="210" width="120" height="180" rx="18" ry="18" fill="#fef3c7" stroke="#f59e0b" stroke-width="2.5"/>
+    <text x="1450" y="262" class="h">5. Katala</text>
+    <text x="1450" y="292" class="t">実装・検証</text>
+    <text x="1450" y="318" class="t">成果物生成</text>
+    <text x="1450" y="344" class="t">運用反映</text>
   </g>
 
   <!-- arrows forward -->
   <path d="M390 300 L470 300" class="edge"/>
   <path d="M770 300 L850 300" class="edge"/>
-  <path d="M1150 300 L1230 300" class="edge"/>
+  <path d="M1110 300 L1170 300" class="edge"/>
+  <path d="M1390 300 L1430 300" class="edge"/>
 
   <!-- lower section -->
   <g filter="url(#shadow)">
@@ -72,8 +81,8 @@
   </g>
 
   <text x="156" y="582" class="h">処理サイクル（運用時）</text>
-  <text x="156" y="616" class="t">① Enigmaが目的を定義 → ② LLMが実行計画を作成 → ③ OpenClawがツールを実行 → ④ Katalaで成果を確定</text>
-  <text x="156" y="646" class="t">⑤ 結果をOpenClaw経由で返却 → ⑥ Enigmaが次の意思決定へ反映（継続改善ループ）</text>
+  <text x="156" y="616" class="t">① Enigmaが目的を定義 → ② LLMが実行計画を作成 → ③ OpenClawがツールを実行 → ④ inf-Coding / inf-Bridge / KLで通過条件を固定</text>
+  <text x="156" y="646" class="t">⑤ Katalaで成果を確定 → ⑥ 結果をOpenClaw経由で返却（KL通過時のみ [Katala思考済]） → ⑦ Enigmaへ反映</text>
 
   <!-- feedback loop -->
   <path d="M1380 390 L1380 470 L240 470 L240 390" class="feedback"/>

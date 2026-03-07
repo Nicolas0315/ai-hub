@@ -24,7 +24,7 @@
 
   <rect width="1700" height="1100" fill="url(#bg)"/>
   <text x="50" y="64" class="title">Enigma 現在の全体フローチャート（運用実態ベース）</text>
-  <text x="50" y="92" class="sub">Discord入力 → LLM判断 → OpenClaw実行 → inf-Coding guard → Katala/Assist → 成果返却</text>
+  <text x="50" y="92" class="sub">Discord入力 → LLM判断 → OpenClaw → inf-Coding guard → inf-Bridge/KL gate → Katala/Assist → 成果返却</text>
 
   <!-- Row 1 -->
   <g filter="url(#shadow)">
@@ -53,62 +53,68 @@
 
   <g filter="url(#shadow)">
     <rect x="1230" y="150" width="400" height="150" rx="16" fill="#fef3c7" stroke="#f59e0b" stroke-width="2.4"/>
-    <text x="1256" y="195" class="h">4) 実行前ガード</text>
+    <text x="1256" y="195" class="h">4) inf-Coding入口ガード</text>
     <text x="1256" y="222" class="t">inf-Coding入口固定</text>
     <text x="1256" y="248" class="t">./guard.sh で起点検証</text>
     <text x="1256" y="273" class="mono">AGENTS.mdルール遵守</text>
   </g>
 
+  <g filter="url(#shadow)">
+    <rect x="650" y="360" width="390" height="130" rx="16" fill="#ecfccb" stroke="#65a30d" stroke-width="2.4"/>
+    <text x="676" y="402" class="h">5) inf-Bridge + KL gate</text>
+    <text x="676" y="430" class="t">normalize / context-bind / plan</text>
+    <text x="676" y="456" class="t">KL通過時のみ [Katala思考済]</text>
+  </g>
+
   <!-- Row 2 split -->
-  <polygon points="845,380 980,450 845,520 710,450" fill="#e0f2fe" stroke="#0284c7" stroke-width="2.4"/>
-  <text x="775" y="447" class="h">5) 分岐</text>
-  <text x="748" y="475" class="h">Katala or Assist?</text>
+  <polygon points="845,560 980,630 845,700 710,630" fill="#e0f2fe" stroke="#0284c7" stroke-width="2.4"/>
+  <text x="775" y="627" class="h">6) 分岐</text>
+  <text x="748" y="655" class="h">Katala or Assist?</text>
 
   <g filter="url(#shadow)">
-    <rect x="320" y="590" width="460" height="190" rx="16" fill="#cffafe" stroke="#06b6d4" stroke-width="2.4"/>
-    <text x="348" y="636" class="h">6A) Katala実行系</text>
-    <text x="348" y="664" class="t">./katala-exec.sh &lt;command...&gt;</text>
-    <text x="348" y="690" class="t">実装・検証・差分解析・リポ更新</text>
-    <text x="348" y="716" class="mono">例: git/gh/python/flow生成</text>
-    <text x="348" y="742" class="mono">KQ/KS比較ワークロード含む</text>
+    <rect x="320" y="760" width="460" height="190" rx="16" fill="#cffafe" stroke="#06b6d4" stroke-width="2.4"/>
+    <text x="348" y="806" class="h">7A) Katala実行系</text>
+    <text x="348" y="834" class="t">./katala-exec.sh &lt;command...&gt;</text>
+    <text x="348" y="860" class="t">実装・検証・差分解析・リポ更新</text>
+    <text x="348" y="886" class="mono">例: git/gh/python/flow生成</text>
+    <text x="348" y="912" class="mono">KL系列ワークロード含む</text>
   </g>
 
   <g filter="url(#shadow)">
-    <rect x="920" y="590" width="460" height="190" rx="16" fill="#fce7f3" stroke="#ec4899" stroke-width="2.4"/>
-    <text x="948" y="636" class="h">6B) Assist実行系</text>
-    <text x="948" y="664" class="t">./assist-exec.sh &lt;command...&gt;</text>
-    <text x="948" y="690" class="t">軽量補助処理・データ整形</text>
-    <text x="948" y="716" class="mono">例: semantic_scholar_free.py</text>
-    <text x="948" y="742" class="mono">API/検索の素早い試行</text>
+    <rect x="920" y="760" width="460" height="190" rx="16" fill="#fce7f3" stroke="#ec4899" stroke-width="2.4"/>
+    <text x="948" y="806" class="h">7B) Assist実行系</text>
+    <text x="948" y="834" class="t">./assist-exec.sh &lt;command...&gt;</text>
+    <text x="948" y="860" class="t">軽量補助処理・データ整形</text>
+    <text x="948" y="886" class="mono">例: semantic_scholar_free.py</text>
+    <text x="948" y="912" class="mono">API/検索の素早い試行</text>
   </g>
 
   <!-- Output -->
   <g filter="url(#shadow)">
-    <rect x="520" y="860" width="680" height="170" rx="16" fill="#ffffff" stroke="#94a3b8" stroke-width="2.2"/>
-    <text x="548" y="906" class="h">7) 成果物化 &amp; 返却</text>
-    <text x="548" y="934" class="t">SVG→PNG生成 / テキスト要約 / 調査結果 / GitHub反映</text>
-    <text x="548" y="960" class="t">Discordへ返信（必要なら添付送信、改善ループ）</text>
-    <text x="548" y="986" class="mono">message(send) / replyタグ / NO_REPLY運用</text>
+    <rect x="520" y="980" width="680" height="90" rx="16" fill="#ffffff" stroke="#94a3b8" stroke-width="2.2"/>
+    <text x="548" y="1022" class="h">8) 成果物化 &amp; 返却</text>
+    <text x="548" y="1048" class="t">Discordへ返信。KL通過時のみ `[Katala思考済]` を前置して返却</text>
   </g>
 
   <!-- feedback -->
-  <path d="M1200 930 L1490 930 L1490 230 L1630 230" class="edge3"/>
-  <text x="1360" y="905" class="t" fill="#7c3aed">フィードバックで再実行</text>
+  <path d="M1200 1020 L1490 1020 L1490 230 L1630 230" class="edge3"/>
+  <text x="1360" y="995" class="t" fill="#7c3aed">フィードバックで再実行</text>
 
   <!-- arrows -->
   <path d="M360 225 L430 225" class="edge"/>
   <path d="M750 225 L820 225" class="edge"/>
   <path d="M1160 225 L1230 225" class="edge"/>
-  <path d="M1230 300 L900 380" class="edge2"/>
-  <path d="M845 520 L570 590" class="edge"/>
-  <path d="M845 520 L1150 590" class="edge"/>
-  <path d="M550 780 L780 860" class="edge2"/>
-  <path d="M1150 780 L940 860" class="edge2"/>
+  <path d="M1430 300 L1040 410" class="edge2"/>
+  <path d="M845 490 L845 560" class="edge2"/>
+  <path d="M845 700 L570 760" class="edge"/>
+  <path d="M845 700 L1150 760" class="edge"/>
+  <path d="M550 950 L780 980" class="edge2"/>
+  <path d="M1150 950 L940 980" class="edge2"/>
 
-  <text x="565" y="560" class="t">Katala系</text>
-  <text x="1085" y="560" class="t">Assist系</text>
+  <text x="565" y="730" class="t">Katala系</text>
+  <text x="1085" y="730" class="t">Assist系</text>
 
   <!-- footer note -->
   <rect x="50" y="1050" width="1600" height="34" rx="8" fill="#ffffff" stroke="#cbd5e1"/>
-  <text x="70" y="1072" class="sub">注: 現在の運用制約（allowlist, mention gate, guard.sh必須, gateway token整合）を反映した実務版。</text>
+  <text x="70" y="1072" class="sub">注: 現在の運用制約（allowlist, mention gate, guard.sh必須, KL通過時表示, gateway token整合）を反映した実務版。</text>
 </svg>
