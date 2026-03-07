@@ -1,0 +1,33 @@
+{
+  "schema": "inf-memory-category-inventory-v1",
+  "category": "inf-Astronomical-Observation",
+  "description": "Peer-reviewed astronomical/cosmological observation paper corpus staged into inf-Memory category layout.",
+  "created_at": "2026-03-07",
+  "storage_policy": {
+    "mode": "copy-first",
+    "note": "Existing inf-Coding-Assist outputs were copied here without deleting originals."
+  },
+  "subdirectories": {
+    "raw": [
+      "observation_doi_harvest_20260306.jsonl",
+      "observation_doi_cosmology_tensions_20260306.jsonl"
+    ],
+    "normalized": [
+      "observation_doi_harvest_20260306.normalized.jsonl"
+    ],
+    "indexed": [
+      "observation_doi_harvest_20260306.genre_index.json"
+    ],
+    "projections": [
+      "observation_doi_latest_by_genre_20260306.json",
+      "observation_doi_latest_by_genre_20260306_top500.json",
+      "inf_memory_inf_theory_projection_20260306_top500.json"
+    ],
+    "curated": [],
+    "manifests": [
+      "observation_doi_by_genre_state_20260306.json",
+      "observation_doi_harvest_state_20260306.json",
+      "inventory_20260307.json"
+    ]
+  }
+}
