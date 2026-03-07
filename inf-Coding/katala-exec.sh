@@ -13,7 +13,8 @@ if [[ "$#" -eq 0 ]]; then
   exit 64
 fi
 
-# Mandatory KQ gate for router-external execution path (fail-close)
+# Mandatory KL gate for router-external execution path (fail-close)
+# Compatibility note: env/packet keys remain KQ_* until lower layers are fully renamed.
 KQ_MANDATORY_GATE="${KQ_MANDATORY_GATE:-1}"
 if [[ "$KQ_MANDATORY_GATE" =~ ^(1|true|yes|on)$ ]]; then
   if [[ -z "${KQ_INPUT_PACKET_JSON:-}" ]]; then

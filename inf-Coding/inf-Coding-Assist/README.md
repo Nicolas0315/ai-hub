@@ -42,12 +42,12 @@ inf-Coding から利用する補助ツール層。
 ./inf-Coding-Assist/assist-rustize.sh
 ```
 
-### 3) KQ/KS47 router (fast/strict)
-`ksi1-route.sh` は `inf-Bridge` 前段（plan→route→verify）を通した後、既定で `Katala_Quantum_02a (KQ02a)` を使ってコマンドを判定し、fast/strict で実行ルーティングします。
+### 3) KL/KS47 router (fast/strict)
+`ksi1-route.sh` は `inf-Bridge` 前段（plan→route→verify）を通した後、既定で **`Katala_Labyrinth_001 (KL)`** として扱う導線を使ってコマンドを判定し、fast/strict で実行ルーティングします。
 
-- 既定: `[Katala_Quantum][KQ]シリーズを使用` (`Katala_Quantum_02a`)
+- 既定: `[Katala_Labyrinth][KL]シリーズを使用`（現行内部実装は互換のため旧KQ系識別子を一部保持）
 - 外部由来コンテキストは `untrusted` 扱い（拒否ではなく慎重ルーティング）
-- inf-Bridgeは `collect -> normalize -> context-bind -> pattern-detect -> external-signals -> adversarial-pretest -> hardware-batch-observe -> plan -> kq-payload` の運用フローを実装
+- inf-Bridgeは `collect -> normalize -> context-bind -> pattern-detect -> external-signals -> adversarial-pretest -> hardware-batch-observe -> plan -> kl-payload` の運用フローを実装
 - `meta_visualization` で判定サマリー（risk_score / pattern_groups / route_hint）を出力
 - External Signals / Adversarial Pretest / Hardware Batch Telemetry を前段レイヤとして保持
 - inf-Bridge監査ログは一時キャッシュ出力のみで、タスク完了時に自動削除

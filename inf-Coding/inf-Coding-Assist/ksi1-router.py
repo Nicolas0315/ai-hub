@@ -97,7 +97,11 @@ def _has_upstream_mutation_approval() -> bool:
 
 
 def _select_model(command: str):
-    """KQ-only policy: always use Katala_Quantum_03a unless explicitly disabled."""
+    """KL-only policy: treat the default route as Katala_Labyrinth_001.
+
+    Internal compatibility keeps the current KQ03a implementation alive until the
+    lower layers are fully renamed.
+    """
     kq_only = os.getenv("KQ_ONLY", "1").strip().lower()
     if kq_only in {"1", "true", "yes", "on"}:
         return KQ03a()
@@ -124,7 +128,7 @@ def _formal_probe(command: str, bridge: dict | None = None) -> dict:
         unified.setdefault('kq_access_gate', {
             'granted': True,
             'source': 'kq',
-            'path': 'inf-coding->inf-bridge->kq->inf-brain',
+            'path': 'inf-coding->inf-bridge->kl->inf-brain',
         })
         if isinstance(bridge, dict):
             kref = bridge.get('katala_grand_unification_reference')
