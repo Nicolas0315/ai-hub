@@ -23,3 +23,13 @@ export {
   VulnSeveritySchema,
   ConfidenceLevelSchema,
 } from "./types";
+
+// Issue #44: BLUE Agent Patcher
+export { RemediationEngine } from "./RemediationEngine";
+export type {
+  PatchCandidate,
+  PatchStrategy,
+  PatchQualityAxes,
+  RemediationResult,
+  RemediationEvent,
+} from "./RemediationEngine";
