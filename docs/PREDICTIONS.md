@@ -29,14 +29,15 @@
 ## Active Predictions
 
 ### P-005: Best AI Model End of February = Anthropic
-- **Source**: Polymarket ($21M Vol)
-- **Market Odds**: Anthropic 99% / Google 1% (2/27更新)
+- **Source**: Polymarket ($22.2M Vol)
+- **Market Odds**: Anthropic 100% (resolved)
 - **Shirokuma Prediction**: ✅ Yes (Anthropic)
 - **Confidence**: 90%
 - **Rationale**: Opus 4.6がベンチマーク首位を維持。ただし97%は高すぎ、Gemini 3 Proの実力は過小評価
 - **Verification Date**: 2026-02-28
-- **Status**: ⏳ Pending (明日resolution — Anthropic 99%でほぼ確定)
-- **2/27 Note**: Gemini 3.1 Proが13/16ベンチで首位だがArena Score基準ではAnthropicが優勢
+- **Status**: ✅ Resolved — Correct
+- **Actuals**: Anthropic won per Chatbot Arena LLM Leaderboard Arena Score (style control off) checked 2/28 12:00 PM ET. Market resolved Anthropic 100%.
+- **Result Summary**: ✅ 的中
 
 ### P-006: BTC All-Time High by March 31, 2026
 - **Source**: Polymarket ($3M Vol)
@@ -58,13 +59,15 @@
 
 ### P-008: US Strikes Iran in February 2026
 - **Source**: Polymarket ($424M Vol — 最大級)
-- **Market Odds**: Yes 2% (2/26時点)
+- **Market Odds**: Resolved Yes
 - **Shirokuma Prediction**: ❌ No
 - **Confidence**: 92%
 - **Rationale**: 短期的にはNo。出来高$424Mが世界の不安を可視化。台湾$111B武器売却と合わせ地政学リスク上昇中
 - **Verification Date**: 2026-02-28
-- **Status**: ⏳ Pending (2/27時点で攻撃なし — 明日resolution、No濃厚)
-- **2/27 Note**: Trumpは限定攻撃を検討中と発言するも実行なし。ジュネーブ交渉継続中。米軍3-4万人中東展開だが湾岸諸国は基地使用拒否
+- **Status**: ❌ Resolved — Wrong
+- **Actuals**: 2/28に「Operation Epic Fury」として米軍がイランの軍事施設・テヘラン等を大規模攻撃。イスラエルと連携。イランは報復ミサイルで応戦。月末ギリギリの攻撃で市場はYes解決。
+- **Result Summary**: ❌ 外れ（92%確信でNo予測→2/28当日に攻撃実行）
+- **Post-mortem**: 2/27時点の「攻撃なし→No濃厚」判断が甘かった。軍事展開の規模（空母2隻展開）を過小評価。テールリスクの見積もりに課題
 
 ### P-009: GPT-5.3 Released by March 8
 - **Source**: Polymarket
@@ -97,13 +100,15 @@
 
 ### P-012: Pete Hegseth Bans Claude by March 31
 - **Source**: Polymarket ($268K Vol)
-- **Market Odds**: Yes 32-34% (2/27更新、27%→上昇)
+- **Market Odds**: Resolved Yes
 - **Shirokuma Prediction**: ❌ No
 - **Confidence**: 60% (70%→下方修正: 状況が急展開)
 - **Rationale**: Anthropic RSP v3.0の自律兵器禁止原則と衝突。部分的利用制限はあり得るが全面禁止はNo
 - **Verification Date**: 2026-03-31
-- **Status**: ⏳ Pending
-- **2/27 Note**: ⚠️ 急展開。Hegsethが2/24にAnthropicに最後通牒 — 2/27期限で無制限軍事アクセスを要求。Anthropicは監視・自律殺傷の2点で拒否。Defense Production Act発動の脅し。契約打ち切り→「ban」認定される可能性が上昇。市場オッズも27%→34%に上昇
+- **Status**: ❌ Resolved — Wrong (early resolution 2/27)
+- **Actuals**: 2/27にHegsethがAnthropicをサプライチェーンリスクに指定、軍事利用を全面禁止。TrumpもTruth Socialで連邦機関からのAnthropic排除を指示（6ヶ月フェーズアウト）。期限3/31より1ヶ月以上前に決着。
+- **Result Summary**: ❌ 外れ（60%確信でNo予測→2/27に全面禁止）
+- **Post-mortem**: 2/27ノートで急展開を認識しながらもNo維持。「全面禁止はない」という楽観バイアス。政治的意思決定のスピードを過小評価
 
 ---
 
@@ -131,23 +136,28 @@
 
 ### Overall
 - Total Predictions: 9 (P-004〜P-012)
-- Resolved: 2
-- Correct: 2
-- Accuracy: 100% (n=2, insufficient sample)
+- Resolved: 5
+- Correct: 3
+- Wrong: 2
+- Accuracy: **60%** (n=5)
 
 ### By Category
 - Earnings: 1/1 (100%)
-- Tech/AI: 1/1 (100%)
+- Tech/AI: 2/2 (100%) — P-005, P-009
 - Crypto/Finance: 0/0
-- Geopolitics: 0/0
-- Politics: 0/0
+- Geopolitics: 0/1 (0%) — P-008 ❌
+- Politics: 0/1 (0%) — P-012 ❌
 
 ### Calibration Analysis
-(Predictions grouped by confidence level — to be updated as sample grows)
-- 90-100% confidence: 0 resolved
-- 70-89% confidence: 1 resolved, 1 correct
-- 60-69% confidence: 1 resolved, 1 correct
-- 50-69% confidence: 0 resolved
+- 90-100% confidence: 2 resolved — P-005 ✅ (90%), P-008 ❌ (92%) → 50% accuracy ⚠️
+- 70-89% confidence: 1 resolved, 1 correct — P-009 ✅ (70%)
+- 60-69% confidence: 2 resolved — P-004 ✅ (85%→recal), P-012 ❌ (60%) → 50% accuracy
+- 50-59% confidence: 0 resolved
+
+### Calibration Notes (2026-03-01)
+- ⚠️ 高確信帯（90%+）で外れが発生。地政学リスクのテールイベント見積もりに構造的弱点
+- Tech/AI予測は好調（2/2）だが、政治・軍事系は0/2。ドメイン別精度の乖離が顕著
+- 「No」予測の精度が課題: No予測3件中2件が外れ（P-008, P-012）
 
 ### Methodology
 1. **Source**: Polymarket odds as baseline + independent analysis
