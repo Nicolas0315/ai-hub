@@ -312,6 +312,7 @@ def select_compute_meta_router(payload: dict[str, Any], plan: dict[str, Any], hw
     ext = payload.get("external_signals") or {}
     signals = ext.get("signals") or {}
     cpu_load = float(((hw.get("cpu_load") or {}).get("1m", 0.0) or 0.0))
+    adv_risk = float((((plan.get("pattern_detection") or {}).get("risk_score", 0.0)) or 0.0))
     text_len = len(txt)
 
     classical_score = 0.55

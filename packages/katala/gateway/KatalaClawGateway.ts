@@ -1,5 +1,7 @@
 import * as http from "http";
 import { LocalMediationManager } from "../core/LocalMediationManager";
+import { IntakeEnvelope, IntakeRouter } from "./IntakeRouter";
+import { PythonInfCodingAdapter } from "./PythonInfCodingAdapter";
 
 /**
  * KatalaClawGateway
@@ -8,12 +10,16 @@ import { LocalMediationManager } from "../core/LocalMediationManager";
  */
 export class KatalaClawGateway {
   private manager: LocalMediationManager;
+  private intakeRouter: IntakeRouter;
+  private pythonAdapter: PythonInfCodingAdapter;
   private server: http.Server | null = null;
   private port: number;
 
   constructor(port: number = 18789) {
     this.port = port;
     this.manager = new LocalMediationManager();
+    this.intakeRouter = new IntakeRouter();
+    this.pythonAdapter = new PythonInfCodingAdapter();
   }
 
   /**
@@ -44,6 +50,8 @@ export class KatalaClawGateway {
       // 2. Route Handling
       if (req.method === "POST" && req.url === "/synergy/mediate") {
         this.handleMediation(req, res);
+      } else if (req.method === "POST" && req.url === "/intake/discord") {
+        this.handleDiscordIntake(req, res);
       } else if (req.method === "GET" && req.url === "/health") {
         res.writeHead(200, { "Content-Type": "application/json" });
         res.end(
@@ -91,6 +99,47 @@ export class KatalaClawGateway {
         res.end(
           JSON.stringify({
             error: "Internal Mediation Error",
+            message: error instanceof Error ? error.message : "Unknown error",
+          }),
+        );
+      }
+    });
+  }
+
+  private async handleDiscordIntake(
+    req: http.IncomingMessage,
+    res: http.ServerResponse,
+  ): Promise<void> {
+    let body = "";
+    req.on("data", (chunk) => {
+      body += chunk;
+    });
+    req.on("end", async () => {
+      try {
+        const envelope = JSON.parse(body) as IntakeEnvelope;
+        const routed = this.intakeRouter.routeDiscordMessage(envelope);
+
+        if (!routed.ok) {
+          res.writeHead(400, { "Content-Type": "application/json" });
+          res.end(JSON.stringify(routed));
+          return;
+        }
+
+        const handoff = await this.pythonAdapter.handoffDiscordEnvelope(routed.envelope, routed);
+        const responsePayload = {
+          ...routed,
+          handoff: handoff.payload,
+          reply: (handoff.payload as Record<string, unknown>).reply ?? routed.reply,
+        };
+
+        res.writeHead(handoff.ok ? 200 : handoff.status, { "Content-Type": "application/json" });
+        res.end(JSON.stringify(responsePayload));
+      } catch (error) {
+        console.error(`[Gateway] ✕ Discord Intake Error:`, error);
+        res.writeHead(500, { "Content-Type": "application/json" });
+        res.end(
+          JSON.stringify({
+            error: "Internal Intake Error",
             message: error instanceof Error ? error.message : "Unknown error",
           }),
         );
