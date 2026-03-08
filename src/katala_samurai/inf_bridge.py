@@ -311,7 +311,6 @@ def select_compute_meta_router(payload: dict[str, Any], plan: dict[str, Any], hw
     txt = ((payload.get("kq_payload") or {}).get("text") or "")
     ext = payload.get("external_signals") or {}
     signals = ext.get("signals") or {}
-    adv_risk = float(((plan.get("pattern_detection") or {}).get("risk_score", 0.0) or 0.0))
     cpu_load = float(((hw.get("cpu_load") or {}).get("1m", 0.0) or 0.0))
     text_len = len(txt)
 

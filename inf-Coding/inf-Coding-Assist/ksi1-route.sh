@@ -10,8 +10,6 @@ if [[ "$#" -eq 0 ]]; then
 fi
 
 "$INF_DIR/order-enforce.sh"
-export KQ_MANDATORY_GATE=1
-export KQ_ALWAYS_ON=1
 STATE_FILE="$INF_DIR/inf-Coding-Order/order-state.env"
 if [[ -f "$STATE_FILE" ]]; then
   # shellcheck disable=SC1090

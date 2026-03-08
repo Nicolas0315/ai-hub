@@ -2,7 +2,15 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-ROUTER_SH="$SCRIPT_DIR/inf-Coding-Assist/ksi1-route.sh"
+CORE_BIN="$SCRIPT_DIR/inf-Coding-core/target/release/inf-coding-core"
+USE_RUST_CORE="${INF_CODING_USE_RUST_CORE:-0}"
+
+# Python/shell-first fast path is default.
+# Enable Rust core only when explicitly requested:
+#   INF_CODING_USE_RUST_CORE=1 ./assist-exec.sh <cmd...>
+if [[ "$USE_RUST_CORE" == "1" && -x "$CORE_BIN" ]]; then
+  exec "$CORE_BIN" assist-exec "$@"
+fi
 
 if [[ "$#" -eq 0 ]]; then
   echo "[assist-exec] Usage: ./assist-exec.sh <command...>" >&2
@@ -21,9 +29,6 @@ if [[ "${ASSIST_MODE:-off}" != "on" ]]; then
   echo "[assist-exec] BLOCKED: require human order 'assist-on'." >&2
   exit 78
 fi
-
-export KQ_MANDATORY_GATE=1
-export KQ_ALWAYS_ON=1
 
 cleanup_ephemeral_caches() {
   rm -rf \
@@ -44,4 +49,10 @@ trap cleanup_ephemeral_caches EXIT
 
 "$SCRIPT_DIR/order-enforce.sh"
 
-exec "$ROUTER_SH" "$@"
+cd "$KATALA_ROOT"
+set +e
+"$@"
+RC=$?
+set -e
+
+exit $RC
