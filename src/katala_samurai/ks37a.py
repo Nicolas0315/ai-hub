@@ -30,7 +30,6 @@ try:
     from .uncertainty_quantifier import quantify_uncertainty
     from .emergent_insight import InsightDetector
     from .self_corrector import SelfCorrector
-    from .toxicity_detector import ToxicityDetector
 except ImportError:
     from ks35c import KS35c, Claim
     from stage_store import StageStore

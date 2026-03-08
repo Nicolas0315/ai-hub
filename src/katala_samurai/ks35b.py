@@ -25,7 +25,6 @@ if _dir not in _sys.path:
 try:
     from .ks35a import KS35a, Claim
     from .stage_store import StageStore
-    from .toxicity_detector import ToxicityDetector
 except ImportError:
     from ks35a import KS35a, Claim
     from stage_store import StageStore

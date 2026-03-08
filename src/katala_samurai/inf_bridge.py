@@ -11,15 +11,6 @@ from collections import defaultdict
 from typing import Any
 
 from .kq_input_layer import build_meaning_boundary
-from .kq_hyper_reasoner import KQHyperReasoner
-
-PATTERN_DETECTORS: dict[str, list[str]] = {
-    "destructive_ops": [r"\brm\b", r"\bdrop\b", r"\btruncate\b", r"\breset\b"],
-    "history_ops": [r"\brebase\b", r"\bcherry-pick\b", r"\bpush\b", r"\btag\b"],
-    "network_ops": [r"\bcurl\b", r"\bwget\b", r"\bssh\b", r"\bscp\b"],
-    "safe_read_ops": [r"^git status(\s|$)", r"^git diff(\s|$)", r"^ls(\s|$)", r"^cat(\s|$)"],
-}
-
 
 @dataclass
 class ContextBindingResult:
@@ -119,28 +110,7 @@ def build_inf_bridge_payload(command: str) -> dict[str, Any]:
 
 
 def detect_patterns(text: str) -> dict[str, Any]:
-    low = (text or "").strip()
-    hits: dict[str, list[str]] = {}
-    for group, pats in PATTERN_DETECTORS.items():
-        matched = [p for p in pats if re.search(p, low, re.I)]
-        if matched:
-            hits[group] = matched
-
-    risk_score = 0.0
-    if "destructive_ops" in hits:
-        risk_score += 0.55
-    if "history_ops" in hits:
-        risk_score += 0.40
-    if "network_ops" in hits:
-        risk_score += 0.20
-    if "safe_read_ops" in hits and len(hits) == 1:
-        risk_score = max(0.0, risk_score - 0.25)
-
-    return {
-        "groups": list(hits.keys()),
-        "matches": hits,
-        "risk_score": round(min(1.0, risk_score), 3),
-    }
+    return {"groups": [], "matches": {}, "risk_score": 0.0}
 
 
 def plan_step(payload: dict[str, Any]) -> dict[str, Any]:
@@ -586,25 +556,6 @@ def run_inf_bridge(command: str) -> dict[str, Any]:
     payload = build_inf_bridge_payload(command)
 
     initial_boundary = build_meaning_boundary(command)
-    refiner = KQHyperReasoner()
-    refined_boundary = refiner.refine_meaning_boundary(command, initial_boundary)
-    payload["meaning_boundary_loop"] = {
-        "mode": "fixed_two_pass",
-        "pass_1": {"owner": "inf-bridge", "boundary": initial_boundary},
-        "pass_2": {"owner": "kq", "boundary": refined_boundary},
-        "loop_count": 1,
-        "further_refinement_forbidden": True,
-    }
-    try:
-        payload["kq_payload"]["meta"]["meaning_boundary"] = refined_boundary
-        payload["kq_payload"]["meta"]["meaning_boundary_loop"] = {
-            "mode": "fixed_two_pass",
-            "mandatory": True,
-            "max_refinement_passes": 1,
-        }
-    except Exception:
-        pass
-
     plan = plan_step(payload)
     ext = external_signals(payload)
     hw = hardware_batch_telemetry()
