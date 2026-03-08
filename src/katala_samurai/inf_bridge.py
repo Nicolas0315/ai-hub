@@ -565,16 +565,6 @@ def run_inf_bridge(command: str) -> dict[str, Any]:
     payload["hardware_batch_telemetry"] = hw
 
     plan["goal_hint"] = ext.get("goal_hint")
-
-    # Canonical Katala GU trigger: allow KQ-side unilateral reference to inf-Brain (read-only)
-    cmd_low = str(command or "").lower()
-    katala_gu_trigger = ("katala大統一理論" in str(command or "")) or ("katala grand unification theory" in cmd_low)
-    if katala_gu_trigger:
-        try:
-            payload["kq_payload"]["meta"]["kq_unilateral_inf_brain_reference"] = True
-            payload["kq_payload"]["meta"]["kq_unilateral_inf_brain_reference_mode"] = "read_write"
-        except Exception:
-            pass
     compute_meta = select_compute_meta_router(payload, plan, hw)
     payload["compute_meta_router"] = compute_meta
     execution_plan = _build_execution_role_plan(compute_meta, hw)
@@ -604,15 +594,8 @@ def run_inf_bridge(command: str) -> dict[str, Any]:
             "不一致は rejected_consistent_variant として保持する。",
             "最優先は R3/R8/Q5、次点は Q8/Q9/Q10/Q3。",
         ],
-        "access_policy": {
-            "inf_brain_reference_path": "kq-mediated-only",
-            "kq_unilateral_inf_brain_reference": "allowed_read_write",
-            "inf_brain_to_kq_backflow": "forbidden",
-            "direct_inf_coding_to_inf_brain": "forbidden",
-            "direct_inf_bridge_to_inf_brain": "forbidden",
-        },
     }
-
+    cmd_low = str(command or "").lower()
     assimilation_trigger = any(k in cmd_low for k in ["本番同化", "observation assimilation", "同化バンドル"])
     payload["observation_assimilation_control"] = {
         "mode": "control_plane_only",

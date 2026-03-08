@@ -1,0 +1,63 @@
+{
+  "timestamp": "2026-03-08T02:31:57.263303+00:00",
+  "repo_root": "/mnt/c/Users/ogosh/Documents/NICOLAS/Katala",
+  "viszagi_root": "/mnt/c/Users/ogosh/Documents/NICOLAS/Katala/ViszAGI",
+  "entrypoint": "/mnt/c/Users/ogosh/Documents/NICOLAS/Katala/visz_coding_entry.py",
+  "checks": {
+    "required_files": {
+      "ok": true,
+      "details": [
+        "OK main.py",
+        "OK requirements.txt",
+        "OK app/__init__.py",
+        "OK app/config.py",
+        "OK app/llm_client.py",
+        "OK app/models.py",
+        "OK app/policy.py",
+        "OK app/router.py",
+        "OK app/discord_bot.py",
+        "OK app/persona.py",
+        "OK bridges/__init__.py",
+        "OK bridges/visz_coding_bridge.py"
+      ],
+      "warnings": []
+    },
+    "entrypoint_protocol": {
+      "ok": false,
+      "details": [],
+      "warnings": [
+        "Entrypoint returned error payload: {'ok': False, 'error': {'code': 'LLM_REQUEST_FAILED', 'message': \"Error code: 401 - {'type': 'error', 'error': {'type': 'authentication_error', 'message': 'invalid x-api-key'}, 'request_id': 'req_011CYpq2Z6Rahwep1PERRGCV'}\"}, 'meta': {'engine': 'vis-Coding', 'request_id': 'diagnostic-bridge-test', 'timestamp': '2026-03-08T02:31:56.000890+00:00', 'route': ['discord_input', 'vis_coding_preprocess', 'viszbot_pre_llm', 'llm', 'viszbot_post_llm', 'vis_coding_postprocess', 'discord_output'], 'llm': {'backend': 'anthropic', 'model': 'claude-opus-4-6'}}}"
+      ]
+    },
+    "bridge_boundary": {
+      "ok": true,
+      "details": [
+        "Bridge boundary looks compliant"
+      ],
+      "warnings": []
+    },
+    "bridge_command_resolution": {
+      "ok": true,
+      "details": [
+        "Resolved bridge command: ['python', '/mnt/c/Users/ogosh/Documents/NICOLAS/Katala/visz_coding_entry.py']"
+      ],
+      "warnings": []
+    },
+    "module_imports": {
+      "ok": true,
+      "details": [
+        "Imported: app.config, app.models, app.router, app.persona, app.llm_client"
+      ],
+      "warnings": []
+    },
+    "llm_backend": {
+      "ok": true,
+      "details": [
+        "Resolved backend: anthropic",
+        "Configured model: claude-opus-4-6"
+      ],
+      "warnings": []
+    }
+  },
+  "overall_ok": false
+}
