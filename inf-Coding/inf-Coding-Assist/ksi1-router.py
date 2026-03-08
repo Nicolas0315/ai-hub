@@ -23,9 +23,25 @@ from katala_samurai.inf_bridge import (
     purge_stale_goal_history,
 )
 from katala_samurai.inf_coding_adapter import emit_router_event
-from katala_samurai.inf_brain_layer import run_inf_brain_layer
-from katala_samurai.inf_brain_layer_policy import sanitize_inf_brain_output, validate_inf_brain_output
 from katala_samurai.kq_input_layer import build_kq_input_packet
+from kq_solver_unit import run_solver_unit_pipeline
+
+try:
+    from katala_samurai.inf_brain_layer import run_inf_brain_layer
+    from katala_samurai.inf_brain_layer_policy import sanitize_inf_brain_output, validate_inf_brain_output
+except Exception:
+    def run_inf_brain_layer(command: str, unified: dict | None = None) -> dict:
+        return {
+            "enabled": False,
+            "reason": "inf_brain_layer_unavailable",
+            "command": command,
+        }
+
+    def sanitize_inf_brain_output(payload: dict | None) -> dict:
+        return payload or {}
+
+    def validate_inf_brain_output(payload: dict | None) -> dict:
+        return {"ok": True, "reason": "inf_brain_layer_unavailable"}
 
 try:
     from katala_samurai.kq_symbolic_bridge import (
@@ -175,9 +191,42 @@ def _formal_probe(command: str, bridge: dict | None = None) -> dict:
     return {"enabled": True, "kind": "symbolic", "result": r, "unified": unified, "inf_brain": inf_brain, "inf_brain_validation": inf_brain_validation}
 
 
-def decide_route(command: str, input_packet: dict | None = None) -> tuple[str, dict]:
+def run_two_pass_boundary_loop(command: str) -> tuple[str, dict, dict, dict]:
+    current_command = command
+    final_packet: dict = {}
+    final_bridge: dict = {}
+    passes: list[dict] = []
+
+    for index in range(2):
+        packet = build_kq_input_packet(current_command).to_dict()
+        bridge = run_inf_bridge(packet.get("normalized_input") or current_command)
+        current_command = ((bridge.get("input") or {}).get("normalized") or packet.get("normalized_input") or current_command).strip()
+        passes.append({
+            "index": index + 1,
+            "normalized_input": packet.get("normalized_input"),
+            "bridge_verdict": ((bridge.get("context_binding") or {}).get("verdict")),
+            "bridge_reason": ((bridge.get("context_binding") or {}).get("reason")),
+        })
+        final_packet = packet
+        final_bridge = bridge
+
+    loop_trace = {
+        "fixed_two_pass_required": True,
+        "completed_passes": len(passes),
+        "passes": passes,
+        "route_path": ["inf-coding", "inf-bridge", "kq", "inf-bridge", "kq", "katala"],
+    }
+    return current_command, final_packet, final_bridge, loop_trace
+
+
+def decide_route(
+    command: str,
+    input_packet: dict | None = None,
+    bridge_result: dict | None = None,
+    loop_trace: dict | None = None,
+) -> tuple[str, dict]:
     pre_kq_command = ((input_packet or {}).get("normalized_input") if isinstance(input_packet, dict) else None) or command
-    bridge = run_inf_bridge(pre_kq_command)
+    bridge = bridge_result if isinstance(bridge_result, dict) else run_inf_bridge(pre_kq_command)
     bridge_plan = bridge.get("plan") or {}
     normalized_command = (bridge.get("input") or {}).get("normalized") or command
     cbind = (bridge.get("context_binding") or {})
@@ -296,6 +345,17 @@ def decide_route(command: str, input_packet: dict | None = None) -> tuple[str, d
         route = 'strict'
         reason = 'inf_brain_schema_violation'
 
+    solver_unit = run_solver_unit_pipeline(
+        normalized_command,
+        input_packet=input_packet,
+        bridge_result=bridge,
+        formal_probe=formal,
+    )
+    mandatory_gate = solver_unit.get('mandatory_gate') or {}
+    if not bool(mandatory_gate.get('passed', False)):
+        route = 'strict'
+        reason = 'solver_unit_gate_requires_strict'
+
     # inf-Bridge plan hint has final safety priority
     if bridge_hint == 'strict' and route != 'strict':
         route = 'strict'
@@ -317,6 +377,8 @@ def decide_route(command: str, input_packet: dict | None = None) -> tuple[str, d
         'series': model_status.get('series'),
         'inf_bridge': bridge,
         'formal_probe': formal,
+        'solver_unit': solver_unit,
+        'loop_trace': loop_trace,
         'route_ab_evaluation': (bridge.get('route_ab_evaluation') if isinstance(bridge, dict) else None),
     }
     emit_router_event(detail['model'], {
@@ -390,8 +452,7 @@ def _post_response_cleanup() -> None:
 
 
 def _kq_mandatory_gate_enabled() -> bool:
-    v = os.getenv("KQ_MANDATORY_GATE", "1").strip().lower()
-    return v in {"1", "true", "yes", "on"}
+    return True
 
 
 def main() -> int:
@@ -407,9 +468,21 @@ def main() -> int:
     goal_history_path = make_ephemeral_goal_history_file()
     try:
         command = ' '.join(sys.argv[1:])
-        input_packet = build_kq_input_packet(command).to_dict()
-        append_ephemeral_audit(audit_path, {"event": "start", "command": command, "kq_input_layer": input_packet})
-        append_goal_event(goal_history_path, {"event": "goal_set", "goal": command, "kq_input_layer": input_packet})
+        normalized_command, input_packet, bridge_result, loop_trace = run_two_pass_boundary_loop(command)
+        append_ephemeral_audit(audit_path, {
+            "event": "start",
+            "command": command,
+            "normalized_command": normalized_command,
+            "kq_input_layer": input_packet,
+            "loop_trace": loop_trace,
+        })
+        append_goal_event(goal_history_path, {
+            "event": "goal_set",
+            "goal": command,
+            "normalized_goal": normalized_command,
+            "kq_input_layer": input_packet,
+            "loop_trace": loop_trace,
+        })
 
         if _kq_mandatory_gate_enabled() and not input_packet:
             blocked = {
@@ -421,7 +494,12 @@ def main() -> int:
             append_goal_event(goal_history_path, {"event": "goal_blocked", **blocked})
             return 74
 
-        route, detail = decide_route(command, input_packet=input_packet)
+        route, detail = decide_route(
+            command,
+            input_packet=input_packet,
+            bridge_result=bridge_result,
+            loop_trace=loop_trace,
+        )
         if input_packet.get('violations'):
             if _kq_mandatory_gate_enabled():
                 blocked = {
@@ -444,12 +522,14 @@ def main() -> int:
             "reason": detail.get('reason'),
             "model": detail.get('model'),
             "verdict": detail.get('verdict'),
+            "loop_trace": detail.get('loop_trace'),
         })
         append_goal_event(goal_history_path, {
             "event": "goal_route",
             "route": route,
             "reason": detail.get('reason'),
             "model": detail.get('model'),
+            "loop_trace": detail.get('loop_trace'),
         })
 
         env = os.environ.copy()
@@ -457,6 +537,9 @@ def main() -> int:
         env['KSI_MODEL_ACTIVE'] = detail.get('model', '')
         env['INF_BRIDGE_TRUST'] = (((detail.get('inf_bridge') or {}).get('input') or {}).get('source_trust') or 'untrusted')
         env['INF_CODING_PASSED'] = '1'
+        env['KSI_SOLVER_UNIT_JSON'] = json.dumps(detail.get('solver_unit') or {}, ensure_ascii=False)
+        env['KQ_MANDATORY_GATE'] = '1'
+        env['KQ_ALWAYS_ON'] = '1'
         if route == 'strict' and (detail.get('model') or '').upper() != 'KS47':
             env['INF_CODING_DISPLAY_PREFIX'] = KATALA_THOUGHT_PREFIX
             env['KL_PASSED'] = '1'
@@ -465,6 +548,17 @@ def main() -> int:
             env['KL_PASSED'] = '0'
         env['KQ_MANDATORY_GATE_ACTIVE'] = '1' if _kq_mandatory_gate_enabled() else '0'
         env['KQ_INPUT_PACKET_JSON'] = json.dumps(input_packet, ensure_ascii=False)
+
+        solver_unit_gate = ((detail.get('solver_unit') or {}).get('mandatory_gate') or {})
+        if _kq_mandatory_gate_enabled() and not bool(solver_unit_gate.get('required')):
+            blocked = {
+                'blocked': True,
+                'reason': 'solver_unit_gate_missing',
+            }
+            print(json.dumps(blocked, ensure_ascii=False))
+            append_ephemeral_audit(audit_path, {"event": "blocked", **blocked})
+            append_goal_event(goal_history_path, {"event": "goal_blocked", **blocked})
+            return 74
 
         if _requires_upstream_mutation_approval(command) and not _has_upstream_mutation_approval():
             blocked = {
