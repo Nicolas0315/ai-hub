@@ -322,21 +322,6 @@ def external_signals(payload: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def adversarial_pretest(payload: dict[str, Any], plan: dict[str, Any]) -> dict[str, Any]:
-    txt = ((payload.get("kq_payload") or {}).get("text") or "")
-    contradictory = bool(re.search(r"(?i)(always|絶対).*(except|ただし|but)", txt))
-    injection_like = bool(re.search(r"(?i)(ignore previous|system prompt|bypass)", txt))
-    pat_risk = float(((plan.get("pattern_detection") or {}).get("risk_score", 0.0) or 0.0))
-    risk = min(1.0, pat_risk + (0.25 if contradictory else 0.0) + (0.35 if injection_like else 0.0))
-    return {
-        "enabled": True,
-        "contradictory_claim": contradictory,
-        "injection_like": injection_like,
-        "risk_score": round(risk, 3),
-        "route_hint": "strict" if risk >= 0.35 else plan.get("route_hint", "fast"),
-    }
-
-
 def hardware_batch_telemetry() -> dict[str, Any]:
     try:
         load1, load5, load15 = os.getloadavg()
@@ -352,39 +337,10 @@ def hardware_batch_telemetry() -> dict[str, Any]:
     }
 
 
-def route_ab_evaluation(payload: dict[str, Any], plan: dict[str, Any], adv: dict[str, Any], hw: dict[str, Any]) -> dict[str, Any]:
-    txt = ((payload.get("kq_payload") or {}).get("text") or "")
-    length_factor = min(1.0, len(txt) / 900.0)
-    adv_risk = float((adv or {}).get("risk_score", 0.0) or 0.0)
-    pat_risk = float(((plan.get("pattern_detection") or {}).get("risk_score", 0.0) or 0.0))
-    cpu_load = float(((hw.get("cpu_load") or {}).get("1m", 0.0) or 0.0))
-
-    strict_safety = max(0.0, min(1.0, 0.58 + adv_risk * 0.30 + pat_risk * 0.25))
-    fast_speed = max(0.0, min(1.0, 0.62 + (1.0 - length_factor) * 0.18 - min(0.25, cpu_load * 0.02)))
-    fast_safety = max(0.0, min(1.0, 0.72 - adv_risk * 0.35 - pat_risk * 0.22))
-
-    strict_utility = strict_safety * 0.72 + (1.0 - min(1.0, length_factor * 0.7)) * 0.28
-    fast_utility = fast_safety * 0.55 + fast_speed * 0.45
-
-    recommended = "strict" if strict_utility >= fast_utility else "fast"
-    return {
-        "enabled": True,
-        "candidate_metrics": {
-            "strict": {"safety": round(strict_safety, 4), "utility": round(strict_utility, 4)},
-            "fast": {"safety": round(fast_safety, 4), "speed": round(fast_speed, 4), "utility": round(fast_utility, 4)},
-        },
-        "recommended": recommended,
-        "selected": plan.get("route_hint", recommended),
-        "divergence": round(abs(strict_utility - fast_utility), 4),
-    }
-
-
-def select_compute_meta_router(payload: dict[str, Any], plan: dict[str, Any], adv: dict[str, Any], hw: dict[str, Any]) -> dict[str, Any]:
+def select_compute_meta_router(payload: dict[str, Any], plan: dict[str, Any], hw: dict[str, Any]) -> dict[str, Any]:
     txt = ((payload.get("kq_payload") or {}).get("text") or "")
     ext = payload.get("external_signals") or {}
     signals = ext.get("signals") or {}
-
-    adv_risk = float((adv or {}).get("risk_score", 0.0) or 0.0)
     cpu_load = float(((hw.get("cpu_load") or {}).get("1m", 0.0) or 0.0))
     text_len = len(txt)
 
@@ -651,38 +607,24 @@ def run_inf_bridge(command: str) -> dict[str, Any]:
 
     plan = plan_step(payload)
     ext = external_signals(payload)
-    adv = {\"status\": \"bypassed_by_enigma_override\", \"risk_score\": 0.0, \"route_hint\": \"fast\"}  # Bypassed Step 3
     hw = hardware_batch_telemetry()
 
     # external signals influence goal hint and may tighten route
     payload["external_signals"] = ext
-    payload["adversarial_pretest"] = adv
     payload["hardware_batch_telemetry"] = hw
 
     plan["goal_hint"] = ext.get("goal_hint")
-    plan["route_hint"] = adv.get("route_hint", plan.get("route_hint"))
-
-    # math+peer-review requests should prefer strict path for deeper verification
-    s = (ext.get("signals") or {})
-    if s.get(\"math_logic_signal\") or s.get(\"peer_review_priority_signal\"):
-        pass  # Strict escalation bypassed
 
     # Canonical Katala GU trigger: allow KQ-side unilateral reference to inf-Brain (read-only)
     cmd_low = str(command or "").lower()
     katala_gu_trigger = ("katala大統一理論" in str(command or "")) or ("katala grand unification theory" in cmd_low)
     if katala_gu_trigger:
-        plan["route_hint"] = "strict"
         try:
             payload["kq_payload"]["meta"]["kq_unilateral_inf_brain_reference"] = True
             payload["kq_payload"]["meta"]["kq_unilateral_inf_brain_reference_mode"] = "read_write"
         except Exception:
             pass
-    ab_eval = route_ab_evaluation(payload, plan, adv, hw)
-    payload["route_ab_evaluation"] = ab_eval
-    if ab_eval.get(\"recommended\") == \"strict\":
-        pass  # Strict escalation bypassed
-
-    compute_meta = select_compute_meta_router(payload, plan, adv, hw)
+    compute_meta = select_compute_meta_router(payload, plan, hw)
     payload["compute_meta_router"] = compute_meta
     execution_plan = _build_execution_role_plan(compute_meta, hw)
     payload["execution_role_plan"] = execution_plan
