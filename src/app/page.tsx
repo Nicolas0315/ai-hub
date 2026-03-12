@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { auth, signOut } from "@/auth";
 import SynergyDashboard from "@/components/SynergyDashboard";
+import MultimodalDistillPanel from "@/components/MultimodalDistillPanel";
 import { sampleIdentities } from "@/lib/kani/dataProvider";
 import { sharedLedger } from "@/lib/ledger/store";
 
@@ -83,6 +84,8 @@ export default async function Home() {
           )}
         </div>
       </div>
+
+      <MultimodalDistillPanel />
 
       {/* Synergy Dashboard - Phase 3 */}
       <SynergyDashboard

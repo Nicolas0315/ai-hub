@@ -58,3 +58,9 @@ ks40b-lite/target/
 .vercel
 ks_engine/target/
 ks46/target
+
+# Private Visz workspaces
+/ViszAGI/
+/ViszBot_Beta/
+/ViszBotDebug/
+/ViszBot-Debug/
