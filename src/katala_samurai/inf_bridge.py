@@ -307,6 +307,99 @@ def hardware_batch_telemetry() -> dict[str, Any]:
     }
 
 
+def route_ab_evaluation(payload: dict[str, Any], plan: dict[str, Any], hw: dict[str, Any]) -> dict[str, Any]:
+    """Evaluate the first-class A/B split for Katala-first routing.
+
+    Step 1 of the redesign fixes the split axis explicitly:
+      A = meaning/spec
+      B = execution/materialization
+
+    The output is an artifact, not a hidden prompt heuristic.
+    """
+    txt = ((payload.get("kq_payload") or {}).get("text") or "")
+    ext = payload.get("external_signals") or {}
+    signals = ext.get("signals") or {}
+    cpu_load = float(((hw.get("cpu_load") or {}).get("1m", 0.0) or 0.0))
+    pattern_risk = float((((plan.get("pattern_detection") or {}).get("risk_score", 0.0)) or 0.0))
+    purpose_score = float(((payload.get("context_binding") or {}).get("purpose_score", 0.0) or 0.0))
+    text_len = len(txt)
+
+    clarification_pressure = 0.0
+    if "?" in txt or "？" in txt:
+        clarification_pressure += 0.16
+    if any(k in txt.lower() for k in ["why", "what", "how", "意味", "方針", "方向性", "整理"]):
+        clarification_pressure += 0.18
+
+    action_pressure = 0.0
+    if any(k in txt.lower() for k in ["implement", "fix", "build", "patch", "write code", "実装", "修正", "作って", "進めて"]):
+        action_pressure += 0.28
+    if signals.get("deadline_signal"):
+        action_pressure += 0.12
+    if signals.get("security_signal"):
+        action_pressure += 0.08
+
+    a_meaning_spec = 0.52
+    a_meaning_spec += min(0.20, text_len / 2400.0)
+    a_meaning_spec += pattern_risk * 0.22
+    a_meaning_spec += clarification_pressure
+    a_meaning_spec += max(0.0, 0.12 - cpu_load * 0.01)
+
+    b_execution_materialization = 0.34
+    b_execution_materialization += action_pressure
+    b_execution_materialization += 0.10 if signals.get("math_logic_signal") else 0.0
+    b_execution_materialization += 0.08 if signals.get("research_signal") else 0.0
+    b_execution_materialization += purpose_score * 0.10
+    b_execution_materialization -= pattern_risk * 0.10
+
+    a_meaning_spec = round(max(0.0, min(1.0, a_meaning_spec)), 4)
+    b_execution_materialization = round(max(0.0, min(1.0, b_execution_materialization)), 4)
+
+    if a_meaning_spec >= b_execution_materialization:
+        selected = "A"
+        selected_lane = "meaning_spec"
+        why = "Prioritize meaning/spec before any execution or materialization."
+    else:
+        selected = "B"
+        selected_lane = "execution_materialization"
+        why = "Execution pressure outweighs interpretation pressure."
+
+    divergence = round(abs(a_meaning_spec - b_execution_materialization), 4)
+    return {
+        "enabled": True,
+        "version": "route-ab-v2",
+        "axis_definition": {
+            "A": "meaning_spec",
+            "B": "execution_materialization",
+            "rule": "meaning/spec is the default first-pass authority unless execution pressure clearly dominates",
+        },
+        "candidate_metrics": {
+            "A": {
+                "lane": "meaning_spec",
+                "score": a_meaning_spec,
+                "drivers": {
+                    "pattern_risk": round(pattern_risk, 4),
+                    "clarification_pressure": round(clarification_pressure, 4),
+                    "text_len": text_len,
+                },
+            },
+            "B": {
+                "lane": "execution_materialization",
+                "score": b_execution_materialization,
+                "drivers": {
+                    "action_pressure": round(action_pressure, 4),
+                    "purpose_score": round(purpose_score, 4),
+                    "deadline_signal": bool(signals.get("deadline_signal")),
+                },
+            },
+        },
+        "selected": selected,
+        "selected_lane": selected_lane,
+        "default_first_pass": "A",
+        "divergence": divergence,
+        "reason": why,
+    }
+
+
 def select_compute_meta_router(payload: dict[str, Any], plan: dict[str, Any], hw: dict[str, Any]) -> dict[str, Any]:
     txt = ((payload.get("kq_payload") or {}).get("text") or "")
     ext = payload.get("external_signals") or {}
@@ -388,6 +481,7 @@ def build_meta_visualization(payload: dict[str, Any], plan: dict[str, Any]) -> d
             "risk_score": pd.get("risk_score", 0.0),
             "pattern_groups": pd.get("groups", []),
             "source_trust": ((payload.get("input") or {}).get("source_trust") or "untrusted"),
+            "ab_selected": ((payload.get("route_ab_evaluation") or {}).get("selected_lane") or "meaning_spec"),
             "compute_path": ((payload.get("compute_meta_router") or {}).get("selected") or "classical"),
         },
         "flow": [
@@ -566,6 +660,17 @@ def run_inf_bridge(command: str) -> dict[str, Any]:
     payload["hardware_batch_telemetry"] = hw
 
     plan["goal_hint"] = ext.get("goal_hint")
+    ab_eval = route_ab_evaluation(payload, plan, hw)
+    payload["route_ab_evaluation"] = ab_eval
+    try:
+        payload["kq_payload"]["meta"]["route_ab"] = {
+            "selected": ab_eval.get("selected"),
+            "selected_lane": ab_eval.get("selected_lane"),
+            "axis_definition": (ab_eval.get("axis_definition") or {}),
+        }
+    except Exception:
+        pass
+
     compute_meta = select_compute_meta_router(payload, plan, hw)
     payload["compute_meta_router"] = compute_meta
     execution_plan = _build_execution_role_plan(compute_meta, hw)

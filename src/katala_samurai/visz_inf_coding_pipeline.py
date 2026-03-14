@@ -12,6 +12,11 @@ from pathlib import Path
 from typing import Any
 
 from .inf_bridge import run_inf_bridge
+from .coding_b_orchestrator import (
+    GlobalSpec,
+    OpenClawSessionBinder,
+    execute_coding_hand_16_session_runtime,
+)
 
 WORKSPACE_ROOT = Path("/mnt/c/Users/ogosh/Documents/NICOLAS/Katala")
 INF_CODING_ROOT = WORKSPACE_ROOT / "inf-Coding"
@@ -102,6 +107,7 @@ class PipelineResult:
     cleanup: dict[str, Any] | None = None
     audit: dict[str, Any] | None = None
     error: dict[str, Any] | None = None
+    runtime: dict[str, Any] | None = None
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -332,6 +338,42 @@ def build_reply_payload(engine_packet: dict[str, Any], bridge_payload: dict[str,
     }
 
 
+def run_coding_hand_runtime(engine_packet: dict[str, Any], runtime_hooks: dict[str, Any] | None = None) -> dict[str, Any] | None:
+    if not runtime_hooks:
+        return None
+    spawn_fn = runtime_hooks.get("sessions_spawn")
+    delete_fn = runtime_hooks.get("session_delete") or runtime_hooks.get("subagents_kill")
+    send_fn = runtime_hooks.get("sessions_send")
+    if not callable(spawn_fn):
+        return None
+
+    spec = GlobalSpec(
+        goal=engine_packet.get("input_text") or "coding hand runtime",
+        invariants=[
+            "children must stay within owned paths",
+            "children are ephemeral and must be deleted after completion",
+        ],
+        integration_points=[
+            "A/B comparison must remain available to the parent",
+        ],
+        done_criteria=[
+            "child session produced a result or explicit blocked state",
+        ],
+        metadata={"request_id": engine_packet.get("request_id")},
+    )
+
+    a_groups = _runtime_path_groups(engine_packet, branch="A")
+    b_groups = _runtime_path_groups(engine_packet, branch="B")
+    binder = OpenClawSessionBinder(spawn_fn=spawn_fn, send_fn=send_fn, delete_fn=delete_fn)
+    return execute_coding_hand_16_session_runtime(
+        spec,
+        a_groups,
+        b_groups,
+        binder=binder,
+        parent_label=f"viszbot:{engine_packet.get('request_id')}",
+    )
+
+
 def process_discord_event(event: dict[str, Any]) -> dict[str, Any]:
     request: InfCodingRequest | None = None
     result: dict[str, Any] | None = None
@@ -360,6 +402,9 @@ def process_discord_event(event: dict[str, Any]) -> dict[str, Any]:
 
         engine_packet = build_engine_packet(request, normalized_packet, intent)
         bridge_payload = run_inf_bridge(engine_packet["input_text"])
+        runtime = None
+        if intent in {"execute", "analyze"}:
+            runtime = run_coding_hand_runtime(engine_packet, event.get("runtime_hooks"))
         reply = build_reply_payload(engine_packet, bridge_payload)
         result = PipelineResult(
             ok=True,
@@ -373,7 +418,9 @@ def process_discord_event(event: dict[str, Any]) -> dict[str, Any]:
                 "request_id": request.request_id,
                 "intent": intent,
                 "kept_meta_only": True,
+                "runtime_wired": runtime is not None,
             },
+            runtime=runtime,
         ).to_dict()
         return result
     except PhaseFailCloseError as exc:
@@ -438,3 +485,9 @@ def process_discord_event_json(raw_json: str) -> str:
             ensure_ascii=False,
         )
     return json.dumps(process_discord_event(event), ensure_ascii=False)
+
+
+def _runtime_path_groups(engine_packet: dict[str, Any], *, branch: str) -> list[list[str]]:
+    base = "analysis" if branch == "A" else "implementation"
+    request_id = str(engine_packet.get("request_id") or "runtime")[-8:]
+    return [[f"runtime/{base}/{request_id}/task_{i}.txt"] for i in range(1, 9)]
