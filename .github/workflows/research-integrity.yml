@@ -1,0 +1,119 @@
+name: Research Integrity Checks
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+  schedule:
+    - cron: '0 3 * * *'
+
+jobs:
+  deep-grammar-regression:
+    name: Deep Grammar Regression
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Run KQ deep grammar regression
+        run: python3 inf-Coding/inf-Coding-Assist/kq_deep_grammar_regression.py
+
+  logic-math-benchmark:
+    name: Logic/Math Benchmark
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Run KQ logic-math benchmark
+        run: python3 inf-Coding/inf-Coding-Assist/kq_logic_math_benchmark.py
+
+  iut-subset-check:
+    name: IUT Subset Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Run IUT core subset scaffold
+        run: python3 inf-Coding/inf-Coding-Assist/iut_subset_scaffold.py
+
+  rust-hotpath-check:
+    name: Rust Hotpath Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Install maturin
+        run: python3 -m pip install --upgrade pip maturin
+      - name: Build Rust extension
+        run: maturin develop --release --manifest-path rust/katala_rust_hotpath/Cargo.toml
+      - name: Enforce rust-only no-fallback
+        env:
+          KQ_RUST_ONLY: "1"
+        run: python3 inf-Coding/inf-Coding-Assist/rust_no_fallback_check.py
+      - name: Rust/Python parity (1000 cases)
+        run: python3 inf-Coding/inf-Coding-Assist/rust_hotpath_parity_check.py
+      - name: Strict-heavy compare (stdout only)
+        run: python3 inf-Coding/inf-Coding-Assist/strict_heavy_compare_stdout.py
+
+  inf-theory-guard-check:
+    name: Inf-Theory Reverse-Flow Guard
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Ensure inf-theory cannot write back to KQ
+        run: python3 inf-Coding/inf-Coding-Assist/inf_theory_reverse_flow_guard_test.py
+
+  inf-model-guard-check:
+    name: Inf-Model Reverse-Flow Guard
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Ensure inf-model cannot write back to KQ/inf-theory
+        run: python3 inf-Coding/inf-Coding-Assist/inf_model_reverse_flow_guard_test.py
+
+  inf-memory-guard-check:
+    name: Inf-Memory Peer-Review Guard
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Ensure inf-memory only stores peer-reviewed sources and no write-back
+        run: python3 inf-Coding/inf-Coding-Assist/inf_memory_peer_review_guard_test.py
+
+  inf-brain-guard-check:
+    name: Inf-Brain Direction Guard
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Ensure inf-brain has no reverse access to KQ
+        run: python3 inf-Coding/inf-Coding-Assist/inf_brain_reverse_flow_guard_test.py
+
+  observation-manifest-guard-check:
+    name: Observation Manifest Dedup Guard
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Validate observation manifest template
+        run: python3 inf-Coding/inf-Coding-Assist/observation_manifest_guard.py inf-Coding/inf-Coding-Assist/observation_manifest_template.json

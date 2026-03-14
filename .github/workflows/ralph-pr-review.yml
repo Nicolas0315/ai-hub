@@ -135,7 +135,7 @@ jobs:
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 issue_number: context.issue.number,
-                labels: ['ralph-reviewed', 'ready-to-merge']
+                labels: ['ralph-reviewed', 'ralph-approved']
               });
             } else if (verdict === 'REQUEST_CHANGES') {
               await github.rest.issues.addLabels({
